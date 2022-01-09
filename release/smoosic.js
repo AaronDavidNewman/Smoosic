@@ -1052,6 +1052,7 @@ const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./sr
 const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -1116,7 +1117,7 @@ exports.Smo = {
     StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: textCheck_1.TextCheckComponent,
     SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
     // Rendering components
-    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
+    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SvgHelpers: svgHelpers_1.SvgHelpers, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
@@ -1348,12 +1349,9 @@ exports.SuiKeyCommands = SuiKeyCommands;
 
 
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Draggable = exports.draggable = exports.createTopDomContainer = exports.getDomContainer = exports.closeDialogPromise = exports.InputTrapper = exports.addFileLink = exports.focusableElements = exports.buildDom = exports.DomBuilder = void 0;
-// var smoDomBuilder = function (el) {}
-// # htmlHelpers
-// # Description:
-//  Helper functions for buildling UI elements
 /**
 * returns an object that  lets you build a DOM in a somewhat readable way.
 *
@@ -1368,7 +1366,7 @@ exports.Draggable = exports.draggable = exports.createTopDomContainer = exports.
 * ```
 * Don't forget the '.dom()' !  That is the actual jquery element object
 * @returns
-*/
+**/
 class DomBuilder {
     constructor(el) {
         this.e = $('<' + el + '/>');
@@ -6200,7 +6198,7 @@ class SuiRenderState {
         for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
             const scaledPage = layoutMgr.getScaledPageLayout(i);
             const y = scaledPage.pageHeight * i;
-            svgHelpers_1.SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y, { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+            svgHelpers_1.SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y, { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
         }
     }
     // ### _replaceMeasures
@@ -8457,6 +8455,15 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this._undoScore('Set Page Layout');
         this.score.layoutManager.updatePage(layout, pageIndex);
         this.storeScore.layoutManager.updatePage(layout, pageIndex);
+        // If we are in part mode, save the page layout in the part so it is there next time
+        // the part is exposed.
+        if (this.score.isPartExposed()) {
+            this.score.staves.forEach((staff, staffIx) => {
+                staff.partInfo.layoutManager.updatePage(layout, pageIndex);
+                const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
+                altStaff.partInfo.layoutManager.updatePage(layout, pageIndex);
+            });
+        }
         this.renderer.rerenderAll();
         return this.renderer.updatePromise();
     }
@@ -9103,19 +9110,21 @@ class SvgHelpers {
     }
     // ### eraseOutline
     // Erases old outlineRects.
-    static eraseOutline(svg, style) {
-        $(svg).find(style).remove();
+    static eraseOutline(svg, stroke) {
+        // Hack:  Assume a stroke style, should just take a stroke param.
+        $(svg).find('g.vf-' + stroke.strokeName).remove();
     }
     static _outlineRect(params) {
         const scroll = params.scroll;
         const context = params.context;
         // vex puts 'vf-' before everything rendered by context API
-        SvgHelpers.eraseOutline(context.svg, 'g.vf-' + params.classes);
+        SvgHelpers.eraseOutline(context.svg, params.stroke);
         // Don't highlight in print mode.
         if ($('body').hasClass('printing')) {
             return;
         }
-        var grp = context.openGroup(params.classes, params.classes + '-outline');
+        const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
+        var grp = context.openGroup(classes, classes + '-outline');
         const boxes = Array.isArray(params.box) ? params.box : [params.box];
         boxes.forEach((box) => {
             if (box) {
@@ -9139,6 +9148,7 @@ class SvgHelpers {
         SvgHelpers._outlineRect(params);
     }
     static outlineLogicalRect(params) {
+        params.clientCoordinates = false;
         SvgHelpers._outlineRect(params);
     }
     static setSvgStyle(element, attrs) {
@@ -9179,7 +9189,7 @@ class SvgHelpers {
         svg.appendChild(line);
     }
     static arrowDown(svg, box) {
-        const arrowStroke = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
+        const arrowStroke = { strokeName: 'arrow-stroke', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
         SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
         var arrowY = box.y + box.height / 4;
         SvgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
@@ -9512,23 +9522,25 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const VF = eval('Vex.Flow');
-// The heirarchy of text editing objects goes:
-// dialog -> component -> session -> editor
-//
-// Editors and Sessions are defined in this module.
-// ### editor
-//  handles low-level events and renders the preview using one
-// of the text layout objects.
-//
-// ### session
-// creates and destroys editors, e.g. for lyrics that have a Different
-// editor instance for each note.
-//
-// ## SuiTextEditor
-// Next-gen text editor.  The base text editor handles the positioning and inserting
-// of text blocks into the text area.  The derived class shoud interpret key events.
-// A container class will manage the session for starting/stopping the editor
-// and retrieving the results into the target object.
+/**
+ * The heirarchy of text editing objects goes:
+ *
+ * `dialog -> component -> session -> editor`
+ *
+ * Editors and Sessions are defined in this module.
+ * ### editor
+ * handles low-level events and renders the preview using one
+ * of the text layout objects.
+ * ### session
+ * creates and destroys editors, e.g. for lyrics that have a Different
+ * editor instance for each note.
+ *
+ * ## SuiTextEditor
+ * The base text editor handles the positioning and inserting
+ * of text blocks into the text area.  The derived class shoud interpret key events.
+ * A container class will manage the session for starting/stopping the editor
+ * and retrieving the results into the target object.
+ * */
 class SuiTextEditor {
     constructor(params) {
         this.svgText = null;
@@ -9577,6 +9589,7 @@ class SuiTextEditor {
     static get strokes() {
         return {
             'text-suggestion': {
+                strokeName: 'text-suggestion',
                 stroke: '#cce',
                 strokeWidth: 1,
                 strokeDasharray: '4,1',
@@ -9584,22 +9597,35 @@ class SuiTextEditor {
                 opacity: 1.0
             },
             'text-selection': {
+                strokeName: 'text-selection',
                 stroke: '#99d',
                 strokeWidth: 1,
                 fill: 'none',
                 strokeDasharray: '',
                 opacity: 1.0
-            }, 'text-highlight': {
+            },
+            'text-highlight': {
+                strokeName: 'text-highlight',
                 stroke: '#dd9',
                 strokeWidth: 1,
                 strokeDasharray: '4,1',
                 fill: 'none',
                 opacity: 1.0
-            }, 'text-drag': {
+            },
+            'text-drag': {
+                strokeName: 'text-drag',
                 stroke: '#d99',
                 strokeWidth: 1,
                 strokeDasharray: '2,1',
                 fill: '#eee',
+                opacity: 0.3
+            },
+            'inactive-text': {
+                strokeName: 'inactive-text',
+                stroke: '#fff',
+                strokeWidth: 1,
+                strokeDasharray: '',
+                fill: '#ddd',
                 opacity: 0.3
             }
         };
@@ -9609,7 +9635,7 @@ class SuiTextEditor {
     _suggestionParameters(box, strokeName) {
         const outlineStroke = SuiTextEditor.strokes[strokeName];
         return {
-            context: this.context, box, classes: strokeName,
+            context: this.context, box, classes: '',
             stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
             clientCoordinates: false
         };
@@ -9657,7 +9683,7 @@ class SuiTextEditor {
         }), svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
         // The mouse is not over the text
         if (!blocks.length) {
-            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
             // If the user clicks and there was a previous selection, treat it as selected
             if (ev.type === 'click' && this.suggestionIndex >= 0) {
                 if (ev.shiftKey) {
@@ -9680,7 +9706,7 @@ class SuiTextEditor {
         });
         // if the user clicked on it, add it to the selection.
         if (ev.type === 'click') {
-            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
             if (ev.shiftKey) {
                 this._expandSelectionToSuggestion();
             }
@@ -9946,6 +9972,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
     // params: {lyric: SmoLyric,...}
     constructor(params) {
         super(params);
+        $(this.context.svg).find('g.vf-text-highlight').remove();
         this.parseBlocks();
     }
     _highlightEditor() {
@@ -9955,7 +9982,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
         const bbox = this.svgText.getLogicalBox();
         const outlineStroke = SuiTextEditor.strokes['text-highlight'];
         const obj = {
-            context: this.context, box: bbox, classes: 'text-highlight',
+            context: this.context, box: bbox, classes: '',
             stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
         };
         svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
@@ -10279,7 +10306,7 @@ class SuiDragSession {
         }
         const svgX = this.currentBox.x;
         const svgY = this.currentBox.y;
-        this.currentClientBox.x = e.clientX - this.xOffset;
+        this.currentClientBox.x = e.clientX + this.xOffset;
         this.currentClientBox.y = e.clientY - this.yOffset;
         const coor = svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, {
             x: this.currentClientBox.x + +this.scroller.scrollState.scroll.x,
@@ -10291,7 +10318,7 @@ class SuiDragSession {
         this.textObject.offsetStartX(this.currentBox.x - svgX);
         this.textObject.offsetStartY(this.currentBox.y - svgY);
         this.textObject.render();
-        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
         this._outlineBox();
     }
     get deltaX() {
@@ -10304,8 +10331,11 @@ class SuiDragSession {
         this.textObject.render();
         this.textGroup.offsetX(this.deltaX);
         this.textGroup.offsetY(this.deltaY);
+        // Update starting position if the drag session starts again.
+        this.startBox.x += this.deltaX;
+        this.startBox.y += this.deltaY;
         this.dragging = false;
-        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
     }
 }
 exports.SuiDragSession = SuiDragSession;
@@ -11575,7 +11605,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         this.idleTimer = Date.now();
-        this.eraseRect('staffModifier');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['staffModifier']);
         const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
         if (!this.modifierTabs.length) {
             return;
@@ -12005,6 +12035,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.modifierSuggestion >= 0) {
             if (this.suggestFadeTimer) {
                 clearTimeout(this.suggestFadeTimer);
+                this.suggestFadeTimer = null;
             }
             this.modifierIndex = -1;
             this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
@@ -12060,6 +12091,7 @@ class SuiTracker extends mapper_1.SuiMapper {
     static get strokes() {
         return {
             suggestion: {
+                strokeName: 'suggestion',
                 stroke: '#fc9',
                 strokeWidth: 2,
                 strokeDasharray: '4,1',
@@ -12067,6 +12099,7 @@ class SuiTracker extends mapper_1.SuiMapper {
                 opacity: 1.0
             },
             selection: {
+                strokeName: 'selection',
                 stroke: '#99d',
                 strokeWidth: 2,
                 strokeDasharray: 2,
@@ -12074,6 +12107,7 @@ class SuiTracker extends mapper_1.SuiMapper {
                 opacity: 1.0
             },
             staffModifier: {
+                strokeName: 'staffModifier',
                 stroke: '#933',
                 strokeWidth: 2,
                 fill: 'none',
@@ -12089,7 +12123,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         const tracker = this;
         this.suggestFadeTimer = setTimeout(() => {
             if (tracker.containsArtifact()) {
-                tracker.eraseRect('suggestion');
+                svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['suggestion']);
                 tracker.modifierSuggestion = -1;
             }
         }, 1000);
@@ -12113,13 +12147,9 @@ class SuiTracker extends mapper_1.SuiMapper {
         this._setFadeTimer();
     }
     eraseAllSelections() {
-        const strokeKeys = Object.keys(SuiTracker.strokes);
-        strokeKeys.forEach((key) => {
-            this.eraseRect(key);
+        Object.keys(SuiTracker.strokes).forEach((key) => {
+            svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes[key]);
         });
-    }
-    eraseRect(stroke) {
-        $(this.renderElement).find('g.vf-' + stroke).remove();
     }
     _highlightModifier() {
         let box = null;
@@ -12238,7 +12268,7 @@ class SuiTracker extends mapper_1.SuiMapper {
     _suggestionParameters(box, strokeName) {
         const stroke = SuiTracker.strokes[strokeName];
         return {
-            context: this.renderer.context, box, classes: strokeName,
+            context: this.renderer.context, box, classes: '',
             stroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
         };
     }
@@ -18375,9 +18405,10 @@ class SmoScore {
         score.scoreInfo.version += 1;
         return score;
     }
-    // ## fromLegacyScore
-    // Convert measure formatting from legacy scores, that had the formatting
-    // per measure, to the new way that has a separate formatting object.
+    /**
+    * Convert measure formatting from legacy scores, that had the formatting
+    * per measure, to the new way that has a separate formatting object.
+    * **/
     static measureFormatFromLegacyScore(score, jsonObj) {
         let current = null;
         let previous = null;
@@ -20058,6 +20089,12 @@ class SmoSystemStaff {
             this.partInfo = new partInfo_1.SmoPartInfo(partDefs);
         }
     }
+    /**
+     * Gets the instrument assigned to a given measure
+     * @param measureInstrumentMap
+     * @param measureIndex
+     * @returns
+     */
     static getStaffInstrument(measureInstrumentMap, measureIndex) {
         const keyar = Object.keys(measureInstrumentMap);
         let fit = 0;
@@ -21484,6 +21521,8 @@ const measureModifiers_2 = __webpack_require__(/*! ../data/measureModifiers */ "
 const xmlToSmo_1 = __webpack_require__(/*! ./xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 /**
  * Convert {@link SmoScore} object into a music XML serialization
+ *
+ * usage: `xdoc: XmlDocument = SmoToXml.convert(score)`
  * @category SmoToXml
  */
 class SmoToXml {
@@ -21496,6 +21535,7 @@ class SmoToXml {
         return JSON.parse(JSON.stringify({
             divisions: 0,
             measureNumber: 0,
+            transposeOffset: 0,
             tickCount: 0,
             voiceIndex: 0,
             keySignature: 'C',
@@ -21508,6 +21548,11 @@ class SmoToXml {
             clef: 'treble'
         }));
     }
+    /**
+     * see usage
+     * @param score
+     * @returns
+     */
     static convert(score) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const dom = xmlHelpers_1.XmlHelpers.createRootElement();
@@ -21552,6 +21597,7 @@ class SmoToXml {
             xmlHelpers_1.XmlHelpers.createAttributes(part, { id });
             smoState.measureNumber = 1;
             smoState.tickCount = 0;
+            smoState.transposeOffset = 0;
             smoState.staff = staff;
             smoState.slurs = [];
             smoState.lyricState = {};
@@ -21565,8 +21611,12 @@ class SmoToXml {
         });
         return dom;
     }
-    // ### measure
-    // .../part/measure
+    /**
+     * /score-partwise/part/measure
+     * @param measureElement
+     * @param smoState
+     * @returns
+     */
     static measure(measureElement, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         if (!smoState.measure) {
@@ -21609,7 +21659,12 @@ class SmoToXml {
         });
         SmoToXml.barline(measureElement, smoState, false);
     }
-    // /score-partwise/part/measure/barline
+    /**
+     * /score-partwise/part/measure/barline
+     * @param measureElement
+     * @param smoState
+     * @param start
+     */
     static barline(measureElement, smoState, start) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         let barlineElement = null;
@@ -21650,8 +21705,11 @@ class SmoToXml {
             xmlHelpers_1.XmlHelpers.createAttributes(repeatElement, { direction: 'backward' });
         }
     }
-    // ### slur
-    // /score-partwise/part/measure/note/notations/slur
+    /**
+     * /score-partwise/part/measure/note/notations/slur
+     * @param notationsElement
+     * @param smoState
+     */
     static slur(notationsElement, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const staff = smoState.staff;
@@ -21707,8 +21765,14 @@ class SmoToXml {
             xmlHelpers_1.XmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
         });
     }
-    // ### /score-partwise/measure/note/time-modification
-    // ### /score-partwise/measure/note/tuplet
+    /**
+     * /score-partwise/measure/note/time-modification
+     * /score-partwise/measure/note/tuplet
+     * @param noteElement
+     * @param notationsElement
+     * @param smoState
+     * @returns
+     */
     static tuplet(noteElement, notationsElement, smoState) {
         if (!smoState.measure) {
             return;
@@ -21742,7 +21806,11 @@ class SmoToXml {
             });
         }
     }
-    // ### /score-partwise/measure/note/pitch
+    /**
+     * /score-partwise/measure/note/pitch
+     * @param pitch
+     * @param noteElement
+     */
     static pitch(pitch, noteElement) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
@@ -21752,7 +21820,12 @@ class SmoToXml {
         nn(pitchElement, 'alter', { alter }, 'alter');
         nn(pitchElement, 'octave', pitch, 'octave');
     }
-    // ### /score-partwise/measure/beam
+    /**
+     * /score-partwise/measure/beam
+     * @param noteElement
+     * @param smoState
+     * @returns
+     */
     static beamNote(noteElement, smoState) {
         if (!smoState.note) {
             return;
@@ -21808,7 +21881,12 @@ class SmoToXml {
             smoState.beamState = SmoToXml.beamStates.none;
         }
     }
-    // ### /score-partwise/measure/direction/direction-type
+    /**
+     * /score-partwise/measure/direction/direction-type
+     * @param measureElement
+     * @param smoState
+     * @param beforeNote
+     */
     static direction(measureElement, smoState, beforeNote) {
         let addDirection = false;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
@@ -21880,7 +21958,11 @@ class SmoToXml {
             measureElement.appendChild(directionElement);
         }
     }
-    // ### /score-partwise/measure/note/lyric
+    /**
+     * /score-partwise/measure/note/lyric
+     * @param noteElement
+     * @param smoState
+     */
     static lyric(noteElement, smoState) {
         const smoNote = smoState.note;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
@@ -21910,7 +21992,11 @@ class SmoToXml {
             nn(lyricElement, 'text', lyric.getText(), '');
         });
     }
-    // ### /score-partwise/measure/note
+    /**
+     * /score-partwise/measure/note
+     * @param measureElement
+     * @param smoState
+     */
     static note(measureElement, smoState) {
         const note = smoState.note;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
@@ -21967,7 +22053,12 @@ class SmoToXml {
         }
         smoState.voiceTickIndex += 1;
     }
-    // ### /score-partwise/measure/attributes/key
+    /**
+     * /score-partwise/measure/attributes/key
+     * @param attributesElement
+     * @param smoState
+     * @returns
+     */
     static key(attributesElement, smoState) {
         let fifths = 0;
         if (!smoState.measure) {
@@ -21990,8 +22081,12 @@ class SmoToXml {
         nn(keyElement, 'mode', { mode: 'major' }, 'major');
         smoState.keySignature = measure.keySignature;
     }
-    // ### time
-    // score-partwise/part/measure/attributes/time
+    /**
+     * /score-partwise/part/measure/attributes/time
+     * @param attributesElement
+     * @param smoState
+     * @returns
+     */
     static time(attributesElement, smoState) {
         var _a;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
@@ -22007,8 +22102,12 @@ class SmoToXml {
         nn(timeElement, 'beat-type', time, 'beatType');
         smoState.timeSignature = measure.timeSignature;
     }
-    // ### clef
-    // /score-partwise/part/measure/attributes/clef
+    /**
+     * /score-partwise/part/measure/attributes/clef
+     * @param attributesElement
+     * @param smoState
+     * @returns
+     */
     static clef(attributesElement, smoState) {
         const measure = smoState.measure;
         if (!measure) {
@@ -22029,6 +22128,11 @@ class SmoToXml {
         }
         smoState.clef = measure.clef;
     }
+    /**
+     * /score-partwise/part/measure/attributes
+     * @param measureElement
+     * @param smoState
+     */
     static attributes(measureElement, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const attributesElement = measureElement.ownerDocument.createElement('attributes');
@@ -22039,9 +22143,30 @@ class SmoToXml {
         SmoToXml.key(attributesElement, smoState);
         SmoToXml.time(attributesElement, smoState);
         SmoToXml.clef(attributesElement, smoState);
+        SmoToXml.transpose(attributesElement, smoState);
         if (attributesElement.children.length > 0) {
             // don't add an empty attributes element
             measureElement.appendChild(attributesElement);
+        }
+    }
+    /**
+     * /score-partwise/part/measure/attributes/transpose
+     * @param attributesElement
+     * @param smoState
+     * @returns
+     */
+    static transpose(attributesElement, smoState) {
+        const measure = smoState.measure;
+        if (!measure) {
+            return;
+        }
+        if (measure.transposeIndex !== smoState.transposeOffset) {
+            smoState.transposeOffset = measure.transposeIndex;
+            const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
+            const xposeElement = nn(attributesElement, 'transpose', null, '');
+            const offset = (measure.transposeIndex * -1).toString();
+            ;
+            nn(xposeElement, 'chromatic', { offset: offset }, 'offset');
         }
     }
 }
@@ -22072,10 +22197,11 @@ const VF = eval('Vex.Flow');
  * @category SmoToXml
  * */
 class XmlHelpers {
-    // ### noteTypesToSmoMap
-    // mxml note 'types', really s/b stem types.
-    // For grace notes, we use the note type and not duration
-    // to get the flag
+    /**
+     * mxml note 'types', really s/b stem types.
+     * For grace notes, we use the note type and not duration
+     * to get the flag
+     */
     static get noteTypesToSmoMap() {
         return {
             'breve': 8192 * 4,
@@ -22539,6 +22665,8 @@ class XmlState {
         this.ties = {};
         this.wedges = {};
         this.hairpins = [];
+        this.instrument = staffModifiers_1.SmoInstrument.defaults;
+        this.instrumentMap = {};
         this.globalCursor = 0;
         this.staffVoiceHash = {};
         this.endingMap = {};
@@ -22588,6 +22716,8 @@ class XmlState {
         this.completedSlurs = [];
         this.completedTies = [];
         this.verseMap = {};
+        this.instrument.keyOffset = 0;
+        this.instrumentMap = {};
         this.formattingManager = new scoreModifiers_1.SmoFormattingManager(scoreModifiers_1.SmoFormattingManager.defaults);
     }
     // ### initializeForMeasure
@@ -23044,6 +23174,7 @@ const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const operations_1 = __webpack_require__(/*! ../xform/operations */ "./src/smo/xform/operations.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
  * @category SmoToXml
@@ -23194,6 +23325,11 @@ class XmlToSmo {
             });
         });
     }
+    /**
+     * After parsing the XML, resolve the voltas we've saved
+     * @param score
+     * @param state
+     */
     static setVoltas(score, state) {
         const endingMeasures = Object.keys(state.endingMap).map((k) => parseInt(k, 10));
         endingMeasures.forEach((em) => {
@@ -23208,8 +23344,12 @@ class XmlToSmo {
             });
         });
     }
-    // ### defaults
-    // /score-partwise/defaults
+    /**
+     * /score-partwise/defaults
+     * @param defaultsElement
+     * @param score
+     * @param layoutDefaults
+     */
     static defaults(defaultsElement, score, layoutDefaults) {
         // Default scale for mxml
         let scale = 1 / 7;
@@ -23256,6 +23396,7 @@ class XmlToSmo {
                 if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
                     const params = systemStaff_1.SmoSystemStaff.defaults;
                     params.staffId = staffId;
+                    params.measureInstrumentMap = xmlState.instrumentMap;
                     stavesForPart.push(new systemStaff_1.SmoSystemStaff(params));
                     staffId += 1;
                 }
@@ -23346,6 +23487,20 @@ class XmlToSmo {
             xmlState.keySignature = smoKey.letter.toUpperCase();
             if (smoKey.accidental !== 'n') {
                 xmlState.keySignature += smoKey.accidental;
+            }
+        }
+        const transposeNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(attributesNode, ['transpose']);
+        if (transposeNode.length) {
+            const offset = xmlHelpers_1.XmlHelpers.getNumberFromElement(transposeNode[0], 'chromatic', 0);
+            if (offset !== xmlState.instrument.keyOffset) {
+                xmlState.instrument.keyOffset = -1 * offset;
+                if (xmlState.instrumentMap[xmlState.measureIndex]) {
+                    xmlState.instrumentMap[xmlState.measureIndex].keyOffset = xmlState.instrument.keyOffset;
+                }
+                else {
+                    const params = xmlState.instrument;
+                    xmlState.instrumentMap[xmlState.measureIndex] = new staffModifiers_1.SmoInstrument(params);
+                }
             }
         }
         const currentTime = xmlState.timeSignature.split('/');
@@ -23603,6 +23758,7 @@ class XmlToSmo {
         xmlState.staffArray.forEach((staffData) => {
             const clef = staffData.clefInfo.clef;
             const params = measure_1.SmoMeasure.defaults;
+            params.transposeIndex = xmlState.instrument.keyOffset;
             params.clef = clef;
             const smoMeasure = measure_1.SmoMeasure.getDefaultMeasure(params);
             smoMeasure.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
@@ -35110,6 +35266,7 @@ class SuiDragText extends baseComponent_1.SuiComponentBase {
         $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
         if (this.session && this.session.dragging) {
             this.session.dragging = false;
+            this.session.endDrag();
         }
         this.running = false;
     }
@@ -40515,13 +40672,15 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         this.backup = this.modifier.serialize();
     }
     highlightActiveRegion() {
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
         if (this.activeScoreText.renderedBox) {
             const stroke = textEdit_1.SuiTextEditor.strokes['text-highlight'];
             const outline = {
                 context: this.view.renderer.context,
                 clientCoordinates: false,
-                classes: 'text-highlight',
+                classes: '',
                 stroke,
                 box: this.activeScoreText.renderedBox,
                 scroll: this.scroller.scrollState.scroll
@@ -40582,9 +40741,11 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         if (this.mouseClickHandler) {
             this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
         }
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-drag']);
         $('body').find('g.vf-text-highlight').remove();
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
         $('body').removeClass('showAttributeDialog');
         $('body').removeClass('textEditor');
         this.complete();
@@ -47857,31 +48018,7 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
-            }); /*
-          } else if (text === 'saveActions') {
-            SuiSaveActionsDialog.createAndDisplay({
-              ctor: 'SuiSaveActionsDialog',
-              id: 'save',
-              modifier: null,
-              completeNotifier: this.completeNotifier,
-              tracker: this.tracker,
-              undoBuffer: this.undoBuffer,
-              eventSource: this.eventSource,
-              view: this.view,
-              startPromise: this.closePromise
             });
-          } else if (text === 'playActions') {
-            SuiLoadActionsDialog.createAndDisplay({
-              ctor: 'SuiLoadActionsDialog',
-              id: 'loadAction',
-              modifier: null,
-              completeNotifier: this.completeNotifier,
-              tracker: this.tracker,
-              undoBuffer: this.undoBuffer,
-              eventSource: this.eventSource,
-              view: this.view,
-              startPromise: this.closePromise
-            });  */
         }
         else if (text === 'openFile') {
             (0, dialog_1.createAndDisplayDialog)(fileDialogs_1.SuiLoadFileDialog, {
@@ -48004,14 +48141,6 @@ SuiFileMenu.defaults = {
             icon: '',
             text: 'Import Midi',
             value: 'importMidi'
-        }, {
-            icon: 'folder-save',
-            text: 'Save Actions',
-            value: 'saveActions'
-        }, {
-            icon: 'icon-play3',
-            text: 'Play Actions',
-            value: 'playActions'
         }, {
             icon: '',
             text: 'Cancel',
@@ -48734,6 +48863,7 @@ const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/
 const scoreView_1 = __webpack_require__(/*! ../dialogs/scoreView */ "./src/ui/dialogs/scoreView.ts");
 const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
 const partInfo_1 = __webpack_require__(/*! ../dialogs/partInfo */ "./src/ui/dialogs/partInfo.ts");
+const pageLayout_1 = __webpack_require__(/*! ../dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts");
 class SuiPartMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -48780,13 +48910,42 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
             startPromise: this.closePromise
         });
     }
+    pageLayout() {
+        (0, dialog_1.createAndDisplayDialog)(pageLayout_1.SuiPageLayoutDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'layoutDialog',
+            ctor: 'SuiPageLayoutDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
     preAttach() {
-        if (this.view.storeScore.staves.length !== this.view.score.staves.length) {
-            return;
-        }
+        const fullScore = this.view.storeScore.staves.length === this.view.score.staves.length;
         const defs = [];
         this.menuItems.forEach((item) => {
-            if (item.value !== 'viewAll') {
+            // Only show 'display all' if the full score is not already displayed
+            if (item.value === 'viewAll') {
+                if (!fullScore) {
+                    defs.push(item);
+                }
+            }
+            else if (item.value === 'pageLayout') {
+                // only show the page layout in part menu if we are in part mode
+                if (this.view.score.isPartExposed() && fullScore === false) {
+                    defs.push(item);
+                }
+            }
+            else if (item.value === 'view') {
+                if (this.view.score.isPartExposed() === false) {
+                    // don't let the user restrict the view if we are already viewing a part.
+                    defs.push(item);
+                }
+            }
+            else {
                 defs.push(item);
             }
         });
@@ -48794,7 +48953,11 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
     }
     selection(ev) {
         const op = $(ev.currentTarget).attr('data-value');
-        if (op === 'view') {
+        if (op === 'pageLayout') {
+            this.pageLayout();
+            this.complete();
+        }
+        else if (op === 'view') {
             this.execView();
             this.complete();
         }
@@ -48824,6 +48987,10 @@ SuiPartMenu.defaults = {
             icon: '',
             text: 'Part Properties',
             value: 'editPart'
+        }, {
+            icon: '',
+            text: 'Page Layout',
+            value: 'pageLayout'
         }, {
             icon: '',
             text: 'View Parts/Staves',
@@ -48870,6 +49037,28 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
     }
     getDefinition() {
         return SuiScoreMenu.defaults;
+    }
+    preAttach() {
+        const defs = [];
+        this.menuItems.forEach((item) => {
+            // show these options no matter what
+            if (['fonts', 'cancel', 'identification', 'preferences'].findIndex((x) => x === item.value) >= 0) {
+                defs.push(item);
+            }
+            else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
+                if (this.view.score.isPartExposed() === false || this.view.storeScore.staves.length === 1) {
+                    // only show the page layout in score menu if we are in score mode
+                    defs.push(item);
+                }
+            }
+            else if (item.value === 'viewAll') {
+                // Only show 'view all' if we are not viewing all
+                if (this.score.staves.length < this.view.storeScore.staves.length) {
+                    defs.push(item);
+                }
+            }
+        });
+        this.menuItems = defs;
     }
     execStaffGroups() {
         (0, dialog_1.createAndDisplayDialog)(staffGroup_1.SuiStaffGroupDialog, {
@@ -48951,6 +49140,7 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
     }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
+        const partMode = this.view.score.isPartExposed() && this.view.score.staves.length !== this.view.storeScore.staves.length;
         if (text === 'pageLayout') {
             this.execPageLayout();
         }
@@ -48969,6 +49159,9 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         else if (text === 'identification') {
             this.execScoreId();
         }
+        else if (text === 'viewAll') {
+            this.view.viewAll();
+        }
         this.complete();
     }
     keydown() { }
@@ -48980,6 +49173,10 @@ SuiScoreMenu.defaults = {
             icon: '',
             text: 'Smoosic Preferences',
             value: 'preferences'
+        }, {
+            icon: '',
+            text: 'View All',
+            value: 'viewAll'
         }, {
             icon: '',
             text: 'Global Layout',
@@ -51202,6 +51399,7 @@ __exportStar(__webpack_require__(/*! ./src/application/eventHandler */ "./src/ap
 __exportStar(__webpack_require__(/*! ./src/application/exports */ "./src/application/exports.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/application/keyCommands */ "./src/application/keyCommands.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/common/promiseHelpers */ "./src/common/promiseHelpers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/common/htmlHelpers */ "./src/common/htmlHelpers.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/audio/oscillator */ "./src/render/audio/oscillator.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/audio/player */ "./src/render/audio/player.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/configuration */ "./src/render/sui/configuration.ts"), exports);
