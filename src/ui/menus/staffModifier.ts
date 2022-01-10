@@ -1,4 +1,6 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
+import { SuiScoreView } from '../../render/sui/scoreView';
+import { SmoOperation } from '../../smo/xform/operations';
 
 declare var $: any;
 
@@ -29,6 +31,10 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       text: 'nth ending',
       value: 'ending'
     }, {
+      icon: 'slur',
+      text: 'Reset slurs',
+      value: 'resetSlurs'
+    }, {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
@@ -50,6 +56,14 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.crescendo();
     } else if (op === 'decrescendo') {
       this.view.decrescendo();
+    } else if (op === 'resetSlurs') {
+      const self = this;
+      SuiScoreView.resetSlursHack(this.view.score);
+      SuiScoreView.resetSlursHack(this.view.storeScore);
+      this.view.refreshViewport().then(() => {
+        self.complete();
+      });
+      return;
     }
     // else cancel...
     this.complete();

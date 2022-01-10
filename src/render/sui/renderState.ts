@@ -196,9 +196,9 @@ export abstract class SuiRenderState {
         SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
-        if (!measure.format.isDefault && !printing) {
+        if (measure.format.systemBreak && !printing) {
           const starAr = [];
-          const symbol = measure.format.systemBreak ? '\u21b5' : '\u21b0';
+          const symbol = '\u21b0';
           starAr.push({ y: measure.svg.logicalBox.y - 5 });
           starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });

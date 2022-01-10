@@ -13,7 +13,6 @@ export interface LibraryParams {
   children: SmoLibrary[];
   data: any;
 }
-export interface librarySeed { alias: string, format: string, path: string }
 
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.

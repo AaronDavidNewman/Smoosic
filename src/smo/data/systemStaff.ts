@@ -9,7 +9,7 @@ import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
-import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, SmoSlur } from './staffModifiers';
 import { SmoPartInfo } from './partInfo';
 import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';

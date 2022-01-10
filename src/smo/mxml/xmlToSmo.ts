@@ -10,7 +10,6 @@ import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, SmoVolta, SmoBarline } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';
-import { emptyScoreJson } from '../../music/basic';
 import { SmoMusic } from '../data/music';
 import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -59,7 +58,7 @@ export class XmlToSmo {
       const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
       if (!scoreRoots.length) {
         // no score node
-        return SmoScore.deserialize(emptyScoreJson);
+        return SmoScore.getDefaultScore(SmoScore.defaults, SmoMeasure.defaults);
       }
 
       const scoreRoot = scoreRoots[0];
@@ -145,7 +144,7 @@ export class XmlToSmo {
       return rv;
     } catch (exc) {
       console.warn(exc);
-      return SmoScore.deserialize(emptyScoreJson);
+      return SmoScore.getDefaultScore(SmoScore.defaults, SmoMeasure.defaults);
     }
   }
   /**

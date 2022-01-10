@@ -24,18 +24,6 @@
 		}, {
 			"format": "smoosic",
 			"metadata": {
-				"name": "Bach Cantata BMV 68",
-				"composer": "JS Bach",
-				"tags": [
-					"keyboard",
-					"bach",
-          "trumpet"
-				]
-			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json"
-		}, {
-			"format": "smoosic",
-			"metadata": {
 				"name": "Bach Well-Tempered Clavier",
 				"composer": "JS Bach",
 				"tags": [

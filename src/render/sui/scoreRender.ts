@@ -209,7 +209,7 @@ export class SuiScoreRender extends SuiRenderState {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
         if (this.measureMapper !== null) {
           vxSystem.renderMeasure(measure, this.measureMapper, printing);
-          if (!printing && !measure.format.eq(SmoMeasureFormat.defaults)) {
+          if (!printing && !measure.format.isDefault) {
             const at = [];
             at.push({ y: measure.svg.logicalBox.y - 5 });
             at.push({ x: measure.svg.logicalBox.x + 25 });

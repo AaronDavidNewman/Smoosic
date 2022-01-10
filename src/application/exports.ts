@@ -7,7 +7,6 @@ import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiPiano } from '../render/sui/piano';
 import { SuiDom } from './dom';
-import { basicJson, emptyScoreJson } from '../music/basic';
 import { SuiHelp } from '../ui/help';
 import { ArticulationButtons } from '../ui/buttons/articulation';
 import { BeamButtons } from '../ui/buttons/beam';
@@ -199,8 +198,6 @@ export const Smo = {
     // Smo Transformers
     SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap
-    basicJson,
-    emptyScoreJson,
     // strings
     quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen,
     quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar

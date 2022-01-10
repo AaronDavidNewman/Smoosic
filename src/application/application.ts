@@ -23,7 +23,6 @@ import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { SuiMenuManager } from '../ui/menus/manager';
 import { BrowserEventSource } from '../ui/eventSource';
-import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
 import { RibbonButtons } from '../ui/buttons/ribbon';
@@ -408,23 +407,6 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Open source Serif screen font from Adobe',
     });
-  }
-
-  static get scoreLibrary(): librarySeed[] {
-    return [
-      { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
-      { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
-      { alias: 'bachcantata', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json'},
-      { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
-      { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
-      { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
-      { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
-      { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
-      { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
-      { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
-      { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
-      { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
-    ];
   }
   _deferCreateTranslator() {
     SuiDom.createUiDom(this.config.scoreDomContainer);

@@ -1496,6 +1496,30 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(fromSelector, toSelector);
     return this.renderer.updatePromise();
   }
+  removeSystemBreaks(): Promise<any> {
+    const label = 'set measure format';
+    const fromSelector = this.tracker.getExtremeSelection(-1).selector;
+    const toSelector = this.tracker.getExtremeSelection(1).selector;
+    const measureSelections = this.tracker.getSelectedMeasures();
+    // If the formatting is on a part, preserve it in the part's info
+    const isPart = this.isPartExposed();
+    measureSelections.forEach((m) => {
+      this._undoColumn(label, m.selector.measure);
+      const format = new SmoMeasureFormat(m.measure.format);
+      format.systemBreak = false;
+      SmoOperation.setMeasureFormat(this.score, m, format);
+      if (isPart) {
+        m.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
+      const alt = this._getEquivalentSelection(m);
+      SmoOperation.setMeasureFormat(this.storeScore, alt!, format);
+      if (isPart) {
+        alt!.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
+    });
+    this._renderRectangle(fromSelector, toSelector);
+    return this.renderer.updatePromise();
+  }
 
   playFromSelection() {
     var mm = this.tracker.getExtremeSelection(-1);

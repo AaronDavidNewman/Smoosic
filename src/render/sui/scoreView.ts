@@ -5,7 +5,7 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { StaffModifierBase, SmoSlur, SlurNumberParams, SmoSlurParams } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { PasteBuffer } from '../../smo/xform/copypaste';
@@ -16,6 +16,7 @@ import { SuiRenderDemon } from './layoutDemon';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { SmoRenderConfiguration } from './configuration';
 import { SuiRenderState } from './renderState';
+import { SmoOperation } from '../../smo/xform/operations';
 
 declare var $: any;
 
@@ -75,7 +76,7 @@ export abstract class SuiScoreView {
    * Await on the partial update of the score in the view
    * @returns 
    */
-   updatePromise(): Promise<any> {
+  updatePromise(): Promise<any> {
     return this.renderer.updatePromise();
   }
   /**
@@ -103,7 +104,7 @@ export abstract class SuiScoreView {
       const fc = (count: number) => {
         if (count > 0) {
           action();
-          self.renderer.updatePromise().then(() =>{
+          self.renderer.updatePromise().then(() => {
             fc(count - 1);
           });
         } else {
@@ -158,7 +159,7 @@ export abstract class SuiScoreView {
       UndoBuffer.bufferSubtypes.NONE);
   }
   _undoColumn(label: string, measureIndex: number) {
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.score, measureIndex }, 
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.score, measureIndex },
       UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.storeScore, measureIndex }, UndoBuffer.bufferSubtypes.NONE);
   }
@@ -176,7 +177,7 @@ export abstract class SuiScoreView {
     const sygrp = this.score.getSystemGroupForStaff(selection);
     if (sygrp) {
       startSelector.staff = sygrp.startSelector.staff;
-      startSelector.measure = selection.selector.measure;      
+      startSelector.measure = selection.selector.measure;
       endSelector.staff = sygrp.endSelector.staff;
       endSelector.measure = selection.selector.measure;
       // Because of the staff map, some staves may not be in the view,
@@ -278,10 +279,10 @@ export abstract class SuiScoreView {
   }
   _getEquivalentSelection(selection: SmoSelection): SmoSelection | null {
     try {
-      if (typeof(selection.selector.tick) === 'undefined') {
+      if (typeof (selection.selector.tick) === 'undefined') {
         return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
       }
-      if (typeof(selection.selector.pitches) === 'undefined') {
+      if (typeof (selection.selector.pitches) === 'undefined') {
         return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
           selection.selector.tick);
       }
@@ -374,7 +375,7 @@ export abstract class SuiScoreView {
     let i = 0;
     const partInfo = staff.partInfo;
     const startIndex = this.staffMap[staff.staffId] - partInfo.stavesBefore;
-    const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1; 
+    const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1;
     const exposeMap: ViewMapEntry[] = [];
     for (i = 0; i < this.storeScore.staves.length; ++i) {
       const show = (i >= startIndex && i < startIndex + partLength);
@@ -391,7 +392,7 @@ export abstract class SuiScoreView {
   _mapPartFormatting() {
     this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
     let replacedText = false;
-    this.score.staves.forEach((staff) => { 
+    this.score.staves.forEach((staff) => {
       staff.updateMeasureFormatsForPart();
       if (staff.partInfo.preserveTextGroups && !replacedText) {
         const tga: SmoTextGroup[] = [];
@@ -416,7 +417,7 @@ export abstract class SuiScoreView {
     }
     this._undoScore('change view');
     const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
-    const staveScore =  SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const staveScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     nscore.staves = [];
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
@@ -467,6 +468,28 @@ export abstract class SuiScoreView {
       }
     }
   }
+  /**
+   * Fix a bug where the endpoint of slurs is incorrect in saved files
+   * @param score 
+   */
+  static resetSlursHack(score: SmoScore) {
+    score.staves.forEach((staff) => {
+      staff.modifiers.forEach((mod) => {
+        if (mod instanceof SmoSlur) {
+          const slur = mod as SmoSlur;
+          const sel1 = SmoSelection.noteFromSelector(score, slur.startSelector);
+          const sel2 = SmoSelection.noteFromSelector(score, slur.endSelector);
+          if (sel1 && sel2) {
+            const params: SmoSlurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
+            slur.invert = params.invert;
+            SlurNumberParams.forEach((p) => {
+              slur[p] = params[p];
+            });
+          }
+        }
+      });
+    });
+  }
   // ### changeScore
   // Update the view after loading or restoring a completely new score
   changeScore(score: SmoScore) {
@@ -475,6 +498,7 @@ export abstract class SuiScoreView {
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
+    SuiScoreView.resetSlursHack(score);
     // If the score is non-transposing, hide the instrument xpose settings
     this._setTransposing();
     this.staffMap = this.defaultStaffMap;

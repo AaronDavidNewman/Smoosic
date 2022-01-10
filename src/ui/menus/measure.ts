@@ -2,6 +2,7 @@ import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiInsertMeasures } from '../dialogs/addMeasure';
 import { SuiMeasureDialog } from '../dialogs/measureFormat';
+import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 declare var $: any;
 export class SuiMeasureMenu extends SuiMenuBase {
   static defaults: MenuDefinition = {
@@ -19,6 +20,14 @@ export class SuiMeasureMenu extends SuiMenuBase {
         icon: '',
         text: 'Format Measure',
         value: 'formatMeasureDialog'
+      }, {
+        icon: '',
+        text: 'Remove system breaks selection',
+        value: 'removeSystemBreaks'
+      },  {
+        icon: '',
+        text: 'Reset formatting selection',
+        value: 'resetFormatting'
       }, {
         icon: '',
         text: 'Cancel',
@@ -70,6 +79,12 @@ export class SuiMeasureMenu extends SuiMenuBase {
     }
     if (text === 'deleteSelected') {
       this.view.deleteMeasure();
+    }
+    if (text === 'removeSystemBreaks') {
+      this.view.removeSystemBreaks();
+    }
+    if (text === 'resetFormatting') {
+      this.view.setMeasureFormat(new SmoMeasureFormat(SmoMeasureFormat.defaults));
     }
     this.complete();
   }

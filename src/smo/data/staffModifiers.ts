@@ -230,6 +230,10 @@ export class SmoStaffHairpin extends StaffModifierBase {
   }
 }
 
+export type SlurNumberParam = 'spacing' | 'thickness' | 'xOffset' | 'yOffset' | 'position' |
+  'position_end' | 'cp1x' | 'cp1y' | 'cp2x' | 'cp2y';
+export const SlurNumberParams: SlurNumberParam[] = ['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 
+  'position_end', 'cp1x', 'cp1y', 'cp2x', 'cp2y'];
 /**
  * parameters for a slur
  * @param spacing between note and curve
