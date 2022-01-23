@@ -169,9 +169,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       // Make sure there is a score text to start the editing.
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
-    const scrollPosition = tracker.scroller.absScroll;
-    scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
-    scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
     super(SuiTextBlockDialog.dialogElements, parameters);
     this.modifier = parameters.modifier;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS']

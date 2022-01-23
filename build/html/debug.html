@@ -19,12 +19,12 @@
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
             Smo.SuiDom.createUiDom(document.getElementById('smoo'));
-               var config = { smoPath: '..', mode: 'application'
-                , scoreDomContainer: 'smo-scroll-region' };
-                Smo.SuiApplication.configure(config).then((app) => {
-                 Smo.layoutDebug.mask = 63;
-                 app.view.refreshViewport();
-               });
+               var config = { mode: 'application', leftControls: 'controls-left', topControls: 'controls-top'
+                , scoreDomContainer: 'smo-scroll-region'  };
+              Smo.SuiApplication.configure(config).then((app) => {
+              Smo.layoutDebug.mask = 63;
+              app.view.refreshViewport();
+             });
            });
        </script>
 </head>

@@ -283,8 +283,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise()
   }
   /**
-   * The lyric editor moves around, so we can't depend on the tracker for the
-   * correct selection.  We get it directly from the editor.
+  * The lyric editor moves around, so we can't depend on the tracker for the
+  * correct selection.  We get it directly from the editor.
+  * 
+  * @param selector - the selector of the note with the lyric to remove
+  * @param lyric - a copy of the lyric to remove.  We use the verse, parser to identify it
+  * @returns render promise
   */
   removeLyric(selector: SmoSelector, lyric: SmoLyric): Promise<void> {
     const selection = SmoSelection.noteFromSelector(this.score, selector);
@@ -304,7 +308,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
 
   /**
    * @param selector where to add or update the lyric
-   * @param lyric 
+   * @param lyric a copy of the lyric to remove
    * @returns 
    */
   addOrUpdateLyric(selector: SmoSelector, lyric: SmoLyric): Promise<void> {
@@ -322,7 +326,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
   }
 
   /**
-   * Delete all the notes for the selected voice
+   * Delete all the notes for the currently selected voice
    * @returns 
    */
   depopulateVoice(): Promise<void> {
@@ -1442,6 +1446,11 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     return this.renderer.updatePromise();
   }
+  /**
+   * A simpler API for applications to add a new staff to the score.
+   * @param params - the instrument, which determines clef, etc.
+   * @returns 
+   */
   addStaffSimple(params: Partial<SmoInstrumentParams>) {
     const instrumentParams = SmoInstrument.defaults;
     instrumentParams.startSelector.staff = instrumentParams.endSelector.staff = this.score.staves.length;
@@ -1452,28 +1461,18 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.addStaff(staffParams);
     return this.renderer.updatePromise();
   }
-  saveScore(filename: string) {
-    const json = this.storeScore.serialize();
-    const jsonText = JSON.stringify(json);
-    addFileLink(filename, jsonText, $('.saveLink'));
-    $('.saveLink a')[0].click();
-  }
-  saveMidi(filename: string) {
-    const bytes = SmoToMidi.convert(this.storeScore);
-    addFileLink(filename, bytes, $('.saveLink'), 'audio/midi');
-    $('.saveLink a')[0].click();
-  }
-  saveXml(filename: string) {
-    const dom = SmoToXml.convert(this.storeScore);
-    const ser = new XMLSerializer();
-    const xmlText = ser.serializeToString(dom);
-    addFileLink(filename, xmlText, $('.saveLink'));
-    $('.saveLink a')[0].click();
-  }
+  /**
+   * Save the score to local storage.
+   */
   quickSave() {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
+  /**
+   * Update the measure formatting parameters for the current selection
+   * @param format generic measure formatting parameters
+   * @returns 
+   */
   setMeasureFormat(format: SmoMeasureFormat): Promise<any> {
     const label = 'set measure format';
     const fromSelector = this.tracker.getExtremeSelection(-1).selector;
@@ -1496,6 +1495,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(fromSelector, toSelector);
     return this.renderer.updatePromise();
   }
+  /**
+   * Remove system breaks from the measure formatting for selected measures
+   * @returns 
+   */
   removeSystemBreaks(): Promise<any> {
     const label = 'set measure format';
     const fromSelector = this.tracker.getExtremeSelection(-1).selector;
@@ -1521,7 +1524,11 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
 
-  playFromSelection() {
+  /**
+   * Play the music from the starting selection
+   * @returns 
+   */
+  playFromSelection(): void {
     var mm = this.tracker.getExtremeSelection(-1);
     if (SuiAudioPlayer.playingInstance && SuiAudioPlayer.playingInstance.paused) {
       SuiAudioPlayer.playingInstance.play();
@@ -1536,95 +1543,139 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SuiAudioPlayer.pausePlayer();
   }
 
-  // Tracker operations, used for macro replay
-  moveHome(ev: KeyEvent) {
+  /**
+   * Proxy calls to move the tracker parameters according to the
+   * rules of the 'Home' key (depending on shift/ctrl/alt)
+   * @param ev 
+   * @returns 
+   */
+  moveHome(ev: KeyEvent): Promise<any> {
     this.tracker.moveHome(this.score, ev);
     return this.renderer.updatePromise();
   }
-  moveEnd(ev: KeyEvent) {
+  /**
+   * Proxy calls to move the tracker parameters according to the
+   * rules of the 'End' key (depending on shift/ctrl/alt)
+   * @param ev 
+   * @returns 
+   */
+   moveEnd(ev: KeyEvent): Promise<any> {
     this.tracker.moveEnd(this.score, ev);
     return this.renderer.updatePromise();
   }
-  growSelectionLeft() {
+  /**
+   * Grow the current selection by one to the left, if possible
+   * @param ev 
+   * @returns 
+   */
+   growSelectionLeft(): Promise<any> {
     this.tracker.growSelectionLeft();
     return this.renderer.updatePromise();
   }
-  growSelectionRight() {
+  /**
+   * Grow the current selection by one to the right, if possible
+   * @param ev 
+   * @returns 
+   */
+   growSelectionRight(): Promise<any> {
     this.tracker.growSelectionRight();
     return this.renderer.updatePromise();
   }
-  advanceModifierSelection(keyEv: KeyEvent) {
+  /**
+   * Select the next tabbable modifier near one of the selected notes
+   * @param keyEv 
+   * @returns 
+   */
+  advanceModifierSelection(keyEv: KeyEvent): Promise<any> {
     this.tracker.advanceModifierSelection(this.score, keyEv);
     return this.renderer.updatePromise();
   }
-  growSelectionRightMeasure() {
+  /**
+   * Select the next entire measure, if possible
+   * @returns 
+   */
+  growSelectionRightMeasure(): Promise<any> {
     this.tracker.growSelectionRightMeasure();
     return this.renderer.updatePromise();
   }
-  moveSelectionRight(ev: KeyEvent) {
+  /**
+   * Advance cursor forwards, if possible
+   * @param ev 
+   * @returns 
+   */
+  moveSelectionRight(ev: KeyEvent): Promise<any> {
     this.tracker.moveSelectionRight(this.score, ev, true);
     return this.renderer.updatePromise();
   }
-  moveSelectionLeft() {
+  /**
+   * Advance cursor backwards, if possible
+   * @param ev 
+   * @returns 
+   */
+   moveSelectionLeft(): Promise<any> {
     this.tracker.moveSelectionLeft();
     return this.renderer.updatePromise();
   }
-  moveSelectionLeftMeasure() {
+  /**
+   * Advance cursor back entire measure, if possible
+   * @returns 
+   */
+  moveSelectionLeftMeasure(): Promise<any> {
     this.tracker.moveSelectionLeftMeasure();
     return this.renderer.updatePromise();
   }
-  moveSelectionRightMeasure() {
+  /**
+   * Advance cursor forward one measure, if possible
+   * @returns 
+   */
+  moveSelectionRightMeasure(): Promise<any> {
     this.tracker.moveSelectionRightMeasure();
     return this.renderer.updatePromise();
   }
-  moveSelectionPitchUp() {
+  /**
+   * Move cursor to a higher pitch in the current chord, with wrap
+   * @returns 
+   */
+   moveSelectionPitchUp(): Promise<any> {
     this.tracker.moveSelectionPitchUp();
+    return this.renderer.updatePromise();
   }
-  moveSelectionPitchDown() {
+  /**
+   * Move cursor to a lower pitch in the current chord, with wrap
+   */
+  moveSelectionPitchDown(): Promise<any> {
     this.tracker.moveSelectionPitchDown();
+    return this.renderer.updatePromise();
   }
-  moveSelectionUp() {
+  /**
+   * Move cursor up a staff in the system, if possible
+   * @returns 
+   */
+  moveSelectionUp(): Promise<any> {
     this.tracker.moveSelectionUp();
+    return this.renderer.updatePromise();
   }
-  moveSelectionDown() {
+  /**
+   * Move cursor down a staff in the system, if possible
+   * @returns 
+   */
+   moveSelectionDown(): Promise<any> {
     this.tracker.moveSelectionDown();
+    return this.renderer.updatePromise();
   }
-  selectSuggestion(evData: KeyEvent) {
+  /**
+   * Set the current suggestions (hover element) as the selection
+   * @returns 
+   */
+   selectSuggestion(evData: KeyEvent): Promise<any> {
     this.tracker.selectSuggestion(this.score, evData);
+    return this.renderer.updatePromise();
   }
-  intersectingArtifact(evData: SvgBox) {
+  /**
+   * Find an element at the given box, and make it the current selection
+   *  */
+  intersectingArtifact(evData: SvgBox): Promise<any> {
     this.tracker.intersectingArtifact(evData);
-  }
-  setSelection(selector: SmoSelector) {
-    const selection = SmoSelection.selectionFromSelector(this.score, selector);
-    if (selection) {
-      this.tracker.selections = [selection];
-    }
-  }
-  selectSuggestionNote(selector: SmoSelector, evData: KeyEvent) {
-    const key = SmoSelector.getNoteKey(selector);
-    if (typeof (this.tracker.measureNoteMap[key]) !== 'undefined') {
-      this.tracker.suggestion = this.tracker.measureNoteMap[SmoSelector.getNoteKey(selector)];
-      this.tracker.selectSuggestion(this.score, evData);
-    }
-  }
-  selectSuggestionModifier(selector: SmoSelector, evData: KeyEvent, modifierObj: any): void {
-    let modIndex = -1;
-    // TODO: this looks fishy...
-    if (typeof (modifierObj.startSelector) !== 'undefined' && typeof (modifierObj.endSelector) !== 'undefined') {
-      modIndex = this.tracker.modifierTabs.findIndex((tb) =>
-        modifierObj.ctor === tb.modifier.ctor &&
-        SmoSelector.eq(tb.selection!.selector, selector) && SmoSelector.eq((tb.modifier as any).startSelector, modifierObj.startSelector) &&
-        SmoSelector.eq((tb.modifier as any).endSelector, modifierObj.endSelector));
-    } else {
-      // TODO: grace notes have multiple per note and no selector
-      modIndex = this.tracker.modifierTabs.findIndex((tb) =>
-        modifierObj.ctor === tb.modifier.ctor &&
-        SmoSelector.eq(tb.selection!.selector, selector));
-    }
-    if (modIndex >= 0) {
-      this.tracker.modifierSuggestion = modIndex;
-      this.tracker.selectSuggestion(this.score, evData);
-    }
-  }
+    return this.renderer.updatePromise();
+  }  
 }

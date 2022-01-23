@@ -400,22 +400,6 @@ class SuiApplication {
             description: 'Open source Serif screen font from Adobe',
         });
     }
-    static get scoreLibrary() {
-        return [
-            { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
-            { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
-            { alias: 'bachcantata', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json' },
-            { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
-            { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
-            { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
-            { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
-            { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
-            { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
-            { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
-            { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
-            { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
-        ];
-    }
     _deferCreateTranslator() {
         dom_1.SuiDom.createUiDom(this.config.scoreDomContainer);
         setTimeout(() => {
@@ -961,7 +945,6 @@ const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/excep
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
-const basic_1 = __webpack_require__(/*! ../music/basic */ "./src/music/basic.js");
 const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
 const articulation_1 = __webpack_require__(/*! ../ui/buttons/articulation */ "./src/ui/buttons/articulation.ts");
 const beam_1 = __webpack_require__(/*! ../ui/buttons/beam */ "./src/ui/buttons/beam.ts");
@@ -1141,8 +1124,6 @@ exports.Smo = {
     // Smo Transformers
     SmoSelection: selections_1.SmoSelection, SmoSelector: selections_1.SmoSelector, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex, SmoOperation: operations_1.SmoOperation,
     // new score bootstrap
-    basicJson: basic_1.basicJson,
-    emptyScoreJson: basic_1.emptyScoreJson,
     // strings
     quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
     quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
@@ -3764,22 +3745,6 @@ exports.smoSerialize = smoSerialize;
 
 /***/ }),
 
-/***/ "./src/music/basic.js":
-/*!****************************!*\
-  !*** ./src/music/basic.js ***!
-  \****************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sixTestJson = exports.emptyScoreJson = exports.basicJson = void 0;
-exports.basicJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":64.98,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318077","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318078","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318079","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318080","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318081","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318082","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318083","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto318084","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318085","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318086","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318087","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318088","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318089","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318090","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":11,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto358929","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360328","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360329","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto372785","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374186","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374187","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto381535","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":3}],"noteType":"n","attrs":{"id":"auto354946","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":4096,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto389896","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
-exports.emptyScoreJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":1,"m":2.107843137254902,"n":0,"o":1},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Bravura","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":true}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},"le":2,"sa":"SmoLyric","ke":""},{"vb":{"xb":"Merriweather","wb":12},"sa":"SmoLyric","ke":""}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]}]}],"yc":[],"ge":[],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"C"}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom"}}`;
-exports.sixTestJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":1,"m":2.107843137254902,"n":0,"o":1},"q":0,"r":{},"ce":"Bravura"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]}]}],"yc":[],"yd":[],"ee":{"wa":{"0":"6/8"},"xa":{"0":"C"}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
-
-
-/***/ }),
-
 /***/ "./src/render/audio/oscillator.ts":
 /*!****************************************!*\
   !*** ./src/render/audio/oscillator.ts ***!
@@ -4637,7 +4602,7 @@ class layoutDebug {
             post: 2,
             adjust: 4,
             system: 8,
-            note: 16,
+            scroll: 16,
             adjustHeight: 32,
             measureHistory: 64,
             textEditorHistory: 128,
@@ -4650,7 +4615,7 @@ class layoutDebug {
             2: 'measure-render-dbg',
             4: 'measure-adjust-dbg',
             8: 'system-place-dbg',
-            16: 'measure-note-dbg',
+            16: 'scroll-box-debug',
             32: 'measure-adjustHeight-dbg',
             64: '',
             128: '',
@@ -5342,8 +5307,11 @@ class SuiMapper {
         this.mapping = false;
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
     }
-    // ### intersectingArtifact
-    // given a bounding box, find any rendered elements that intersect with it
+    /**
+     * Find any musical elements at the supplied screen coordinates and set them as the selection
+     * @param bb
+     * @returns
+     */
     intersectingArtifact(bb) {
         let sel = [];
         bb = svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
@@ -5875,9 +5843,9 @@ class SuiRenderState {
                 numAr.push({ 'font-size': '10pt' });
                 svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
                 // Show line-feed symbol
-                if (!measure.format.isDefault && !printing) {
+                if (measure.format.systemBreak && !printing) {
                     const starAr = [];
-                    const symbol = measure.format.systemBreak ? '\u21b5' : '\u21b0';
+                    const symbol = '\u21b0';
                     starAr.push({ y: measure.svg.logicalBox.y - 5 });
                     starAr.push({ x: measure.svg.logicalBox.x + 25 });
                     starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
@@ -6476,7 +6444,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             columns[parseInt(colKey, 10)].forEach((measure) => {
                 if (this.measureMapper !== null) {
                     vxSystem.renderMeasure(measure, this.measureMapper, printing);
-                    if (!printing && !measure.format.eq(measureModifiers_1.SmoMeasureFormat.defaults)) {
+                    if (!printing && !measure.format.isDefault) {
                         const at = [];
                         at.push({ y: measure.svg.logicalBox.y - 5 });
                         at.push({ x: measure.svg.logicalBox.x + 25 });
@@ -6654,7 +6622,6 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.post);
         layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.adjust);
         layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.system);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.note);
         this.currentPage = 0;
         const timestamp = new Date().valueOf();
         const svg = this.context.svg;
@@ -6794,6 +6761,7 @@ const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/s
 const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker.ts");
 const layoutDemon_1 = __webpack_require__(/*! ./layoutDemon */ "./src/render/sui/layoutDemon.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -7206,6 +7174,28 @@ class SuiScoreView {
             }
         }
     }
+    /**
+     * Fix a bug where the endpoint of slurs is incorrect in saved files
+     * @param score
+     */
+    static resetSlursHack(score) {
+        score.staves.forEach((staff) => {
+            staff.modifiers.forEach((mod) => {
+                if (mod instanceof staffModifiers_1.SmoSlur) {
+                    const slur = mod;
+                    const sel1 = selections_1.SmoSelection.noteFromSelector(score, slur.startSelector);
+                    const sel2 = selections_1.SmoSelection.noteFromSelector(score, slur.endSelector);
+                    if (sel1 && sel2) {
+                        const params = operations_1.SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
+                        slur.invert = params.invert;
+                        staffModifiers_1.SlurNumberParams.forEach((p) => {
+                            slur[p] = params[p];
+                        });
+                    }
+                }
+            });
+        });
+    }
     // ### changeScore
     // Update the view after loading or restoring a completely new score
     changeScore(score) {
@@ -7214,6 +7204,7 @@ class SuiScoreView {
         this.renderer.setViewport(true);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(score.serialize()));
         this.score = score;
+        SuiScoreView.resetSlursHack(score);
         // If the score is non-transposing, hide the instrument xpose settings
         this._setTransposing();
         this.staffMap = this.defaultStaffMap;
@@ -7261,8 +7252,6 @@ const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ 
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
-const smoToMidi_1 = __webpack_require__(/*! ../../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
-const smoToXml_1 = __webpack_require__(/*! ../../smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
@@ -7272,7 +7261,6 @@ const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 /**
@@ -7517,8 +7505,12 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     /**
-     * The lyric editor moves around, so we can't depend on the tracker for the
-     * correct selection.  We get it directly from the editor.
+    * The lyric editor moves around, so we can't depend on the tracker for the
+    * correct selection.  We get it directly from the editor.
+    *
+    * @param selector - the selector of the note with the lyric to remove
+    * @param lyric - a copy of the lyric to remove.  We use the verse, parser to identify it
+    * @returns render promise
     */
     removeLyric(selector, lyric) {
         const selection = selections_1.SmoSelection.noteFromSelector(this.score, selector);
@@ -7537,7 +7529,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     /**
      * @param selector where to add or update the lyric
-     * @param lyric
+     * @param lyric a copy of the lyric to remove
      * @returns
      */
     addOrUpdateLyric(selector, lyric) {
@@ -7554,7 +7546,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     /**
-     * Delete all the notes for the selected voice
+     * Delete all the notes for the currently selected voice
      * @returns
      */
     depopulateVoice() {
@@ -8660,6 +8652,11 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         }
         return this.renderer.updatePromise();
     }
+    /**
+     * A simpler API for applications to add a new staff to the score.
+     * @param params - the instrument, which determines clef, etc.
+     * @returns
+     */
     addStaffSimple(params) {
         var _a;
         const instrumentParams = staffModifiers_1.SmoInstrument.defaults;
@@ -8670,28 +8667,18 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this.addStaff(staffParams);
         return this.renderer.updatePromise();
     }
-    saveScore(filename) {
-        const json = this.storeScore.serialize();
-        const jsonText = JSON.stringify(json);
-        (0, htmlHelpers_1.addFileLink)(filename, jsonText, $('.saveLink'));
-        $('.saveLink a')[0].click();
-    }
-    saveMidi(filename) {
-        const bytes = smoToMidi_1.SmoToMidi.convert(this.storeScore);
-        (0, htmlHelpers_1.addFileLink)(filename, bytes, $('.saveLink'), 'audio/midi');
-        $('.saveLink a')[0].click();
-    }
-    saveXml(filename) {
-        const dom = smoToXml_1.SmoToXml.convert(this.storeScore);
-        const ser = new XMLSerializer();
-        const xmlText = ser.serializeToString(dom);
-        (0, htmlHelpers_1.addFileLink)(filename, xmlText, $('.saveLink'));
-        $('.saveLink a')[0].click();
-    }
+    /**
+     * Save the score to local storage.
+     */
     quickSave() {
         const scoreStr = JSON.stringify(this.storeScore.serialize());
         localStorage.setItem(serializationHelpers_1.smoSerialize.localScore, scoreStr);
     }
+    /**
+     * Update the measure formatting parameters for the current selection
+     * @param format generic measure formatting parameters
+     * @returns
+     */
     setMeasureFormat(format) {
         const label = 'set measure format';
         const fromSelector = this.tracker.getExtremeSelection(-1).selector;
@@ -8714,6 +8701,38 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this._renderRectangle(fromSelector, toSelector);
         return this.renderer.updatePromise();
     }
+    /**
+     * Remove system breaks from the measure formatting for selected measures
+     * @returns
+     */
+    removeSystemBreaks() {
+        const label = 'set measure format';
+        const fromSelector = this.tracker.getExtremeSelection(-1).selector;
+        const toSelector = this.tracker.getExtremeSelection(1).selector;
+        const measureSelections = this.tracker.getSelectedMeasures();
+        // If the formatting is on a part, preserve it in the part's info
+        const isPart = this.isPartExposed();
+        measureSelections.forEach((m) => {
+            this._undoColumn(label, m.selector.measure);
+            const format = new measureModifiers_1.SmoMeasureFormat(m.measure.format);
+            format.systemBreak = false;
+            operations_1.SmoOperation.setMeasureFormat(this.score, m, format);
+            if (isPart) {
+                m.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new measureModifiers_1.SmoMeasureFormat(format);
+            }
+            const alt = this._getEquivalentSelection(m);
+            operations_1.SmoOperation.setMeasureFormat(this.storeScore, alt, format);
+            if (isPart) {
+                alt.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new measureModifiers_1.SmoMeasureFormat(format);
+            }
+        });
+        this._renderRectangle(fromSelector, toSelector);
+        return this.renderer.updatePromise();
+    }
+    /**
+     * Play the music from the starting selection
+     * @returns
+     */
     playFromSelection() {
         var mm = this.tracker.getExtremeSelection(-1);
         if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
@@ -8728,95 +8747,140 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     pausePlayer() {
         player_1.SuiAudioPlayer.pausePlayer();
     }
-    // Tracker operations, used for macro replay
+    /**
+     * Proxy calls to move the tracker parameters according to the
+     * rules of the 'Home' key (depending on shift/ctrl/alt)
+     * @param ev
+     * @returns
+     */
     moveHome(ev) {
         this.tracker.moveHome(this.score, ev);
         return this.renderer.updatePromise();
     }
+    /**
+     * Proxy calls to move the tracker parameters according to the
+     * rules of the 'End' key (depending on shift/ctrl/alt)
+     * @param ev
+     * @returns
+     */
     moveEnd(ev) {
         this.tracker.moveEnd(this.score, ev);
         return this.renderer.updatePromise();
     }
+    /**
+     * Grow the current selection by one to the left, if possible
+     * @param ev
+     * @returns
+     */
     growSelectionLeft() {
         this.tracker.growSelectionLeft();
         return this.renderer.updatePromise();
     }
+    /**
+     * Grow the current selection by one to the right, if possible
+     * @param ev
+     * @returns
+     */
     growSelectionRight() {
         this.tracker.growSelectionRight();
         return this.renderer.updatePromise();
     }
+    /**
+     * Select the next tabbable modifier near one of the selected notes
+     * @param keyEv
+     * @returns
+     */
     advanceModifierSelection(keyEv) {
         this.tracker.advanceModifierSelection(this.score, keyEv);
         return this.renderer.updatePromise();
     }
+    /**
+     * Select the next entire measure, if possible
+     * @returns
+     */
     growSelectionRightMeasure() {
         this.tracker.growSelectionRightMeasure();
         return this.renderer.updatePromise();
     }
+    /**
+     * Advance cursor forwards, if possible
+     * @param ev
+     * @returns
+     */
     moveSelectionRight(ev) {
         this.tracker.moveSelectionRight(this.score, ev, true);
         return this.renderer.updatePromise();
     }
+    /**
+     * Advance cursor backwards, if possible
+     * @param ev
+     * @returns
+     */
     moveSelectionLeft() {
         this.tracker.moveSelectionLeft();
         return this.renderer.updatePromise();
     }
+    /**
+     * Advance cursor back entire measure, if possible
+     * @returns
+     */
     moveSelectionLeftMeasure() {
         this.tracker.moveSelectionLeftMeasure();
         return this.renderer.updatePromise();
     }
+    /**
+     * Advance cursor forward one measure, if possible
+     * @returns
+     */
     moveSelectionRightMeasure() {
         this.tracker.moveSelectionRightMeasure();
         return this.renderer.updatePromise();
     }
+    /**
+     * Move cursor to a higher pitch in the current chord, with wrap
+     * @returns
+     */
     moveSelectionPitchUp() {
         this.tracker.moveSelectionPitchUp();
+        return this.renderer.updatePromise();
     }
+    /**
+     * Move cursor to a lower pitch in the current chord, with wrap
+     */
     moveSelectionPitchDown() {
         this.tracker.moveSelectionPitchDown();
+        return this.renderer.updatePromise();
     }
+    /**
+     * Move cursor up a staff in the system, if possible
+     * @returns
+     */
     moveSelectionUp() {
         this.tracker.moveSelectionUp();
+        return this.renderer.updatePromise();
     }
+    /**
+     * Move cursor down a staff in the system, if possible
+     * @returns
+     */
     moveSelectionDown() {
         this.tracker.moveSelectionDown();
+        return this.renderer.updatePromise();
     }
+    /**
+     * Set the current suggestions (hover element) as the selection
+     * @returns
+     */
     selectSuggestion(evData) {
         this.tracker.selectSuggestion(this.score, evData);
+        return this.renderer.updatePromise();
     }
+    /**
+     * Find an element at the given box, and make it the current selection
+     *  */
     intersectingArtifact(evData) {
         this.tracker.intersectingArtifact(evData);
-    }
-    setSelection(selector) {
-        const selection = selections_1.SmoSelection.selectionFromSelector(this.score, selector);
-        if (selection) {
-            this.tracker.selections = [selection];
-        }
-    }
-    selectSuggestionNote(selector, evData) {
-        const key = selections_1.SmoSelector.getNoteKey(selector);
-        if (typeof (this.tracker.measureNoteMap[key]) !== 'undefined') {
-            this.tracker.suggestion = this.tracker.measureNoteMap[selections_1.SmoSelector.getNoteKey(selector)];
-            this.tracker.selectSuggestion(this.score, evData);
-        }
-    }
-    selectSuggestionModifier(selector, evData, modifierObj) {
-        let modIndex = -1;
-        // TODO: this looks fishy...
-        if (typeof (modifierObj.startSelector) !== 'undefined' && typeof (modifierObj.endSelector) !== 'undefined') {
-            modIndex = this.tracker.modifierTabs.findIndex((tb) => modifierObj.ctor === tb.modifier.ctor &&
-                selections_1.SmoSelector.eq(tb.selection.selector, selector) && selections_1.SmoSelector.eq(tb.modifier.startSelector, modifierObj.startSelector) &&
-                selections_1.SmoSelector.eq(tb.modifier.endSelector, modifierObj.endSelector));
-        }
-        else {
-            // TODO: grace notes have multiple per note and no selector
-            modIndex = this.tracker.modifierTabs.findIndex((tb) => modifierObj.ctor === tb.modifier.ctor &&
-                selections_1.SmoSelector.eq(tb.selection.selector, selector));
-        }
-        if (modIndex >= 0) {
-            this.tracker.modifierSuggestion = modIndex;
-            this.tracker.selectSuggestion(this.score, evData);
-        }
+        return this.renderer.updatePromise();
     }
 }
 exports.SuiScoreViewOperations = SuiScoreViewOperations;
@@ -8837,6 +8901,8 @@ exports.SuiScroller = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const VF = eval('Vex.Flow');
 /**
  * Respond to scroll events in music DOM, and handle the scroll of the viewport
  * @category SuiRender
@@ -8849,30 +8915,45 @@ class SuiScroller {
         this.viewport = common_1.SvgBox.default;
         this.selector = selector;
         this._scroll = { x: 0, y: 0 };
-        this._scrollInitial = { x: 0, y: 0 };
         const scroller = $(selector);
         this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
         this.updateViewport();
+        const dbgDiv = $('<div class="scroll-box-debug"/>');
+        $('body').append(dbgDiv);
     }
     get scrollState() {
-        const initial = JSON.parse(JSON.stringify(this._scrollInitial));
         const scroll = JSON.parse(JSON.stringify(this._scroll));
-        return { initial, scroll };
+        return { scroll };
     }
     restoreScrollState(state) {
         this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
+        this.deferUpdateDebug();
     }
     // ### handleScroll
     // update viewport in response to scroll events
     handleScroll(x, y) {
         this._scroll = { x, y };
         this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
+        this.deferUpdateDebug();
+    }
+    updateDebug() {
+        const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
+        $('.scroll-box-debug').text(displayString);
+        $('.scroll-box-debug').css('left', '2%').css('top', '2%');
+    }
+    deferUpdateDebug() {
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.scroll) {
+            setTimeout(() => {
+                this.updateDebug();
+            }, 1);
+        }
     }
     scrollAbsolute(x, y) {
         $(this.selector)[0].scrollLeft = x;
         $(this.selector)[0].scrollTop = y;
         this.netScroll.x = this._scroll.x = x;
         this.netScroll.y = this._scroll.y = y;
+        this.deferUpdateDebug();
     }
     // ### scrollVisible
     // Scroll such that the box is fully visible, if possible (if it is
@@ -8908,6 +8989,7 @@ class SuiScroller {
     updateViewport() {
         $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
         this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
+        this.deferUpdateDebug();
     }
     // ### scrollBox
     // get the current viewport, in scrolled coordinates.  When tracker maps the
@@ -8915,11 +8997,6 @@ class SuiScroller {
     // map
     get scrollBox() {
         return svgHelpers_1.SvgHelpers.boxPoints(this.viewport.x + this.netScroll.x, this.viewport.y + this.netScroll.y, this.viewport.width, this.viewport.height);
-    }
-    get absScroll() {
-        var x = $(this.selector).offset().left + $(this.selector)[0].scrollLeft;
-        var y = $(this.selector).offset().top + $(this.selector)[0].scrollTop;
-        return svgHelpers_1.SvgHelpers.boxPoints(x, y, this.viewport.width, this.viewport.height);
     }
     // ### scrollOffset
     // scroll the offset from the starting scroll point
@@ -8943,12 +9020,6 @@ class SuiScroller {
         var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
         var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
         return { x: this._scroll.x - xoffset, y: this._scroll.y - yoffset };
-    }
-    // ### invScroll
-    // invert the scroll parameters.
-    get invScroll() {
-        var vect = this.netScroll;
-        return { x: vect.x * (-1), y: vect.y * (-1) };
     }
 }
 exports.SuiScroller = SuiScroller;
@@ -9397,7 +9468,7 @@ class SvgHelpers {
             console.log('bad values to scroll thing');
             return;
         }
-        return SvgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
+        return SvgHelpers.boxPoints(box.x - scroll.x, box.y - scroll.y, box.width, box.height);
         // return box;
     }
     static boxPoints(x, y, w, h) {
@@ -18851,6 +18922,10 @@ class SmoFormattingManager extends SmoScoreModifierBase {
         }
         if (typeof (params.measureFormats) !== 'undefined' && params.measureFormats.length) {
             params.measureFormats.forEach((format) => {
+                // 0 is default value, so fix case of first measure
+                if (typeof (format.measureIndex) !== 'number') {
+                    format.measureIndex = 0;
+                }
                 this.measureFormats[format.measureIndex] = new measureModifiers_1.SmoMeasureFormat(format);
             });
         }
@@ -19660,7 +19735,7 @@ exports.SmoTextGroup = SmoTextGroup;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTie = exports.SmoSlur = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
+exports.SmoTie = exports.SmoSlur = exports.SlurNumberParams = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -19844,6 +19919,8 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 exports.SmoStaffHairpin = SmoStaffHairpin;
+exports.SlurNumberParams = ['spacing', 'thickness', 'xOffset', 'yOffset', 'position',
+    'position_end', 'cp1x', 'cp1y', 'cp2x', 'cp2y'];
 /**
  * Defines a slur
  * @category SmoModifier
@@ -23167,7 +23244,6 @@ const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./sr
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
-const basic_1 = __webpack_require__(/*! ../../music/basic */ "./src/music/basic.js");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
@@ -23213,7 +23289,7 @@ class XmlToSmo {
             const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
             if (!scoreRoots.length) {
                 // no score node
-                return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
+                return score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, measure_1.SmoMeasure.defaults);
             }
             const scoreRoot = scoreRoots[0];
             const rv = new score_1.SmoScore(score_1.SmoScore.defaults);
@@ -23297,7 +23373,7 @@ class XmlToSmo {
         }
         catch (exc) {
             console.warn(exc);
-            return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
+            return score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, measure_1.SmoMeasure.defaults);
         }
     }
     /**
@@ -37562,7 +37638,10 @@ exports.SuiSaveMidiDialog = exports.SuiMidiSaveAdapter = exports.SuiSaveXmlDialo
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
+const smoToXml_1 = __webpack_require__(/*! ../../smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const smoToMidi_1 = __webpack_require__(/*! ../../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
 const midiToSmo_1 = __webpack_require__(/*! ../../smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
 /**
  * internal state of FileLoadDialog is just the string for the filename.
@@ -37857,6 +37936,12 @@ class SuiSmoSaveAdapter extends adapter_1.SuiComponentAdapter {
     set saveFileName(value) {
         this.fileName = value;
     }
+    _saveScore() {
+        const json = this.view.storeScore.serialize();
+        const jsonText = JSON.stringify(json);
+        (0, htmlHelpers_1.addFileLink)(this.fileName, jsonText, $('.saveLink'));
+        $('.saveLink a')[0].click();
+    }
     commit() {
         let filename = this.fileName;
         const rawFile = filename.split('.')[0];
@@ -37870,7 +37955,7 @@ class SuiSmoSaveAdapter extends adapter_1.SuiComponentAdapter {
         scoreInfo.name = rawFile;
         scoreInfo.version = scoreInfo.version + 1;
         this.view.updateScoreInfo(scoreInfo);
-        this.view.saveScore(filename);
+        this._saveScore();
     }
     cancel() { }
 }
@@ -37907,6 +37992,13 @@ class SuiXmlSaveAdapter extends adapter_1.SuiComponentAdapter {
     set saveFileName(value) {
         this.fileName = value;
     }
+    _saveXml() {
+        const dom = smoToXml_1.SmoToXml.convert(this.view.storeScore);
+        const ser = new XMLSerializer();
+        const xmlText = ser.serializeToString(dom);
+        (0, htmlHelpers_1.addFileLink)(this.fileName, xmlText, $('.saveLink'));
+        $('.saveLink a')[0].click();
+    }
     commit() {
         let filename = this.fileName;
         if (!filename) {
@@ -37916,7 +38008,7 @@ class SuiXmlSaveAdapter extends adapter_1.SuiComponentAdapter {
             filename = filename + '.xml';
         }
         this.view.score.scoreInfo.version += 1;
-        this.view.saveXml(filename);
+        this._saveXml();
     }
     // noop
     cancel() { }
@@ -37953,6 +38045,11 @@ class SuiMidiSaveAdapter extends adapter_1.SuiComponentAdapter {
     set saveFileName(value) {
         this.fileName = value;
     }
+    _saveScore() {
+        const bytes = smoToMidi_1.SmoToMidi.convert(this.view.storeScore);
+        (0, htmlHelpers_1.addFileLink)(this.fileName, bytes, $('.saveLink'), 'audio/midi');
+        $('.saveLink a')[0].click();
+    }
     commit() {
         let filename = this.fileName;
         if (!filename) {
@@ -37962,7 +38059,7 @@ class SuiMidiSaveAdapter extends adapter_1.SuiComponentAdapter {
             filename = filename + '.mid';
         }
         this.view.score.scoreInfo.version += 1;
-        this.view.saveMidi(filename);
+        this._saveScore();
     }
     cancel() { }
 }
@@ -40515,9 +40612,6 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
             // Make sure there is a score text to start the editing.
             parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
         }
-        const scrollPosition = tracker.scroller.absScroll;
-        scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
-        scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
         super(SuiTextBlockDialog.dialogElements, parameters);
         this.modifier = parameters.modifier;
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
@@ -48723,6 +48817,7 @@ const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
 const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
 const addMeasure_1 = __webpack_require__(/*! ../dialogs/addMeasure */ "./src/ui/dialogs/addMeasure.ts");
 const measureFormat_1 = __webpack_require__(/*! ../dialogs/measureFormat */ "./src/ui/dialogs/measureFormat.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 class SuiMeasureMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -48768,6 +48863,12 @@ class SuiMeasureMenu extends menu_1.SuiMenuBase {
         if (text === 'deleteSelected') {
             this.view.deleteMeasure();
         }
+        if (text === 'removeSystemBreaks') {
+            this.view.removeSystemBreaks();
+        }
+        if (text === 'resetFormatting') {
+            this.view.setMeasureFormat(new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults));
+        }
         this.complete();
     }
 }
@@ -48787,6 +48888,14 @@ SuiMeasureMenu.defaults = {
             icon: '',
             text: 'Format Measure',
             value: 'formatMeasureDialog'
+        }, {
+            icon: '',
+            text: 'Remove system breaks selection',
+            value: 'removeSystemBreaks'
+        }, {
+            icon: '',
+            text: 'Reset formatting selection',
+            value: 'resetFormatting'
         }, {
             icon: '',
             text: 'Cancel',
@@ -49345,6 +49454,7 @@ SuiStaffMenu.defaults = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiStaffModifierMenu = void 0;
 const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const scoreView_1 = __webpack_require__(/*! ../../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
 class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -49368,6 +49478,15 @@ class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
         }
         else if (op === 'decrescendo') {
             this.view.decrescendo();
+        }
+        else if (op === 'resetSlurs') {
+            const self = this;
+            scoreView_1.SuiScoreView.resetSlursHack(this.view.score);
+            scoreView_1.SuiScoreView.resetSlursHack(this.view.storeScore);
+            this.view.refreshViewport().then(() => {
+                self.complete();
+            });
+            return;
         }
         // else cancel...
         this.complete();
@@ -49398,6 +49517,10 @@ SuiStaffModifierMenu.defaults = {
             icon: 'ending',
             text: 'nth ending',
             value: 'ending'
+        }, {
+            icon: 'slur',
+            text: 'Reset slurs',
+            value: 'resetSlurs'
         }, {
             icon: '',
             text: 'Cancel',

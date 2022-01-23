@@ -398,7 +398,6 @@ export class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes(layoutDebug.values.post);
     layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
     layoutDebug.clearDebugBoxes(layoutDebug.values.system);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.note);
     this.currentPage = 0;
     const timestamp = new Date().valueOf();
 

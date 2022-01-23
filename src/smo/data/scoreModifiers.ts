@@ -83,6 +83,10 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
     }
     if (typeof (params.measureFormats) !== 'undefined' && params.measureFormats.length) {
       params.measureFormats.forEach((format) => {
+        // 0 is default value, so fix case of first measure
+        if (typeof(format.measureIndex) !== 'number') {
+          format.measureIndex = 0;
+        }
         this.measureFormats[format.measureIndex] = new SmoMeasureFormat(format);
       });
     }

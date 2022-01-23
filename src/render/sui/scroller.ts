@@ -2,9 +2,12 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
+import { layoutDebug } from './layoutDebug';
+import { VexTextFont } from './textRender';
 declare var $: any;
+const VF = eval('Vex.Flow');
+
 export interface ScrollState {
-  initial: SvgPoint,
   scroll: SvgPoint
 }
 /**
@@ -14,7 +17,6 @@ export interface ScrollState {
 export class SuiScroller {
   selector: HTMLElement;
   _scroll: SvgPoint;
-  _scrollInitial: SvgPoint;
   _offsetInitial: SvgPoint;
   viewport: SvgBox = SvgBox.default;
   // ### constructor
@@ -23,19 +25,20 @@ export class SuiScroller {
   constructor(selector: HTMLElement) {
     this.selector = selector;
     this._scroll = { x: 0, y: 0 };
-    this._scrollInitial = { x: 0, y: 0 };
     const scroller = $(selector);
     this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
     this.updateViewport();
+    const dbgDiv = $('<div class="scroll-box-debug"/>');
+    $('body').append(dbgDiv);
   }
 
   get scrollState(): ScrollState {
-    const initial = JSON.parse(JSON.stringify(this._scrollInitial));
     const scroll = JSON.parse(JSON.stringify(this._scroll));
-    return { initial, scroll };
+    return { scroll };
   }
   restoreScrollState(state: ScrollState) {
     this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
+    this.deferUpdateDebug();
   }
 
   // ### handleScroll
@@ -47,6 +50,19 @@ export class SuiScroller {
       $(this.selector).offset().top,
       $(this.selector).width(),
       $(this.selector).height());
+    this.deferUpdateDebug();
+  }
+  updateDebug() {
+    const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
+    $('.scroll-box-debug').text(displayString);
+    $('.scroll-box-debug').css('left', '2%').css('top', '2%');
+  }
+  deferUpdateDebug() {
+    if (layoutDebug.mask & layoutDebug.values.scroll) {
+      setTimeout(() => {
+        this.updateDebug();
+      }, 1);
+    }
   }
 
   scrollAbsolute(x: number, y: number) {
@@ -54,6 +70,7 @@ export class SuiScroller {
     $(this.selector)[0].scrollTop = y;
     this.netScroll.x = this._scroll.x = x;
     this.netScroll.y = this._scroll.y = y;
+    this.deferUpdateDebug();
   }
 
   // ### scrollVisible
@@ -94,6 +111,7 @@ export class SuiScroller {
       $(this.selector).offset().top,
       $(this.selector).width(),
       $(this.selector).height());
+    this.deferUpdateDebug();
   }
 
   // ### scrollBox
@@ -103,16 +121,6 @@ export class SuiScroller {
   get scrollBox(): SvgBox {
     return SvgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
       this.viewport.y + this.netScroll.y,
-      this.viewport.width,
-      this.viewport.height
-    );
-  }
-
-  get absScroll(): SvgBox {
-    var x = $(this.selector).offset().left + $(this.selector)[0].scrollLeft;
-    var y = $(this.selector).offset().top + $(this.selector)[0].scrollTop;
-    return SvgHelpers.boxPoints(x,
-      y,
       this.viewport.width,
       this.viewport.height
     );
@@ -141,12 +149,5 @@ export class SuiScroller {
     var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
     var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
     return { x: this._scroll.x - xoffset, y: this._scroll.y - yoffset };
-  }
-
-  // ### invScroll
-  // invert the scroll parameters.
-  get invScroll() {
-    var vect = this.netScroll;
-    return { x: vect.x * (-1), y: vect.y * (-1) };
   }
 }

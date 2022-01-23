@@ -137,6 +137,14 @@ h1 {
     stroke: #330808;
 }
 
+.scroll-box-debug {
+	fill:#492;
+  stroke: #371;
+  position: fixed;
+  font-size: 10px;
+  font-family: 'Roboto Slab';
+}
+
 .measure-note-dbg line {
 	stroke:#fc9;
 	stroke-width:1;

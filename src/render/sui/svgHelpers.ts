@@ -502,7 +502,7 @@ export class SvgHelpers {
       console.log('bad values to scroll thing');
       return;
     }
-    return SvgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
+    return SvgHelpers.boxPoints(box.x - scroll.x, box.y - scroll.y, box.width, box.height);
     // return box;
   }
 

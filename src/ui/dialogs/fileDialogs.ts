@@ -3,9 +3,12 @@
 import { SuiDialogBase, SuiDialogParams, DialogDefinition } from './dialog';
 import { SmoScore } from '../../smo/data/score';
 import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
+import { SmoToXml } from '../../smo/mxml/smoToXml';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
+import { addFileLink } from '../../common/htmlHelpers';
+import { SmoToMidi } from '../../smo/midi/smoToMidi';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
 declare var $: any;
 // declare var MidiParser: any;
@@ -301,6 +304,12 @@ export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   set saveFileName(value: string) {
     this.fileName = value;
   }
+  _saveScore() {
+    const json = this.view.storeScore.serialize();
+    const jsonText = JSON.stringify(json);
+    addFileLink(this.fileName, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
   commit() {
     let filename = this.fileName;
     const rawFile = filename.split('.')[0];
@@ -314,7 +323,7 @@ export class SuiSmoSaveAdapter extends SuiComponentAdapter {
     scoreInfo.name = rawFile;
     scoreInfo.version = scoreInfo.version + 1;
     this.view.updateScoreInfo(scoreInfo);
-    this.view.saveScore(filename);
+    this._saveScore();
   }
   cancel() {}
 }
@@ -351,6 +360,13 @@ export class SuiXmlSaveAdapter extends SuiComponentAdapter {
   set saveFileName(value: string) {
     this.fileName = value;
   }
+  _saveXml() {
+    const dom = SmoToXml.convert(this.view.storeScore);
+    const ser = new XMLSerializer();
+    const xmlText = ser.serializeToString(dom);
+    addFileLink(this.fileName, xmlText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
   commit() {
     let filename = this.fileName;
     if (!filename) {
@@ -360,7 +376,7 @@ export class SuiXmlSaveAdapter extends SuiComponentAdapter {
       filename = filename + '.xml';
     }
     this.view.score.scoreInfo.version += 1;
-    this.view.saveXml(filename);
+    this._saveXml();
   }
   // noop
   cancel() {}
@@ -397,6 +413,12 @@ export class SuiMidiSaveAdapter extends SuiComponentAdapter {
   set saveFileName(value: string) {
     this.fileName = value;
   }
+  _saveScore() {
+    const bytes = SmoToMidi.convert(this.view.storeScore);
+    addFileLink(this.fileName, bytes, $('.saveLink'), 'audio/midi');
+    $('.saveLink a')[0].click();
+  }
+
   commit() {
     let filename = this.fileName;
     if (!filename) {
@@ -406,7 +428,7 @@ export class SuiMidiSaveAdapter extends SuiComponentAdapter {
       filename = filename + '.mid';
     }
     this.view.score.scoreInfo.version += 1;
-    this.view.saveMidi(filename);
+    this._saveScore();
   }
   cancel() {}
 }

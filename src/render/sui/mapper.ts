@@ -520,8 +520,11 @@ export abstract class SuiMapper {
     layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
   }
 
-  // ### intersectingArtifact
-  // given a bounding box, find any rendered elements that intersect with it
+  /**
+   * Find any musical elements at the supplied screen coordinates and set them as the selection
+   * @param bb 
+   * @returns 
+   */
   intersectingArtifact(bb: SvgBox) {
     let sel: ModifierTab[] = [];
     bb = SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
