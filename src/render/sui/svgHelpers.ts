@@ -202,7 +202,8 @@ export class SvgHelpers {
 
     boxes.forEach((box: SvgBox) => {
       if (box) {
-        var strokeObj = params.stroke;
+        var strokeObj:any = params.stroke;
+        strokeObj['stroke-width'] = params.stroke.strokeWidth;
         var margin = 5;
         if (params.clientCoordinates === true) {
           box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));

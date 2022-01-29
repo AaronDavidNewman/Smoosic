@@ -36,9 +36,7 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
     } else if (this.applyTo === SuiPageLayoutAdapter.layoutTypes.all) {
       startPage = 0;
     }
-    for (i = startPage; i < endPage; ++i) {
-      this.view.setPageLayout(this.currentLayout, i);
-    }
+    this.view.setPageLayouts(this.currentLayout, startPage, endPage);
     this.changed = true;
   }
   get enablePages() {
@@ -99,8 +97,10 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
       return;
     }
     for (i = 0; i < this.backup.length; ++i) {
-      this.view.setPageLayout(this.backup[i], i);
+      // Avoid multiple page rerender...
+      this.view._setPageLayout(this.backup[i], i);
     }
+    this.view.rerenderAll();
   }
   commit() { }
 

@@ -246,9 +246,10 @@ export class SuiScoreRender extends SuiRenderState {
     });
   }
   _renderNextSystem(systemIx: number, mscore: Record<string | number, SmoMeasure[]>, keys: string[], printing: boolean) {
-    createTopDomContainer('#renderProgress');
+    createTopDomContainer('#renderProgress', 'progress');
     if (systemIx < keys.length) {
       const progress = Math.round((100 * systemIx) / keys.length);
+      $('#renderProgress').attr('max', 100);
       $('#renderProgress').val(progress);
       this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
         systemIx++;

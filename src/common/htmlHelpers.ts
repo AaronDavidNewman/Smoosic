@@ -207,12 +207,15 @@ export function getDomContainer(selector: HTMLElement | string): HTMLElement | u
  * @param selector 
  * @returns 
  */
-export function createTopDomContainer(selector: string | HTMLElement): HTMLElement {
+export function createTopDomContainer(selector: string | HTMLElement, elementType?: string): HTMLElement {
   const container = $(selector);
+  if (!elementType) {
+    elementType = 'div';
+  }
   if (container.length > 0) {
     return container[0] as HTMLElement;
   } else {
-    const ndiv = document.createElement('div');
+    const ndiv = document.createElement(elementType);
     if (typeof(selector) === 'string') {
       const cl = (selector[0] === '.' || selector[0] === '#') ? selector.substring(1) : selector;
       $(ndiv).addClass(cl);

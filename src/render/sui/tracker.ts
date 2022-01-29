@@ -23,6 +23,37 @@ export class SuiTracker extends SuiMapper {
   idleTimer: number = Date.now();
   // timer: NodeJS.Timer | null = null;
   suggestFadeTimer: NodeJS.Timer | null = null;
+
+  
+  static get strokes(): Record<string, StrokeInfo> {
+    return {
+      suggestion: {
+        strokeName: 'suggestion',
+        stroke: '#fc9',
+        strokeWidth: 3,
+        strokeDasharray: '4,1',
+        fill: 'none',
+        opacity: 1.0
+      },
+      selection: {
+        strokeName: 'selection',
+        stroke: '#99d',
+        strokeWidth: 3,
+        strokeDasharray: 2,
+        fill: 'none',
+        opacity: 1.0
+      },
+      staffModifier: {
+        strokeName: 'staffModifier',
+        stroke: '#933',
+        strokeWidth: 3,
+        fill: 'none',
+        strokeDasharray: 0,
+        opacity: 1.0
+      }
+    };
+  }
+
   constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     super(renderer, scroller, pasteBuffer);
   }
@@ -654,35 +685,6 @@ export class SuiTracker extends SuiMapper {
     this._createLocalModifiersList();
   }
 
-  static get strokes(): Record<string, StrokeInfo> {
-    return {
-      suggestion: {
-        strokeName: 'suggestion',
-        stroke: '#fc9',
-        strokeWidth: 2,
-        strokeDasharray: '4,1',
-        fill: 'none',
-        opacity: 1.0
-      },
-      selection: {
-        strokeName: 'selection',
-        stroke: '#99d',
-        strokeWidth: 2,
-        strokeDasharray: 2,
-        fill: 'none',
-        opacity: 1.0
-      },
-      staffModifier: {
-        strokeName: 'staffModifier',
-        stroke: '#933',
-        strokeWidth: 2,
-        fill: 'none',
-        strokeDasharray: 0,
-        opacity: 1.0
-      }
-    };
-  }
-
   _setFadeTimer() {
     if (this.suggestFadeTimer) {
       clearTimeout(this.suggestFadeTimer);
@@ -822,8 +824,8 @@ export class SuiTracker extends SuiMapper {
       if (!sel.box || !prevSel.box) {
         continue;
       }
-      const ydiff = Math.abs(prevSel.box.y - sel.box.y);
-      if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
+      // const ydiff = Math.abs(prevSel.box.y - sel.box.y);
+      if (sel.selector.staff === prevSel.selector.staff && sel.measure.svg.lineIndex === prevSel.measure.svg.lineIndex) {
         curBox = SvgHelpers.unionRect(curBox, sel.box);
       } else if (curBox) {
         boxes.push(curBox);

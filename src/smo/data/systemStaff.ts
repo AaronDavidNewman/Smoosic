@@ -291,7 +291,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       for (i; i <= entry.instrument.endSelector.measure; ++i) {
         const measure = this.measures[i];
         const concertKey = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
-        measure.transposeToOffset(entry.instrument.keyOffset);
+        measure.transposeToOffset(entry.instrument.keyOffset, entry.instrument.clef);
         measure.transposeIndex = entry.instrument.keyOffset;
         measure.keySignature = SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
         measure.setClef(entry.instrument.clef);

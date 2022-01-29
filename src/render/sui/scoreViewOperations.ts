@@ -1232,13 +1232,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   /**
-   * 
+   * Set the layout of a single page
    * @param layout page layout
    * @param pageIndex which page to change
    * @returns 
    */
-  setPageLayout(layout: SmoPageLayout, pageIndex: number): Promise<void> {
-    this._undoScore('Set Page Layout');
+  _setPageLayout(layout: SmoPageLayout, pageIndex: number) {
     this.score.layoutManager!.updatePage(layout, pageIndex);
     this.storeScore.layoutManager!.updatePage(layout, pageIndex);
     // If we are in part mode, save the page layout in the part so it is there next time
@@ -1249,6 +1248,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
         const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
         altStaff.partInfo.layoutManager.updatePage(layout, pageIndex);
       });
+    }
+  }
+  setPageLayouts(layout: SmoPageLayout, startIndex: number, endIndex: number) {
+    this._undoScore('Set Page Layout');
+    let i = 0;
+    for (i = startIndex; i <= endIndex; ++i) {
+      this._setPageLayout(layout, i);
     }
     this.renderer.rerenderAll();
     return this.renderer.updatePromise();

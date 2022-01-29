@@ -89,6 +89,10 @@ export abstract class SuiScoreView {
     this.renderer.setRefresh();
     return this.renderer.renderPromise();
   }
+  rerenderAll(): Promise<any> {
+    this.renderer.rerenderAll();
+    return this.renderer.updatePromise();
+  }
 
   /**
    * 

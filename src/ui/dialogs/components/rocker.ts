@@ -17,7 +17,6 @@ export interface SuiRockerComponentParams {
   classes: string,
   dataType?: string,
   increment?: number,
-  defaultValue: number,
   label: string,
   smoName: string,
   control: string
@@ -36,7 +35,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   static get parsers(): Record<string, string> {
     return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
   }
-  defaultValue: number = 0;
+  initialValue: number = 0;
   dataType: string;
   increment: number = 1;
   parser: string;
@@ -44,15 +43,11 @@ export class SuiRockerComponent extends SuiComponentBase {
     super(dialog, params);
     this.dataType = params.dataType ?? 'int';
     this.increment = params.increment ?? SuiRockerComponent.increments[this.dataType];
-    this.defaultValue = params.defaultValue ?? 0;
     if (SuiRockerComponent.dataTypes.indexOf(this.dataType) < 0) {
       throw new Error('dialog element invalid type ' + this.dataType);
     }
     if (this.dataType === 'int' && this.increment < 1) {
       throw new Error('int component with decimal increment');
-    }
-    if (this.dataType === 'percent') {
-      this.defaultValue = 100 * this.defaultValue;
     }
     this.parser = SuiRockerComponent.parsers[this.dataType];
     this.dialog = dialog;
@@ -86,31 +81,33 @@ export class SuiRockerComponent extends SuiComponentBase {
     const pid = this.parameterId;
     const input = this._getInputElement();
     let val = 0;
-    this.setValue(this.defaultValue);
-    const self = this;
     $('#' + pid).find('button.increment').off('click').on('click',
       () => {
         val = (this as any)[this.parser]();
-        if (self.dataType === 'percent') {
+        if (this.dataType === 'percent') {
           val = 100 * val;
         }
-        $(input).val(val + self.increment);
-        self.handleChanged();
+        $(input).val(val + this.increment);
+        this.handleChanged();
       }
     );
     $('#' + pid).find('button.decrement').off('click').on('click',
       () => {
         val = (this as any)[this.parser]();
-        if (self.dataType === 'percent') {
+        if (this.dataType === 'percent') {
           val = 100 * val;
         }
-        $(input).val(val - self.increment);
-        self.handleChanged();
+        $(input).val(val - this.increment);
+        this.handleChanged();
       }
     );
     $(input).off('blur').on('blur',
       () => {
-        self.handleChanged();
+        val = (this as any)[this.parser]();
+        if (val !== this.initialValue) {
+          this.initialValue = val;
+          this.handleChanged();
+        }
       }
     );
   }
@@ -120,7 +117,7 @@ export class SuiRockerComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('input');
   }
   _getIntValue() {
-    let val = parseInt(this._getInputElement().val(), 10);
+    let val:number = parseInt(this._getInputElement().val(), 10);
     val = isNaN(val) ? 0 : val;
     return val;
   }
@@ -142,6 +139,7 @@ export class SuiRockerComponent extends SuiComponentBase {
       value = value * 100;
     }
     this._setIntValue(value);
+    this.initialValue = value;
   }
   getValue() {
     return (this as any)[this.parser]();

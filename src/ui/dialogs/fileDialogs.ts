@@ -216,56 +216,6 @@ export class SuiLoadMidiDialog extends SuiDialogAdapterBase<SuiMidiLoadAdapter> 
   }
 }
 
-/*
-export class SuiLoadActionsDialog extends SuiDialogBase {
-  static dialogElements: DialogDefinition = {
-    label: 'Load Action File',
-    elements: [{
-      smoName: 'loadFile',
-      defaultValue: '',
-      control: 'SuiFileDownloadComponent',
-      label: ''
-    }
-    ],
-    staticText: []
-  };
-  value: string;
-  constructor(parameters: SuiDialogParams) {
-    parameters.ctor = 'SuiLoadActionsDialog';
-    super(SuiLoadActionsDialog.dialogElements, parameters);
-    this.value = '';
-  }
-  get loadFileCtrl() {
-    return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
-  }
-  changed() {
-    this.value = this.loadFileCtrl.getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
-  }
-  commit() {
-    let scoreWorks = false;
-    if (this.value) {
-      try {
-        const json = JSON.parse(this.value);
-        this.view.playActions(json);
-        scoreWorks = true;
-        this.complete();
-      } catch (e) {
-        console.warn('unable to score ' + e);
-      }
-      if (!scoreWorks) {
-        this.complete();
-      }
-    }
-  }
-  static createAndDisplay(params: SuiDialogParams) {
-    const dg = new SuiLoadActionsDialog(params);
-    dg.display();
-    // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-  }
-}
-*/
 export class SuiPrintFileDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {
     label: 'Print Complete',
@@ -307,6 +257,9 @@ export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   _saveScore() {
     const json = this.view.storeScore.serialize();
     const jsonText = JSON.stringify(json);
+    if (!this.fileName.endsWith('.json')) {
+      this.fileName = this.fileName + '.json';
+    }
     addFileLink(this.fileName, jsonText, $('.saveLink'));
     $('.saveLink a')[0].click();
   }
@@ -364,6 +317,9 @@ export class SuiXmlSaveAdapter extends SuiComponentAdapter {
     const dom = SmoToXml.convert(this.view.storeScore);
     const ser = new XMLSerializer();
     const xmlText = ser.serializeToString(dom);
+    if (!this.fileName.endsWith('.xml') && !this.fileName.endsWith('.mxml')) {
+      this.fileName = this.fileName + '.mxml';
+    }
     addFileLink(this.fileName, xmlText, $('.saveLink'));
     $('.saveLink a')[0].click();
   }
@@ -415,6 +371,9 @@ export class SuiMidiSaveAdapter extends SuiComponentAdapter {
   }
   _saveScore() {
     const bytes = SmoToMidi.convert(this.view.storeScore);
+    if (!this.fileName.endsWith('.mid')) {
+      this.fileName = this.fileName + '.mid';
+    }
     addFileLink(this.fileName, bytes, $('.saveLink'), 'audio/midi');
     $('.saveLink a')[0].click();
   }

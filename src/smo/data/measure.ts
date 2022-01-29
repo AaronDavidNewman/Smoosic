@@ -764,17 +764,28 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return this.svg.yTop;
   }
 
-  transposeToOffset(offset: number) {
+  /**
+   * WHen setting an instrument, offset the pitches to match the instrument key
+   * @param offset 
+   * @param newClef 
+   */
+  transposeToOffset(offset: number, newClef?: Clef) {
     const diff = offset - this.transposeIndex;
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         const pitches: number[] = [...Array(note.pitches.length).keys()];
-        note.transpose(pitches, diff, this.keySignature);
-        note.getGraceNotes().forEach((gn) => {
-          const gpitch: number[] = [...Array(gn.pitches.length).keys()];
-          const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature);
-          gn.pitches = xpose.pitches;
-        });
+        // when the note is a rest, preserve the rest but match the new clef.
+        if (newClef && note.noteType === 'r') {
+          const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
+          note.pitches = [defp];
+        } else {
+          note.transpose(pitches, diff, this.keySignature);
+          note.getGraceNotes().forEach((gn) => {
+            const gpitch: number[] = [...Array(gn.pitches.length).keys()];
+            const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+            gn.pitches = xpose.pitches;
+          });
+        }
       });
     });
   }

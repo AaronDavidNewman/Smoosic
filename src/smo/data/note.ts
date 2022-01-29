@@ -577,7 +577,7 @@ export class SmoNote implements Transposable {
     let index: number = 0;
     let j: number = 0;
     let letterKey: string = 'a';
-    note.noteType = 'n';
+    // note.noteType = 'n';
     if (pitchArray.length === 0) {
       note.pitches.forEach((m) => {
         pitchArray.push(note.pitches.indexOf(m));
