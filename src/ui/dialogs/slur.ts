@@ -111,9 +111,6 @@ get spacing(): number {
 set spacing(value: number) {
   this.writeSlurNumber(this.view, this.slur, 'spacing', value);
 }
-get renderedBox(): SvgBox {
-  return this.backup.renderedBox!;
-}
 remove() {
   this.view.removeStaffModifier(this.backup);
 }

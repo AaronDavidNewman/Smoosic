@@ -19,6 +19,7 @@ import { SuiFontComponent } from './components/fontComponent';
 import { SuiTextBlockComponent } from './components/textInPlace';
 
 import { EventHandler } from '../eventSource';
+import { SuiInlineText } from '../../render/sui/textRender';
 
 declare var $: any;
 
@@ -148,7 +149,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       const textParams = SmoScoreText.defaults;
       textParams.position = SmoScoreText.positions.custom;
       const newText = new SmoScoreText(textParams);
-      newText.y += tracker.scroller.scrollState.scroll.y;
+      newText.y += tracker.scroller.scrollState.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure.svg;
         if (typeof (sel.logicalBox) !== 'undefined') {
@@ -207,7 +208,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.applyDisplayOptions();
     this.populateInitial();
     this.bindElements();
-    if (!this.modifier.renderedBox) {
+    if (!this.modifier.logicalBox) {
       this.view.renderer.renderTextGroup(this.modifier);
     }
 
@@ -306,15 +307,15 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['text-highlight']);
     SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['text-suggestion']);
     SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['inactive-text']);
-    if (this.activeScoreText.renderedBox) {
+    if (this.activeScoreText.logicalBox) {
       const stroke = SuiTextEditor.strokes['text-highlight'];
       const outline: OutlineInfo = {
         context: this.view.renderer.context,
         clientCoordinates: false,
         classes: '',
         stroke,
-        box: this.activeScoreText.renderedBox,
-        scroll: this.scroller.scrollState.scroll
+        box: this.activeScoreText.logicalBox,
+        scroll: this.scroller.scrollState
       }
       SvgHelpers.outlineRect(outline);
     }
@@ -377,6 +378,8 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     }
     SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-drag']);
     $('body').find('g.vf-text-highlight').remove();
+    // Hack - this comes from SuiInlineText and SuiTextEdit.
+    $('body').find('g.sui-inline-edit').remove();
     SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-highlight']);
     SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-suggestion']);
     SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['inactive-text']);
@@ -392,6 +395,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.updateTextGroup(this.backup, this.modifier);
       this._complete();
     });
 

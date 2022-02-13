@@ -171,13 +171,13 @@ export class SvgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg: SVGSVGElement, element: SVGSVGElement | undefined, artifact: Transposable, scroller: SvgPoint) {
+  static updateArtifactBox(svg: SVGSVGElement, element: SVGSVGElement | undefined, artifact: Transposable) {
     if (typeof (element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
     artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
-    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
+    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(svg, artifact.logicalBox));
   }
 
   // ### eraseOutline
@@ -205,9 +205,9 @@ export class SvgHelpers {
         var strokeObj:any = params.stroke;
         strokeObj['stroke-width'] = params.stroke.strokeWidth;
         var margin = 5;
-        if (params.clientCoordinates === true) {
+        /* if (params.clientCoordinates === true) {
           box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
-        }
+        } */
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
     });
@@ -335,11 +335,18 @@ export class SvgHelpers {
     svg.appendChild(e);
     return (e as any);
   }
-
+  static doesBox1ContainBox2(box1?: SvgBox, box2?: SvgBox): boolean {
+    if (!box1 || !box2) {
+      return false;
+    }
+    const i1 = box2.x - box1.x;
+    const i2 = box2.y - box1.y;
+    return (i1 > 0 && i1 < box1.width && i2 > 0 && i2 < box1.height);
+  }
 
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox): Boxable[] {
+  static findIntersectingArtifact(clientBox: SvgBox, objects: Boxable[]): Boxable[] {
     var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
@@ -350,10 +357,8 @@ export class SvgHelpers {
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-        var i1 = box.x - obox.x; // handle edge not believe in x and y
-        var i2 = box.y - obox.y;
-        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+        var obox = SvgHelpers.smoBox(object.box);
+        if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
           rv.push(object);
         }
       }
@@ -377,9 +382,7 @@ export class SvgHelpers {
         // console.log('there is no box');
       } else {
         var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-        var i1 = box.x - obox.x; // handle edge not believe in x and y
-        var i2 = box.y - obox.y;
-        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+        if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
           rv.push(object);
         }
       }
@@ -397,8 +400,8 @@ export class SvgHelpers {
     return false;
   }
 
-  static findSmallestIntersection(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox) {
-    var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
+  static findSmallestIntersection(clientBox: SvgBox, objects: Boxable[]) {
+    var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects);
     if (!ar.length) {
       return null;
     }
@@ -464,7 +467,7 @@ export class SvgHelpers {
   // return a simple box object that can be serialized, copied
   // (from svg DOM box)
   static smoBox(box: any) {
-    if (typeof (box) === "undefined") {
+    if (typeof (box) === "undefined" || box === null) {
       return SvgBox.default;
     }
     const hround = (f: number): number => {
@@ -584,18 +587,22 @@ export class SvgHelpers {
     };
   }
 
-  // ### logicalToClient
-  // return a box or point in screen coordinates from svg coordinates
+  /**
+   * return a box or point in screen coordinates from svg coordinates
+   * @param svg 
+   * @param point - in SVG coordinates (logical)
+   * @param scroller  - in client coordinates (rendered)
+   * @returns 
+   */
   static logicalToClient(svg: SVGSVGElement, point: SvgBox, scroller: SvgPoint): SvgBox | SvgPoint {
     var pt = svg.createSVGPoint();
-    const ss = scroller;
     pt.x = point.x;
     pt.y = point.y;
     var sp = pt.matrixTransform(svg.getScreenCTM() ?? undefined);
     if (!point['width']) {
       return {
-        x: sp.x + ss.x,
-        y: sp.y + ss.y
+        x: sp.x + scroller.x,
+        y: sp.y + scroller.y
       };
     }
     var endPt = svg.createSVGPoint();
@@ -603,10 +610,13 @@ export class SvgHelpers {
     endPt.y = pt.y + point.height;
     var ep = endPt.matrixTransform(svg.getScreenCTM() ?? undefined);
     return {
-      x: sp.x + ss.x,
-      y: sp.y + ss.y,
+      x: sp.x + scroller.x,
+      y: sp.y + scroller.y,
       width: ep.x - sp.x,
       height: ep.y - sp.y
     };
+  }
+  static logicalToClientRaw(svg: SVGSVGElement, point: SvgBox): SvgBox | SvgPoint {
+    return this.logicalToClient(svg, point, { x: 0, y: 0});
   }
 }

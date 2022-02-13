@@ -152,7 +152,7 @@ export abstract class SuiScoreView {
     const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
-    const pt = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
+    const pt = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState);
     return Math.round(midY / pt.y);
   }
   // ### _undoRectangle

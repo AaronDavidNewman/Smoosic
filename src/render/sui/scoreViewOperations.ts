@@ -82,7 +82,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param newVersion 
    * @returns 
    */
-  updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): Promise<void> {
+  updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): void {
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
     const isPartExposed = this.score.isPartExposed();
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
@@ -105,7 +105,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
-    return this.renderer.updatePromise()
+    // return this.renderer.updatePromise();
   }
   /**
    * load an mxml score remotely, return a promise that 

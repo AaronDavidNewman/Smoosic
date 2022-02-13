@@ -570,7 +570,7 @@ export class VxMeasure {
   }
   render() {
     var self = this;
-    var group = this.context.openGroup();
+    var group = this.context.openGroup() as SVGSVGElement;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
     const timestamp = new Date().valueOf();
@@ -599,8 +599,8 @@ export class VxMeasure {
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 
-      const lbox = this.stave.getBoundingBox();
-      this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.w, height: lbox.h }, 'vxMeasure bounding box');
+      const lbox = group.getBBox();
+      this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
       this.rendered = true;
     } catch (exc) {
       console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);

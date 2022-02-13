@@ -19,7 +19,6 @@ export interface VexTextFontMetrics {
   leftSideBearing: number;
   advanceWidth: number;
 }
-
 export interface VexTextFont {
   famliy: string,
   weight: string,
@@ -39,6 +38,7 @@ export interface SuiInlineTextParams {
   startX: number,
   startY: number,
   scroller: SuiScroller,
+  purpose: string,
   context: any
 }
 export interface SuiInlineBlock {
@@ -76,6 +76,9 @@ export class SuiInlineText {
       TEXT: 2,
       LINE: 3
     };
+  }
+  static get textPurposes(): Record<string, string> {
+    return {render: 'sui-inline-render', edit: 'sui-inline-edit' };
   }
 
   // ### textTypeTransitions
@@ -144,6 +147,7 @@ export class SuiInlineText {
       scale: 1,
       activeBlock: -1,
       artifacts: [],
+      purpose: 'render',
       classes: '',
       updatedMetrics: false
     }));
@@ -154,6 +158,7 @@ export class SuiInlineText {
   fontSize: number;
   width: number = -1;
   height: number = -1;
+  purpose: string;
 
   attrs: SmoAttrs;
   textFont: VexTextFont;
@@ -185,6 +190,7 @@ export class SuiInlineText {
     this.scroller = params.scroller;
     this.startX = params.startX;
     this.startY = params.startY;
+    this.purpose = params.purpose;
     this.attrs = {
       id: VF.Element.newID(),
       type: 'SuiInlineText'
@@ -199,6 +205,7 @@ export class SuiInlineText {
       fontStyle: scoreText.fontInfo.style ?? 'normal',
       startX: scoreText.x, startY: scoreText.y,
       scroller,
+      purpose: SuiInlineText.textPurposes.render,
       fontSize: scoreText.fontInfo.size, context
     };
     const rv = new SuiInlineText(params);
@@ -398,7 +405,10 @@ export class SuiInlineText {
     if (!this.artifacts) {
       return [];
     }
-    return SvgHelpers.findIntersectingArtifact(box, this.artifacts, scroll) as SuiInlineArtifact[];
+    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.context.svg, 
+      SvgHelpers.smoBox({ x: box.x + this.scroller.scrollState.x, y: box.y + this.scroller.scrollState.y } )));
+
+    return SvgHelpers.findIntersectingArtifact(logicalBox, this.artifacts) as SuiInlineArtifact[];
   }
   _addBlockAt(position: number, block: SuiInlineBlock) {
     if (position >= this.blocks.length) {
@@ -482,6 +492,7 @@ export class SuiInlineText {
     group.classList.add('vf-' + this.attrs.id);
     group.classList.add(this.attrs.id);
     group.classList.add(mmClass);
+    group.classList.add(this.purpose);
     group.id = this.attrs.id;
     this.artifacts = [];
 
@@ -498,7 +509,6 @@ export class SuiInlineText {
     });
     this.context.closeGroup();
     this.logicalBox = SvgHelpers.smoBox(group.getBBox());
-    this.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
   }
 
   _drawBlock(block: SuiInlineBlock) {
@@ -578,7 +588,6 @@ export class SuiTextBlock {
   currentBlockIndex: number = 0;
   justification: number;
   currentBlock: SuiTextBlockBlock | null = null;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox = SvgBox.default;
   constructor(params: SuiTextBlockParams) {
     this.inlineBlocks = [];
@@ -604,18 +613,15 @@ export class SuiTextBlock {
       SmoTextGroup.justifications.LEFT;
   }
   render() {
-    this.unrender();
-    this.renderedBox = null;
+    this.unrender();    
     this.inlineBlocks.forEach((block) => {
       block.text.render();
       if (block.activeText) {
         this._outlineBox(this.context, block.text.logicalBox);
       }
-      if (!this.renderedBox) {
-        this.renderedBox = SvgHelpers.smoBox(block.text.renderedBox);
+      if (!this.logicalBox || this.logicalBox.width < 1) {
         this.logicalBox = SvgHelpers.smoBox(block.text.logicalBox);
       } else {
-        this.renderedBox = SvgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
         this.logicalBox = SvgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
       }
     });
@@ -624,7 +630,7 @@ export class SuiTextBlock {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj: OutlineInfo = {
       context, box, classes: 'text-drag',
-      stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+      stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
     };
     SvgHelpers.outlineLogicalRect(obj);
   }
@@ -667,7 +673,7 @@ export class SuiTextBlock {
     const rv: SuiInlineTextParams = {
       fontFamily: scoreText.fontInfo.family,
       startX: scoreText.x, startY: scoreText.y, fontWeight: scoreText.fontInfo.weight,
-      fontStyle: scoreText.fontInfo.style ?? 'normal',
+      fontStyle: scoreText.fontInfo.style ?? 'normal', purpose: SuiInlineText.textPurposes.render,
       fontSize: scoreText.fontInfo.size, context, scroller
     };
     return rv;
@@ -681,7 +687,7 @@ export class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox(): SvgBox {
-    return SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
+    return SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState));
   }
   _calculateBoundingClientRect(): SvgBox {
     let rv: SvgBox = SvgBox.default;

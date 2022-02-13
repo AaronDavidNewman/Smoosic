@@ -359,9 +359,9 @@ export abstract class SuiRenderState {
     if (score === null) {
       return;
     }
-    if (this._score) {
+    /* if (this._score) {
       shouldReset = true;
-    }
+    } */
     this.setPassState(SuiRenderState.passStates.initial, 'load score');
     const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (!font) {
@@ -370,13 +370,13 @@ export abstract class SuiRenderState {
     SuiRenderState.setFont(font.family);
     this.dirty = true;
     this._score = score;
-    if (shouldReset) {
+    // if (shouldReset) {
       this.renderTime = 0;
+      this.setViewport(true);
       if (this.measureMapper) {
         this.measureMapper.loadScore();
       }
-      this.setViewport(true);
-    }
+    // }
   }
 
   // ### undo

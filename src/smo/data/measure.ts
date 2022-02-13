@@ -21,7 +21,6 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
-import { SmoGraceNote } from './noteModifiers';
 
 /**
  * Voice is just a container for {@link SmoNote}
@@ -66,6 +65,7 @@ export interface MeasureSvg {
   adjRight: number,
   history: string[],
   lineIndex: number,
+  pageIndex: number,
   rowInSystem: number,
   forceClef: boolean,
   forceKeySignature: boolean,
@@ -278,6 +278,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       adjRight: 0,
       history: [],
       lineIndex: 0,
+      pageIndex: 0,
       rowInSystem: 0,
       forceClef: false,
       forceKeySignature: false,

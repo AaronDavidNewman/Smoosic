@@ -3,13 +3,9 @@
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { layoutDebug } from './layoutDebug';
-import { VexTextFont } from './textRender';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
-export interface ScrollState {
-  scroll: SvgPoint
-}
 /**
  * Respond to scroll events in music DOM, and handle the scroll of the viewport
  * @category SuiRender
@@ -32,12 +28,12 @@ export class SuiScroller {
     $('body').append(dbgDiv);
   }
 
-  get scrollState(): ScrollState {
+  get scrollState(): SvgPoint {
     const scroll = JSON.parse(JSON.stringify(this._scroll));
-    return { scroll };
+    return { x: this._scroll.x, y: this._scroll.y };
   }
-  restoreScrollState(state: ScrollState) {
-    this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
+  restoreScrollState(state: SvgPoint) {
+    this.scrollOffset(state.x - this._scroll.x, state.y - this._scroll.y);
     this.deferUpdateDebug();
   }
 

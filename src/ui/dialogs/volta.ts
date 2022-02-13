@@ -69,9 +69,6 @@ export class SuiVoltaAdapter extends SuiComponentAdapter {
   set number(val: number) {
     this.updateVolta('number', val);
   }
-  get renderedBox(): SvgBox {
-    return this.backup.renderedBox!;
-  }
 }     
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
@@ -104,7 +101,7 @@ export class SuiVoltaAttributeDialog extends SuiDialogAdapterBase<SuiVoltaAdapte
           staticText: []
       };
   static createAndDisplay(parameters: SuiDialogParams) {
-    if (parameters.modifier.renderedBox === null) {
+    if (parameters.modifier.logicalBox === null) {
       return null;
     }
     const dg = new SuiVoltaAttributeDialog(parameters);

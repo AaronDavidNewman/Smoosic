@@ -87,7 +87,6 @@ export class SuiScoreRender extends SuiRenderState {
     if (gg.skipRender || this.score === null || this.measureMapper === null) {
       return;
     }
-    gg.renderedBox = SvgBox.default;
     gg.logicalBox = SvgBox.default;
     const group = this.context.openGroup();
     group.id = gg.attrs.id;
@@ -122,11 +121,9 @@ export class SuiScoreRender extends SuiRenderState {
       // For the first one we render, use that as the bounding box for all the text, for
       // purposes of mapper/tracker
       if (ix === 0) {
-        gg.renderedBox = JSON.parse(JSON.stringify(block.renderedBox));
         gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
         // map all the child scoreText objects, too.
         for (jj = 0; jj < gg.textBlocks.length; ++jj) {
-          gg.textBlocks[jj].text.renderedBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.renderedBox));
           gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
         }
       }
@@ -258,6 +255,9 @@ export class SuiScoreRender extends SuiRenderState {
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
+      if (layoutDebug.mask & layoutDebug.values.artifactMap) {
+        this.measureMapper?.artifactMap.debugBox(this.svg);
+      }
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
       // score.
@@ -490,6 +490,7 @@ export class SuiScoreRender extends SuiRenderState {
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
       measure.svg.lineIndex = lineIndex;
+      measure.svg.pageIndex = this.currentPage;
 
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.

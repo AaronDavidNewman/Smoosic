@@ -175,7 +175,7 @@ export class SuiTextEditor {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
       context: this.context, box, classes: '',
-      stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
+      stroke: outlineStroke, scroll: this.scroller.scrollState,
       clientCoordinates: false
     };
   }
@@ -220,7 +220,7 @@ export class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks(SvgHelpers.smoBox({
       x: ev.clientX,
       y: ev.clientY
-    }), SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+    }), SvgHelpers.smoBox(this.scroller.scrollState));
 
     // The mouse is not over the text
     if (!blocks.length) {
@@ -420,6 +420,7 @@ export class SuiTextEditor {
     this.svgText = new SuiInlineText({
       context: this.context, startX: this.x, startY: this.y,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller,
+      purpose: SuiInlineText.textPurposes.edit,
       fontStyle: 'normal'
     });
     for (i = 0; i < this.text.length; ++i) {
@@ -522,7 +523,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj: OutlineInfo = {
       context: this.context, box: bbox, classes: '',
-      stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+      stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
     };
     SvgHelpers.outlineLogicalRect(obj);
   }
@@ -836,21 +837,21 @@ export class SuiDragSession {
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = SvgHelpers.smoBox(this.startBox);
-    this.currentClientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
+    this.currentClientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState));
   }
 
   _outlineBox() {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
     const obj: OutlineInfo = {
       context: this.context, box: this.currentBox, classes: 'text-drag',
-      stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
+      stroke: outlineStroke, scroll: this.scroller.scrollState,
       clientCoordinates: false
     };
     SvgHelpers.outlineLogicalRect(obj);
   }
 
   startDrag(e: any) {
-    if (!SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, SvgHelpers.smoBox(this.scroller.scrollState.scroll))) {
+    if (!SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, SvgHelpers.smoBox(this.scroller.scrollState))) {
       return;
     }
     this.dragging = true;
@@ -870,8 +871,8 @@ export class SuiDragSession {
     this.currentClientBox.y = e.clientY - this.yOffset;
     const coor = SvgHelpers.clientToLogical(this.context.svg,
       {
-        x: this.currentClientBox.x + + this.scroller.scrollState.scroll.x,
-        y: this.currentClientBox.y + this.scroller.scrollState.scroll.y,
+        x: this.currentClientBox.x + + this.scroller.scrollState.x,
+        y: this.currentClientBox.y + this.scroller.scrollState.y,
         width: 0, height: 0
       });
     this.currentBox.x = coor.x;

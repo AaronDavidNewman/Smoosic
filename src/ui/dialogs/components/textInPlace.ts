@@ -62,13 +62,10 @@ export class SuiTextInPlace extends SuiComponentBase {
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
     this.value.skipRender = false;
 
-    const render = () => {
-      this.view.renderer.setRefresh();
-    };
     if (this.session) {
       this.session.textGroup.tryParseUnicode();
       this.value = this.session.textGroup;
-      this.session.stopSession().then(render);
+      this.session.stopSession();
     }
     $('body').removeClass('text-edit');
     this.handleChanged();

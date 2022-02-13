@@ -57,35 +57,6 @@ export class SuiTracker extends SuiMapper {
   constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     super(renderer, scroller, pasteBuffer);
   }
-  // ### _checkBoxOffset
-  // If the mapped note and actual note don't match, re-render the notes so they do.
-  // Otherwise the selections are off.
-  _checkBoxOffset() {
-    const note = this.selections[0].note as SmoNote;
-    const r = note.renderedBox;
-    if (!r) {
-      return;
-    }
-    const abs = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
-    const ydiff = Math.abs(r.y - abs.y);
-    const xdiff = Math.abs(r.x - abs.x);
-    const preventScroll = $('body').hasClass('modal');
-
-    if (ydiff > 1 || xdiff > 1) {
-      if (this.renderer.passState === SuiRenderState.passStates.replace ||
-        this.renderer.passState === SuiRenderState.passStates.clean) {
-        console.log('tracker: rerender conflicting map');
-        this.renderer.remapAll();
-      }
-      if (!preventScroll) {
-        console.log('prevent scroll conflicting map');
-        $('body').addClass('modal');
-        this.renderer.renderPromise().then(() => {
-          $('body').removeClass('modal');
-        });
-      }
-    }
-  }
 
   // ### renderElement
   // the element the score is rendered on
@@ -119,25 +90,28 @@ export class SuiTracker extends SuiMapper {
       const zmeasureSel = SmoSelection.measureSelection(this.score,
         0, selector.measure);
       const measure = measureSel?.measure as SmoMeasure;
-      const y1: number = zmeasureSel?.measure?.svg?.renderedBox?.y ?? 0;
-      const y2: number = zmeasureSel?.measure?.svg?.renderedBox?.height ?? 0;
-      const sy: number = this.scroller.netScroll.y;
-      const y = (y1 - y2) - sy;
+      if (zmeasureSel?.measure?.svg?.logicalBox) {
+        const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, zmeasureSel.measure.svg.logicalBox, this.scroller.scrollState));
+        const y1: number = screenBox?.y ?? 0;
+        const y2: number = screenBox?.height ?? 0;
+        const sy: number = this.scroller.netScroll.y;
+        const y = (y1 - y2) - sy;
 
-      const mbox = measure?.svg?.renderedBox ?? SvgBox.default;
-      const noteSel = this.measureNoteMap[key] as SmoSelection;
-      const pos: SvgPoint = noteSel.scrollBox ?? SvgPoint.default;
-      const b = buildDom;
-      const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
-      $('.workspace #birdy').remove();
-      const rd = r.dom();
-      const x = pos.x;
-      $(rd).css('top', y).css('left', x);
-      $('.workspace').append(rd);
-      // todo, need lower right for x
-      if (mbox) {
-      this.scroller.scrollVisibleBox(SvgHelpers.boxPoints(
-        mbox.x, mbox.y, mbox.width, mbox.height));
+        const mbox = measure?.svg?.logicalBox ?? SvgBox.default;
+        const noteSel = this.measureNoteMap[key] as SmoSelection;
+        const pos: SvgPoint = noteSel.scrollBox ?? SvgPoint.default;
+        const b = buildDom;
+        const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
+        $('.workspace #birdy').remove();
+        const rd = r.dom();
+        const x = pos.x;
+        $(rd).css('top', y).css('left', x);
+        $('.workspace').append(rd);
+        // todo, need lower right for x
+        if (mbox) {
+        this.scroller.scrollVisibleBox(SvgHelpers.boxPoints(
+          mbox.x, mbox.y, mbox.width, mbox.height));
+        }
       }
     }
   }
@@ -311,8 +285,8 @@ export class SuiTracker extends SuiMapper {
         this.selections = [homeSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (homeSel.measure.svg.renderedBox) {
-          this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
+        if (homeSel.measure.svg.logicalBox) {
+          this.scroller.scrollVisibleBox(homeSel.measure.svg.logicalBox);
         }
       }
     } else {
@@ -325,9 +299,9 @@ export class SuiTracker extends SuiMapper {
         tick: 0, pitches: [] });
       if (evKey.shiftKey) {
         this._selectBetweenSelections(score, this.selections[0], homeSel);
-      } else if (homeSel?.measure?.svg?.renderedBox) {
+      } else if (homeSel?.measure?.svg?.logicalBox) {
         this.selections = [homeSel];
-        this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
+        this.scroller.scrollVisibleBox(homeSel.measure.svg.logicalBox);
         this.deferHighlight();
         this._createLocalModifiersList();
       }
@@ -348,8 +322,8 @@ export class SuiTracker extends SuiMapper {
         this.selections = [endSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (endSel.measure.svg.renderedBox) {
-          this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
+        if (endSel.measure.svg.logicalBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.svg.logicalBox);
         }
       }
     } else {
@@ -368,8 +342,8 @@ export class SuiTracker extends SuiMapper {
         this.selections = [endSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (endSel.measure.svg.renderedBox) {
-          this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
+        if (endSel.measure.svg.logicalBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.svg.logicalBox);
         }
       }
     }
@@ -733,9 +707,9 @@ export class SuiTracker extends SuiMapper {
     }
     this.modifierSelections.forEach((artifact) => {
       if (box === null) {
-        box = artifact.modifier.renderedBox ?? null;
+        box = artifact.modifier.logicalBox ?? null;
       } else {
-        box = SvgHelpers.unionRect(box, SvgHelpers.smoBox(artifact.modifier.renderedBox));
+        box = SvgHelpers.unionRect(box, SvgHelpers.smoBox(artifact.modifier.logicalBox));
       }
     });
     if (box === null) {
@@ -753,7 +727,7 @@ export class SuiTracker extends SuiMapper {
     }
     const headEl = heads[index];
     const lbox = SvgHelpers.smoBox(headEl.getBBox());
-    const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
+    const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
     this._drawRect(box, 'staffModifier');
   }
 
@@ -805,9 +779,8 @@ export class SuiTracker extends SuiMapper {
 
     this.pitchIndex = -1;
     this.eraseAllSelections();
-    if (this.selections.length === 1 && note.renderedBox) {
-      this._checkBoxOffset();
-      this._drawRect(note.renderedBox, 'selection');
+    if (this.selections.length === 1 && note.logicalBox) {
+      this._drawRect(note.logicalBox, 'selection');
       this._highlightActiveVoice(this.selections[0]);
       return;
     }
@@ -845,7 +818,7 @@ export class SuiTracker extends SuiMapper {
     const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
     return {
       context: this.renderer.context, box, classes: '',
-      stroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+      stroke, scroll: this.scroller.scrollState, clientCoordinates: false
     };
   }
 

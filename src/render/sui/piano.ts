@@ -141,8 +141,14 @@ export class SuiPiano {
         console.log('remap piano');
         this._mapKeys();
       }
+      if (!this.renderElement) {
+        return;
+      }
+      const clientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderElement, SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), 
+        { x: 0, y: 0 })); // last param is scroll offset
+
       var keyPressed = SvgHelpers.findSmallestIntersection(
-        SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, SvgHelpers.boxPoints(0, 0, 1, 1)) as PianoKey;
+        clientBox, this.objects) as PianoKey;
       if (!keyPressed) {
         return;
       }
@@ -183,8 +189,14 @@ export class SuiPiano {
   }
   _updateSelections(ev: any) {
     // fake a scroller (piano scroller w/b cool tho...)
+    if (!this.renderElement) {
+      return;
+    }
+    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.renderElement, 
+      SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY }),));
+
     var keyPressed =
-      SvgHelpers.findSmallestIntersection(SvgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, SvgHelpers.pointBox(0, 0)) as PianoKey;
+      SvgHelpers.findSmallestIntersection(logicalBox, this.objects) as PianoKey;
     if (!keyPressed) {
       return;
     }

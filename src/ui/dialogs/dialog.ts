@@ -340,11 +340,13 @@ export interface DialogDom {
   }
   // ### positionModifier()
   positionFromModifier() {
-    if (this.modifier === null || this.modifier.renderedBox === null) {
+    if (this.modifier === null || this.modifier.logicalBox === null) {
       this.positionGlobally();
       return;
     }
-    this.position(this.modifier.renderedBox);
+    
+    const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.view.renderer.svg, this.modifier.logicalBox, this.scroller.scrollState));
+    this.position(screenBox);
   }
   // ### positionGlobally
   // position the dialog box in the center of the current scroll region
@@ -356,8 +358,9 @@ export interface DialogDom {
   // set initial position of dialog based on first selection
   positionFromSelection() {
     const note: SmoNote | null = this.view.tracker.selections[0].note;
-    if (note && note.renderedBox) {
-      this.position(note.renderedBox);
+    if (note && note.logicalBox) {
+      const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.view.renderer.svg, note.logicalBox, this.scroller.scrollState));
+      this.position(screenBox);
     }
   }
   // ### build the html for the dialog, based on the instance-specific components.

@@ -67,9 +67,6 @@ export class SuiHairpinAdapter extends SuiComponentAdapter {
   set position(val: number) {
     this.updateValue('position', val);
   }
-  get renderedBox(): SvgBox {
-    return this.hairpin.renderedBox!;
-  }
 }
 export class SuiHairpinAttributesDialog extends SuiDialogAdapterBase<SuiHairpinAdapter> {
   static dialogElements: DialogDefinition =

@@ -421,8 +421,7 @@ export class PasteBuffer {
       // If this is the non-display buffer, don't try to reset the display rectangles.
       // Q: Is this even required since we are going to re-render?
       // A: yes, because until we do, the replaced measure needs the formatting info
-      if (measure.svg.renderedBox && measure.svg.logicalBox.width > 0) {
-        nmeasure.svg.renderedBox = SvgHelpers.smoBox(measure.svg.renderedBox);
+      if (measure.svg.logicalBox && measure.svg.logicalBox.width > 0) {
         nmeasure.setBox(SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
         nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
         nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');

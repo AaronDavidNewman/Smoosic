@@ -18,10 +18,11 @@ export class layoutDebug {
       adjust: 4,
       system: 8,
       scroll: 16,
-      adjustHeight: 32,
+      artifactMap: 32,
       measureHistory: 64,
       textEditorHistory: 128,
-      dialogEvents: 256
+      dialogEvents: 256,
+      cursor: 512
     };
   }
 
@@ -35,7 +36,8 @@ export class layoutDebug {
       32: 'measure-adjustHeight-dbg',
       64: '',
       128: '',
-      256: ''
+      256: '',
+      512: 'cursor-adj-dbg',
     };
   }
   static get codeRegions(): Record<string, number> {
@@ -118,14 +120,6 @@ export class layoutDebug {
     }
   }
 
-  static createSandbox(elementId: string, width: number, height: number): any {
-    $('#' + elementId).html('');
-    $('#' + elementId).removeClass('hide');
-    const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
-    SvgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
-    return renderer;
-  }
-
   static setFlag(value: number) {
     var flag = layoutDebug.values[value];
     if (typeof (layoutDebug.mask) == 'undefined') {
@@ -134,7 +128,6 @@ export class layoutDebug {
     }
     layoutDebug.mask |= flag;
   }
-
 
   static addTextDebug(value: number) {
     layoutDebug._textDebug.push(value);

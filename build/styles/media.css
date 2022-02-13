@@ -144,7 +144,13 @@ h1 {
   font-size: 10px;
   font-family: 'Roboto Slab';
 }
-
+.cursor-adj-dbg {
+	fill:#942;
+  stroke: #731;
+  position: fixed;
+  font-size: 10px;
+  font-family: 'Roboto Slab';
+}
 .measure-note-dbg line {
 	stroke:#fc9;
 	stroke-width:1;
