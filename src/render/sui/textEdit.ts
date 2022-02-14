@@ -1,18 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiInlineText, SuiTextBlock } from './textRender';
+import { SuiRenderState } from './renderState';
+import { SuiScroller } from './scroller';
+import { layoutDebug } from './layoutDebug';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { OutlineInfo, StrokeInfo, SvgHelpers } from './svgHelpers';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
-import { SmoSelection } from '../../smo/xform/selections';
-import { SuiRenderState } from './renderState';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoSelector } from '../../smo/xform/selections';
-import { SuiScroller } from './scroller';
 import { SvgBox, KeyEvent } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore } from '../../smo/data/score';
-
+import { SmoSelection } from '../../smo/xform/selections';
 const VF = eval('Vex.Flow');
 declare var $: any;
 
@@ -217,10 +217,13 @@ export class SuiTextEditor {
     if (this.svgText === null) {
       return false;
     }
-    var blocks = this.svgText.getIntersectingBlocks(SvgHelpers.smoBox({
-      x: ev.clientX,
-      y: ev.clientY
-    }), SvgHelpers.smoBox(this.scroller.scrollState));
+    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.context.svg, 
+      SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY, width: 1, height: 1 } )));
+    if (layoutDebug.mask & layoutDebug.values.cursor) {
+      layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
+      layoutDebug.debugBox(this.context.svg, logicalBox, layoutDebug.values.cursor);
+    }
+    var blocks = this.svgText.getIntersectingBlocks(logicalBox);
 
     // The mouse is not over the text
     if (!blocks.length) {

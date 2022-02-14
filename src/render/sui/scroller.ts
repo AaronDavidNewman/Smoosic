@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
+import { SuiRendererBase } from './mapper';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -12,18 +13,24 @@ const VF = eval('Vex.Flow');
  */
 export class SuiScroller {
   selector: HTMLElement;
+  renderer: SuiRendererBase;
   _scroll: SvgPoint;
   _offsetInitial: SvgPoint;
   viewport: SvgBox = SvgBox.default;
+  logicalViewport: SvgBox = SvgBox.default;
   // ### constructor
   // selector is the scrollable DOM container of the music container
   // (grandparent of svg element)
-  constructor(selector: HTMLElement) {
+  constructor(selector: HTMLElement, renderer: SuiRendererBase) {
+    const self = this;
     this.selector = selector;
     this._scroll = { x: 0, y: 0 };
+    this.renderer = renderer;
     const scroller = $(selector);
     this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    this.updateViewport();
+    renderer.createViewportPromise().then(() => {
+      self.updateViewport();
+    });
     const dbgDiv = $('<div class="scroll-box-debug"/>');
     $('body').append(dbgDiv);
   }
@@ -73,28 +80,13 @@ export class SuiScroller {
   // Scroll such that the box is fully visible, if possible (if it is
   // not larger than the screen)
   scrollVisibleBox(box: SvgBox) {
-    let xoff = 0;
     let yoff = 0;
-    const curBox = this.scrollBox;
-    if (box.width > curBox.width || box.height > curBox.height) {
-      return;
+    const topY = this.scrollState.y;
+    const bottomY = topY + this.logicalViewport.height;
+    if (topY >= box.y || box.y + box.height >= bottomY) {      
+      yoff = (box.y - this.scrollState.y) + 20;
     }
-    if (box.height < curBox.height) {
-      if (box.y < curBox.y) {
-        yoff = box.y - (curBox.y + 25);
-      } else if (box.y + box.height > curBox.y + curBox.height) {
-        yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
-      }
-    }
-
-    if (box.x < curBox.width) {
-      if (box.x < curBox.x) {
-        xoff = box.x - curBox.x;
-      } else if (box.x + box.width > curBox.x + curBox.width) {
-        xoff = box.x + box.width - (curBox.x + curBox.width);
-      }
-    }
-
+    const xoff = 0;
     if (xoff !== 0 || yoff !== 0) {
       this.scrollOffset(xoff, yoff);
     }
@@ -107,6 +99,7 @@ export class SuiScroller {
       $(this.selector).offset().top,
       $(this.selector).width(),
       $(this.selector).height());
+    this.logicalViewport = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.renderer.svg, this.viewport));
     this.deferUpdateDebug();
   }
 

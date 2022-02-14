@@ -53,7 +53,7 @@ export abstract class SuiRenderState {
   measureMapper: SuiMapper | null;
   passState: number = SuiRenderState.passStates.initial;
   _score: SmoScore | null = null;
-  renderer: any;
+  renderer: any = null;
   elementId: any;
   _backupZoomScale: number = 0;
   // signal to render demon that we have suspended background
@@ -151,6 +151,9 @@ export abstract class SuiRenderState {
     return (this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false) ||
       (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
   }
+  get viewportCreated() {
+    return this.renderer !== null;
+  }
   preserveScroll() {
     const scrollState = this.measureMapper!.scroller.scrollState;
     this.renderPromise().then(() => {
@@ -166,6 +169,13 @@ export abstract class SuiRenderState {
       self.suspendRendering = oldSuspend;
     };
     return PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
+  }
+  createViewportPromise(): Promise<void> {
+    const self = this;
+    const condition = () => {
+      return self.viewportCreated;
+    }
+    return PromiseHelpers.makePromise(condition, null, null, this.config.demonPollTime)
   }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.

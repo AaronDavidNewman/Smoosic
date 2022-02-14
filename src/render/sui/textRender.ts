@@ -5,6 +5,7 @@ import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox } from '../../smo/data/common';
+import { layoutDebug } from './layoutDebug';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -401,14 +402,11 @@ export class SuiInlineText {
   unrender() {
     $('svg #' + this.attrs.id).remove();
   }
-  getIntersectingBlocks(box: SvgBox, scroll: SvgBox): SuiInlineArtifact[] {
+  getIntersectingBlocks(box: SvgBox): SuiInlineArtifact[] {
     if (!this.artifacts) {
       return [];
     }
-    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.context.svg, 
-      SvgHelpers.smoBox({ x: box.x + this.scroller.scrollState.x, y: box.y + this.scroller.scrollState.y } )));
-
-    return SvgHelpers.findIntersectingArtifact(logicalBox, this.artifacts) as SuiInlineArtifact[];
+    return SvgHelpers.findIntersectingArtifact(box, this.artifacts) as SuiInlineArtifact[];
   }
   _addBlockAt(position: number, block: SuiInlineBlock) {
     if (position >= this.blocks.length) {
@@ -502,7 +500,7 @@ export class SuiInlineText {
       this._drawBlock(block);
       this.context.closeGroup();
       const artifact: SuiInlineArtifact = { block, box: SvgBox.default, index: 0 };
-      artifact.box = SvgHelpers.smoBox(bg.getBoundingClientRect());
+      artifact.box = SvgHelpers.smoBox(bg.getBBox());
       artifact.index = ix;
       this.artifacts.push(artifact);
       ix += 1;

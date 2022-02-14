@@ -3,12 +3,11 @@
 import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
 import { SvgHelpers, StrokeInfo, OutlineInfo } from './svgHelpers';
 import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
-import { SuiRenderState } from './renderState';
-import { buildDom } from '../../common/htmlHelpers';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiOscillator } from '../audio/oscillator';
 import { SmoScore } from '../../smo/data/score';
-import { SvgBox, SvgPoint, KeyEvent } from '../../smo/data/common';
+import { SvgBox, KeyEvent } from '../../smo/data/common';
 import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
@@ -21,6 +20,7 @@ declare var $: any;
  */
 export class SuiTracker extends SuiMapper {
   idleTimer: number = Date.now();
+  musicCursorGlyph: SVGSVGElement | null = null;
   // timer: NodeJS.Timer | null = null;
   suggestFadeTimer: NodeJS.Timer | null = null;
 
@@ -73,7 +73,10 @@ export class SuiTracker extends SuiMapper {
   }
 
   clearMusicCursor() {
-    $('.workspace #birdy').remove();
+    if (this.musicCursorGlyph) {
+      this.musicCursorGlyph.remove();
+      this.musicCursorGlyph = null;
+    }
   }
 
   // ### musicCursor
@@ -90,28 +93,32 @@ export class SuiTracker extends SuiMapper {
       const zmeasureSel = SmoSelection.measureSelection(this.score,
         0, selector.measure);
       const measure = measureSel?.measure as SmoMeasure;
-      if (zmeasureSel?.measure?.svg?.logicalBox) {
-        const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, zmeasureSel.measure.svg.logicalBox, this.scroller.scrollState));
-        const y1: number = screenBox?.y ?? 0;
-        const y2: number = screenBox?.height ?? 0;
-        const sy: number = this.scroller.netScroll.y;
-        const y = (y1 - y2) - sy;
+      if (zmeasureSel?.measure?.svg?.logicalBox && measureSel?.measure?.svg?.logicalBox) {
+        const screenBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+        const y: number = screenBox.y;
+        let x = screenBox.x;
+        const noteSelector = SmoSelection.noteFromSelector(this.score, selector);
+        if (noteSelector?.note?.logicalBox) {
+          x = noteSelector.note.logicalBox.x;
+        }        
 
-        const mbox = measure?.svg?.logicalBox ?? SvgBox.default;
-        const noteSel = this.measureNoteMap[key] as SmoSelection;
-        const pos: SvgPoint = noteSel.scrollBox ?? SvgPoint.default;
-        const b = buildDom;
-        const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
-        $('.workspace #birdy').remove();
-        const rd = r.dom();
-        const x = pos.x;
-        $(rd).css('top', y).css('left', x);
-        $('.workspace').append(rd);
-        // todo, need lower right for x
-        if (mbox) {
-        this.scroller.scrollVisibleBox(SvgHelpers.boxPoints(
-          mbox.x, mbox.y, mbox.width, mbox.height));
+        const mbox = { x, y, width: 1, height: 1 };
+        const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
+        const outerBox = { x, y, width: mbox.width, height:  (sysBottom - y) * 2 }; 
+        
+        const at = [];
+        const symbol = '\u25BC';
+        at.push({ y: mbox.y });
+        at.push({ x: mbox.x });
+        at.push({ 'font-family': SourceSansProFont.fontFamily });
+        at.push({ 'font-size': '12pt' });
+        if (!this.musicCursorGlyph) {
+          this.musicCursorGlyph = SvgHelpers.placeSvgText(this.renderer.context.svg, at, 'music-cursor', symbol);
+        } else {
+          this.musicCursorGlyph.setAttributeNS('', 'x', mbox.x.toString());
+          this.musicCursorGlyph.setAttributeNS('', 'y', mbox.y.toString());
         }
+        this.scroller.scrollVisibleBox(outerBox);
       }
     }
   }

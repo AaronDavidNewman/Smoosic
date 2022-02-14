@@ -50,7 +50,7 @@ export abstract class SuiScoreView {
     this.renderer = renderer;
     this.config = config;
     const scoreJson = score.serialize();
-    this.scroller = new SuiScroller(scrollSelector);
+    this.scroller = new SuiScroller(scrollSelector, this.renderer);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
     this.tracker = new SuiTracker(this.renderer, this.scroller, this.pasteBuffer);

@@ -37,6 +37,7 @@ export interface SuiRendererBase {
   remapAll(): void,
   renderPromise(): Promise<any>,
   addToReplaceQueue(mm: SmoSelection[]): void,
+  createViewportPromise(): Promise<void>,
   renderElement: Element,
   context: any
 }
