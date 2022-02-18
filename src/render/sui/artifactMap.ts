@@ -1,8 +1,12 @@
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox } from '../../smo/data/common';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { SuiScroller } from './scroller';
 import { layoutDebug } from './layoutDebug';
+/**
+ * Keep the artifacts for mapper in a geometric type of hash, so we map client and svg
+ * coordinates more rapidly.
+ * @category SuiRender
+ */
 export class SuiArtifactMap {
   children: SuiArtifactMap[] = [];
   noteMap: Record<string, SmoSelection> = {};

@@ -1539,13 +1539,16 @@ exports.getDomContainer = getDomContainer;
  * @param selector
  * @returns
  */
-function createTopDomContainer(selector) {
+function createTopDomContainer(selector, elementType) {
     const container = $(selector);
+    if (!elementType) {
+        elementType = 'div';
+    }
     if (container.length > 0) {
         return container[0];
     }
     else {
-        const ndiv = document.createElement('div');
+        const ndiv = document.createElement(elementType);
         if (typeof (selector) === 'string') {
             const cl = (selector[0] === '.' || selector[0] === '#') ? selector.substring(1) : selector;
             $(ndiv).addClass(cl);
@@ -4307,6 +4310,88 @@ SuiAudioPlayer._playingInstance = null;
 
 /***/ }),
 
+/***/ "./src/render/sui/artifactMap.ts":
+/*!***************************************!*\
+  !*** ./src/render/sui/artifactMap.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiArtifactMap = void 0;
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+/**
+ * Keep the artifacts for mapper in a geometric type of hash, so we map client and svg
+ * coordinates more rapidly.
+ * @category SuiRender
+ */
+class SuiArtifactMap {
+    constructor(containers, boxIndex, selection) {
+        this.children = [];
+        this.noteMap = {};
+        this.box = common_1.SvgBox.default;
+        if (!selection || !selection.note || !selection.note.logicalBox) {
+            return;
+        }
+        this.box = svgHelpers_1.SvgHelpers.smoBox(selection.measure.svg.logicalBox);
+        if (boxIndex + 1 < containers.length) {
+            this.children.push(new SuiArtifactMap(containers, boxIndex + 1, selection));
+        }
+        else {
+            this.addBox(containers, boxIndex, selection);
+        }
+    }
+    debugBox(svg) {
+        layoutDebug_1.layoutDebug.debugBox(svg, this.box, layoutDebug_1.layoutDebug.values.artifactMap);
+        this.children.forEach((child) => {
+            child.debugBox(svg);
+        });
+    }
+    addBox(containers, boxIndex, selection) {
+        if (!selection.note || !selection.note.logicalBox) {
+            return;
+        }
+        if (boxIndex === containers.length - 1) {
+            const innerBox = selection.note.logicalBox;
+            this.box = svgHelpers_1.SvgHelpers.unionRect(this.box, innerBox);
+            this.noteMap[selections_1.SmoSelector.getNoteKey(selection.selector)] = selection;
+            return;
+        }
+        else {
+            const innerBox = selection.measure.svg.logicalBox;
+            if (!innerBox) {
+                return;
+            }
+            this.box = svgHelpers_1.SvgHelpers.unionRect(this.box, innerBox);
+            if (this.children.length < containers[boxIndex] + 1) {
+                this.children.push(new SuiArtifactMap(containers, boxIndex + 1, selection));
+            }
+            else {
+                this.children[containers[boxIndex]].addBox(containers, boxIndex + 1, selection);
+            }
+        }
+    }
+    findArtifact(box) {
+        let rv = [];
+        if (this.children.length === 0) {
+            const objs = Object.keys(this.noteMap).map((mm) => this.noteMap[mm]);
+            return objs.filter((oo) => oo.box && svgHelpers_1.SvgHelpers.doesBox1ContainBox2(oo.box, box));
+        }
+        const children = this.children.filter((child) => svgHelpers_1.SvgHelpers.doesBox1ContainBox2(child.box, box));
+        children.forEach((child) => {
+            rv = rv.concat(child.findArtifact(box));
+        });
+        return rv;
+    }
+}
+exports.SuiArtifactMap = SuiArtifactMap;
+
+
+/***/ }),
+
 /***/ "./src/render/sui/configuration.ts":
 /*!*****************************************!*\
   !*** ./src/render/sui/configuration.ts ***!
@@ -4603,10 +4688,11 @@ class layoutDebug {
             adjust: 4,
             system: 8,
             scroll: 16,
-            adjustHeight: 32,
+            artifactMap: 32,
             measureHistory: 64,
             textEditorHistory: 128,
-            dialogEvents: 256
+            dialogEvents: 256,
+            cursor: 512
         };
     }
     static get classes() {
@@ -4619,7 +4705,8 @@ class layoutDebug {
             32: 'measure-adjustHeight-dbg',
             64: '',
             128: '',
-            256: ''
+            256: '',
+            512: 'cursor-adj-dbg',
         };
     }
     static get codeRegions() {
@@ -4692,13 +4779,6 @@ class layoutDebug {
         if (layoutDebug.flagSet(flag)) {
             svgHelpers_1.SvgHelpers.debugBox(svg, box, layoutDebug.classes[flag], 0);
         }
-    }
-    static createSandbox(elementId, width, height) {
-        $('#' + elementId).html('');
-        $('#' + elementId).removeClass('hide');
-        const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
-        svgHelpers_1.SvgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
-        return renderer;
     }
     static setFlag(value) {
         var flag = layoutDebug.values[value];
@@ -4847,6 +4927,7 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const artifactMap_1 = __webpack_require__(/*! ./artifactMap */ "./src/render/sui/artifactMap.ts");
 /**
  * Map the notes in the svg so they can respond to events and interact
  * with the mouse/keyboard
@@ -4883,6 +4964,7 @@ class SuiMapper {
         // the current selection, which is also the copy/paste destination
         this.pasteBuffer = pasteBuffer;
         this.highlightQueue = { selectionCount: 0, deferred: false };
+        this.artifactMap = new artifactMap_1.SuiArtifactMap([0], 0, null);
     }
     updateHighlight() {
         const self = this;
@@ -4920,26 +5002,26 @@ class SuiMapper {
             var _a, _b;
             (_a = sel.note) === null || _a === void 0 ? void 0 : _a.getGraceNotes().forEach((gg) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: gg, box: (_a = gg.renderedBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ selection: sel, modifier: gg, box: (_a = gg.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
             });
             (_b = sel.note) === null || _b === void 0 ? void 0 : _b.getModifiers('SmoDynamicText').forEach((dyn) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: dyn, box: (_a = dyn.renderedBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ selection: sel, modifier: dyn, box: (_a = dyn.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
             });
             sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: volta, box: (_a = volta.renderedBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ selection: sel, modifier: volta, box: (_a = volta.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
             });
             sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: tempo, box: (_a = tempo.renderedBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ selection: sel, modifier: tempo, box: (_a = tempo.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
             });
             sel.staff.getModifiers().forEach((mod) => {
                 if (selections_1.SmoSelector.gteq(sel.selector, mod.startSelector) &&
-                    selections_1.SmoSelector.lteq(sel.selector, mod.endSelector) && mod.renderedBox) {
+                    selections_1.SmoSelector.lteq(sel.selector, mod.endSelector) && mod.logicalBox) {
                     const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);
                     if (!exists) {
-                        this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
+                        this.localModifiers.push({ selection: sel, modifier: mod, box: mod.logicalBox });
                     }
                 }
             });
@@ -4957,15 +5039,15 @@ class SuiMapper {
     // rendering
     loadScore() {
         this.measureNoteMap = {};
+        this.artifactMap = new artifactMap_1.SuiArtifactMap([0], 0, null);
         this.clearModifierSelections();
         this.selections = [];
         this.highlightQueue = { selectionCount: 0, deferred: false };
     }
     // ### _clearMeasureArtifacts
     // clear the measure from the measure and note maps so we can rebuild it.
-    clearMeasureMap(staff, measure) {
+    clearMeasureMap(measure) {
         const selector = { staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex, voice: 0, tick: 0, pitches: [] };
-        const measureKey = selections_1.SmoSelector.getMeasureKey(selector);
         // Unselect selections in this measure so we can reselect them when re-tracked
         const ar = [];
         this.selections.forEach((selection) => {
@@ -4991,7 +5073,7 @@ class SuiMapper {
     deleteMeasure(selection) {
         const selCopy = this._copySelectionsByMeasure(selection.selector.staff, selection.selector.measure)
             .selectors;
-        this.clearMeasureMap(selection.staff, selection.measure);
+        this.clearMeasureMap(selection.measure);
         if (selCopy.length) {
             selCopy.forEach((selector) => {
                 const nsel = JSON.parse(JSON.stringify(selector));
@@ -5013,7 +5095,7 @@ class SuiMapper {
             this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState.scroll)),
+                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState)),
                 index: ix
             });
             ix += 1;
@@ -5033,7 +5115,7 @@ class SuiMapper {
                 this.modifierTabs.push({
                     modifier,
                     selection: null,
-                    box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
+                    box: modifier.logicalBox,
                     index: ix
                 });
                 ix += 1;
@@ -5050,7 +5132,7 @@ class SuiMapper {
                             this.modifierTabs.push({
                                 modifier,
                                 selection,
-                                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
+                                box: modifier.logicalBox,
                                 index: ix
                             });
                             ix += 1;
@@ -5062,11 +5144,11 @@ class SuiMapper {
             selection.measure.modifiers.forEach((modifier) => {
                 if (modifier.attrs.id
                     && !modMap[modifier.attrs.id]
-                    && modifier.renderedBox) {
+                    && modifier.logicalBox) {
                     this.modifierTabs.push({
                         modifier,
                         selection,
-                        box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll)),
+                        box: svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox),
                         index: ix
                     });
                     ix += 1;
@@ -5107,24 +5189,24 @@ class SuiMapper {
             voice.notes.forEach((smoNote) => {
                 const el = this.renderer.svg.getElementById(smoNote.renderId);
                 if (el) {
-                    svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller.scrollState.scroll);
+                    svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote);
                     // TODO: fix this, only works on the first line.
                     smoNote.getModifiers('SmoLyric').forEach((lyrict) => {
                         const lyric = lyrict;
                         if (lyric.getText().length || lyric.isHyphenated()) {
                             lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
-                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller.scrollState.scroll);
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric);
                         }
                     });
                     smoNote.graceNotes.forEach((g) => {
                         var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
                         $(gel).addClass('grace-note');
-                        svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller.scrollState.scroll);
+                        svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, gel, g);
                     });
                     smoNote.textModifiers.forEach((modifier) => {
                         const modEl = $('.' + modifier.attrs.id);
                         if (modifier.logicalBox && modEl.length) {
-                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller.scrollState.scroll);
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier);
                         }
                     });
                 }
@@ -5141,12 +5223,11 @@ class SuiMapper {
         if (!measure.svg.logicalBox) {
             return;
         }
-        measure.svg.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, measure.svg.logicalBox, this.scroller.scrollState.scroll));
         this._setModifierBoxes(measure);
         const timestamp = new Date().valueOf();
         // Keep track of any current selections in this measure, we will try to restore them.
         const sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
-        this.clearMeasureMap(staff, measure);
+        this.clearMeasureMap(measure);
         vix = measure.getActiveVoice();
         sels.selectors.forEach((sel) => {
             sel.voice = vix;
@@ -5171,7 +5252,7 @@ class SuiMapper {
                     _measure: measure,
                     _note: note,
                     _pitches: [],
-                    box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll)),
+                    box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.smoBox(note.logicalBox)),
                     type: 'rendered'
                 });
                 // and add it to the map
@@ -5315,10 +5396,16 @@ class SuiMapper {
     intersectingArtifact(bb) {
         let sel = [];
         bb = svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-        const artifacts = svgHelpers_1.SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+        const logicalBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.renderer.svg, svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)));
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.cursor) {
+            layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.cursor);
+            layoutDebug_1.layoutDebug.debugBox(this.renderer.svg, logicalBox, layoutDebug_1.layoutDebug.values.cursor);
+        }
+        const artifacts = this.artifactMap.findArtifact(logicalBox);
+        // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
         // TODO: handle overlapping suggestions
         if (!artifacts.length) {
-            const bsel = svgHelpers_1.SvgHelpers.findIntersectingArtifact(bb, this.modifierTabs, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+            const bsel = svgHelpers_1.SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs);
             sel = bsel;
             if (sel.length) {
                 this._setModifierAsSuggestion(sel[0]);
@@ -5328,10 +5415,22 @@ class SuiMapper {
         const artifact = artifacts[0];
         this._setArtifactAsSuggestion(artifact);
     }
+    _getRectangleChain(selection) {
+        const rv = [];
+        if (!selection.note) {
+            return rv;
+        }
+        rv.push(selection.measure.svg.pageIndex);
+        rv.push(selection.measure.svg.lineIndex);
+        rv.push(selection.measure.measureNumber.measureIndex);
+        return rv;
+    }
+    debugBox(svg) {
+        this.artifactMap.debugBox(svg);
+    }
     _updateMeasureNoteMap(artifact, printing) {
         const note = artifact.note;
         const noteKey = selections_1.SmoSelector.getNoteKey(artifact.selector);
-        const measureKey = selections_1.SmoSelector.getMeasureKey(artifact.selector);
         const activeVoice = artifact.measure.getActiveVoice();
         if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
             const vvv = artifact.selector.voice;
@@ -5344,12 +5443,13 @@ class SuiMapper {
             });
         }
         // not has not been drawn yet.
-        if ((!artifact.box) || (!artifact.measure.svg.renderedBox)) {
+        if ((!artifact.box) || (!artifact.measure.svg.logicalBox)) {
             return;
         }
         this.measureNoteMap[noteKey] = artifact;
+        this.artifactMap.addBox(this._getRectangleChain(artifact), 0, artifact);
         artifact.scrollBox = { x: artifact.box.x,
-            y: artifact.measure.svg.renderedBox.y };
+            y: artifact.measure.svg.logicalBox.y };
     }
 }
 exports.SuiMapper = SuiMapper;
@@ -5499,7 +5599,11 @@ class SuiPiano {
                 console.log('remap piano');
                 this._mapKeys();
             }
-            var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(svgHelpers_1.SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, svgHelpers_1.SvgHelpers.boxPoints(0, 0, 1, 1));
+            if (!this.renderElement) {
+                return;
+            }
+            const clientBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderElement, svgHelpers_1.SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), { x: 0, y: 0 })); // last param is scroll offset
+            var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(clientBox, this.objects);
             if (!keyPressed) {
                 return;
             }
@@ -5540,7 +5644,11 @@ class SuiPiano {
     }
     _updateSelections(ev) {
         // fake a scroller (piano scroller w/b cool tho...)
-        var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(svgHelpers_1.SvgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, svgHelpers_1.SvgHelpers.pointBox(0, 0));
+        if (!this.renderElement) {
+            return;
+        }
+        const logicalBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.renderElement, svgHelpers_1.SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY })));
+        var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(logicalBox, this.objects);
         if (!keyPressed) {
             return;
         }
@@ -5717,6 +5825,7 @@ class SuiRenderState {
     constructor(config) {
         this.passState = SuiRenderState.passStates.initial;
         this._score = null;
+        this.renderer = null;
         this._backupZoomScale = 0;
         // signal to render demon that we have suspended background
         // rendering because we are recording or playing actions.
@@ -5802,6 +5911,9 @@ class SuiRenderState {
         return (this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false) ||
             (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
     }
+    get viewportCreated() {
+        return this.renderer !== null;
+    }
     preserveScroll() {
         const scrollState = this.measureMapper.scroller.scrollState;
         this.renderPromise().then(() => {
@@ -5816,6 +5928,13 @@ class SuiRenderState {
             self.suspendRendering = oldSuspend;
         };
         return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
+    }
+    createViewportPromise() {
+        const self = this;
+        const condition = () => {
+            return self.viewportCreated;
+        };
+        return promiseHelpers_1.PromiseHelpers.makePromise(condition, null, null, this.config.demonPollTime);
     }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
@@ -5997,9 +6116,9 @@ class SuiRenderState {
         if (score === null) {
             return;
         }
-        if (this._score) {
-            shouldReset = true;
-        }
+        /* if (this._score) {
+          shouldReset = true;
+        } */
         this.setPassState(SuiRenderState.passStates.initial, 'load score');
         const font = score.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
         if (!font) {
@@ -6008,13 +6127,13 @@ class SuiRenderState {
         SuiRenderState.setFont(font.family);
         this.dirty = true;
         this._score = score;
-        if (shouldReset) {
-            this.renderTime = 0;
-            if (this.measureMapper) {
-                this.measureMapper.loadScore();
-            }
-            this.setViewport(true);
+        // if (shouldReset) {
+        this.renderTime = 0;
+        this.setViewport(true);
+        if (this.measureMapper) {
+            this.measureMapper.loadScore();
         }
+        // }
     }
     // ### undo
     // Undo is handled by the render state machine, because the layout has to first
@@ -6321,7 +6440,6 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         if (gg.skipRender || this.score === null || this.measureMapper === null) {
             return;
         }
-        gg.renderedBox = common_1.SvgBox.default;
         gg.logicalBox = common_1.SvgBox.default;
         const group = this.context.openGroup();
         group.id = gg.attrs.id;
@@ -6355,11 +6473,9 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             // For the first one we render, use that as the bounding box for all the text, for
             // purposes of mapper/tracker
             if (ix === 0) {
-                gg.renderedBox = JSON.parse(JSON.stringify(block.renderedBox));
                 gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
                 // map all the child scoreText objects, too.
                 for (jj = 0; jj < gg.textBlocks.length; ++jj) {
-                    gg.textBlocks[jj].text.renderedBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.renderedBox));
                     gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
                 }
             }
@@ -6481,9 +6597,11 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         });
     }
     _renderNextSystem(systemIx, mscore, keys, printing) {
-        (0, htmlHelpers_1.createTopDomContainer)('#renderProgress');
+        var _a;
+        (0, htmlHelpers_1.createTopDomContainer)('#renderProgress', 'progress');
         if (systemIx < keys.length) {
             const progress = Math.round((100 * systemIx) / keys.length);
+            $('#renderProgress').attr('max', 100);
             $('#renderProgress').val(progress);
             this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
                 systemIx++;
@@ -6493,6 +6611,9 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         else {
             this.renderScoreModifiers();
             this.numberMeasures();
+            if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.artifactMap) {
+                (_a = this.measureMapper) === null || _a === void 0 ? void 0 : _a.artifactMap.debugBox(this.svg);
+            }
             // We pro-rate the background render timer on how long it takes
             // to actually render the score, so we are not thrashing on a large
             // score.
@@ -6701,6 +6822,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
             measure.svg.lineIndex = lineIndex;
+            measure.svg.pageIndex = this.currentPage;
             // use measure to left to figure out whether I need to render key signature, etc.
             // If I am the first measure, just use self and we always render them on the first measure.
             let measureToLeft = this._measureToLeft(measure);
@@ -6775,7 +6897,7 @@ class SuiScoreView {
         this.renderer = renderer;
         this.config = config;
         const scoreJson = score.serialize();
-        this.scroller = new scroller_1.SuiScroller(scrollSelector);
+        this.scroller = new scroller_1.SuiScroller(scrollSelector, this.renderer);
         this.pasteBuffer = new copypaste_1.PasteBuffer();
         this.storePaste = new copypaste_1.PasteBuffer();
         this.tracker = new tracker_1.SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
@@ -6812,6 +6934,10 @@ class SuiScoreView {
         this.renderer.setViewport(true);
         this.renderer.setRefresh();
         return this.renderer.renderPromise();
+    }
+    rerenderAll() {
+        this.renderer.rerenderAll();
+        return this.renderer.updatePromise();
     }
     /**
      *
@@ -6869,7 +6995,7 @@ class SuiScoreView {
         const layoutManager = this.score.layoutManager.getGlobalLayout();
         const lh = layoutManager.pageHeight / layoutManager.svgScale;
         const lw = layoutManager.pageWidth / layoutManager.svgScale;
-        const pt = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
+        const pt = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState);
         return Math.round(midY / pt.y);
     }
     // ### _undoRectangle
@@ -7331,7 +7457,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         }
         // TODO: only render the one TG.
         this.renderer.renderScoreModifiers();
-        return this.renderer.updatePromise();
+        // return this.renderer.updatePromise();
     }
     /**
      * load an mxml score remotely, return a promise that
@@ -8438,13 +8564,12 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     /**
-     *
+     * Set the layout of a single page
      * @param layout page layout
      * @param pageIndex which page to change
      * @returns
      */
-    setPageLayout(layout, pageIndex) {
-        this._undoScore('Set Page Layout');
+    _setPageLayout(layout, pageIndex) {
         this.score.layoutManager.updatePage(layout, pageIndex);
         this.storeScore.layoutManager.updatePage(layout, pageIndex);
         // If we are in part mode, save the page layout in the part so it is there next time
@@ -8455,6 +8580,13 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
                 altStaff.partInfo.layoutManager.updatePage(layout, pageIndex);
             });
+        }
+    }
+    setPageLayouts(layout, startIndex, endIndex) {
+        this._undoScore('Set Page Layout');
+        let i = 0;
+        for (i = startIndex; i <= endIndex; ++i) {
+            this._setPageLayout(layout, i);
         }
         this.renderer.rerenderAll();
         return this.renderer.updatePromise();
@@ -8911,22 +9043,27 @@ class SuiScroller {
     // ### constructor
     // selector is the scrollable DOM container of the music container
     // (grandparent of svg element)
-    constructor(selector) {
+    constructor(selector, renderer) {
         this.viewport = common_1.SvgBox.default;
+        this.logicalViewport = common_1.SvgBox.default;
+        const self = this;
         this.selector = selector;
         this._scroll = { x: 0, y: 0 };
+        this.renderer = renderer;
         const scroller = $(selector);
         this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-        this.updateViewport();
+        renderer.createViewportPromise().then(() => {
+            self.updateViewport();
+        });
         const dbgDiv = $('<div class="scroll-box-debug"/>');
         $('body').append(dbgDiv);
     }
     get scrollState() {
         const scroll = JSON.parse(JSON.stringify(this._scroll));
-        return { scroll };
+        return { x: this._scroll.x, y: this._scroll.y };
     }
     restoreScrollState(state) {
-        this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
+        this.scrollOffset(state.x - this._scroll.x, state.y - this._scroll.y);
         this.deferUpdateDebug();
     }
     // ### handleScroll
@@ -8959,28 +9096,13 @@ class SuiScroller {
     // Scroll such that the box is fully visible, if possible (if it is
     // not larger than the screen)
     scrollVisibleBox(box) {
-        let xoff = 0;
         let yoff = 0;
-        const curBox = this.scrollBox;
-        if (box.width > curBox.width || box.height > curBox.height) {
-            return;
+        const topY = this.scrollState.y;
+        const bottomY = topY + this.logicalViewport.height;
+        if (topY >= box.y || box.y + box.height >= bottomY) {
+            yoff = (box.y - this.scrollState.y) + 20;
         }
-        if (box.height < curBox.height) {
-            if (box.y < curBox.y) {
-                yoff = box.y - (curBox.y + 25);
-            }
-            else if (box.y + box.height > curBox.y + curBox.height) {
-                yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
-            }
-        }
-        if (box.x < curBox.width) {
-            if (box.x < curBox.x) {
-                xoff = box.x - curBox.x;
-            }
-            else if (box.x + box.width > curBox.x + curBox.width) {
-                xoff = box.x + box.width - (curBox.x + curBox.width);
-            }
-        }
+        const xoff = 0;
         if (xoff !== 0 || yoff !== 0) {
             this.scrollOffset(xoff, yoff);
         }
@@ -8989,6 +9111,7 @@ class SuiScroller {
     updateViewport() {
         $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
         this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
+        this.logicalViewport = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.renderer.svg, this.viewport));
         this.deferUpdateDebug();
     }
     // ### scrollBox
@@ -9171,13 +9294,13 @@ class SvgHelpers {
     // ### boxNote
     // update the note geometry based on current viewbox conditions.
     // This may not be the appropriate place for this...maybe in layout
-    static updateArtifactBox(svg, element, artifact, scroller) {
+    static updateArtifactBox(svg, element, artifact) {
         if (typeof (element) === 'undefined') {
             console.log('updateArtifactBox: undefined element!');
             return;
         }
         artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
-        artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
+        artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(svg, artifact.logicalBox));
     }
     // ### eraseOutline
     // Erases old outlineRects.
@@ -9200,10 +9323,11 @@ class SvgHelpers {
         boxes.forEach((box) => {
             if (box) {
                 var strokeObj = params.stroke;
+                strokeObj['stroke-width'] = params.stroke.strokeWidth;
                 var margin = 5;
-                if (params.clientCoordinates === true) {
-                    box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
-                }
+                /* if (params.clientCoordinates === true) {
+                  box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
+                } */
                 context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
             }
         });
@@ -9312,9 +9436,17 @@ class SvgHelpers {
         svg.appendChild(e);
         return e;
     }
+    static doesBox1ContainBox2(box1, box2) {
+        if (!box1 || !box2) {
+            return false;
+        }
+        const i1 = box2.x - box1.x;
+        const i2 = box2.y - box1.y;
+        return (i1 > 0 && i1 < box1.width && i2 > 0 && i2 < box1.height);
+    }
     // ### findIntersectionArtifact
     // find all object that intersect with the rectangle
-    static findIntersectingArtifact(clientBox, objects, scrollState) {
+    static findIntersectingArtifact(clientBox, objects) {
         var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
         // box.y = box.y - this.renderElement.offsetTop;
         // box.x = box.x - this.renderElement.offsetLeft;
@@ -9325,10 +9457,8 @@ class SvgHelpers {
                 // console.log('there is no box');
             }
             else {
-                var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-                var i1 = box.x - obox.x; // handle edge not believe in x and y
-                var i2 = box.y - obox.y;
-                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+                var obox = SvgHelpers.smoBox(object.box);
+                if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
                     rv.push(object);
                 }
             }
@@ -9350,9 +9480,7 @@ class SvgHelpers {
             }
             else {
                 var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-                var i1 = box.x - obox.x; // handle edge not believe in x and y
-                var i2 = box.y - obox.y;
-                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+                if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
                     rv.push(object);
                 }
             }
@@ -9368,8 +9496,8 @@ class SvgHelpers {
         }
         return false;
     }
-    static findSmallestIntersection(clientBox, objects, scrollState) {
-        var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
+    static findSmallestIntersection(clientBox, objects) {
+        var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects);
         if (!ar.length) {
             return null;
         }
@@ -9430,7 +9558,7 @@ class SvgHelpers {
     // return a simple box object that can be serialized, copied
     // (from svg DOM box)
     static smoBox(box) {
-        if (typeof (box) === "undefined") {
+        if (typeof (box) === "undefined" || box === null) {
             return common_1.SvgBox.default;
         }
         const hround = (f) => {
@@ -9542,19 +9670,23 @@ class SvgHelpers {
             height: ep.y - sp.y
         };
     }
-    // ### logicalToClient
-    // return a box or point in screen coordinates from svg coordinates
+    /**
+     * return a box or point in screen coordinates from svg coordinates
+     * @param svg
+     * @param point - in SVG coordinates (logical)
+     * @param scroller  - in client coordinates (rendered)
+     * @returns
+     */
     static logicalToClient(svg, point, scroller) {
         var _a, _b;
         var pt = svg.createSVGPoint();
-        const ss = scroller;
         pt.x = point.x;
         pt.y = point.y;
         var sp = pt.matrixTransform((_a = svg.getScreenCTM()) !== null && _a !== void 0 ? _a : undefined);
         if (!point['width']) {
             return {
-                x: sp.x + ss.x,
-                y: sp.y + ss.y
+                x: sp.x + scroller.x,
+                y: sp.y + scroller.y
             };
         }
         var endPt = svg.createSVGPoint();
@@ -9562,11 +9694,14 @@ class SvgHelpers {
         endPt.y = pt.y + point.height;
         var ep = endPt.matrixTransform((_b = svg.getScreenCTM()) !== null && _b !== void 0 ? _b : undefined);
         return {
-            x: sp.x + ss.x,
-            y: sp.y + ss.y,
+            x: sp.x + scroller.x,
+            y: sp.y + scroller.y,
             width: ep.x - sp.x,
             height: ep.y - sp.y
         };
+    }
+    static logicalToClientRaw(svg, point) {
+        return this.logicalToClient(svg, point, { x: 0, y: 0 });
     }
 }
 exports.SvgHelpers = SvgHelpers;
@@ -9586,12 +9721,13 @@ exports.SuiChordSession = exports.SuiLyricSession = exports.SuiTextSession = exp
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
+const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const VF = eval('Vex.Flow');
 /**
  * The heirarchy of text editing objects goes:
@@ -9707,7 +9843,7 @@ class SuiTextEditor {
         const outlineStroke = SuiTextEditor.strokes[strokeName];
         return {
             context: this.context, box, classes: '',
-            stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
+            stroke: outlineStroke, scroll: this.scroller.scrollState,
             clientCoordinates: false
         };
     }
@@ -9748,10 +9884,12 @@ class SuiTextEditor {
         if (this.svgText === null) {
             return false;
         }
-        var blocks = this.svgText.getIntersectingBlocks(svgHelpers_1.SvgHelpers.smoBox({
-            x: ev.clientX,
-            y: ev.clientY
-        }), svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+        const logicalBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, svgHelpers_1.SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY, width: 1, height: 1 })));
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.cursor) {
+            layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.cursor);
+            layoutDebug_1.layoutDebug.debugBox(this.context.svg, logicalBox, layoutDebug_1.layoutDebug.values.cursor);
+        }
+        var blocks = this.svgText.getIntersectingBlocks(logicalBox);
         // The mouse is not over the text
         if (!blocks.length) {
             svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
@@ -9947,6 +10085,7 @@ class SuiTextEditor {
         this.svgText = new textRender_1.SuiInlineText({
             context: this.context, startX: this.x, startY: this.y,
             fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller,
+            purpose: textRender_1.SuiInlineText.textPurposes.edit,
             fontStyle: 'normal'
         });
         for (i = 0; i < this.text.length; ++i) {
@@ -10054,7 +10193,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
         const outlineStroke = SuiTextEditor.strokes['text-highlight'];
         const obj = {
             context: this.context, box: bbox, classes: '',
-            stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+            stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
         };
         svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
@@ -10350,19 +10489,19 @@ class SuiDragSession {
         this.startBox = this.textObject.getLogicalBox();
         this.startBox.y += this.textObject.maxFontHeight(1);
         this.currentBox = svgHelpers_1.SvgHelpers.smoBox(this.startBox);
-        this.currentClientBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
+        this.currentClientBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState));
     }
     _outlineBox() {
         const outlineStroke = SuiTextEditor.strokes['text-drag'];
         const obj = {
             context: this.context, box: this.currentBox, classes: 'text-drag',
-            stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
+            stroke: outlineStroke, scroll: this.scroller.scrollState,
             clientCoordinates: false
         };
         svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
     startDrag(e) {
-        if (!svgHelpers_1.SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll))) {
+        if (!svgHelpers_1.SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState))) {
             return;
         }
         this.dragging = true;
@@ -10380,8 +10519,8 @@ class SuiDragSession {
         this.currentClientBox.x = e.clientX + this.xOffset;
         this.currentClientBox.y = e.clientY - this.yOffset;
         const coor = svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, {
-            x: this.currentClientBox.x + +this.scroller.scrollState.scroll.x,
-            y: this.currentClientBox.y + this.scroller.scrollState.scroll.y,
+            x: this.currentClientBox.x + +this.scroller.scrollState.x,
+            y: this.currentClientBox.y + this.scroller.scrollState.y,
             width: 0, height: 0
         });
         this.currentBox.x = coor.x;
@@ -10856,6 +10995,7 @@ class SuiInlineText {
         this.scroller = params.scroller;
         this.startX = params.startX;
         this.startY = params.startY;
+        this.purpose = params.purpose;
         this.attrs = {
             id: VF.Element.newID(),
             type: 'SuiInlineText'
@@ -10871,6 +11011,9 @@ class SuiInlineText {
             TEXT: 2,
             LINE: 3
         };
+    }
+    static get textPurposes() {
+        return { render: 'sui-inline-render', edit: 'sui-inline-edit' };
     }
     // ### textTypeTransitions
     // Given a current text type and a type change request, what is the result
@@ -10933,6 +11076,7 @@ class SuiInlineText {
             scale: 1,
             activeBlock: -1,
             artifacts: [],
+            purpose: 'render',
             classes: '',
             updatedMetrics: false
         }));
@@ -10953,6 +11097,7 @@ class SuiInlineText {
             fontStyle: (_a = scoreText.fontInfo.style) !== null && _a !== void 0 ? _a : 'normal',
             startX: scoreText.x, startY: scoreText.y,
             scroller,
+            purpose: SuiInlineText.textPurposes.render,
             fontSize: scoreText.fontInfo.size, context
         };
         const rv = new SuiInlineText(params);
@@ -11147,11 +11292,11 @@ class SuiInlineText {
     unrender() {
         $('svg #' + this.attrs.id).remove();
     }
-    getIntersectingBlocks(box, scroll) {
+    getIntersectingBlocks(box) {
         if (!this.artifacts) {
             return [];
         }
-        return svgHelpers_1.SvgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
+        return svgHelpers_1.SvgHelpers.findIntersectingArtifact(box, this.artifacts);
     }
     _addBlockAt(position, block) {
         if (position >= this.blocks.length) {
@@ -11229,6 +11374,7 @@ class SuiInlineText {
         group.classList.add('vf-' + this.attrs.id);
         group.classList.add(this.attrs.id);
         group.classList.add(mmClass);
+        group.classList.add(this.purpose);
         group.id = this.attrs.id;
         this.artifacts = [];
         this.blocks.forEach((block) => {
@@ -11237,14 +11383,13 @@ class SuiInlineText {
             this._drawBlock(block);
             this.context.closeGroup();
             const artifact = { block, box: common_1.SvgBox.default, index: 0 };
-            artifact.box = svgHelpers_1.SvgHelpers.smoBox(bg.getBoundingClientRect());
+            artifact.box = svgHelpers_1.SvgHelpers.smoBox(bg.getBBox());
             artifact.index = ix;
             this.artifacts.push(artifact);
             ix += 1;
         });
         this.context.closeGroup();
         this.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
-        this.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
     }
     _drawBlock(block) {
         const sp = this.isSuperscript(block);
@@ -11294,7 +11439,6 @@ class SuiTextBlock {
         this.spacing = 0;
         this.currentBlockIndex = 0;
         this.currentBlock = null;
-        this.renderedBox = null;
         this.logicalBox = common_1.SvgBox.default;
         this.inlineBlocks = [];
         this.scroller = params.scroller;
@@ -11328,18 +11472,15 @@ class SuiTextBlock {
     }
     render() {
         this.unrender();
-        this.renderedBox = null;
         this.inlineBlocks.forEach((block) => {
             block.text.render();
             if (block.activeText) {
                 this._outlineBox(this.context, block.text.logicalBox);
             }
-            if (!this.renderedBox) {
-                this.renderedBox = svgHelpers_1.SvgHelpers.smoBox(block.text.renderedBox);
+            if (!this.logicalBox || this.logicalBox.width < 1) {
                 this.logicalBox = svgHelpers_1.SvgHelpers.smoBox(block.text.logicalBox);
             }
             else {
-                this.renderedBox = svgHelpers_1.SvgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
                 this.logicalBox = svgHelpers_1.SvgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
             }
         });
@@ -11348,7 +11489,7 @@ class SuiTextBlock {
         const outlineStroke = textEdit_1.SuiTextEditor.strokes['text-highlight'];
         const obj = {
             context, box, classes: 'text-drag',
-            stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+            stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
         };
         svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
@@ -11386,7 +11527,7 @@ class SuiTextBlock {
         const rv = {
             fontFamily: scoreText.fontInfo.family,
             startX: scoreText.x, startY: scoreText.y, fontWeight: scoreText.fontInfo.weight,
-            fontStyle: (_a = scoreText.fontInfo.style) !== null && _a !== void 0 ? _a : 'normal',
+            fontStyle: (_a = scoreText.fontInfo.style) !== null && _a !== void 0 ? _a : 'normal', purpose: SuiInlineText.textPurposes.render,
             fontSize: scoreText.fontInfo.size, context, scroller
         };
         return rv;
@@ -11399,7 +11540,7 @@ class SuiTextBlock {
         return this._calculateBoundingClientRect();
     }
     getRenderedBox() {
-        return svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
+        return svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState));
     }
     _calculateBoundingClientRect() {
         let rv = common_1.SvgBox.default;
@@ -11557,8 +11698,7 @@ exports.SuiTracker = void 0;
 const mapper_1 = __webpack_require__(/*! ./mapper */ "./src/render/sui/mapper.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
@@ -11571,36 +11711,37 @@ class SuiTracker extends mapper_1.SuiMapper {
     constructor(renderer, scroller, pasteBuffer) {
         super(renderer, scroller, pasteBuffer);
         this.idleTimer = Date.now();
+        this.musicCursorGlyph = null;
         // timer: NodeJS.Timer | null = null;
         this.suggestFadeTimer = null;
     }
-    // ### _checkBoxOffset
-    // If the mapped note and actual note don't match, re-render the notes so they do.
-    // Otherwise the selections are off.
-    _checkBoxOffset() {
-        const note = this.selections[0].note;
-        const r = note.renderedBox;
-        if (!r) {
-            return;
-        }
-        const abs = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
-        const ydiff = Math.abs(r.y - abs.y);
-        const xdiff = Math.abs(r.x - abs.x);
-        const preventScroll = $('body').hasClass('modal');
-        if (ydiff > 1 || xdiff > 1) {
-            if (this.renderer.passState === renderState_1.SuiRenderState.passStates.replace ||
-                this.renderer.passState === renderState_1.SuiRenderState.passStates.clean) {
-                console.log('tracker: rerender conflicting map');
-                this.renderer.remapAll();
+    static get strokes() {
+        return {
+            suggestion: {
+                strokeName: 'suggestion',
+                stroke: '#fc9',
+                strokeWidth: 3,
+                strokeDasharray: '4,1',
+                fill: 'none',
+                opacity: 1.0
+            },
+            selection: {
+                strokeName: 'selection',
+                stroke: '#99d',
+                strokeWidth: 3,
+                strokeDasharray: 2,
+                fill: 'none',
+                opacity: 1.0
+            },
+            staffModifier: {
+                strokeName: 'staffModifier',
+                stroke: '#933',
+                strokeWidth: 3,
+                fill: 'none',
+                strokeDasharray: 0,
+                opacity: 1.0
             }
-            if (!preventScroll) {
-                console.log('prevent scroll conflicting map');
-                $('body').addClass('modal');
-                this.renderer.renderPromise().then(() => {
-                    $('body').removeClass('modal');
-                });
-            }
-        }
+        };
     }
     // ### renderElement
     // the element the score is rendered on
@@ -11614,12 +11755,15 @@ class SuiTracker extends mapper_1.SuiMapper {
         return this.renderer.svg;
     }
     clearMusicCursor() {
-        $('.workspace #birdy').remove();
+        if (this.musicCursorGlyph) {
+            this.musicCursorGlyph.remove();
+            this.musicCursorGlyph = null;
+        }
     }
     // ### musicCursor
     // the little birdie that follows the music as it plays
     musicCursor(selector) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e;
         const key = selections_1.SmoSelector.getNoteKey(selector);
         if (!this.score) {
             return;
@@ -11629,23 +11773,31 @@ class SuiTracker extends mapper_1.SuiMapper {
             const measureSel = selections_1.SmoSelection.measureSelection(this.score, this.score.staves.length - 1, selector.measure);
             const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
             const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
-            const y1 = (_d = (_c = (_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.renderedBox) === null || _c === void 0 ? void 0 : _c.y) !== null && _d !== void 0 ? _d : 0;
-            const y2 = (_h = (_g = (_f = (_e = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _e === void 0 ? void 0 : _e.svg) === null || _f === void 0 ? void 0 : _f.renderedBox) === null || _g === void 0 ? void 0 : _g.height) !== null && _h !== void 0 ? _h : 0;
-            const sy = this.scroller.netScroll.y;
-            const y = (y1 - y2) - sy;
-            const mbox = (_k = (_j = measure === null || measure === void 0 ? void 0 : measure.svg) === null || _j === void 0 ? void 0 : _j.renderedBox) !== null && _k !== void 0 ? _k : common_1.SvgBox.default;
-            const noteSel = this.measureNoteMap[key];
-            const pos = (_l = noteSel.scrollBox) !== null && _l !== void 0 ? _l : common_1.SvgPoint.default;
-            const b = htmlHelpers_1.buildDom;
-            const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
-            $('.workspace #birdy').remove();
-            const rd = r.dom();
-            const x = pos.x;
-            $(rd).css('top', y).css('left', x);
-            $('.workspace').append(rd);
-            // todo, need lower right for x
-            if (mbox) {
-                this.scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.boxPoints(mbox.x, mbox.y, mbox.width, mbox.height));
+            if (((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox) && ((_d = (_c = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure) === null || _c === void 0 ? void 0 : _c.svg) === null || _d === void 0 ? void 0 : _d.logicalBox)) {
+                const screenBox = svgHelpers_1.SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+                const y = screenBox.y;
+                let x = screenBox.x;
+                const noteSelector = selections_1.SmoSelection.noteFromSelector(this.score, selector);
+                if ((_e = noteSelector === null || noteSelector === void 0 ? void 0 : noteSelector.note) === null || _e === void 0 ? void 0 : _e.logicalBox) {
+                    x = noteSelector.note.logicalBox.x;
+                }
+                const mbox = { x, y, width: 1, height: 1 };
+                const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
+                const outerBox = { x, y, width: mbox.width, height: (sysBottom - y) * 2 };
+                const at = [];
+                const symbol = '\u25BC';
+                at.push({ y: mbox.y });
+                at.push({ x: mbox.x });
+                at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
+                at.push({ 'font-size': '12pt' });
+                if (!this.musicCursorGlyph) {
+                    this.musicCursorGlyph = svgHelpers_1.SvgHelpers.placeSvgText(this.renderer.context.svg, at, 'music-cursor', symbol);
+                }
+                else {
+                    this.musicCursorGlyph.setAttributeNS('', 'x', mbox.x.toString());
+                    this.musicCursorGlyph.setAttributeNS('', 'y', mbox.y.toString());
+                }
+                this.scroller.scrollVisibleBox(outerBox);
             }
         }
     }
@@ -11807,8 +11959,8 @@ class SuiTracker extends mapper_1.SuiMapper {
                 this.selections = [homeSel];
                 this.deferHighlight();
                 this._createLocalModifiersList();
-                if (homeSel.measure.svg.renderedBox) {
-                    this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
+                if (homeSel.measure.svg.logicalBox) {
+                    this.scroller.scrollVisibleBox(homeSel.measure.svg.logicalBox);
                 }
             }
         }
@@ -11822,9 +11974,9 @@ class SuiTracker extends mapper_1.SuiMapper {
             if (evKey.shiftKey) {
                 this._selectBetweenSelections(score, this.selections[0], homeSel);
             }
-            else if ((_b = (_a = homeSel === null || homeSel === void 0 ? void 0 : homeSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.renderedBox) {
+            else if ((_b = (_a = homeSel === null || homeSel === void 0 ? void 0 : homeSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox) {
                 this.selections = [homeSel];
-                this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
+                this.scroller.scrollVisibleBox(homeSel.measure.svg.logicalBox);
                 this.deferHighlight();
                 this._createLocalModifiersList();
             }
@@ -11846,8 +11998,8 @@ class SuiTracker extends mapper_1.SuiMapper {
                 this.selections = [endSel];
                 this.deferHighlight();
                 this._createLocalModifiersList();
-                if (endSel.measure.svg.renderedBox) {
-                    this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
+                if (endSel.measure.svg.logicalBox) {
+                    this.scroller.scrollVisibleBox(endSel.measure.svg.logicalBox);
                 }
             }
         }
@@ -11866,8 +12018,8 @@ class SuiTracker extends mapper_1.SuiMapper {
                 this.selections = [endSel];
                 this.deferHighlight();
                 this._createLocalModifiersList();
-                if (endSel.measure.svg.renderedBox) {
-                    this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
+                if (endSel.measure.svg.logicalBox) {
+                    this.scroller.scrollVisibleBox(endSel.measure.svg.logicalBox);
                 }
             }
         }
@@ -12159,34 +12311,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.deferHighlight();
         this._createLocalModifiersList();
     }
-    static get strokes() {
-        return {
-            suggestion: {
-                strokeName: 'suggestion',
-                stroke: '#fc9',
-                strokeWidth: 2,
-                strokeDasharray: '4,1',
-                fill: 'none',
-                opacity: 1.0
-            },
-            selection: {
-                strokeName: 'selection',
-                stroke: '#99d',
-                strokeWidth: 2,
-                strokeDasharray: 2,
-                fill: 'none',
-                opacity: 1.0
-            },
-            staffModifier: {
-                strokeName: 'staffModifier',
-                stroke: '#933',
-                strokeWidth: 2,
-                fill: 'none',
-                strokeDasharray: 0,
-                opacity: 1.0
-            }
-        };
-    }
     _setFadeTimer() {
         if (this.suggestFadeTimer) {
             clearTimeout(this.suggestFadeTimer);
@@ -12230,10 +12354,10 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.modifierSelections.forEach((artifact) => {
             var _a;
             if (box === null) {
-                box = (_a = artifact.modifier.renderedBox) !== null && _a !== void 0 ? _a : null;
+                box = (_a = artifact.modifier.logicalBox) !== null && _a !== void 0 ? _a : null;
             }
             else {
-                box = svgHelpers_1.SvgHelpers.unionRect(box, svgHelpers_1.SvgHelpers.smoBox(artifact.modifier.renderedBox));
+                box = svgHelpers_1.SvgHelpers.unionRect(box, svgHelpers_1.SvgHelpers.smoBox(artifact.modifier.logicalBox));
             }
         });
         if (box === null) {
@@ -12250,7 +12374,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         const headEl = heads[index];
         const lbox = svgHelpers_1.SvgHelpers.smoBox(headEl.getBBox());
-        const box = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
+        const box = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
         this._drawRect(box, 'staffModifier');
     }
     _highlightActiveVoice(selection) {
@@ -12300,9 +12424,8 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         this.pitchIndex = -1;
         this.eraseAllSelections();
-        if (this.selections.length === 1 && note.renderedBox) {
-            this._checkBoxOffset();
-            this._drawRect(note.renderedBox, 'selection');
+        if (this.selections.length === 1 && note.logicalBox) {
+            this._drawRect(note.logicalBox, 'selection');
             this._highlightActiveVoice(this.selections[0]);
             return;
         }
@@ -12319,8 +12442,8 @@ class SuiTracker extends mapper_1.SuiMapper {
             if (!sel.box || !prevSel.box) {
                 continue;
             }
-            const ydiff = Math.abs(prevSel.box.y - sel.box.y);
-            if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
+            // const ydiff = Math.abs(prevSel.box.y - sel.box.y);
+            if (sel.selector.staff === prevSel.selector.staff && sel.measure.svg.lineIndex === prevSel.measure.svg.lineIndex) {
                 curBox = svgHelpers_1.SvgHelpers.unionRect(curBox, sel.box);
             }
             else if (curBox) {
@@ -12340,7 +12463,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         const stroke = SuiTracker.strokes[strokeName];
         return {
             context: this.renderer.context, box, classes: '',
-            stroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
+            stroke, scroll: this.scroller.scrollState, clientCoordinates: false
         };
     }
     _drawRect(bb, stroke) {
@@ -13169,8 +13292,8 @@ class VxMeasure {
             // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
             this.context.closeGroup();
             layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-            const lbox = this.stave.getBoundingBox();
-            this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.w, height: lbox.h }, 'vxMeasure bounding box');
+            const lbox = group.getBBox();
+            this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
             this.rendered = true;
         }
         catch (exc) {
@@ -13515,7 +13638,6 @@ class VxSystem {
             svgHelpers_1.SvgHelpers.translateElement(slurBox, xoffset, 0);
         }
         modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
-        modifier.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll));
     }
     renderEndings(scroller) {
         let j = 0;
@@ -13546,7 +13668,6 @@ class VxSystem {
                     vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
                     this.context.closeGroup();
                     ending.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
-                    ending.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll));
                     if (!pushed) {
                         voAr.push({ smoMeasure, ending });
                         pushed = true;
@@ -13850,6 +13971,7 @@ class SmoMeasure {
             adjRight: 0,
             history: [],
             lineIndex: 0,
+            pageIndex: 0,
             rowInSystem: 0,
             forceClef: false,
             forceKeySignature: false,
@@ -14345,17 +14467,29 @@ class SmoMeasure {
     get yTop() {
         return this.svg.yTop;
     }
-    transposeToOffset(offset) {
+    /**
+     * WHen setting an instrument, offset the pitches to match the instrument key
+     * @param offset
+     * @param newClef
+     */
+    transposeToOffset(offset, newClef) {
         const diff = offset - this.transposeIndex;
         this.voices.forEach((voice) => {
             voice.notes.forEach((note) => {
                 const pitches = [...Array(note.pitches.length).keys()];
-                note.transpose(pitches, diff, this.keySignature);
-                note.getGraceNotes().forEach((gn) => {
-                    const gpitch = [...Array(gn.pitches.length).keys()];
-                    const xpose = note_1.SmoNote.transpose(gn, gpitch, diff, this.keySignature);
-                    gn.pitches = xpose.pitches;
-                });
+                // when the note is a rest, preserve the rest but match the new clef.
+                if (newClef && note.noteType === 'r') {
+                    const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
+                    note.pitches = [defp];
+                }
+                else {
+                    note.transpose(pitches, diff, this.keySignature);
+                    note.getGraceNotes().forEach((gn) => {
+                        const gpitch = [...Array(gn.pitches.length).keys()];
+                        const xpose = note_1.SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+                        gn.pitches = xpose.pitches;
+                    });
+                }
             });
         });
     }
@@ -17204,7 +17338,7 @@ class SmoNote {
         let index = 0;
         let j = 0;
         let letterKey = 'a';
-        note.noteType = 'n';
+        // note.noteType = 'n';
         if (pitchArray.length === 0) {
             note.pitches.forEach((m) => {
                 pitchArray.push(note.pitches.indexOf(m));
@@ -20364,7 +20498,7 @@ class SmoSystemStaff {
             for (i; i <= entry.instrument.endSelector.measure; ++i) {
                 const measure = this.measures[i];
                 const concertKey = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
-                measure.transposeToOffset(entry.instrument.keyOffset);
+                measure.transposeToOffset(entry.instrument.keyOffset, entry.instrument.clef);
                 measure.transposeIndex = entry.instrument.keyOffset;
                 measure.keySignature = music_1.SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
                 measure.setClef(entry.instrument.clef);
@@ -24994,8 +25128,7 @@ class PasteBuffer {
             // If this is the non-display buffer, don't try to reset the display rectangles.
             // Q: Is this even required since we are going to re-render?
             // A: yes, because until we do, the replaced measure needs the formatting info
-            if (measure.svg.renderedBox && measure.svg.logicalBox.width > 0) {
-                nmeasure.svg.renderedBox = svgHelpers_1.SvgHelpers.smoBox(measure.svg.renderedBox);
+            if (measure.svg.logicalBox && measure.svg.logicalBox.width > 0) {
                 nmeasure.setBox(svgHelpers_1.SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
                 nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
                 nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
@@ -35955,21 +36088,17 @@ const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dia
  * */
 class SuiRockerComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, params) {
-        var _a, _b, _c;
+        var _a, _b;
         super(dialog, params);
-        this.defaultValue = 0;
+        this.initialValue = 0;
         this.increment = 1;
         this.dataType = (_a = params.dataType) !== null && _a !== void 0 ? _a : 'int';
         this.increment = (_b = params.increment) !== null && _b !== void 0 ? _b : SuiRockerComponent.increments[this.dataType];
-        this.defaultValue = (_c = params.defaultValue) !== null && _c !== void 0 ? _c : 0;
         if (SuiRockerComponent.dataTypes.indexOf(this.dataType) < 0) {
             throw new Error('dialog element invalid type ' + this.dataType);
         }
         if (this.dataType === 'int' && this.increment < 1) {
             throw new Error('int component with decimal increment');
-        }
-        if (this.dataType === 'percent') {
-            this.defaultValue = 100 * this.defaultValue;
         }
         this.parser = SuiRockerComponent.parsers[this.dataType];
         this.dialog = dialog;
@@ -36003,26 +36132,28 @@ class SuiRockerComponent extends baseComponent_1.SuiComponentBase {
         const pid = this.parameterId;
         const input = this._getInputElement();
         let val = 0;
-        this.setValue(this.defaultValue);
-        const self = this;
         $('#' + pid).find('button.increment').off('click').on('click', () => {
             val = this[this.parser]();
-            if (self.dataType === 'percent') {
+            if (this.dataType === 'percent') {
                 val = 100 * val;
             }
-            $(input).val(val + self.increment);
-            self.handleChanged();
+            $(input).val(val + this.increment);
+            this.handleChanged();
         });
         $('#' + pid).find('button.decrement').off('click').on('click', () => {
             val = this[this.parser]();
-            if (self.dataType === 'percent') {
+            if (this.dataType === 'percent') {
                 val = 100 * val;
             }
-            $(input).val(val - self.increment);
-            self.handleChanged();
+            $(input).val(val - this.increment);
+            this.handleChanged();
         });
         $(input).off('blur').on('blur', () => {
-            self.handleChanged();
+            val = this[this.parser]();
+            if (val !== this.initialValue) {
+                this.initialValue = val;
+                this.handleChanged();
+            }
         });
     }
     _getInputElement() {
@@ -36052,6 +36183,7 @@ class SuiRockerComponent extends baseComponent_1.SuiComponentBase {
             value = value * 100;
         }
         this._setIntValue(value);
+        this.initialValue = value;
     }
     getValue() {
         return this[this.parser]();
@@ -36413,13 +36545,10 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
         const button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
         this.value.skipRender = false;
-        const render = () => {
-            this.view.renderer.setRefresh();
-        };
         if (this.session) {
             this.session.textGroup.tryParseUnicode();
             this.value = this.session.textGroup;
-            this.session.stopSession().then(render);
+            this.session.stopSession();
         }
         $('body').removeClass('text-edit');
         this.handleChanged();
@@ -37311,11 +37440,12 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     }
     // ### positionModifier()
     positionFromModifier() {
-        if (this.modifier === null || this.modifier.renderedBox === null) {
+        if (this.modifier === null || this.modifier.logicalBox === null) {
             this.positionGlobally();
             return;
         }
-        this.position(this.modifier.renderedBox);
+        const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.view.renderer.svg, this.modifier.logicalBox, this.scroller.scrollState));
+        this.position(screenBox);
     }
     // ### positionGlobally
     // position the dialog box in the center of the current scroll region
@@ -37327,8 +37457,9 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     // set initial position of dialog based on first selection
     positionFromSelection() {
         const note = this.view.tracker.selections[0].note;
-        if (note && note.renderedBox) {
-            this.position(note.renderedBox);
+        if (note && note.logicalBox) {
+            const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.view.renderer.svg, note.logicalBox, this.scroller.scrollState));
+            this.position(screenBox);
         }
     }
     // ### build the html for the dialog, based on the instance-specific components.
@@ -37849,56 +37980,6 @@ SuiLoadMidiDialog.dialogElements = {
     ],
     staticText: []
 };
-/*
-export class SuiLoadActionsDialog extends SuiDialogBase {
-  static dialogElements: DialogDefinition = {
-    label: 'Load Action File',
-    elements: [{
-      smoName: 'loadFile',
-      defaultValue: '',
-      control: 'SuiFileDownloadComponent',
-      label: ''
-    }
-    ],
-    staticText: []
-  };
-  value: string;
-  constructor(parameters: SuiDialogParams) {
-    parameters.ctor = 'SuiLoadActionsDialog';
-    super(SuiLoadActionsDialog.dialogElements, parameters);
-    this.value = '';
-  }
-  get loadFileCtrl() {
-    return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
-  }
-  changed() {
-    this.value = this.loadFileCtrl.getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
-  }
-  commit() {
-    let scoreWorks = false;
-    if (this.value) {
-      try {
-        const json = JSON.parse(this.value);
-        this.view.playActions(json);
-        scoreWorks = true;
-        this.complete();
-      } catch (e) {
-        console.warn('unable to score ' + e);
-      }
-      if (!scoreWorks) {
-        this.complete();
-      }
-    }
-  }
-  static createAndDisplay(params: SuiDialogParams) {
-    const dg = new SuiLoadActionsDialog(params);
-    dg.display();
-    // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-  }
-}
-*/
 class SuiPrintFileDialog extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         parameters.ctor = 'SuiPrintFileDialog';
@@ -37939,6 +38020,9 @@ class SuiSmoSaveAdapter extends adapter_1.SuiComponentAdapter {
     _saveScore() {
         const json = this.view.storeScore.serialize();
         const jsonText = JSON.stringify(json);
+        if (!this.fileName.endsWith('.json')) {
+            this.fileName = this.fileName + '.json';
+        }
         (0, htmlHelpers_1.addFileLink)(this.fileName, jsonText, $('.saveLink'));
         $('.saveLink a')[0].click();
     }
@@ -37996,6 +38080,9 @@ class SuiXmlSaveAdapter extends adapter_1.SuiComponentAdapter {
         const dom = smoToXml_1.SmoToXml.convert(this.view.storeScore);
         const ser = new XMLSerializer();
         const xmlText = ser.serializeToString(dom);
+        if (!this.fileName.endsWith('.xml') && !this.fileName.endsWith('.mxml')) {
+            this.fileName = this.fileName + '.mxml';
+        }
         (0, htmlHelpers_1.addFileLink)(this.fileName, xmlText, $('.saveLink'));
         $('.saveLink a')[0].click();
     }
@@ -38047,6 +38134,9 @@ class SuiMidiSaveAdapter extends adapter_1.SuiComponentAdapter {
     }
     _saveScore() {
         const bytes = smoToMidi_1.SmoToMidi.convert(this.view.storeScore);
+        if (!this.fileName.endsWith('.mid')) {
+            this.fileName = this.fileName + '.mid';
+        }
         (0, htmlHelpers_1.addFileLink)(this.fileName, bytes, $('.saveLink'), 'audio/midi');
         $('.saveLink a')[0].click();
     }
@@ -38510,9 +38600,6 @@ class SuiHairpinAdapter extends adapter_1.SuiComponentAdapter {
     }
     set position(val) {
         this.updateValue('position', val);
-    }
-    get renderedBox() {
-        return this.hairpin.renderedBox;
     }
 }
 exports.SuiHairpinAdapter = SuiHairpinAdapter;
@@ -39253,9 +39340,7 @@ class SuiPageLayoutAdapter extends adapter_1.SuiComponentAdapter {
         else if (this.applyTo === SuiPageLayoutAdapter.layoutTypes.all) {
             startPage = 0;
         }
-        for (i = startPage; i < endPage; ++i) {
-            this.view.setPageLayout(this.currentLayout, i);
-        }
+        this.view.setPageLayouts(this.currentLayout, startPage, endPage);
         this.changed = true;
     }
     get enablePages() {
@@ -39316,8 +39401,10 @@ class SuiPageLayoutAdapter extends adapter_1.SuiComponentAdapter {
             return;
         }
         for (i = 0; i < this.backup.length; ++i) {
-            this.view.setPageLayout(this.backup[i], i);
+            // Avoid multiple page rerender...
+            this.view._setPageLayout(this.backup[i], i);
         }
+        this.view.rerenderAll();
     }
     commit() { }
 }
@@ -40124,9 +40211,6 @@ class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
     set spacing(value) {
         this.writeSlurNumber(this.view, this.slur, 'spacing', value);
     }
-    get renderedBox() {
-        return this.backup.renderedBox;
-    }
     remove() {
         this.view.removeStaffModifier(this.backup);
     }
@@ -40590,7 +40674,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
             const textParams = scoreModifiers_1.SmoScoreText.defaults;
             textParams.position = scoreModifiers_1.SmoScoreText.positions.custom;
             const newText = new scoreModifiers_1.SmoScoreText(textParams);
-            newText.y += tracker.scroller.scrollState.scroll.y;
+            newText.y += tracker.scroller.scrollState.y;
             if (tracker.selections.length > 0) {
                 const sel = tracker.selections[0].measure.svg;
                 if (typeof (sel.logicalBox) !== 'undefined') {
@@ -40677,7 +40761,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         this.applyDisplayOptions();
         this.populateInitial();
         this.bindElements();
-        if (!this.modifier.renderedBox) {
+        if (!this.modifier.logicalBox) {
             this.view.renderer.renderTextGroup(this.modifier);
         }
         // If this control has not been edited this session, assume they want to
@@ -40769,15 +40853,15 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
-        if (this.activeScoreText.renderedBox) {
+        if (this.activeScoreText.logicalBox) {
             const stroke = textEdit_1.SuiTextEditor.strokes['text-highlight'];
             const outline = {
                 context: this.view.renderer.context,
                 clientCoordinates: false,
                 classes: '',
                 stroke,
-                box: this.activeScoreText.renderedBox,
-                scroll: this.scroller.scrollState.scroll
+                box: this.activeScoreText.logicalBox,
+                scroll: this.scroller.scrollState
             };
             svgHelpers_1.SvgHelpers.outlineRect(outline);
         }
@@ -40837,6 +40921,8 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         }
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-drag']);
         $('body').find('g.vf-text-highlight').remove();
+        // Hack - this comes from SuiInlineText and SuiTextEdit.
+        $('body').find('g.sui-inline-edit').remove();
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
@@ -40850,6 +40936,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     bindElements() {
         const dgDom = this.dgDom;
         $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this.view.updateTextGroup(this.backup, this.modifier);
             this._complete();
         });
         $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
@@ -41277,9 +41364,6 @@ class SuiVoltaAdapter extends adapter_1.SuiComponentAdapter {
     set number(val) {
         this.updateVolta('number', val);
     }
-    get renderedBox() {
-        return this.backup.renderedBox;
-    }
 }
 exports.SuiVoltaAdapter = SuiVoltaAdapter;
 // ## SuiVoltaAttributeDialog
@@ -41289,11 +41373,9 @@ class SuiVoltaAttributeDialog extends adapter_1.SuiDialogAdapterBase {
         const adapter = new SuiVoltaAdapter(parameters.view, parameters.modifier);
         super(SuiVoltaAttributeDialog.dialogElements, Object.assign({ adapter }, parameters));
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-        const volta = parameters.modifier;
-        this.modifier = new SuiVoltaAdapter(this.view, volta);
     }
     static createAndDisplay(parameters) {
-        if (parameters.modifier.renderedBox === null) {
+        if (parameters.modifier.logicalBox === null) {
             return null;
         }
         const dg = new SuiVoltaAttributeDialog(parameters);

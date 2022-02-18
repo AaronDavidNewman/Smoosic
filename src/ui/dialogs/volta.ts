@@ -112,7 +112,5 @@ export class SuiVoltaAttributeDialog extends SuiDialogAdapterBase<SuiVoltaAdapte
     const adapter = new SuiVoltaAdapter(parameters.view, parameters.modifier)
     super(SuiVoltaAttributeDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    const volta = parameters.modifier;
-    this.modifier = new SuiVoltaAdapter(this.view, volta);
   }
 }
