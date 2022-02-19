@@ -241,7 +241,9 @@ export interface DialogDom {
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.view.groupUndo(false);
-      this.modifier.cancel();
+      if (this.modifier) {
+        this.modifier.cancel();
+      }
       this.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
