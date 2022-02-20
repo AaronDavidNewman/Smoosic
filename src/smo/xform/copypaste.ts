@@ -222,7 +222,7 @@ export class PasteBuffer {
     while (this.measureIndex < measures.length) {
       measure = measures[this.measureIndex];
       tickmap = measure.tickmapForVoice(this.destination.voice);
-      this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
+      this._populateNew(voice, measure, tickmap, startSelector);
       if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
         voice = {
           notes: []
@@ -267,7 +267,7 @@ export class PasteBuffer {
   // ### _populateNew
   // Start copying the paste buffer into the destination by copying the notes and working out
   // the measure overlap
-  _populateNew(voice: SmoVoice, voiceIndex: number, measure: SmoMeasure, tickmap: TickMap, startSelector: SmoSelector) {
+  _populateNew(voice: SmoVoice, measure: SmoMeasure, tickmap: TickMap, startSelector: SmoSelector) {
     let currentDuration = tickmap.durationMap[startSelector.tick];
     let i = 0;
     let j = 0;
@@ -278,6 +278,13 @@ export class PasteBuffer {
       }
       const selection = this.notes[this.noteIndex];
       const note = selection.note;
+      if (note.noteType === 'n') {
+        const pitchAr: number[] = [];
+        note.pitches.forEach((pitch, ix) => {
+          pitchAr.push(ix);
+        });
+        SmoNote.transpose(note, pitchAr, measure.transposeIndex, measure.keySignature);
+      }
       this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
       if (note.isTuplet) {
         const tuplet = this.tupletNoteMap[(note.tuplet as TupletInfo).id];
