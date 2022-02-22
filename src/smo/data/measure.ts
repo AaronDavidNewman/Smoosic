@@ -702,6 +702,19 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
   }
 
+  get containsSound(): boolean {
+    let i = 0;
+    for (i = 0; i < this.voices.length; ++i) {
+      let j = 0;
+      const voice = this.voices[i];
+      for (j = 0; j < this.voices.length; ++j) {
+        if (voice.notes[j].noteType === 'n') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   /**
    * The rendered width of the measure, or estimate of same
    */

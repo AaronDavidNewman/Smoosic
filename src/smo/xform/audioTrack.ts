@@ -449,6 +449,7 @@ export class SmoAudioScore {
     }
   }
   convert(): AudioTracks {
+    let measureIx = 0;
     const trackHash: Record<string, SmoAudioTrack> = {};
     const measureBeats: number[] = [];
     const measureIndexMap = {};
@@ -458,7 +459,8 @@ export class SmoAudioScore {
     this.score.staves.forEach((staff, staffIx) => {
       let runningKey = staff.measures[0].keySignature;
       this.volume = 0;
-      staff.measures.forEach((measure, measureIx) => {
+      for (measureIx = 0; measureIx < staff.measures.length; ++measureIx) {
+        const measure = staff.measures[measureIx];
         measure.voices.forEach((voice, voiceIx) => {
           let duration = 0;
           const trackKey = (this.score.staves.length * voiceIx) + staffIx;
@@ -548,7 +550,7 @@ export class SmoAudioScore {
           });
           track.lastMeasure += 1;
         });
-      });
+      }
     });
     // For voices that don't fill out the full piece, fill them in with rests
     const tracks = Object.keys(trackHash).map((key) => trackHash[key]);

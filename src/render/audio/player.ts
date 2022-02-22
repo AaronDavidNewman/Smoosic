@@ -50,9 +50,10 @@ export class SuiAudioPlayer {
     }
     SuiAudioPlayer.playing = false;
   }
-  static getMeasureSounds(track: SmoAudioTrack, measureIndex: number): NoteSound[] {
+  static getMeasureSounds(track: SmoAudioTrack, measureIndex: number, sendEmpty: boolean): NoteSound[] {
     const notes = track.measureNoteMap[measureIndex];
     const trackSounds: NoteSound[] = [];
+    let hasSounds: boolean = false;
     notes.forEach((note) => {
       const noteSound: NoteSound = {
         frequencies: note.frequencies,
@@ -61,16 +62,26 @@ export class SuiAudioPlayer {
         volume: note.volume,
         noteType: note.noteType
       };
+      if (note.noteType === 'n' || sendEmpty) {
+        hasSounds = true;
+      }
       trackSounds.push(noteSound);
     });
+    if (!hasSounds) {
+      return [];
+    }
     return trackSounds;
   }
   // ### getTrackSounds
   // convert track data to frequency/volume
   static getTrackSounds(tracks: SmoAudioTrack[], measureIndex: number): TrackSounds {
     const offsetSounds: Record<number, NoteSound[]> = {};
-    tracks.forEach((track) => {
-      const measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex);
+    tracks.forEach((track, trackIx) => {
+      let measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, false);
+      // If empty measures, include at least one track for the correct duration.
+      if (measureSounds.length < 1 && trackIx === tracks.length - 1) {
+        measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, true);
+      }
       measureSounds.forEach((sound) => {
         if (!offsetSounds[sound.offset]) {
           offsetSounds[sound.offset] = [];
