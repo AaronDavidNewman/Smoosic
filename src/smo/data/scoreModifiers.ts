@@ -617,7 +617,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
     });
     textFont.setFontSize(this.fontInfo.size);
     for (i = 0; i < this.text.length; ++i) {
-      rv += textFont.getWidthForCharacter(this.text[i]);
+      rv += textFont.getWidthForTextInPx(this.text[i]);
     }
     return rv;
   }

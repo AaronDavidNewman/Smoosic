@@ -301,7 +301,7 @@ class SuiApplication {
         dom_1.SuiDom.splash(this.config);
     }
     static registerFonts() {
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: arial_metrics_1.ArialFont.name,
             resolution: arial_metrics_1.ArialFont.resolution,
             glyphs: arial_metrics_1.ArialFont.glyphs,
@@ -315,7 +315,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Built-in sans font',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: times_metrics_1.TimesFont.name,
             resolution: times_metrics_1.TimesFont.resolution,
             glyphs: times_metrics_1.TimesFont.glyphs,
@@ -329,7 +329,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Built-in serif font',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.name,
             resolution: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.resolution,
             glyphs: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.glyphs,
@@ -343,7 +343,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Low-contrast sans-serif text font',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: ConcertOne_Regular_1.Concert_OneFont.name,
             resolution: ConcertOne_Regular_1.Concert_OneFont.resolution,
             glyphs: ConcertOne_Regular_1.Concert_OneFont.glyphs,
@@ -357,7 +357,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Rounded grotesque typeface inspired by 19th century 3D l',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: Merriweather_Regular_1.MerriweatherFont.name,
             resolution: Merriweather_Regular_1.MerriweatherFont.resolution,
             glyphs: Merriweather_Regular_1.MerriweatherFont.glyphs,
@@ -371,7 +371,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Serif screen font from Sorkin Type',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: ssp_sans_metrics_1.SourceSansProFont.name,
             resolution: ssp_sans_metrics_1.SourceSansProFont.resolution,
             glyphs: ssp_sans_metrics_1.SourceSansProFont.glyphs,
@@ -385,7 +385,7 @@ class SuiApplication {
             subscriptOffset: 0.66,
             description: 'Open source Sans screen font from Adobe',
         });
-        VF.TextFont.registerFont({
+        VF.TextFormatter.registerInfo({
             name: ssp_serif_metrics_1.SourceSerifProFont.name,
             resolution: ssp_serif_metrics_1.SourceSerifProFont.resolution,
             glyphs: ssp_serif_metrics_1.SourceSerifProFont.glyphs,
@@ -4157,9 +4157,10 @@ class SuiAudioPlayer {
         }
         SuiAudioPlayer.playing = false;
     }
-    static getMeasureSounds(track, measureIndex) {
+    static getMeasureSounds(track, measureIndex, sendEmpty) {
         const notes = track.measureNoteMap[measureIndex];
         const trackSounds = [];
+        let hasSounds = false;
         notes.forEach((note) => {
             const noteSound = {
                 frequencies: note.frequencies,
@@ -4168,16 +4169,26 @@ class SuiAudioPlayer {
                 volume: note.volume,
                 noteType: note.noteType
             };
+            if (note.noteType === 'n' || sendEmpty) {
+                hasSounds = true;
+            }
             trackSounds.push(noteSound);
         });
+        if (!hasSounds) {
+            return [];
+        }
         return trackSounds;
     }
     // ### getTrackSounds
     // convert track data to frequency/volume
     static getTrackSounds(tracks, measureIndex) {
         const offsetSounds = {};
-        tracks.forEach((track) => {
-            const measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex);
+        tracks.forEach((track, trackIx) => {
+            let measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, false);
+            // If empty measures, include at least one track for the correct duration.
+            if (measureSounds.length < 1 && trackIx === tracks.length - 1) {
+                measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, true);
+            }
             measureSounds.forEach((sound) => {
                 if (!offsetSounds[sound.offset]) {
                     offsetSounds[sound.offset] = [];
@@ -4487,17 +4498,17 @@ class suiLayoutFormatter {
                     }
                     // why did I make this return an array?
                     // oh...because of voices
-                    const textFont = VF.TextFont.getTextFontFromVexFontData({ family: lyric.fontInfo.family,
+                    const textFont = VF.TextFormatter.create({ family: lyric.fontInfo.family,
                         size: lyric.fontInfo.size, weight: 'normal' });
                     const lyricText = lyric.getText();
                     for (i = 0; i < lyricText.length; ++i) {
-                        lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
+                        lyricWidth += textFont.getWidthForTextInPx(lyricText[i]);
                     }
                     if (lyric.isHyphenated()) {
-                        lyricWidth += 2 * textFont.getWidthForCharacter('-');
+                        lyricWidth += 2 * textFont.getWidthForTextInPx('-');
                     }
                     else {
-                        lyricWidth += 2 * textFont.getWidthForCharacter('H');
+                        lyricWidth += 2 * textFont.getWidthForTextInPx('H');
                     }
                     noteWidth = Math.max(lyricWidth, noteWidth);
                     verse += 1;
@@ -4585,12 +4596,7 @@ class suiLayoutFormatter {
         return hilo;
     }
     static textFont(lyric) {
-        const fonts = VF.TextFont.fontRegistry;
-        const rv = fonts.find((font) => font.family === lyric.fontInfo.family);
-        if (!rv) {
-            return new VF.TextFont(fonts[0]);
-        }
-        return new VF.TextFont(rv);
+        return VF.TextFormatter.create(lyric.fontInfo);
     }
     // ### estimateMeasureHeight
     // The baseline is the top line of the staff.  aboveBaseline is a negative number
@@ -5855,16 +5861,16 @@ class SuiRenderState {
             this.measureMapper.deferHighlightMode = !value;
         }
     }
-    static get Fonts() {
+    static get setFonts() {
         return {
-            Bravura: [VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
-            Gonville: [VF.Fonts.Gonville(), VF.Fonts.Bravura(), VF.Fonts.Custom()],
-            Petaluma: [VF.Fonts.Petaluma(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
-            Leland: [VF.Fonts.Leland(), VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()]
+            Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
+            Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
+            Petaluma: () => { VF.setMusicFont('Petaluma', 'Bravura', 'Custom'); },
+            Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
         };
     }
     static setFont(font) {
-        VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
+        SuiRenderState.setFonts[font]();
     }
     static get passStates() {
         return { initial: 0, clean: 2, replace: 3 };
@@ -11056,10 +11062,10 @@ class SuiInlineText {
         return rv;
     }
     static get superscriptOffset() {
-        return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
+        return VF.ChordSymbol.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
     }
     static get subscriptOffset() {
-        return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
+        return VF.ChordSymbol.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
     }
     get spacing() {
         return VF.ChordSymbol.spacingBetweenBlocks;
@@ -11082,7 +11088,7 @@ class SuiInlineText {
         }));
     }
     updateFontInfo() {
-        return VF.TextFont.getTextFontFromVexFontData({
+        return VF.TextFormatter.create({
             family: this.fontFamily,
             weight: this.fontWeight,
             size: this.fontSize,
@@ -11126,7 +11132,7 @@ class SuiInlineText {
     // ### pointsToPixels
     // The font size is specified in points, convert to 'pixels' in the svg space
     get pointsToPixels() {
-        return this.textFont.pointsToPixels;
+        return (this.textFont.size * 4) / 3;
     }
     offsetStartX(offset) {
         this.startX += offset;
@@ -11180,7 +11186,7 @@ class SuiInlineText {
             if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
                 for (i = 0; i < block.text.length; ++i) {
                     const ch = block.text[i];
-                    const glyph = this.textFont.getMetricForCharacter(ch);
+                    const glyph = this.textFont.getGlyphMetrics(ch);
                     block.width += ((glyph.advanceWidth) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
                     const blockHeight = (glyph.ha / this.textFont.resolution) * this.pointsToPixels * block.scale;
                     block.height = block.height < blockHeight ? blockHeight : block.height;
@@ -12373,8 +12379,8 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         const headEl = heads[index];
-        const lbox = svgHelpers_1.SvgHelpers.smoBox(headEl.getBBox());
-        const box = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
+        const box = svgHelpers_1.SvgHelpers.smoBox(headEl.getBBox());
+        // const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
         this._drawRect(box, 'staffModifier');
     }
     _highlightActiveVoice(selection) {
@@ -12495,11 +12501,11 @@ class vexGlyph {
     // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
     // and divide by glyph resolution
     static get glyphPixels() {
-        return 96 * (38 / (VF.DEFAULT_FONT_STACK[0].getResolution() * 72));
+        return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
     }
     static width(smoGlyph) {
         if (smoGlyph.vexGlyph) {
-            const vf = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+            const vf = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
             return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
         }
         return smoGlyph.width;
@@ -12816,7 +12822,7 @@ class VxMeasure {
         const tones = smoNote.getMicrotones();
         tones.forEach((tone) => {
             const acc = new VF.Accidental(tone.toVex);
-            vexNote.addAccidental(tone.pitchIndex, acc);
+            vexNote.addModifier(acc, tone.pitchIndex);
         });
     }
     _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
@@ -12840,14 +12846,14 @@ class VxMeasure {
                     acc.setAsCautionary();
                 }
                 smoNote.accidentalsRendered.push(pitch.accidental);
-                vexNote.addAccidental(i, acc);
+                vexNote.addModifier(acc, i);
             }
             else {
                 smoNote.accidentalsRendered.push('');
             }
         }
         for (i = 0; i < smoNote.dots; ++i) {
-            vexNote.addDotToAll();
+            vexNote.addModifier(new VF.Dot());
         }
         this._createMicrotones(smoNote, vexNote);
     }
@@ -12886,7 +12892,7 @@ class VxMeasure {
         // If we adjusted this note for the lyric, adjust the lyric as well.
         vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
         vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-        vexNote.addAnnotation(0, vexL);
+        vexNote.addModifier(vexL);
         if (lyric.isHyphenated()) {
             classString += ' lyric-hyphen';
         }
@@ -12939,7 +12945,7 @@ class VxMeasure {
                         if (pitch.cautionary) {
                             accidental.setAsCautionary();
                         }
-                        gr.addAccidental(i, accidental);
+                        gr.addModifier(accidental, i);
                     }
                 }
                 if (g.tickCount() >= 4096) {
@@ -13021,7 +13027,7 @@ class VxMeasure {
                 const position = noteModifiers_1.SmoArticulation.positionToVex[art.position];
                 const vexArt = noteModifiers_1.SmoArticulation.articulationToVex[art.articulation];
                 const vxArt = new VF.Articulation(vexArt).setPosition(position);
-                vx.addArticulation(i, vxArt);
+                vx.addModifier(vxArt, i);
             });
         });
     }
@@ -14411,6 +14417,19 @@ class SmoMeasure {
             }));
         }
     }
+    get containsSound() {
+        let i = 0;
+        for (i = 0; i < this.voices.length; ++i) {
+            let j = 0;
+            const voice = this.voices[i];
+            for (j = 0; j < this.voices.length; ++j) {
+                if (voice.notes[j].noteType === 'n') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     /**
      * The rendered width of the measure, or estimate of same
      */
@@ -14603,6 +14622,10 @@ class SmoMeasure {
         note.ticks = { numerator: duration, denominator: 1, remainder: 0 };
         return note;
     }
+    /**
+     * Count the number of ticks in each voice and return max
+     * @returns
+     */
     getMaxTicksVoice() {
         let i = 0;
         let max = 0;
@@ -14612,12 +14635,49 @@ class SmoMeasure {
         }
         return max;
     }
+    /**
+     * Count the number of ticks in a specific voice
+     * @param voiceIndex
+     * @returns
+     */
     getTicksFromVoice(voiceIndex) {
         let ticks = 0;
         this.voices[voiceIndex].notes.forEach((note) => {
             ticks += note.tickCount;
         });
         return ticks;
+    }
+    /**
+     * Count the number of ticks in the measure after the supplied tick index
+     * @param voiceIndex
+     * @param tickIndex
+     * @returns
+     */
+    getRemainingTicks(voiceIndex, tickIndex) {
+        let i = 0;
+        let rv = 0;
+        if (this.voices.length < voiceIndex + 1) {
+            return rv;
+        }
+        if (this.voices[voiceIndex].notes.length < tickIndex + 1) {
+            return rv;
+        }
+        for (i = tickIndex; i < this.voices[voiceIndex].notes.length; ++i) {
+            rv += this.voices[voiceIndex].notes[i].tickCount;
+        }
+        return rv;
+    }
+    getClosestTickCountIndex(voiceIndex, tickCount) {
+        let i = 0;
+        let rv = 0;
+        for (i = 0; i < this.voices[voiceIndex].notes.length; ++i) {
+            const note = this.voices[voiceIndex].notes[i];
+            if (note.tickCount + rv > tickCount) {
+                return rv;
+            }
+            rv += note.tickCount;
+        }
+        return rv;
     }
     isPickup() {
         const ticks = this.getTicksFromVoice(0);
@@ -19517,7 +19577,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     estimateWidth() {
         let i = 0;
         let rv = 0;
-        const textFont = VF.TextFont.getTextFontFromVexFontData({
+        const textFont = VF.TextFormatter.create({
             family: this.fontInfo.family,
             size: this.fontInfo.size,
             weight: this.fontInfo.weight,
@@ -19525,7 +19585,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         });
         textFont.setFontSize(this.fontInfo.size);
         for (i = 0; i < this.text.length; ++i) {
-            rv += textFont.getWidthForCharacter(this.text[i]);
+            rv += textFont.getWidthForTextInPx(this.text[i]);
         }
         return rv;
     }
@@ -21104,6 +21164,7 @@ class MidiToSmo {
         this.maxMeasure = 0;
         this.quantizeTicks = MidiToSmo.quantizeTicksDefault;
         this.eot = false;
+        this.midiOnNotes = {};
         this.midi = midi;
         // console.log(JSON.stringify(midi, null, ''));
         this.timeSignatureMap[0] = new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults);
@@ -21452,6 +21513,37 @@ class MidiToSmo {
         return rv;
     }
     /**
+     * Store midi on events.  If the midi on or off matches an existing
+     * stored event based on channel and note, return it so it can be processed
+     * @param ev raw event
+     * @param evIndex index of processed events
+     * @returns
+     */
+    pushPopMidiEvent(ev, evIndex) {
+        let rv = null;
+        if (!ev.noteNumber || typeof (ev.channel) === 'undefined') {
+            return null;
+        }
+        if (this.midiOnNotes[ev.noteNumber]) {
+            const ix = this.midiOnNotes[ev.noteNumber].findIndex((x) => x.channel === ev.channel);
+            if (ix >= 0) {
+                rv = JSON.parse(JSON.stringify(this.midiOnNotes[ev.noteNumber][ix]));
+                this.midiOnNotes[ev.noteNumber].splice(ix);
+            }
+        }
+        if (!this.midiOnNotes[ev.noteNumber]) {
+            this.midiOnNotes[ev.noteNumber] = [];
+        }
+        if (ev.type === 'noteOn' && ev.velocity && ev.velocity > 0) {
+            this.midiOnNotes[ev.noteNumber].push({
+                note: ev.noteNumber,
+                channel: ev.channel,
+                smoIndex: evIndex
+            });
+        }
+        return rv;
+    }
+    /**
      * Step 1 in the 3-step process.  Collapse midi events into
      * a single EventSmoData for each distinct tick that contains
      * the metadata state, a duration, and note information.
@@ -21460,6 +21552,9 @@ class MidiToSmo {
      */
     collapseMidiEvents(trackEvents) {
         const isEot = (ev) => {
+            if (!ev) {
+                return true;
+            }
             if (typeof (ev.type) === 'undefined') {
                 return true;
             }
@@ -21472,7 +21567,6 @@ class MidiToSmo {
         const rv = [];
         let cur = trackEvents[0];
         let metadata = this.getMetadata(0);
-        const midiOnNotes = {};
         let curSmo = this.createNewEvent(metadata);
         let untrackedTicks = 0;
         let ticks = 0;
@@ -21503,23 +21597,16 @@ class MidiToSmo {
             curSmo.tempo = metadata.tempo;
             curSmo.keySignature = metadata.keySignature;
             if (cur.type === 'noteOn' || cur.type === 'noteOff') {
-                const channel = cur.channel;
-                const note = cur.noteNumber;
-                const velocity = cur.velocity;
-                if (midiOnNotes[note]) {
-                    const mm = midiOnNotes[note];
+                const mm = this.pushPopMidiEvent(cur, rv.length);
+                if (mm) {
                     const npitch = music_1.SmoMusic.getEnharmonicInKey(music_1.SmoMusic.smoIntToPitch(mm.note - 12), metadata.keySignature);
                     if (mm.smoIndex < rv.length) {
                         rv[mm.smoIndex].pitches.push(npitch);
                         rv[mm.smoIndex].isRest = false;
-                        delete midiOnNotes[note];
                     }
                     else {
                         console.warn('bad index in event mm.smoIndex');
                     }
-                }
-                if (cur.type === 'noteOn' && velocity > 0) {
-                    midiOnNotes[note] = { channel, note, smoIndex: rv.length };
                 }
             }
             else if (cur.meta) {
@@ -21535,6 +21622,27 @@ class MidiToSmo {
         }
         return rv;
     }
+    getTrackData(midi) {
+        if (midi.header.format !== 0) {
+            return midi.tracks;
+        }
+        const trackData = [];
+        const trackHash = {};
+        const trackEvents = midi.tracks[0];
+        trackEvents.forEach((ev) => {
+            var _a;
+            const channel = (_a = ev.channel) !== null && _a !== void 0 ? _a : 0;
+            if (!trackHash[channel]) {
+                trackHash[channel] = [];
+            }
+            trackHash[channel].push(ev);
+        });
+        const trackKeys = Object.keys(trackHash);
+        trackKeys.forEach((trackKey) => {
+            trackData.push(trackHash[trackKey]);
+        });
+        return trackData;
+    }
     /**
      * Convert the midi to a score as best we can.  The conversion is made via a 3-step
      * process.
@@ -21545,8 +21653,9 @@ class MidiToSmo {
      */
     convert() {
         let staves = [];
-        // go through the tracks
-        this.midi.tracks.forEach((trackEvents, trackIx) => {
+        // go through the tracks.  If this is midi format 1, split tracks into their own channels
+        const tracks = this.getTrackData(this.midi);
+        tracks.forEach((trackEvents, trackIx) => {
             this.eventIndex = 0; // index into current track
             this.trackIndex = trackIx;
             this.eot = false;
@@ -24424,6 +24533,7 @@ class SmoAudioScore {
         }
     }
     convert() {
+        let measureIx = 0;
         const trackHash = {};
         const measureBeats = [];
         const measureIndexMap = {};
@@ -24433,7 +24543,8 @@ class SmoAudioScore {
         this.score.staves.forEach((staff, staffIx) => {
             let runningKey = staff.measures[0].keySignature;
             this.volume = 0;
-            staff.measures.forEach((measure, measureIx) => {
+            for (measureIx = 0; measureIx < staff.measures.length; ++measureIx) {
+                const measure = staff.measures[measureIx];
                 measure.voices.forEach((voice, voiceIx) => {
                     let duration = 0;
                     const trackKey = (this.score.staves.length * voiceIx) + staffIx;
@@ -24522,7 +24633,7 @@ class SmoAudioScore {
                     });
                     track.lastMeasure += 1;
                 });
-            });
+            }
         });
         // For voices that don't fill out the full piece, fill them in with rests
         const tracks = Object.keys(trackHash).map((key) => trackHash[key]);
@@ -24930,7 +25041,7 @@ class PasteBuffer {
         while (this.measureIndex < measures.length) {
             measure = measures[this.measureIndex];
             tickmap = measure.tickmapForVoice(this.destination.voice);
-            this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
+            this._populateNew(voice, measure, tickmap, startSelector);
             if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
                 voice = {
                     notes: []
@@ -24964,16 +25075,24 @@ class PasteBuffer {
     _populateModifier(srcSelector, destSelector, staff) {
         // If this is the ending point of a staff modifier, paste the modifier
         const mod = this._findPlacedModifier(srcSelector);
-        if (mod) {
-            mod.endSelector = JSON.parse(JSON.stringify(destSelector));
-            mod.attrs.id = VF.Element.newID();
-            staff.addStaffModifier(mod);
+        if (mod && this.score) {
+            const tickOffset = selections_1.SmoSelection.countTicks(this.score, srcSelector, destSelector);
+            const startSelection = selections_1.SmoSelection.selectionFromSelector(this.score, mod.startSelector);
+            if (startSelection) {
+                const newStart = selections_1.SmoSelection.advanceTicks(this.score, startSelection, tickOffset);
+                if (newStart) {
+                    mod.startSelector = JSON.parse(JSON.stringify(newStart.selector));
+                    mod.endSelector = JSON.parse(JSON.stringify(destSelector));
+                    mod.attrs.id = VF.Element.newID();
+                    staff.addStaffModifier(mod);
+                }
+            }
         }
     }
     // ### _populateNew
     // Start copying the paste buffer into the destination by copying the notes and working out
     // the measure overlap
-    _populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
+    _populateNew(voice, measure, tickmap, startSelector) {
         let currentDuration = tickmap.durationMap[startSelector.tick];
         let i = 0;
         let j = 0;
@@ -24984,6 +25103,13 @@ class PasteBuffer {
             }
             const selection = this.notes[this.noteIndex];
             const note = selection.note;
+            if (note.noteType === 'n') {
+                const pitchAr = [];
+                note.pitches.forEach((pitch, ix) => {
+                    pitchAr.push(ix);
+                });
+                note_1.SmoNote.transpose(note, pitchAr, measure.transposeIndex, measure.keySignature);
+            }
             this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
             if (note.isTuplet) {
                 const tuplet = this.tupletNoteMap[note.tuplet.id];
@@ -26152,11 +26278,20 @@ class SmoSelector {
     static sameStaff(sel1, sel2) {
         return sel1.staff === sel2.staff;
     }
+    /**
+     * Return gt, not considering the voice (e.g. gt in time)
+     * @param sel1
+     * @param sel2
+     */
+    static gtInTime(sel1, sel2) {
+        return (sel1.measure > sel2.measure) ||
+            (sel1.measure === sel2.measure && sel1.tick > sel2.tick);
+    }
     // ## return true if sel1 > sel2.
     static gt(sel1, sel2) {
         // Note: voice is not considered b/c it's more of a vertical component
         // Note further: sometimes we need to consider voice
-        return sel1.staff > sel2.staff ||
+        return (sel1.staff > sel2.staff) ||
             (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
             (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice > sel2.voice) ||
             (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice && sel1.tick > sel2.tick);
@@ -26176,12 +26311,12 @@ class SmoSelector {
     static lteq(sel1, sel2) {
         return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
     }
-    // Return 2 selectors in score order
+    // Return 2 selectors in score order, rv[0] is first in time.
     static order(a, b) {
-        if (SmoSelector.lteq(a, b)) {
-            return [a, b];
+        if (SmoSelector.gtInTime(a, b)) {
+            return [b, a];
         }
-        return [b, a];
+        return [a, b];
     }
     // ### getNoteKey
     // Get a key useful for a hash map of notes.
@@ -26190,17 +26325,6 @@ class SmoSelector {
     }
     static getMeasureKey(selector) {
         return '' + selector.staff + '-' + selector.measure;
-    }
-    // ## applyOffset
-    // ### Description:
-    // offset 'selector' the difference between src and target, return the result
-    static applyOffset(src, target, selector) {
-        const rv = JSON.parse(JSON.stringify(selector));
-        rv.staff += target.staff - src.staff;
-        rv.measure += target.measure - src.measure;
-        rv.voice += target.voice - src.voice;
-        rv.note += target.staff - src.staff;
-        return rv;
     }
     // return true if testSel is contained in the selStart to selEnd range.
     static contains(testSel, selStart, selEnd) {
@@ -26379,6 +26503,83 @@ class SmoSelection {
             _pitches: pa,
             type: 'pitches'
         });
+    }
+    /**
+     * Return the selection that is tickCount ticks after the current selection.
+     * @param score
+     * @param selection
+     * @param tickCount
+     * @returns
+     */
+    static advanceTicks(score, selection, tickCount) {
+        let rv = null;
+        if (!selection.note) {
+            return rv;
+        }
+        const staff = selection.staff;
+        rv = SmoSelection.noteFromSelector(score, selection.selector);
+        while (rv !== null && rv.note !== null && tickCount > 0) {
+            const prevSelector = JSON.parse(JSON.stringify(rv.selector));
+            const measureTicks = rv.measure.getMaxTicksVoice();
+            const tickIx = rv.selector.tick;
+            const voiceId = rv.measure.voices.length > rv.selector.voice ? rv.selector.voice : 0;
+            // If the destination is more than a measure away, increment measure
+            if (tickIx === 0 && tickCount >= measureTicks) {
+                tickCount -= measureTicks;
+                if (staff.measures.length > rv.selector.measure + 1) {
+                    rv.selector.measure += 1;
+                    rv.selector.tick = 0;
+                    rv = SmoSelection.selectionFromSelector(score, rv.selector);
+                }
+            }
+            else if (selection.measure.voices[voiceId].notes.length > tickIx + 1) {
+                // else count the tick and advance to next tick
+                tickCount -= rv.note.tickCount;
+                rv.selector.tick += 1;
+                rv = SmoSelection.selectionFromSelector(score, rv.selector);
+            }
+            else if (staff.measures.length > rv.selector.measure + 1) {
+                // else advance to next measure and start counting ticks there
+                tickCount -= rv.note.tickCount;
+                rv.selector.measure += 1;
+                rv.selector.tick = 0;
+                rv = SmoSelection.selectionFromSelector(score, rv.selector);
+            }
+            if (rv !== null && SmoSelector.eq(prevSelector, rv.selector)) {
+                // No progress, start and end the same
+                break;
+            }
+        }
+        return rv;
+    }
+    /**
+     * Count the number of ticks between selector 1 and selector 2;
+     * @param score
+     * @param sel1
+     * @param sel2
+     * @returns
+     */
+    static countTicks(score, sel1, sel2) {
+        const selAr = SmoSelector.order(sel1, sel2);
+        const startSel = selAr[0];
+        const endSel = selAr[1];
+        let ticks = 0;
+        let startSelection = SmoSelection.selectionFromSelector(score, startSel);
+        const endSelection = SmoSelection.selectionFromSelector(score, endSel);
+        while (startSel.measure <= endSel.measure) {
+            if (startSelection === null || startSelection.note === null || endSelection === null || endSelection.note === null) {
+                return ticks;
+            }
+            if (startSel.measure === endSel.measure) {
+                ticks += endSelection.measure.getRemainingTicks(endSel.voice, endSel.tick) - startSelection.measure.getRemainingTicks(endSel.voice, endSel.tick);
+                break;
+            }
+            ticks += startSelection.measure.getRemainingTicks(startSel.voice, startSel.tick);
+            startSel.measure += 1;
+            startSel.tick = 0;
+            startSelection = SmoSelection.selectionFromSelector(score, startSel);
+        }
+        return ticks;
     }
     // ## nextNoteSelection
     // ## Description:
@@ -37347,7 +37548,9 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
         });
         $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
             this.view.groupUndo(false);
-            this.modifier.cancel();
+            if (this.modifier) {
+                this.modifier.cancel();
+            }
             this.complete();
         });
         $(dgDom.element).find('.remove-button').off('click').on('click', () => {

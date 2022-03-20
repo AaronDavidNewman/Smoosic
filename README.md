@@ -3,7 +3,7 @@
 ![](https://imgur.com/quur6md.png)
 
 # What is Smoosic?
-See [changes](https://aarondavidnewman.github.io/Smoosic/changes.html) for potentially breaking config object changes.
+See [changes](https://aarondavidnewman.github.io/Smoosic/changes.html) for potentially breaking changes related to vexflow merge.
 Smoosic is an open-source javascript/typescript music composition and rendering library that uses the [VexFlow engraving library](https://github.com/0xfe/vexflow) for the rendering component.  There is also a [demo application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html) using Smoosic.
 
 ## What does it do?

@@ -2,6 +2,11 @@
 
 
 ## Changes to Smoosic
+### March 20, 2022 (potentially breaking)
+Merged latest vexflow (4.0.1) with Smoosic.  There are some changes in the API signatures for note modifiers (accidentals, etc.) that will break against earlier versions of Smoosic.  But the formatting improvements for Vexflow 4.0.1 over 3.0.x are worth it.
+
+Also fix a few bugs with copy/paste.
+
 ### Jan 8 2022
 Fix issues persisting part-specific layout, formatting, and key.  Fix issues transposing in import/export musicXML.
 
