@@ -733,8 +733,8 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     const headEl = heads[index];
-    const lbox = SvgHelpers.smoBox(headEl.getBBox());
-    const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
+    const box = SvgHelpers.smoBox(headEl.getBBox());
+    // const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
     this._drawRect(box, 'staffModifier');
   }
 

@@ -77,16 +77,16 @@ export class suiLayoutFormatter {
           // why did I make this return an array?
           // oh...because of voices
           const textFont =
-            VF.TextFont.getTextFontFromVexFontData({ family: lyric.fontInfo.family,
+            VF.TextFormatter.create({ family: lyric.fontInfo.family,
               size: lyric.fontInfo.size, weight: 'normal' });
           const lyricText = lyric.getText();
           for (i = 0; i < lyricText.length; ++i) {
-            lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
+            lyricWidth += textFont.getWidthForTextInPx(lyricText[i])
           }
           if (lyric.isHyphenated()) {
-            lyricWidth += 2 * textFont.getWidthForCharacter('-');
+            lyricWidth += 2 * textFont.getWidthForTextInPx('-');
           } else {
-            lyricWidth += 2 * textFont.getWidthForCharacter('H');
+            lyricWidth += 2 * textFont.getWidthForTextInPx('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
@@ -178,12 +178,7 @@ export class suiLayoutFormatter {
     return hilo;
   }
   static textFont(lyric: SmoLyric) {
-    const fonts: FontInfo[] = VF.TextFont.fontRegistry;
-    const rv = fonts.find((font: FontInfo) => font.family === lyric.fontInfo.family);
-    if (!rv) {
-      return new VF.TextFont(fonts[0]);
-    }
-    return new VF.TextFont(rv);
+    return VF.TextFormatter.create(lyric.fontInfo);
   }
 
   // ### estimateMeasureHeight

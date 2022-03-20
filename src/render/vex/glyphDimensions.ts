@@ -20,11 +20,11 @@ export class vexGlyph {
   // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
   // and divide by glyph resolution
   static get glyphPixels() {
-    return 96 * (38 / (VF.DEFAULT_FONT_STACK[0].getResolution() * 72));
+    return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
   }
   static width(smoGlyph: GlyphInfo) {
     if (smoGlyph.vexGlyph) {
-      const vf: any = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      const vf: any = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
       return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
     }
     return smoGlyph.width;

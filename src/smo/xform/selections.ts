@@ -11,6 +11,7 @@ import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SvgBox, SvgPoint } from '../data/common';
+import { TextButtons } from '../../../release/smoosic';
 
 /**
  * Modifier tab is a modifier and its bounding box, that can be tabbed to with the keyboard
@@ -59,12 +60,21 @@ export class SmoSelector {
   static sameStaff(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return sel1.staff === sel2.staff;
   }
+  /**
+   * Return gt, not considering the voice (e.g. gt in time)
+   * @param sel1 
+   * @param sel2 
+   */
+  static gtInTime(sel1: SmoSelector, sel2: SmoSelector): boolean {
+    return (sel1.measure > sel2.measure) ||
+    (sel1.measure === sel2.measure && sel1.tick > sel2.tick);
+  }
 
   // ## return true if sel1 > sel2.
   static gt(sel1: SmoSelector, sel2: SmoSelector): boolean {
     // Note: voice is not considered b/c it's more of a vertical component
     // Note further: sometimes we need to consider voice
-    return sel1.staff > sel2.staff ||
+    return (sel1.staff > sel2.staff) ||
       (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
       (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice > sel2.voice) ||
       (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice && sel1.tick > sel2.tick);
@@ -87,12 +97,12 @@ export class SmoSelector {
   static lteq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
   }
-  // Return 2 selectors in score order
+  // Return 2 selectors in score order, rv[0] is first in time.
   static order(a: SmoSelector, b: SmoSelector): SmoSelector[] {
-    if (SmoSelector.lteq(a, b)) {
-      return [a, b];
+    if (SmoSelector.gtInTime(a, b)) {
+      return [b, a];
     }
-    return [b, a];
+    return [a, b];
   }
 
   // ### getNoteKey
@@ -103,18 +113,6 @@ export class SmoSelector {
 
   static getMeasureKey(selector: SmoSelector) {
     return '' + selector.staff + '-' + selector.measure;
-  }
-
-  // ## applyOffset
-  // ### Description:
-  // offset 'selector' the difference between src and target, return the result
-  static applyOffset(src: SmoSelector, target: SmoSelector, selector: SmoSelector) {
-    const rv = JSON.parse(JSON.stringify(selector));
-    rv.staff += target.staff - src.staff;
-    rv.measure += target.measure - src.measure;
-    rv.voice += target.voice - src.voice;
-    rv.note += target.staff - src.staff;
-    return rv;
   }
 
   // return true if testSel is contained in the selStart to selEnd range.
@@ -271,7 +269,7 @@ export class SmoSelection {
 
   // ### renderedNoteSelection
   // return the appropriate type of selection from the selector, based on the selector.
-  static selectionFromSelector(score: SmoScore, selector: SmoSelector) {
+  static selectionFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection | null {
     if (typeof (selector.pitches) !== 'undefined' && selector.pitches.length) {
       return SmoSelection.pitchSelection(score,
         selector.staff, selector.measure, selector.voice, selector.tick, selector.pitches);
@@ -309,6 +307,81 @@ export class SmoSelection {
       _pitches: pa,
       type: 'pitches'
     });
+  }
+  /**
+   * Return the selection that is tickCount ticks after the current selection.
+   * @param score 
+   * @param selection 
+   * @param tickCount 
+   * @returns 
+   */
+  static advanceTicks(score: SmoScore, selection: SmoSelection, tickCount: number): SmoSelection | null {
+    let rv: SmoSelection | null = null;
+    if (!selection.note) {
+      return rv;
+    }
+    const staff = selection.staff;
+    rv = SmoSelection.noteFromSelector(score, selection.selector);
+    while (rv !== null && rv.note !== null && tickCount > 0) {
+      const prevSelector = JSON.parse(JSON.stringify(rv.selector));
+      const measureTicks = rv.measure.getMaxTicksVoice();
+      const tickIx = rv.selector.tick;
+      const voiceId = rv.measure.voices.length > rv.selector.voice ? rv.selector.voice : 0;
+      // If the destination is more than a measure away, increment measure
+      if (tickIx === 0 && tickCount >= measureTicks) {
+        tickCount -= measureTicks;
+        if (staff.measures.length > rv.selector.measure + 1) {
+          rv.selector.measure += 1;
+          rv.selector.tick = 0;
+          rv = SmoSelection.selectionFromSelector(score, rv.selector);
+        }
+      } else if (selection.measure.voices[voiceId].notes.length > tickIx + 1) {
+        // else count the tick and advance to next tick
+        tickCount -= rv.note.tickCount;
+        rv.selector.tick += 1;
+        rv = SmoSelection.selectionFromSelector(score, rv.selector);
+      } else if (staff.measures.length > rv.selector.measure + 1) {
+        // else advance to next measure and start counting ticks there
+        tickCount -= rv.note.tickCount;
+        rv.selector.measure += 1;
+        rv.selector.tick = 0;
+        rv = SmoSelection.selectionFromSelector(score, rv.selector);
+      }
+      if (rv !== null && SmoSelector.eq(prevSelector, rv.selector)) {
+        // No progress, start and end the same
+        break;
+      }
+    }
+    return rv;
+  }
+  /**
+   * Count the number of ticks between selector 1 and selector 2;
+   * @param score 
+   * @param sel1 
+   * @param sel2 
+   * @returns 
+   */
+  static countTicks(score: SmoScore, sel1: SmoSelector, sel2: SmoSelector): number {
+    const selAr = SmoSelector.order(sel1, sel2);
+    const startSel = selAr[0];
+    const endSel = selAr[1];
+    let ticks: number = 0;
+    let startSelection = SmoSelection.selectionFromSelector(score, startSel);
+    const endSelection = SmoSelection.selectionFromSelector(score, endSel);
+    while (startSel.measure <= endSel.measure) {      
+      if (startSelection === null || startSelection.note === null || endSelection === null || endSelection.note === null) {
+        return ticks;
+      }
+      if (startSel.measure === endSel.measure) {
+        ticks += endSelection.measure.getRemainingTicks(endSel.voice, endSel.tick) - startSelection.measure.getRemainingTicks(endSel.voice, endSel.tick);
+        break;
+      }
+      ticks += startSelection.measure.getRemainingTicks(startSel.voice, startSel.tick);
+      startSel.measure += 1;
+      startSel.tick = 0;
+      startSelection = SmoSelection.selectionFromSelector(score, startSel);
+    }
+    return ticks;
   }
 
   // ## nextNoteSelection

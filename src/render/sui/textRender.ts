@@ -29,7 +29,7 @@ export interface VexTextFont {
   maxHeight: number,
   resolution: number,
   setFontSize(fontSize: number): void,
-  getMetricForCharacter(ch: string): VexTextFontMetrics
+  getGlyphMetrics(ch: string): VexTextFontMetrics
 }
 export interface SuiInlineTextParams {
   fontFamily: string,
@@ -125,11 +125,11 @@ export class SuiInlineText {
     return rv;
   }
   static get superscriptOffset(): number {
-    return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
+    return VF.ChordSymbol.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
   }
 
   static get subscriptOffset(): number {
-    return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
+    return VF.ChordSymbol.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
   }
 
   get spacing(): number {
@@ -174,7 +174,7 @@ export class SuiInlineText {
   renderedBox: SvgBox = SvgBox.default;
 
   updateFontInfo(): VexTextFont {
-    return VF.TextFont.getTextFontFromVexFontData({
+    return VF.TextFormatter.create({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,
@@ -237,7 +237,7 @@ export class SuiInlineText {
   // ### pointsToPixels
   // The font size is specified in points, convert to 'pixels' in the svg space
   get pointsToPixels(): number {
-    return this.textFont.pointsToPixels;
+    return (this.textFont.size * 4) / 3;
   }
 
   offsetStartX(offset: number) {
@@ -296,7 +296,7 @@ export class SuiInlineText {
         for (i = 0; i < block.text.length; ++i) {
           const ch = block.text[i];
 
-          const glyph = this.textFont.getMetricForCharacter(ch);
+          const glyph = this.textFont.getGlyphMetrics(ch);
           block.width += ((glyph.advanceWidth) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
           const blockHeight = (glyph.ha / this.textFont.resolution) * this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;

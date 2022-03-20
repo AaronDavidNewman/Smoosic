@@ -81,7 +81,7 @@ export class VxMeasure {
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
-      vexNote.addAccidental(tone.pitchIndex, acc);
+      vexNote.addModifier(acc, tone.pitchIndex);
     });
   }
   _createAccidentals(smoNote: SmoNote, vexNote: any, tickIndex: number, voiceIx: number) {
@@ -107,13 +107,13 @@ export class VxMeasure {
           acc.setAsCautionary();
         }
         smoNote.accidentalsRendered.push(pitch.accidental);
-        vexNote.addAccidental(i, acc);
+        vexNote.addModifier(acc, i);
       } else {
         smoNote.accidentalsRendered.push('');
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
-      vexNote.addDotToAll();
+      vexNote.addModifier(new VF.Dot());
     }
     this._createMicrotones(smoNote, vexNote);
   }
@@ -155,7 +155,7 @@ export class VxMeasure {
     // If we adjusted this note for the lyric, adjust the lyric as well.
     vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
     vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-    vexNote.addAnnotation(0, vexL);
+    vexNote.addModifier(vexL);
     if (lyric.isHyphenated()) {
       classString += ' lyric-hyphen';
     }
@@ -210,7 +210,7 @@ export class VxMeasure {
             if (pitch.cautionary) {
               accidental.setAsCautionary();
             }
-            gr.addAccidental(i, accidental);
+            gr.addModifier(accidental, i);
           }
         }
         if (g.tickCount() >= 4096) {
@@ -299,7 +299,7 @@ export class VxMeasure {
         const position: number = SmoArticulation.positionToVex[art.position];
         const vexArt = SmoArticulation.articulationToVex[art.articulation];
         const vxArt = new VF.Articulation(vexArt).setPosition(position);
-        vx.addArticulation(i, vxArt);
+        vx.addModifier(vxArt, i);
       });
     });
   }

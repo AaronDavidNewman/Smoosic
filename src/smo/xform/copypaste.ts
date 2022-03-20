@@ -257,10 +257,18 @@ export class PasteBuffer {
   _populateModifier(srcSelector: SmoSelector, destSelector: SmoSelector, staff: SmoSystemStaff) {
     // If this is the ending point of a staff modifier, paste the modifier
     const mod = this._findPlacedModifier(srcSelector);
-    if (mod) {
-      mod.endSelector = JSON.parse(JSON.stringify(destSelector));
-      mod.attrs.id = VF.Element.newID();
-      staff.addStaffModifier(mod);
+    if (mod && this.score) {
+      const tickOffset = SmoSelection.countTicks(this.score, srcSelector, destSelector);
+      const startSelection = SmoSelection.selectionFromSelector(this.score, mod.startSelector);
+      if (startSelection) {
+        const newStart = SmoSelection.advanceTicks(this.score, startSelection, tickOffset);
+        if (newStart) {
+          mod.startSelector = JSON.parse(JSON.stringify(newStart.selector));
+          mod.endSelector = JSON.parse(JSON.stringify(destSelector));
+          mod.attrs.id = VF.Element.newID();
+          staff.addStaffModifier(mod);
+        }
+      }
     }
   }
 

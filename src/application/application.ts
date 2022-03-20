@@ -309,7 +309,7 @@ export class SuiApplication {
     SuiDom.splash(this.config);
   }
   static registerFonts() {
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: ArialFont.name,
       resolution: ArialFont.resolution,
       glyphs: ArialFont.glyphs,
@@ -323,7 +323,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Built-in sans font',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: TimesFont.name,
       resolution: TimesFont.resolution,
       glyphs: TimesFont.glyphs,
@@ -337,7 +337,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Built-in serif font',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: Commissioner_MediumFont.name,
       resolution: Commissioner_MediumFont.resolution,
       glyphs: Commissioner_MediumFont.glyphs,
@@ -351,7 +351,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Low-contrast sans-serif text font',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: Concert_OneFont.name,
       resolution: Concert_OneFont.resolution,
       glyphs: Concert_OneFont.glyphs,
@@ -365,7 +365,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Rounded grotesque typeface inspired by 19th century 3D l',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: MerriweatherFont.name,
       resolution: MerriweatherFont.resolution,
       glyphs: MerriweatherFont.glyphs,
@@ -379,7 +379,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Serif screen font from Sorkin Type',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: SourceSansProFont.name,
       resolution: SourceSansProFont.resolution,
       glyphs: SourceSansProFont.glyphs,
@@ -393,7 +393,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Open source Sans screen font from Adobe',
     });
-    VF.TextFont.registerFont({
+    VF.TextFormatter.registerInfo({
       name: SourceSerifProFont.name,
       resolution: SourceSerifProFont.resolution,
       glyphs: SourceSerifProFont.glyphs,

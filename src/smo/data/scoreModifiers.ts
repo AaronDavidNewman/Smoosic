@@ -609,7 +609,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
   estimateWidth() {
     let i = 0;
     let rv = 0;
-    const textFont = VF.TextFont.getTextFontFromVexFontData({
+    const textFont = VF.TextFormatter.create({
       family: this.fontInfo.family,
       size: this.fontInfo.size,
       weight: this.fontInfo.weight,

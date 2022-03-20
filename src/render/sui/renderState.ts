@@ -92,17 +92,17 @@ export abstract class SuiRenderState {
     }
   }
 
-  static get Fonts(): any {
+  static get setFonts(): Record<string, Function> {
     return {
-      Bravura: [VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
-      Gonville: [VF.Fonts.Gonville(), VF.Fonts.Bravura(), VF.Fonts.Custom()],
-      Petaluma: [VF.Fonts.Petaluma(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
-      Leland: [VF.Fonts.Leland(), VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()]
+      Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
+      Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
+      Petaluma: () => { VF.setMusicFont('Petaluma', 'Bravura', 'Custom'); },
+      Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
     };
   }
 
   static setFont(font: string) {
-    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
+    SuiRenderState.setFonts[font]();
   }
 
   static get passStates(): Record<string, number> {

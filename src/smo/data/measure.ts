@@ -37,6 +37,11 @@ export interface TickMappable {
   voices: SmoVoice[],
   keySignature: string
 }
+
+export interface MeasureTick {
+  voiceIndex: number,
+  tickIndex: number
+}
 // @internal
 const VF = eval('Vex.Flow');
 
@@ -923,6 +928,10 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return note;
   }
 
+  /**
+   * Count the number of ticks in each voice and return max
+   * @returns 
+   */
   getMaxTicksVoice() {
     let i = 0;
     let max = 0;
@@ -933,12 +942,49 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return max;
   }
 
+  /**
+   * Count the number of ticks in a specific voice
+   * @param voiceIndex 
+   * @returns 
+   */
   getTicksFromVoice(voiceIndex: number): number {
     let ticks = 0;
     this.voices[voiceIndex].notes.forEach((note) => {
       ticks += note.tickCount;
     });
     return ticks;
+  }
+  /**
+   * Count the number of ticks in the measure after the supplied tick index
+   * @param voiceIndex 
+   * @param tickIndex 
+   * @returns 
+   */
+  getRemainingTicks(voiceIndex: number, tickIndex: number): number {
+    let i = 0;
+    let rv = 0;
+    if (this.voices.length < voiceIndex + 1) {
+      return rv;
+    }
+    if (this.voices[voiceIndex].notes.length < tickIndex + 1) {
+      return rv;
+    }
+    for (i = tickIndex; i < this.voices[voiceIndex].notes.length; ++i) {
+      rv += this.voices[voiceIndex].notes[i].tickCount;
+    }
+    return rv;
+  }
+  getClosestTickCountIndex(voiceIndex: number, tickCount: number): number {
+    let i = 0;
+    let rv = 0;
+    for (i = 0; i < this.voices[voiceIndex].notes.length; ++i) {
+      const note = this.voices[voiceIndex].notes[i];
+      if (note.tickCount + rv > tickCount) {
+        return rv;
+      }
+      rv += note.tickCount;
+    }
+    return rv;
   }
 
   isPickup(): boolean {
