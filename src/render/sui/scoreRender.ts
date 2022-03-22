@@ -13,7 +13,7 @@ import { SuiRenderState, ScoreRenderParams } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
-import { suiLayoutFormatter } from './formatter';
+import { suiLayoutFormatter, SuiTickContext } from './formatter';
 import { SuiTextBlock } from './textRender';
 import { layoutDebug } from './layoutDebug';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
@@ -483,10 +483,15 @@ export class SuiScoreRender extends SuiRenderState {
     const s: any = {};
     const measures = this._getMeasuresInColumn(measureIx);
     let rowInSystem = 0;
+    let voiceCount = 0;
+    let unalignedCtxCount = 0;
+    let wsum = 0;
+    let dsum = 0;
     // Keep running tab of accidental widths for justification
-    const accidentalMap = {};
+    const contextMap: Record<number, SuiTickContext> = {};
     measures.forEach((measure) => {
       SmoBeamer.applyBeams(measure);
+      voiceCount += measure.voices.length;
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
       measure.svg.lineIndex = lineIndex;
@@ -513,19 +518,52 @@ export class SuiScoreRender extends SuiRenderState {
 
       // Add custom width to measure:
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-      suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
+      suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
       y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });
 
-    // justify this column to the maximum width
-    const maxMeasure = measures.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
-    const maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-    const maxAdjMeasure = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX  ? a : b);
-    const maxAdj = maxAdjMeasure.svg.adjX;
+    // justify this column to the maximum width        
+    const startX = measures[0].staffX;
+    const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
+    const contexts = Object.keys(contextMap);
+    const widths: number[] = [];
+    const durations: number[] = [];
+    let minTotalWidth = 0;
+    contexts.forEach((strIx) => {
+      const ix = parseInt(strIx);
+      let tickWidth = 0;
+      const context = contextMap[ix];
+      if (context.tickCounts.length < voiceCount) {
+        unalignedCtxCount += 1;
+      }
+      context.widths.forEach((w, ix) => {
+        wsum += w;
+        dsum += context.tickCounts[ix];
+        widths.push(w);
+        durations.push(context.tickCounts[ix]);
+        tickWidth = Math.max(tickWidth, w);
+      });
+      minTotalWidth += tickWidth;
+    });
+    const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+    const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
+    const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
+    const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
+
+    const davg = dsum / durations.length;
+    const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
+    const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
+    const unalignedPadding = 5;
+
+    const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
+    const unalignedPad = unalignedPadding * unalignedCtxCount;
+
+    const maxWidth = adjX + minTotalWidth + Math.max(unalignedPad, padmax);
+    const maxX = startX + maxWidth;
     measures.forEach((measure) => {
-      measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)), 'render:estimateColumn');
-      measure.svg.adjX = maxAdj;
+      measure.setWidth(maxWidth, 'render:estimateColumn');
+      measure.svg.adjX = adjX;
     });
     const rv = { measures, y, x: maxX };
     return rv;

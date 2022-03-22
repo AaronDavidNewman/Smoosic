@@ -61,12 +61,12 @@ export interface ISmoBeamGroup {
 export interface MeasureSvg {
   staffWidth: number,
   unjustifiedWidth: number,
-  staffX: number,
+  adjX: number, // The start point of the music in the stave (after time sig, etc)
+  staffX: number, // The left-most x position of the staff
   staffY: number,
   logicalBox: SvgBox,
   renderedBox: SvgBox | null,
   yTop: number,
-  adjX: number,
   adjRight: number,
   history: string[],
   lineIndex: number,

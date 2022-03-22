@@ -143,7 +143,7 @@ export class vexGlyph {
         height: 5,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2,
+        spacingRight: 10,
         vexGlyph: 'augmentationDot'
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
