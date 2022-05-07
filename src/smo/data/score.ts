@@ -55,7 +55,6 @@ export interface SmoScorePreferencesParams {
   autoAdvance: boolean;
   defaultDupleDuration: number;
   defaultTripleDuration: number;
-  customProportion: number;
   showPiano: boolean;
   transposingScore: boolean;
 }
@@ -65,7 +64,6 @@ export interface SmoScorePreferencesParams {
  * @param autoAdvance Sibelius-like behavior of advancing cursor when a letter note is placed
  * @param defaultDupleDuration in ticks, even metered measures
  * @param defaultTripleDuration in ticks, 6/8 etc.
- * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
  * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
@@ -75,7 +73,6 @@ export class SmoScorePreferences {
   autoAdvance: boolean = true;
   defaultDupleDuration: number = 4096;
   defaultTripleDuration: number = 6144;
-  customProportion: number = 100;
   showPiano: boolean = true;
   transposingScore: boolean = false;
   static get defaults(): SmoScorePreferencesParams {
@@ -84,7 +81,6 @@ export class SmoScorePreferences {
       autoAdvance: true,
       defaultDupleDuration: 4096,
       defaultTripleDuration: 6144,
-      customProportion: 100,
       showPiano: true,
       transposingScore: false
     };
@@ -195,7 +191,6 @@ export class SmoScore {
         autoAdvance: true,
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
-        customProportion: 100,
         showPiano: true,
         transposingScore: false
       },
@@ -415,8 +410,12 @@ export class SmoScore {
 
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
+    // meaning of customProportion has changed, backwards-compatiblity
     if (typeof (jsonObj.score.preferences) !== 'undefined' && typeof (jsonObj.score.preferences.customProportion) === 'number') {
-      SmoMeasureFormat.defaults.customProportion = jsonObj.score.preferences.customProportion;
+      SmoMeasureFormat.defaults.proportionality = jsonObj.score.preferences.customProportion;
+      if (SmoMeasureFormat.defaults.proportionality === SmoMeasureFormat.legacyProportionality) {
+        SmoMeasureFormat.defaults.proportionality = SmoMeasureFormat.defaultProportionality;
+      }
     }
     // up-convert legacy layout data
     if (jsonObj.score.layout) {
@@ -687,7 +686,7 @@ export class SmoScore {
       staff.measures.forEach((mm) => {
         if (mm.transposeIndex !== 0) {
           const concert = SmoMusic.vexKeySigWithOffset(mm.keySignature, -1 * mm.transposeIndex);
-          mm.transposeToOffset(0);
+          mm.transposeToOffset(0, concert);
           mm.transposeIndex = 0;
           mm.keySignature = concert;
         }
@@ -704,7 +703,7 @@ export class SmoScore {
         const inst = staff.getStaffInstrument(mm.measureNumber.measureIndex);
         if (inst.keyOffset !== 0) {
           const concert = SmoMusic.vexKeySigWithOffset(mm.keySignature, inst.keyOffset);
-          mm.transposeToOffset(inst.keyOffset);
+          mm.transposeToOffset(inst.keyOffset, concert);
           mm.transposeIndex = inst.keyOffset;
           mm.keySignature = concert;
         }

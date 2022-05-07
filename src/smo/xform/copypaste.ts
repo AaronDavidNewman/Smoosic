@@ -94,13 +94,19 @@ export class PasteBuffer {
           const ntuplet = SmoTuplet.cloneTuplet(tuplet);
           this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
           ntuplet.notes.forEach((nnote) => {
-            this.notes.push({ selector, note: nnote });
+            // Store the role of the notes in the part key, transpose to 'c'.
+            SmoMusic.findRoleForPitches(nnote.pitches, selection.measure.keySignature);
+            const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
+              [], -1 * selection.measure.transposeIndex, 'c') as SmoNote;
+            this.notes.push({ selector, note: xposeNote });
             selector = JSON.parse(JSON.stringify(selector));
             selector.tick += 1;
           });
         }
       } else if (selection.note) {
-        const note = SmoNote.clone(selection.note);
+        SmoMusic.findRoleForPitches(selection.note.pitches, selection.measure.keySignature);
+        const note = SmoNote.transpose(SmoNote.clone(selection.note),
+          [], -1 * selection.measure.transposeIndex, 'c') as SmoNote;
         this.notes.push({ selector, note });
       }
     });

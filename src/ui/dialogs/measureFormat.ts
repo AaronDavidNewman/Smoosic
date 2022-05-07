@@ -51,10 +51,10 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
     this.writeNumber('customStretch', value);
   }
   get customProportion() {
-    return this.format.customProportion;
+    return this.format.proportionality;
   }
   set customProportion(value: number) {
-    this.writeNumber('customProportion', value);
+    this.writeNumber('proportionality', value);
   }
   get autoJustify() {
     return this.format.autoJustify;

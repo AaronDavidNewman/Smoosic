@@ -25,6 +25,7 @@ export class VxMeasure {
   static readonly musicFontScaleCue: number = 28;
   printing: boolean;
   selection: SmoSelection;
+  softmax: number;
   smoMeasure: SmoMeasure;
   rendered: boolean = false;
   noteToVexMap: Record<string, any> = {};
@@ -41,7 +42,7 @@ export class VxMeasure {
   allCues: boolean = false;
 
 
-  constructor(context: any, selection: SmoSelection, printing: boolean) {
+  constructor(context: any, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
     this.rendered = false;
     this.selection = selection;
@@ -53,6 +54,7 @@ export class VxMeasure {
     this.vexBeamGroups = [];
     this.vexBeamGroups = [];
     this.beamToVexMap = {};
+    this.softmax = softmax;
   }
 
   static get fillStyle() {
@@ -556,7 +558,8 @@ export class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.format.customProportion, globalSoftmax: false });
+    let proportion = this.smoMeasure.format.proportionality;
+    this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
     });

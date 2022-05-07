@@ -17,6 +17,7 @@ export interface ClefSign {
   line?: number,
   octave?: number
 }
+
 /**
  * calculate the pitch frequency, just temperment a=440, etc.
  * @category SmoUtilities
@@ -95,7 +96,13 @@ const VF = eval('Vex.Flow');
 export interface VexNoteValue {
   root_index: number,
   int_val: number
-}
+};
+export interface KeySignatureRole {
+  letter: PitchLetter,
+  accidental: string,
+  role: string
+};
+
 /**
  * Helper functions that build on the VX music theory routines, and other
  * utilities I wish were in VF.Music but aren't
@@ -384,6 +391,304 @@ export class SmoMusic {
     'vocal-tenor': { sign: 'G', line: 2, octave: -1 }
   }
   
+  /**
+   * The purpose of this table is to keep consistent enharmonic spelling when transposing 
+   * instruments in different keys.  It is not theoritically complete, e.g.
+   * there is no reason to distinguish between #5 used as a leading tone for vi- or
+   * as an augmented chord, the spelling is the same.  It does not show a preference
+   * for notes that don't have an obvious purpose in the key, e.g. it does not try to compute the
+   * equivalent to 'e#' in the key of 'c'.  The computation of the 'intended key area' is
+   * beyond the scope of a music program to interpret.
+   */
+  static get enharmonicRoles(): Record<string, KeySignatureRole[]> {
+    const tbl: Record<string, KeySignatureRole[]> =
+      { 'c' : [
+        { letter: 'c', accidental: 'n', role: 'tonic' },
+        { letter: 'c', accidental: '#', role: '7/2' },
+        { letter: 'd', accidental: 'b', role: 'b9' },
+        { letter: 'd', accidental: 'n', role: '2' },
+        { letter: 'd', accidental: '#', role: '7/3'},
+        { letter: 'e', accidental: 'b', role: 'b3'},
+        { letter: 'e', accidental: 'n', role: '3'},
+        { letter: 'f', accidental: 'n', role: '4'},
+        { letter: 'f', accidental: '#', role: '#11'},
+        { letter: 'g', accidental: 'b', role: 'b5'},
+        { letter: 'g', accidental: 'n', role: '5'},
+        { letter: 'g', accidental: '#', role: '7/6'},
+        { letter: 'a', accidental: 'b', role: 'b6'},
+        { letter: 'a', accidental: 'n', role: '6'},
+        { letter: 'a', accidental: '#', role: '7/7'},
+        { letter: 'b', accidental: 'b', role: 'b7'},
+        { letter: 'b', accidental: 'n', role: '7'}
+      ], 'c#': [
+        { letter: 'c', accidental: '#', role: 'tonic' },
+        { letter: 'c', accidental: '##', role: '7/2' },
+        { letter: 'd', accidental: 'n', role: 'b9' },
+        { letter: 'd', accidental: '#', role: '2' },
+        { letter: 'd', accidental: '##', role: '#2'},
+        { letter: 'f', accidental: 'b', role: 'b3'},
+        { letter: 'e', accidental: '#', role: '3'},
+        { letter: 'f', accidental: '#', role: '4'},
+        { letter: 'f', accidental: '##', role: '#11'},
+        { letter: 'g', accidental: 'n', role: 'b5'},
+        { letter: 'g', accidental: '#', role: '5'},
+        { letter: 'g', accidental: '##', role: '7/6'},
+        { letter: 'a', accidental: 'n', role: 'b6'},
+        { letter: 'a', accidental: '#', role: '6'},
+        { letter: 'a', accidental: '##', role: '7/7'},
+        { letter: 'b', accidental: 'n', role: 'b7'},
+        { letter: 'b', accidental: '#', role: '7'}
+      ], 'db': [
+        { letter: 'd', accidental: 'b', role: 'tonic' },
+        { letter: 'd', accidental: 'n', role: '7/2' },
+        { letter: 'e', accidental: 'bb', role: 'b9' },
+        { letter: 'e', accidental: 'b', role: '2' },
+        { letter: 'e', accidental: 'n', role: '7/3'},
+        { letter: 'f', accidental: 'b', role: 'b3'},
+        { letter: 'f', accidental: 'n', role: '3'},
+        { letter: 'g', accidental: 'b', role: '4'},
+        { letter: 'g', accidental: 'n', role: '#11'},
+        { letter: 'a', accidental: 'bb', role: 'b5'},
+        { letter: 'a', accidental: 'b', role: '5'},
+        { letter: 'a', accidental: 'n', role: '7/6'},
+        { letter: 'b', accidental: 'bb', role: 'b6'},
+        { letter: 'b', accidental: 'b', role: '6'},
+        { letter: 'b', accidental: 'n', role: '7/7'},
+        { letter: 'c', accidental: 'b', role: 'b7'},
+        { letter: 'b', accidental: '#', role: '7'}
+      ], 'd': [
+        { letter: 'd', accidental: 'n', role: 'tonic' },
+        { letter: 'd', accidental: '#', role: '7/2' },
+        { letter: 'e', accidental: 'b', role: 'b9' },
+        { letter: 'e', accidental: 'n', role: '2' },
+        { letter: 'e', accidental: '#', role: '7/3'},
+        { letter: 'f', accidental: 'n', role: 'b3'},
+        { letter: 'f', accidental: '#', role: '3'},
+        { letter: 'g', accidental: 'n', role: '4'},
+        { letter: 'g', accidental: '#', role: '#11'},
+        { letter: 'a', accidental: 'b', role: 'b5'},
+        { letter: 'a', accidental: 'n', role: '5'},
+        { letter: 'a', accidental: '#', role: '7/6'},
+        { letter: 'b', accidental: 'b', role: 'b6'},
+        { letter: 'b', accidental: 'n', role: '6'},
+        { letter: 'b', accidental: '#', role: '7/7'},
+        { letter: 'c', accidental: 'n', role: 'b7'},
+        { letter: 'c', accidental: '#', role: '7'}
+      ], 'eb': [
+        { letter: 'e', accidental: 'b', role: 'tonic' },
+        { letter: 'e', accidental: 'n', role: '7/2' },
+        { letter: 'f', accidental: 'b', role: 'b9' },
+        { letter: 'f', accidental: 'n', role: '2' },
+        { letter: 'f', accidental: '#', role: '7/3'},
+        { letter: 'g', accidental: 'b', role: 'b3'},
+        { letter: 'g', accidental: 'n', role: '3'},
+        { letter: 'a', accidental: 'b', role: '4'},
+        { letter: 'a', accidental: 'n', role: '#11'},
+        { letter: 'b', accidental: 'bb', role: 'b5'},
+        { letter: 'b', accidental: 'b', role: '5'},
+        { letter: 'b', accidental: 'n', role: '7/6'},
+        { letter: 'c', accidental: 'b', role: '6'},
+        { letter: 'c', accidental: 'n', role: '6'},
+        { letter: 'c', accidental: '#', role: '7/7'},
+        { letter: 'd', accidental: 'b', role: 'b7'},
+        { letter: 'd', accidental: 'n', role: '7'}
+      ], 'e': [
+        { letter: 'e', accidental: 'n', role: 'tonic' },
+        { letter: 'e', accidental: '#', role: '7/2' },
+        { letter: 'f', accidental: 'n', role: 'b9' },
+        { letter: 'f', accidental: '#', role: '2' },
+        { letter: 'f', accidental: '##', role: '7/3'},
+        { letter: 'g', accidental: 'n', role: 'b3'},
+        { letter: 'g', accidental: '#', role: '3'},
+        { letter: 'a', accidental: 'n', role: '4'},
+        { letter: 'a', accidental: '#', role: '#11'},
+        { letter: 'b', accidental: 'b', role: 'b5'},
+        { letter: 'b', accidental: 'n', role: '5'},
+        { letter: 'b', accidental: '#', role: '7/6'},
+        { letter: 'c', accidental: 'n', role: 'b6'},
+        { letter: 'c', accidental: '#', role: '6'},
+        { letter: 'c', accidental: '##', role: '7/7'},
+        { letter: 'd', accidental: 'n', role: 'b7'},
+        { letter: 'd', accidental: '#', role: 'b7'}
+      ], 'f': [
+        { letter: 'f', accidental: 'n', role: 'tonic' },
+        { letter: 'f', accidental: '#', role: '7/2' },
+        { letter: 'g', accidental: 'b', role: 'b9' },
+        { letter: 'g', accidental: 'n', role: '2' },
+        { letter: 'g', accidental: '#', role: '7/3'},
+        { letter: 'a', accidental: 'b', role: 'b3'},
+        { letter: 'a', accidental: 'n', role: '3'},
+        { letter: 'b', accidental: 'b', role: '4'},
+        { letter: 'b', accidental: 'n', role: '#11'},
+        { letter: 'c', accidental: 'b', role: 'b5'},
+        { letter: 'c', accidental: 'n', role: '5'},
+        { letter: 'c', accidental: '#', role: '7/6'},
+        { letter: 'd', accidental: 'b', role: 'b6'},
+        { letter: 'd', accidental: 'n', role: '6'},
+        { letter: 'd', accidental: '#', role: '7/7'},
+        { letter: 'e', accidental: 'b', role: 'b7'},
+        { letter: 'e', accidental: 'n', role: '7'}
+      ], 'f#': [
+        { letter: 'f', accidental: '#', role: 'tonic' },
+        { letter: 'f', accidental: '##', role: '7/2' },
+        { letter: 'g', accidental: 'n', role: 'b9' },
+        { letter: 'g', accidental: '#', role: '2' },
+        { letter: 'g', accidental: '##', role: '#2'},
+        { letter: 'a', accidental: 'n', role: 'b3'},
+        { letter: 'a', accidental: '#', role: '3'},
+        { letter: 'b', accidental: 'n', role: '4'},
+        { letter: 'b', accidental: '#', role: '#11'},
+        { letter: 'c', accidental: 'n', role: 'b5'},
+        { letter: 'c', accidental: '#', role: '5'},
+        { letter: 'c', accidental: '##', role: '7/6'},
+        { letter: 'd', accidental: 'n', role: 'b6'},
+        { letter: 'd', accidental: '#', role: '6'},
+        { letter: 'd', accidental: '##', role: '7/7'},
+        { letter: 'e', accidental: 'n', role: 'b7'},
+        { letter: 'e', accidental: '#', role: '7'}
+      ],  'gb': [
+        { letter: 'g', accidental: 'b', role: 'tonic' },
+        { letter: 'g', accidental: 'n', role: '7/2' },
+        { letter: 'a', accidental: 'bb', role: 'b9' },
+        { letter: 'a', accidental: 'b', role: '2' },
+        { letter: 'a', accidental: 'n', role: '7/3'},
+        { letter: 'a', accidental: 'bb', role: 'b3'},
+        { letter: 'b', accidental: 'b', role: '3'},
+        { letter: 'c', accidental: 'b', role: '4'},
+        { letter: 'c', accidental: 'n', role: '#11'},
+        { letter: 'd', accidental: 'bb', role: 'b5'},
+        { letter: 'd', accidental: 'b', role: '5'},
+        { letter: 'd', accidental: 'n', role: '7/6'},
+        { letter: 'e', accidental: 'bb', role: 'b6'},
+        { letter: 'e', accidental: 'b', role: '6'},
+        { letter: 'e', accidental: 'n', role: '7/7'},
+        { letter: 'f', accidental: 'b', role: 'b7'},
+        { letter: 'f', accidental: 'n', role: '7'}
+      ], 'g': [
+        { letter: 'g', accidental: 'n', role: 'tonic' },
+        { letter: 'g', accidental: '#', role: '7/2' },
+        { letter: 'g', accidental: 'b', role: 'b9' },
+        { letter: 'a', accidental: 'n', role: '2' },
+        { letter: 'a', accidental: '#', role: '7/3'},
+        { letter: 'b', accidental: 'b', role: 'b3'},
+        { letter: 'b', accidental: 'n', role: '3'},
+        { letter: 'c', accidental: 'n', role: '4'},
+        { letter: 'c', accidental: '#', role: '#11'},
+        { letter: 'd', accidental: 'b', role: 'b5'},
+        { letter: 'd', accidental: 'n', role: '5'},
+        { letter: 'd', accidental: '#', role: '7/6'},
+        { letter: 'e', accidental: 'b', role: 'b6'},
+        { letter: 'e', accidental: 'n', role: '6'},
+        { letter: 'e', accidental: '#', role: '7/7'},
+        { letter: 'f', accidental: 'n', role: 'b7'},
+        { letter: 'f', accidental: '#', role: '7'}
+      ],'ab': [
+        { letter: 'a', accidental: 'b', role: 'tonic' },
+        { letter: 'a', accidental: 'n', role: '7/2' },
+        { letter: 'b', accidental: 'bb', role: 'b9' },
+        { letter: 'b', accidental: 'b', role: '2' },
+        { letter: 'b', accidental: 'n', role: '7/3' },
+        { letter: 'b', accidental: 'bb', role: 'b3' },
+        { letter: 'c', accidental: 'n', role: '3' },
+        { letter: 'd', accidental: 'b', role: '4' },
+        { letter: 'd', accidental: 'n', role: '#11' },
+        { letter: 'e', accidental: 'bb', role: 'b5' },
+        { letter: 'e', accidental: 'b', role: '5' },
+        { letter: 'e', accidental: 'n', role: '7/6' },
+        { letter: 'f', accidental: 'b', role: 'b6' },
+        { letter: 'f', accidental: 'n', role: '6' },
+        { letter: 'f', accidental: '#', role: '7/7' },
+        { letter: 'g', accidental: 'b', role: 'b7' },
+        { letter: 'g', accidental: 'n', role: '7' }
+      ], 'a': [
+        { letter: 'a', accidental: 'n', role: 'tonic' },
+        { letter: 'a', accidental: '#', role: '7/2' },
+        { letter: 'b', accidental: 'b', role: 'b9' },
+        { letter: 'b', accidental: 'n', role: '2' },
+        { letter: 'b', accidental: '#', role: '7/3'},
+        { letter: 'c', accidental: 'n', role: 'b3'},
+        { letter: 'c', accidental: '#', role: '3'},
+        { letter: 'd', accidental: 'n', role: '4'},
+        { letter: 'd', accidental: '#', role: '#11'},
+        { letter: 'e', accidental: 'b', role: 'b5'},
+        { letter: 'e', accidental: 'n', role: '5'},
+        { letter: 'e', accidental: '#', role: '7/6'},
+        { letter: 'f', accidental: 'n', role: 'b6'},
+        { letter: 'f', accidental: '#', role: '6'},
+        { letter: 'f', accidental: '##', role: '7/7'},
+        { letter: 'g', accidental: 'n', role: 'b7'},
+        { letter: 'g', accidental: '#', role: '7'}
+      ], 'bb': [
+        { letter: 'b', accidental: 'b', role: 'tonic' },
+        { letter: 'b', accidental: 'n', role: '7/2' },
+        { letter: 'c', accidental: 'b', role: 'b9' },
+        { letter: 'c', accidental: 'n', role: '2' },
+        { letter: 'c', accidental: '#', role: '7/3'},
+        { letter: 'd', accidental: 'b', role: 'b3'},
+        { letter: 'd', accidental: 'n', role: '3'},
+        { letter: 'e', accidental: 'b', role: '4'},
+        { letter: 'e', accidental: 'n', role: '#11'},
+        { letter: 'f', accidental: 'b', role: 'b5'},
+        { letter: 'f', accidental: 'n', role: '5'},
+        { letter: 'f', accidental: '#', role: '7/6'},
+        { letter: 'g', accidental: 'b', role: 'b6'},
+        { letter: 'g', accidental: 'n', role: '6'},
+        { letter: 'g', accidental: '#', role: '7/7'},
+        { letter: 'a', accidental: 'b', role: 'b7'},
+        { letter: 'a', accidental: 'n', role: '7'}
+      ], 'b': [
+        { letter: 'b', accidental: 'n', role: 'tonic' },
+        { letter: 'b', accidental: '#', role: '7/2' },
+        { letter: 'c', accidental: 'n', role: 'b9' },
+        { letter: 'c', accidental: '#', role: '2' },
+        { letter: 'c', accidental: '##', role: '7/3'},
+        { letter: 'd', accidental: 'n', role: 'b3'},
+        { letter: 'd', accidental: '#', role: '3'},
+        { letter: 'e', accidental: 'n', role: '4'},
+        { letter: 'e', accidental: '#', role: '#11'},
+        { letter: 'f', accidental: 'n', role: 'b5'},
+        { letter: 'f', accidental: '#', role: '5'},
+        { letter: 'f', accidental: '##', role: '7/6'},
+        { letter: 'g', accidental: 'n', role: 'b6'},
+        { letter: 'g', accidental: '#', role: '6'},
+        { letter: 'g', accidental: '##', role: '7/7'},
+        { letter: 'a', accidental: 'n', role: 'b7'},
+        { letter: 'a', accidental: '#', role: 'b7'}
+      ]};
+    return tbl;
+  }
+  static findRoleForPitches(pitches: Pitch[], keySignature: string) {
+    pitches.forEach((pitch) => {
+      pitch.role = SmoMusic.findRoleOfPitch(pitch, keySignature);
+    });
+  }
+  static findRoleOfPitch(smoPitch: Pitch, keySignature: string) {
+    const keyRoles = SmoMusic.enharmonicRoles[keySignature];
+    if (!keyRoles) {
+      return '';
+    }
+    const keyRole = keyRoles.find((x) => x.letter === smoPitch.letter.toLocaleLowerCase() && x.accidental === smoPitch.accidental.toLowerCase());
+    if (!keyRole) {
+      return '';
+    }
+    return keyRole.role;
+  }
+  static findPitchForRole(role: string, keySignature: string, transposedPitch: Pitch): Pitch {
+    const keyRoles = SmoMusic.enharmonicRoles[keySignature];
+    if (!keyRoles) {
+      return JSON.parse(JSON.stringify(transposedPitch));
+    }
+    const keyRole = keyRoles.find((x) => x.role === role);
+    if (!keyRole) {
+      return JSON.parse(JSON.stringify(transposedPitch));
+    }
+    let octave = transposedPitch.octave;
+    if ((transposedPitch.letter === 'a' || transposedPitch.letter === 'b') && keyRole.letter === 'c') {
+      octave += 1;
+    }
+    return { letter: keyRole.letter, accidental: keyRole.accidental, octave };
+  }
+
   /**
    * convert from SMO to VEX format so we can use the VexFlow tables and methods
    * example:
@@ -949,8 +1254,7 @@ export class SmoMusic {
   }
 
   /**
-  // Given a vex noteProp and an offset, offset that number
-  // of 1/2 steps.
+   * Transpose a `Pitch` `offset` 1/2 steps
    * @param pitch
    * @param offset
    * @returns

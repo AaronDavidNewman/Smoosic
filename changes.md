@@ -2,6 +2,13 @@
 
 
 ## Changes to Smoosic
+### May 1 2022
+Change to the way proportionality (softmax) is computed:
+
+* Measure default is now 0, non-0 values indicates it overrides score default. Default values means it uses whatever the score default is
+* score default is now in GlobalLayout ScoreModifier, not in preferences.  It seemed to be more at home with the other layout parameters since they affect rendering.
+* the default value is now 5, down from 100.  There has been [some discussion on the vexflow forums (https://github.com/0xfe/vexflow/pull/1383)] that the vexflow default is too high. This can result in shorter notes getting too little horizontal space, especially between the last 2 notes of a measure.
+
 ### March 20, 2022 (potentially breaking)
 Merged latest vexflow (4.0.1) with Smoosic.  There are some changes in the API signatures for note modifiers (accidentals, etc.) that will break against earlier versions of Smoosic.  But the formatting improvements for Vexflow 4.0.1 over 3.0.x are worth it.
 

@@ -13,6 +13,7 @@ import { SuiScroller } from '../sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
+import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -431,8 +432,11 @@ export class VxSystem {
     if (selection === null) {
       return;
     }
-
-    const vxMeasure: VxMeasure = new VxMeasure(this.context, selection, printing);
+    let softmax = selection.measure.format.proportionality;
+    if (softmax === SmoMeasureFormat.defaultProportionality) {
+      softmax = this.score.layoutManager?.getGlobalLayout().proportionality ?? 0;
+    }
+    const vxMeasure: VxMeasure = new VxMeasure(this.context, selection, printing, softmax);
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();

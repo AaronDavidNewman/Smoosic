@@ -11,7 +11,6 @@ import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SvgBox, SvgPoint } from '../data/common';
-import { TextButtons } from '../../../release/smoosic';
 
 /**
  * Modifier tab is a modifier and its bounding box, that can be tabbed to with the keyboard

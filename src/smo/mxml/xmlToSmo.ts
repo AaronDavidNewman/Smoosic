@@ -28,8 +28,8 @@ export class XmlToSmo {
   static get mmPerPixel() {
     return 0.264583;
   }
-  static get customProportionDefault() {
-    return SmoScore.defaults.preferences.customProportion;
+  static get customProportionDefault(): number {
+    return SmoScore.defaults.layoutManager?.getGlobalLayout().proportionality ?? 0;
   }
   static get pageLayoutMap() {
     return [
@@ -616,7 +616,7 @@ export class XmlToSmo {
       smoMeasure.format.measureIndex = xmlState.measureNumber;
       smoMeasure.format.systemBreak = XmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
-      smoMeasure.format.customProportion = XmlToSmo.customProportionDefault;
+      smoMeasure.format.proportionality = XmlToSmo.customProportionDefault;
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);

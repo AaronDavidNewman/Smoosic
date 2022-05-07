@@ -487,6 +487,7 @@ export class SuiScoreRender extends SuiRenderState {
     let unalignedCtxCount = 0;
     let wsum = 0;
     let dsum = 0;
+    let maxCfgWidth = 0;
     // Keep running tab of accidental widths for justification
     const contextMap: Record<number, SuiTickContext> = {};
     measures.forEach((measure) => {
@@ -520,6 +521,7 @@ export class SuiScoreRender extends SuiRenderState {
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
       suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
       y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+      maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
 
@@ -558,8 +560,7 @@ export class SuiScoreRender extends SuiRenderState {
 
     const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
     const unalignedPad = unalignedPadding * unalignedCtxCount;
-
-    const maxWidth = adjX + minTotalWidth + Math.max(unalignedPad, padmax);
+    const maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
     const maxX = startX + maxWidth;
     measures.forEach((measure) => {
       measure.setWidth(maxWidth, 'render:estimateColumn');

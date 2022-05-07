@@ -62,7 +62,8 @@ export interface Pitch {
     letter: PitchLetter,
     accidental: string,
     octave: number,
-    cautionary?: boolean
+    cautionary?: boolean,
+    role?: string
 }
 
 /**

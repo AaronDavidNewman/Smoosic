@@ -571,6 +571,7 @@ export class SmoNote implements Transposable {
    * @param pitchArray an array of indices (not pitches) that indicate which pitches get altered if a chord
    * @param offset in 1/2 step
    * @param keySignature for finding key-friendly enharmonic
+   * @param role when transposing keep the enharmonic role of the original, if possible.
    * @returns 
    */
   static transpose(note: Transposable, pitchArray: number[], offset: number, keySignature: string): Transposable {
@@ -588,15 +589,26 @@ export class SmoNote implements Transposable {
       if (index + 1 > note.pitches.length) {
         SmoNote.addPitchOffset(note, offset);
       } else {
-        const pitch = SmoMusic.getKeyOffset(note.pitches[index], offset);
+        const original = JSON.parse(JSON.stringify(note.pitches[index]));
+        let pitch = SmoMusic.getKeyOffset(note.pitches[index], offset);
         if (keySignature) {
-          letterKey = pitch.letter + pitch.accidental;
-          letterKey = SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-          pitch.letter = letterKey[0] as PitchLetter;
-          if (letterKey.length < 2) {
-            pitch.accidental = 'n';
+          let originalRole = '';
+          if (pitch.role && pitch.role.length) {
+            originalRole = pitch.role;
           } else {
-            pitch.accidental = letterKey.substring(1);
+            originalRole = SmoMusic.findRoleOfPitch(original, keySignature);
+          }
+          if (originalRole.length) {
+            pitch = SmoMusic.findPitchForRole(originalRole, keySignature, pitch);
+          } else {
+            letterKey = pitch.letter + pitch.accidental;
+            letterKey = SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
+            pitch.letter = letterKey[0] as PitchLetter;
+            if (letterKey.length < 2) {
+              pitch.accidental = 'n';
+            } else {
+              pitch.accidental = letterKey.substring(1);
+            }
           }
         }
         note.pitches[index] = pitch;

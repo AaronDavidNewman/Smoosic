@@ -788,7 +788,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * @param offset 
    * @param newClef 
    */
-  transposeToOffset(offset: number, newClef?: Clef) {
+  transposeToOffset(offset: number, targetKey: string, newClef?: Clef) {
     const diff = offset - this.transposeIndex;
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
@@ -798,7 +798,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
           const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
           note.pitches = [defp];
         } else {
-          note.transpose(pitches, diff, this.keySignature);
+          SmoMusic.findRoleForPitches(note.pitches, this.keySignature);
+          note.transpose(pitches, diff, targetKey);
           note.getGraceNotes().forEach((gn) => {
             const gpitch: number[] = [...Array(gn.pitches.length).keys()];
             const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature);

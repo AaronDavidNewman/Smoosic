@@ -34,9 +34,9 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
-export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'customProportion' | 'padLeft' | 'measureIndex';
+export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'proportionality' | 'padLeft' | 'measureIndex';
 export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
-  ['customStretch', 'customProportion', 'padLeft', 'measureIndex'];
+  ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
 export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
 
@@ -53,7 +53,7 @@ export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = [
  */
 export interface SmoMeasureFormatParams {
   customStretch: number | null,
-  customProportion: number | null,
+  proportionality: number | null,
   autoJustify: boolean | null,
   systemBreak: boolean | null,
   pageBreak: boolean | null,
@@ -78,10 +78,16 @@ export interface ISmoMeasureFormatMgr {
  */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
+    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
   }
   static get formatAttributes() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+  }
+  static get defaultProportionality() {
+    return 0;
+  }
+  static get legacyProportionality() {
+    return 0;
   }
   static fromLegacyMeasure(measure: any) {
     const o: any = {};
@@ -99,7 +105,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   static get defaults(): SmoMeasureFormatParams {
     return JSON.parse(JSON.stringify({
       customStretch: 0,
-      customProportion: 100,
+      proportionality: SmoMeasureFormat.defaultProportionality,
       systemBreak: false,
       pageBreak: false,
       padLeft: 0,
@@ -108,8 +114,8 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       measureIndex: 0,
     }));
   }
-  customStretch: number = 0;
-  customProportion: number = 100;
+  customStretch: number = SmoMeasureFormat.defaultProportionality;
+  proportionality: number = 0;
   systemBreak: boolean = false;
   pageBreak: boolean = false;
   padLeft: number = 0;

@@ -174,8 +174,8 @@ export class SmoPageLayout extends SmoScoreModifierBase {
   }
 }
 export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
-export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale';
-export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
+export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale' | 'proportionality';
+export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'proportionality'];
 /**
  * Global layout are parameters that determine the layout of the whole score, because they affect the containing svg element
  * @category {SmoParams}
@@ -186,6 +186,7 @@ export interface SmoGlobalLayout {
   noteSpacing: number;
   pageWidth: number;
   pageHeight: number;
+  proportionality: number
 }
 
 /**
@@ -228,7 +229,8 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
       zoomScale: 2.0,
       noteSpacing: 1.0,
       pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96
+      pageHeight: 11 * 96,
+      proportionality: 5
     };
   }
   static get defaults(): SmoLayoutManagerParams {
