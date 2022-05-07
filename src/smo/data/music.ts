@@ -1265,12 +1265,14 @@ export class SmoMusic {
     let vexKey = SmoMusic.pitchToVexKey(pitch);
     vexKey = SmoMusic.vexToCannonical(vexKey);
     const rootIndex = canon.indexOf(vexKey);
-    const index = (rootIndex + canon.length + offset) % canon.length;
     let octave = pitch.octave;
     if (Math.abs(offset) >= 12) {
       const octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
       octave += octaveOffset;
-      offset = offset % 12;
+      offset = offset - (12 * octaveOffset);
+      if (offset < 0) {
+        offset = 12 + offset;
+      }
     }
     if (rootIndex + offset >= canon.length) {
       octave += 1;
@@ -1279,6 +1281,7 @@ export class SmoMusic {
       octave -= 1;
     }
     const rv = JSON.parse(JSON.stringify(pitch));
+    const index = (rootIndex + canon.length + offset) % canon.length;
     vexKey = canon[index];
     if (vexKey.length > 1) {
       rv.accidental = vexKey.substring(1);
