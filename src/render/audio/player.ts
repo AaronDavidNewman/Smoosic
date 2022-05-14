@@ -1,25 +1,52 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiOscillator, SuiSampler } from './oscillator';
-import { SmoAudioScore, AudioTracks, SmoAudioTrack } from '../../smo/xform/audioTrack';
+import { SmoAudioScore } from '../../smo/xform/audioTrack';
 import { SuiTracker } from '../sui/tracker';
 import { SmoScore } from '../../smo/data/score';
+import { SmoMicrotone } from '../../smo/data/noteModifiers';
+import { SmoMusic, SmoAudioPitch } from '../../smo/data/music';
 
-export interface NoteSound {
+
+export interface SuiAudioPlayerParams {
+  startIndex: number,
+  tracker: SuiTracker,
+  score: SmoScore,
+}
+export interface SoundParams {
   frequencies: number[],
   duration: number,
   offset: number,
   volume: number,
   noteType: string
 }
-export interface SuiAudioPlayerParams {
-  startIndex: number,
-  tracker: SuiTracker,
-  score: SmoScore,
+export interface CuedAudioContext {
+  oscs: SuiOscillator[],
+  playMeasureIndex: number,
+  playTickIndex: number,
+  waitTime: number
 }
-export interface TrackSounds {
-  offsetSounds: Record<number, NoteSound[]>,
-  offsets: string[]
+export interface CuedAudioLink {
+  sound: CuedAudioContext;
+  next: CuedAudioLink | null;
+}
+export class CuedAudioContexts {
+  soundHead: CuedAudioLink | null = null;
+  soundTail: CuedAudioLink | null = null;
+  soundListLength = 0;
+  playWaitTimer = 0;
+  playMeasureIndex: number = 0; // index of the measure we are playing
+  cueMeasureIndex: number = 0; // measure index we are populating
+  complete: boolean = false;
+  reset() {
+    this.soundHead = null;
+    this.soundTail = null;
+    this.soundListLength = 0;
+    this.playWaitTimer = 0;
+    this.playMeasureIndex = 0;
+    this.cueMeasureIndex = 0;
+    this.complete = false;
+  }
 }
 // ## SuiAudioPlayer
 // Play the music, ja!
@@ -50,145 +77,176 @@ export class SuiAudioPlayer {
     }
     SuiAudioPlayer.playing = false;
   }
-  static getMeasureSounds(track: SmoAudioTrack, measureIndex: number, sendEmpty: boolean): NoteSound[] {
-    const notes = track.measureNoteMap[measureIndex];
-    const trackSounds: NoteSound[] = [];
-    let hasSounds: boolean = false;
-    notes.forEach((note) => {
-      const noteSound: NoteSound = {
-        frequencies: note.frequencies,
-        duration: note.duration,
-        offset: note.offset,
-        volume: note.volume,
-        noteType: note.noteType
-      };
-      if (note.noteType === 'n' || sendEmpty) {
-        hasSounds = true;
-      }
-      trackSounds.push(noteSound);
-    });
-    if (!hasSounds) {
-      return [];
-    }
-    return trackSounds;
-  }
-  // ### getTrackSounds
-  // convert track data to frequency/volume
-  static getTrackSounds(tracks: SmoAudioTrack[], measureIndex: number): TrackSounds {
-    const offsetSounds: Record<number, NoteSound[]> = {};
-    tracks.forEach((track, trackIx) => {
-      let measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, false);
-      // If empty measures, include at least one track for the correct duration.
-      if (measureSounds.length < 1 && trackIx === tracks.length - 1) {
-        measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, true);
-      }
-      measureSounds.forEach((sound) => {
-        if (!offsetSounds[sound.offset]) {
-          offsetSounds[sound.offset] = [];
-        }
-        // sound.volume = sound.volume / (trackLen * 2);
-        offsetSounds[sound.offset].push(sound);
-      });
-    });
-    const keys = Object.keys(offsetSounds);
-    // keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-    return { offsets: keys, offsetSounds };
-  }
+  
   // TODO: use precreated tracks.  Right now it takes too long to create a whole score, we should 
   // try to pro-rate it as we play.  But if we do a measure at a time, there can be a noticable gap
   // between measures.
-  tracks: TrackSounds[] = [];
   instanceId: number;
   paused: boolean;
-  startIndex: number;
-  playIndex: number;
   tracker: SuiTracker;
   score: SmoScore;
-  audio: AudioTracks;
-  tempoMap: number[];
+  cuedSounds: CuedAudioContexts;
+  audioDefaults = SuiOscillator.defaults;
   constructor(parameters: SuiAudioPlayerParams) {
     this.instanceId = SuiAudioPlayer.incrementInstanceId();
     SuiAudioPlayer.playing = false;
     this.paused = false;
-    this.startIndex = parameters.startIndex;
-    this.playIndex = 0;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
-    const converter = new SmoAudioScore(this.score, 4096);
-    this.audio = converter.convert();
     // Assume tempo is same for all measures
-    this.tempoMap = this.audio.tempoMap;
+    this.cuedSounds = new CuedAudioContexts();
   }
 
-  // ### playSoundsAtOffset
-  // Play the track data at the current measure, the tick offset is specified.
-  playSoundsAtOffset(sounds: TrackSounds, offsetIndex: number) {
-    let complete = false;
-    let waitTime = 0;
+  getNoteSounds(measureIndex: number) {
+    const measureNotes: Record<number, SoundParams[]> = {};
+    const measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
+    this.score.staves.forEach((staff) => {
+      const measure = staff.measures[measureIndex];      
+      measure.voices.forEach((voice) => {
+        let curTick = 0;
+        voice.notes.forEach((smoNote) => {
+          const frequencies: number[] = [];
+          const xpose = -1 * measure.transposeIndex;
+          if (smoNote.noteType === 'n') {
+            smoNote.pitches.forEach((pitch, pitchIx) => {
+              const xpitch = SmoMusic.smoIntToPitch(
+                SmoMusic.smoPitchToInt(pitch) + xpose);
+              const mtone: SmoMicrotone | null = smoNote.getMicrotone(pitchIx) ?? null;
+              frequencies.push(SmoAudioPitch.smoPitchToFrequency(xpitch, 0, mtone));
+            });
+          const duration = smoNote.tickCount;
+          const volume = SmoAudioScore.volumeFromNote(smoNote, SmoAudioScore.dynamicVolumeMap.p);
+          if (!measureNotes[curTick]) {
+            measureNotes[curTick] = [];
+          }
+          measureNotes[curTick].push({
+            frequencies,
+            volume,
+            offset: 0,
+            noteType: smoNote.noteType,
+            duration
+          });
+        }
+        curTick += smoNote.tickCount;
+        });
+      });
+    });
+    const keys = Object.keys(measureNotes).map((x) => parseInt(x, 10));
+    const max: number = keys.reduce((a, b) => a > b ? a : b);
+    return { endTicks: measureTicks - max, measureNotes };
+  }
+  
+  createCuedSound(measureIndex: number) {
     let i = 0;
-    const audio = this.audio;
-    const tracker = this.tracker;
-    const measureIndex = this.startIndex;
+    let j = 0;
+    if (!SuiAudioPlayer.playing) {
+      return null;
+    }
+    // TODO base on the selection start.
+    const { endTicks, measureNotes } = this.getNoteSounds(measureIndex);
+    const maxMeasures = this.score.staves[0].measures.length;
+    const smoTemp = this.score.staves[0].measures[0].getTempo();
+    const tempo = smoTemp.bpm * (smoTemp.beatDuration / 4096);
+    const keys: number[] = [];
+    Object.keys(measureNotes).forEach((key) => {
+      keys.push(parseInt(key, 10));
+    });
+    // There is a key for each note in the measure.  The value is the number of ticks before that note is played
+    for (j = 0; j < keys.length; ++j) {
+      const beatTime = keys[j];
+      const soundData = measureNotes[beatTime];
+      const cuedSound: CuedAudioContext = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
+      const tail = { sound: cuedSound, next: null };
+      this.cuedSounds.soundListLength += 1;
+      if (this.cuedSounds.soundTail === null) {
+        this.cuedSounds.soundTail = tail;
+        this.cuedSounds.soundHead = tail;
+      } else {
+        this.cuedSounds.soundTail.next = { sound: cuedSound, next: null };
+        this.cuedSounds.soundTail = this.cuedSounds.soundTail.next;
+      }
+      const timeRatio = 60000 / (tempo * 4096);      
+      soundData.forEach((sound) => {
+        for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
+          const freq = sound.frequencies[i];
+          const adjDuration = Math.round(sound.duration * timeRatio) + 150;
+          const params = this.audioDefaults;
+          params.frequency = freq;
+          params.duration = adjDuration;
+          params.gain = sound.volume;
+          const osc = new SuiSampler(params);
+          cuedSound.oscs.push(osc);
+        }
+      });
+    if (j + 1 < keys.length) {
+        cuedSound.waitTime = (keys[j + 1] - keys[j]) * timeRatio;
+      } else if (measureIndex + 1 < maxMeasures) {
+        // If the next measure, calculate the frequencies for the next track.
+        this.cuedSounds.cueMeasureIndex += 1;
+        cuedSound.waitTime = endTicks * timeRatio;
+      } else {
+        this.cuedSounds.complete = true;
+      }
+    }
+  }
+  populateSounds(measureIndex: number) {
     if (!SuiAudioPlayer.playing) {
       return;
     }
-    const tracks = audio.tracks;
-    const tempo = audio.tempoMap[measureIndex];
-    const soundData = sounds.offsetSounds[(sounds.offsets[offsetIndex] as any) as number];
-    const maxMeasures = tracks[0].lastMeasure;
-    const timeRatio = 60000 / (tempo * 4096);
-    const oscs: SuiOscillator[] = [];
-    // Update the music cursor
-    const ts = new Date().valueOf();
-    tracker.musicCursor({ staff: 0, measure: measureIndex, voice: 0, tick: offsetIndex, pitches: [] });
-    // Create oscillators for each pitch in the chord.
-    soundData.forEach((sound) => {
-      for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
-        const freq = sound.frequencies[i];
-        const adjDuration = Math.round(sound.duration * timeRatio) + 150;
-        const params = SuiOscillator.defaults;
-        params.frequency = freq;
-        params.duration = adjDuration;
-        params.gain = sound.volume;
-        const osc = new SuiSampler(params);
-        oscs.push(osc);
+    const interval = 10;
+    const timer = setInterval(() => {
+      if (this.cuedSounds.complete || SuiAudioPlayer.playing === false) {
+        clearInterval(timer);
+        return;
+      }
+      if (this.cuedSounds.soundListLength > 100) {
+        return;
+      }
+      this.createCuedSound(measureIndex);
+      measureIndex += 1;
+    }, interval);
+  }
+  playSounds() {
+    const interval = 5;
+    let accum = 0;
+    this.cuedSounds.playMeasureIndex = 0;
+    this.cuedSounds.playWaitTimer = 0;
+    const timer = setInterval(() => {
+      if (this.cuedSounds.soundHead === null) {
+        clearInterval(timer);
+        return;
+      }
+      if (SuiAudioPlayer._playing === false) {
+        clearInterval(timer);
+        return;
+      }
+      const cuedSound = this.cuedSounds.soundHead.sound;
+      if (accum + interval > this.cuedSounds.playWaitTimer) {
+        SuiAudioPlayer._playChord(cuedSound.oscs);
+        this.cuedSounds.soundHead = this.cuedSounds.soundHead.next;
+        this.cuedSounds.soundListLength -= 1;
+        this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
+        this.cuedSounds.playMeasureIndex += 1;
+        this.cuedSounds.playWaitTimer = cuedSound.waitTime;
+        accum = 0;
+      } else {
+        accum += interval;
       }
     });
-    // Play the chords and dispose when done.
-    if (oscs.length) {
-      SuiAudioPlayer._playChord(oscs);
-    }
-    setTimeout(() => {
-      // Decide what the next note will be on this track - either another note in this
-      // measure, or the first note in next measure.
-      if (sounds.offsets.length > offsetIndex + 1) {
-        const nextOffset = parseInt(sounds.offsets[offsetIndex + 1], 10);
-        waitTime = nextOffset - parseInt(sounds.offsets[offsetIndex], 10);
-        offsetIndex += 1;
-      } else if (measureIndex + 1 < maxMeasures) {
-        // If the next measure, calculate the frequencies for the next track.
-        waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
-        this.startIndex += 1;
-        this.playIndex += 1;
-        sounds = SuiAudioPlayer.getTrackSounds(audio.tracks, this.startIndex);
-        // sounds = this.tracks[this.playIndex];
-        offsetIndex = 0;
-      } else {
-        complete = true;
-      }
-      // Decide how long to wait until the next sound in the chord.
-      const elapsed = new Date().valueOf() - ts;
-      waitTime = (waitTime - elapsed) * timeRatio;
-      setTimeout(() => {
-        if (!complete) {
-          this.playSoundsAtOffset(sounds, offsetIndex);
-        } else {
-          tracker.clearMusicCursor();
-          SuiAudioPlayer.playing = false;
-        }
-      }, waitTime);
-    }, 1);
   }
+  startPlayer(measureIndex: number) {
+    // TODO: get start measure from selection
+    this.cuedSounds.reset();
+    this.cuedSounds.cueMeasureIndex = this.tracker.getFirstMeasureOfSelection()?.measureNumber.measureIndex ?? 0;
+    this.cuedSounds.playMeasureIndex = this.cuedSounds.cueMeasureIndex;
+    setTimeout(() => {
+      this.populateSounds(measureIndex);
+    }, 1);
+    setTimeout(() => {
+      this.playSounds();
+    }, 500);
+  }
+
   static stopPlayer() {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
@@ -224,11 +282,12 @@ export class SuiAudioPlayer {
     }
     SuiAudioPlayer._playingInstance = this;
     SuiAudioPlayer.playing = true;
+    const startIndex = this.tracker.getFirstMeasureOfSelection()?.measureNumber.measureIndex ?? 0;
     //for (i = this.startIndex; i < this.score.staves[0].measures.length; ++i) {
     //   this.tracks.push(SuiAudioPlayer.getTrackSounds(this.audio.tracks, i));
     // }
-    this.playIndex = 0;
-    const sounds = SuiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex);
-    this.playSoundsAtOffset(sounds, 0);
+    // const sounds = SuiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex);
+    // this.playSoundsAtOffset(sounds, 0);
+    this.startPlayer(startIndex);
   }
 }

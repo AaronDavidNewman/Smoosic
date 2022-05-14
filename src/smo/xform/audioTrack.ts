@@ -122,7 +122,7 @@ export class SmoAudioScore {
   // ### volumeFromNote
   // Return a normalized volume from the dynamic setting of the note
   // or supplied default if none exists
-  volumeFromNote(smoNote: SmoNote, def?: number): number {
+  static volumeFromNote(smoNote: SmoNote, def?: number): number {
     if (typeof (def) === 'undefined' || def === 0) {
       def = SmoAudioScore.dynamicVolumeMap[SmoDynamicText.dynamics.PP];
     }
@@ -221,13 +221,13 @@ export class SmoAudioScore {
       if (endSelection !== null && typeof (endSelection.note) !== 'undefined') {
         const endNote = endSelection.note as SmoNote;
         const curNote = selection.note as SmoNote;
-        endDynamic = this.volumeFromNote(endNote);
-        const startDynamic = this.volumeFromNote(curNote, track.volume);
+        endDynamic = SmoAudioScore.volumeFromNote(endNote);
+        const startDynamic = SmoAudioScore.volumeFromNote(curNote, track.volume);
         if (startDynamic === endDynamic) {
           const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
           if (nextSelection) {
             const nextNote = nextSelection.note as SmoNote;
-            endDynamic = this.volumeFromNote(nextNote);
+            endDynamic = SmoAudioScore.volumeFromNote(nextNote);
           }
         }
         if (startDynamic === endDynamic) {
@@ -247,7 +247,7 @@ export class SmoAudioScore {
   computeVolume(track: SmoAudioTrack, selection: SmoSelection) {
     const note = selection.note as SmoNote;
     if (track.volume === 0) {
-      track.volume = this.volumeFromNote(note,
+      track.volume = SmoAudioScore.volumeFromNote(note,
         SmoAudioScore.dynamicVolumeMap.p);
       return;
     }
@@ -256,7 +256,7 @@ export class SmoAudioScore {
       const coff = (note.tickCount / this.timeDiv) / hp.ticks;
       track.volume += hp.delta * coff;
     } else {
-      track.volume = this.volumeFromNote(note, track.volume);
+      track.volume = SmoAudioScore.volumeFromNote(note, track.volume);
     }
   }
   getSlurInfo(track: SmoAudioTrack, selection: SmoSelection) {

@@ -59,7 +59,7 @@ export class SuiReverb {
     this.length = SuiReverb.defaults.length;
     this.decay = SuiReverb.defaults.decay;
     this._context = context;
-    this._buildImpulse();
+    // this._buildImpulse();
   }
 }
 
