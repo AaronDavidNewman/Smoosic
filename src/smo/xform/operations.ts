@@ -991,4 +991,40 @@ export class SmoOperation {
     selections[0].staff.measureInstrumentMap = instMap;
     selections[0].staff.updateInstrumentOffsets();
   }
+  static computeMultipartRest(score: SmoScore) {
+    let i = 0;
+    let j = 0;
+    const measureRanges: Record<number, number> = {};
+    const measureCount = score.staves[0].measures.length;
+    while (i < measureCount) {
+      if (score.isMultimeasureRest(i)) {
+        for (j = i + 1; j < measureCount; ++j) {
+          if (!score.isMultimeasureRest(j)) {          
+            break;          
+          }
+        }
+        if (j - i >= 2) {
+          measureRanges[i] = j;
+        }
+        i = j + 1;
+      } else {
+        const startMeasure = i;
+        score.staves.forEach((staff) => {
+          staff.measures[startMeasure].svg.hideMultimeasure = false;
+        });
+        i += 1;
+      }
+    }
+    const multiKeys = Object.keys(measureRanges).map((x) => parseInt(x, 10));
+    multiKeys.forEach((key) => {
+      const endMeasure = measureRanges[key];
+      score.staves.forEach((staff) => {
+        staff.measures[key].svg.multimeasureLength = endMeasure - key;
+        staff.measures[key].svg.hideMultimeasure = false;
+        for (i = key + 1; i < endMeasure; ++i) {
+          staff.measures[i].svg.hideMultimeasure = true;
+        }
+      });
+    });
+  }
 }

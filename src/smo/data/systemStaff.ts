@@ -15,6 +15,7 @@ import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoBarline } from '../../../release/smoosic';
 
 const VF = eval('Vex.Flow');
 /**
@@ -298,6 +299,17 @@ export class SmoSystemStaff implements SmoObjectParams {
         measure.setClef(entry.instrument.clef);
       }
     });
+  }
+  isRest(index: number) {
+    return this.measures[index].isRest();
+  }
+  isRepeat(index: number) {
+    return !(this.measures[index].getEndBarline().barline === SmoBarline.barlines.singleBar &&
+      (this.measures[index].getStartBarline().barline === SmoBarline.barlines.singleBar ||
+      this.measures[index].getStartBarline().barline === SmoBarline.barlines.noBar));
+  }
+  isRehearsal(index: number) {
+    return !(typeof(this.measures[index].getRehearsalMark()) === 'undefined');
   }
   // ### addStaffModifier
   // add a staff modifier, or replace a modifier of same type

@@ -407,7 +407,6 @@ export abstract class SuiScoreView {
         this.score.textGroups = tga;
       }
     });
-
   }
 
   // ### setView
@@ -443,10 +442,11 @@ export abstract class SuiScoreView {
     this.renderer.score = nscore;
     // If this current view is a part, show the part layout
     if (this.isPartExposed()) {
-      this._mapPartFormatting();
+      this._mapPartFormatting();      
       this.score.staves.forEach((staff) => {
         staff.partInfo.displayCues = false;
       });
+      SmoOperation.computeMultipartRest(nscore);
     } else {
       this.score.staves.forEach((staff) => {
         staff.partInfo.displayCues = staff.partInfo.cueInScore;

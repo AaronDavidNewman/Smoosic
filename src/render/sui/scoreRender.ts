@@ -409,6 +409,12 @@ export class SuiScoreRender extends SuiRenderState {
     x = scoreLayout.leftMargin;
 
     while (measureIx < this.score.staves[0].measures.length) {
+      if (this.score.isPartExposed()) {
+        if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
+          measureIx += 1;
+          continue;
+        }
+      }
       measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
       x = measureEstimate.x;
 

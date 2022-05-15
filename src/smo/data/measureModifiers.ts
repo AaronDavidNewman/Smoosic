@@ -57,6 +57,7 @@ export interface SmoMeasureFormatParams {
   autoJustify: boolean | null,
   systemBreak: boolean | null,
   pageBreak: boolean | null,
+  restBreak: boolean | null,
   padLeft: number | null,
   padAllInSystem: boolean | null,
   measureIndex: number | null,
@@ -78,7 +79,7 @@ export interface ISmoMeasureFormatMgr {
  */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
-    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
+    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak'];
   }
   static get formatAttributes() {
     return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
@@ -108,6 +109,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       proportionality: SmoMeasureFormat.defaultProportionality,
       systemBreak: false,
       pageBreak: false,
+      restBreak: false,
       padLeft: 0,
       padAllInSystem: true,
       autoJustify: true,
@@ -118,6 +120,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   proportionality: number = 0;
   systemBreak: boolean = false;
   pageBreak: boolean = false;
+  restBreak: boolean = false;
   padLeft: number = 0;
   padAllInSystem: boolean = true;
   autoJustify: boolean = true;

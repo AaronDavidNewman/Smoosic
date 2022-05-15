@@ -534,6 +534,25 @@ export class SmoScore {
     }
   }
 
+  isMultimeasureRest(measureIndex: number) {
+    let i = 0;
+    for (i = 0; i < this.staves.length; ++i) {
+      if (!this.staves[i].isRest(measureIndex)) {
+        return false;
+      }
+      if (this.staves[i].getVoltasForMeasure(measureIndex).length > 0) {
+        return false;
+      }
+      if (this.staves[i].isRepeat(measureIndex)) {
+        return false;
+      }
+      if (this.staves[i].isRehearsal(measureIndex)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   updateMeasureFormats() {
     this.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {

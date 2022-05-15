@@ -401,18 +401,29 @@ export class SuiTracker extends SuiMapper {
 
   // if we are being moved right programmatically, avoid playing the selected note.
   moveSelectionRight(score: SmoScore, evKey: KeyEvent | null, skipPlay: boolean) {
-    if (this.selections.length === 0) {
+    if (this.selections.length === 0 || this.score === null) {
       return;
     }
+    // const original = JSON.parse(JSON.stringify(this.getExtremeSelection(-1).selector));
     const nselect = this._getOffsetSelection(1);
+    // skip any measures that are not displayed due to rest or repetition
+    const mselect = SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
+    if (mselect?.measure.svg.multimeasureLength) {
+      nselect.measure += mselect?.measure.svg.multimeasureLength;
+    }
     this._replaceSelection(nselect, skipPlay);
   }
 
   moveSelectionLeft() {
-    if (this.selections.length === 0) {
+    if (this.selections.length === 0 || this.score === null) {
       return;
     }
     const nselect = this._getOffsetSelection(-1);
+    // Skip multimeasure rests in parts
+    const mselect = SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
+    while (nselect.measure > 0 && mselect && (mselect.measure.svg.hideMultimeasure || mselect.measure.svg.multimeasureLength > 0)) {
+      nselect.measure -= 1;
+    }
     this._replaceSelection(nselect, false);
   }
   moveSelectionLeftMeasure() {

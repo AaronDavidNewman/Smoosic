@@ -420,6 +420,9 @@ export class VxSystem {
   // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
   // groups
   renderMeasure(smoMeasure: SmoMeasure, measureMapper: SuiMapper, printing: boolean) {
+    if (smoMeasure.svg.hideMultimeasure) {
+      return;
+    }
     let brackets = false;
     const staff = this.score.staves[smoMeasure.measureNumber.staffId];
     const staffId = staff.staffId;

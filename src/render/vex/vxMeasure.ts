@@ -31,6 +31,7 @@ export class VxMeasure {
   noteToVexMap: Record<string, any> = {};
   beamToVexMap: Record<string, any> = {};
   tupletToVexMap: Record<string, any> = {};
+  multimeasureRest: any | null = null;
   vexNotes: any[] = [];
   vexBeamGroups: any[] = [];
   vexTuplets: any[] = [];
@@ -544,17 +545,19 @@ export class VxMeasure {
 
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (j = 0; j < this.smoMeasure.voices.length; ++j) {
-      this.createVexNotes(j);
-      this.createVexTuplets(j);
-      this.createVexBeamGroups(j);
+      if (!this.smoMeasure.svg.multimeasureLength) {
+        this.createVexNotes(j);
+        this.createVexTuplets(j);
+        this.createVexBeamGroups(j);
 
-      // Create a voice in 4/4 and add above notes
-      const voice = new VF.Voice({
-        num_beats: this.smoMeasure.timeSignature.actualBeats,
-        beat_value: this.smoMeasure.timeSignature.beatDuration
-      }).setMode(VF.Voice.Mode.SOFT);
-      voice.addTickables(this.voiceNotes);
-      this.voiceAr.push(voice);
+        // Create a voice in 4/4 and add above notes
+        const voice = new VF.Voice({
+          num_beats: this.smoMeasure.timeSignature.actualBeats,
+          beat_value: this.smoMeasure.timeSignature.beatDuration
+        }).setMode(VF.Voice.Mode.SOFT);
+        voice.addTickables(this.voiceNotes);
+        this.voiceAr.push(voice);
+      }
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
@@ -565,6 +568,12 @@ export class VxMeasure {
     });
   }
   format(voices: any[]) {
+    if (this.smoMeasure.svg.multimeasureLength > 0) {
+      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
+      this.multimeasureRest.setContext(this.context);
+      this.multimeasureRest.setStave(this.stave);
+      return;
+    }
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
@@ -572,7 +581,6 @@ export class VxMeasure {
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   render() {
-    var self = this;
     var group = this.context.openGroup() as SVGSVGElement;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
@@ -589,12 +597,15 @@ export class VxMeasure {
       }
 
       this.vexBeamGroups.forEach((b) => {
-        b.setContext(self.context).draw();
+        b.setContext(this.context).draw();
       });
 
       this.vexTuplets.forEach((tuplet) => {
-        tuplet.setContext(self.context).draw();
+        tuplet.setContext(this.context).draw();
       });
+      if (this.multimeasureRest) {
+        this.multimeasureRest.draw();
+      }
       // this._updateLyricDomSelectors();
       this.renderDynamics();
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
