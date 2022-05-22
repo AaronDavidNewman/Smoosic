@@ -580,13 +580,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
-        if (artifact.selection !== null) {
+        if (artifact.selection !== null && artifact.selection.note !== null) {
           const gn1 = artifact.modifier as SmoGraceNote;
-          SmoOperation.transposeGraceNotes(artifact.selection, [gn1], offset);
+          const index = artifact.selection.note.graceNotes.findIndex((x) => x.attrs.id === gn1.attrs.id);
           const altSelection = this._getEquivalentSelection(artifact.selection);
-          const gn2 = this._getEquivalentGraceNote(altSelection!, gn1);
-          SmoOperation.transposeGraceNotes(artifact.selection, [artifact.modifier as SmoGraceNote], offset);
-          SmoOperation.transposeGraceNotes(altSelection!, [gn2], offset);
+          if (altSelection && altSelection.note !== null) {
+            const gn2 = altSelection.note.graceNotes[index];
+            SmoOperation.transposeGraceNotes(altSelection!, [gn2], offset);
+          }
+          SmoOperation.transposeGraceNotes(artifact.selection, [gn1], offset);
         }
       });
 
@@ -1434,6 +1436,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const storeStaff = this.staffMap[0] - info.stavesBefore;
     const partLength = info.stavesBefore + info.stavesAfter + 1;
     const resetView = !SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager!.getGlobalLayout());
+    const restChange = this.score.staves[0].partInfo.expandMultimeasureRests != info.expandMultimeasureRests;
     for (i = 0; i < partLength; ++i) {
       const nStaffIndex = storeStaff + i;
       const nInfo = new SmoPartInfo(info);
@@ -1447,7 +1450,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         this.score.layoutManager = nInfo.layoutManager;
       }
     }
-    if (resetView) {
+    if (resetView || restChange) {
       this.renderer.rerenderAll()
     }
     return this.renderer.updatePromise();

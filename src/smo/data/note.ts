@@ -537,11 +537,12 @@ export class SmoNote implements Transposable {
    * transpose a note or grace note to a key-friendly enharmonic
    * @param pitchArray
    * @param offset
-   * @param keySignature
+   * @param originalKey - keySignature from original note
+   * @param destinationKey - keySignature we are transposing into
    * @returns 
    */
-  transpose(pitchArray: number[], offset: number, keySignature: string): Transposable {
-    return SmoNote.transpose(this, pitchArray, offset, keySignature);
+  transpose(pitchArray: number[], offset: number, originalKey: string, destinationKey: string): Transposable {
+    return SmoNote.transpose(this, pitchArray, offset, originalKey, destinationKey);
   }
   /**
    * used to add chord and pitch by piano widget
@@ -570,19 +571,16 @@ export class SmoNote implements Transposable {
    * @param note note to transpose
    * @param pitchArray an array of indices (not pitches) that indicate which pitches get altered if a chord
    * @param offset in 1/2 step
-   * @param keySignature for finding key-friendly enharmonic
-   * @param role when transposing keep the enharmonic role of the original, if possible.
+   * @param originalKey original key for enharmonic-friendly key
+   * @param destinationKey destination key signature
    * @returns 
    */
-  static transpose(note: Transposable, pitchArray: number[], offset: number, keySignature: string): Transposable {
+  static transpose(note: Transposable, pitchArray: number[], offset: number, originalKey: string, destinationKey: string): Transposable {
     let index: number = 0;
     let j: number = 0;
-    let letterKey: string = 'a';
-    // note.noteType = 'n';
+    // If no specific pitch, use all the pitches
     if (pitchArray.length === 0) {
-      note.pitches.forEach((m) => {
-        pitchArray.push(note.pitches.indexOf(m));
-      });
+      pitchArray = Array.from(note.pitches.keys());
     }
     for (j = 0; j < pitchArray.length; ++j) {
       index = pitchArray[j];
@@ -590,27 +588,7 @@ export class SmoNote implements Transposable {
         SmoNote.addPitchOffset(note, offset);
       } else {
         const original = JSON.parse(JSON.stringify(note.pitches[index]));
-        let pitch = SmoMusic.getKeyOffset(note.pitches[index], offset);
-        if (keySignature) {
-          let originalRole = '';
-          if (pitch.role && pitch.role.length) {
-            originalRole = pitch.role;
-          } else {
-            originalRole = SmoMusic.findRoleOfPitch(original, keySignature);
-          }
-          if (originalRole.length) {
-            pitch = SmoMusic.findPitchForRole(originalRole, keySignature, pitch);
-          } else {
-            letterKey = pitch.letter + pitch.accidental;
-            letterKey = SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-            pitch.letter = letterKey[0] as PitchLetter;
-            if (letterKey.length < 2) {
-              pitch.accidental = 'n';
-            } else {
-              pitch.accidental = letterKey.substring(1);
-            }
-          }
-        }
+        const pitch = SmoMusic.transposePitchForKey(original, originalKey, destinationKey, offset);
         note.pitches[index] = pitch;
       }
     }

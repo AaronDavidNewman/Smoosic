@@ -95,18 +95,16 @@ export class PasteBuffer {
           this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
           ntuplet.notes.forEach((nnote) => {
             // Store the role of the notes in the part key, transpose to 'c'.
-            SmoMusic.findRoleForPitches(nnote.pitches, selection.measure.keySignature);
             const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
-              [], -1 * selection.measure.transposeIndex, 'c') as SmoNote;
+              [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, 'c') as SmoNote;
             this.notes.push({ selector, note: xposeNote });
             selector = JSON.parse(JSON.stringify(selector));
             selector.tick += 1;
           });
         }
       } else if (selection.note) {
-        SmoMusic.findRoleForPitches(selection.note.pitches, selection.measure.keySignature);
         const note = SmoNote.transpose(SmoNote.clone(selection.note),
-          [], -1 * selection.measure.transposeIndex, 'c') as SmoNote;
+          [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, 'c') as SmoNote;
         this.notes.push({ selector, note });
       }
     });
@@ -297,7 +295,7 @@ export class PasteBuffer {
         note.pitches.forEach((pitch, ix) => {
           pitchAr.push(ix);
         });
-        SmoNote.transpose(note, pitchAr, measure.transposeIndex, measure.keySignature);
+        SmoNote.transpose(note, pitchAr, measure.transposeIndex, 'c', measure.keySignature);
       }
       this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
       if (note.isTuplet) {

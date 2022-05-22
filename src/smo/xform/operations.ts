@@ -362,7 +362,7 @@ export class SmoOperation {
       mm.pitches.forEach(() => {
         par.push(par.length);
       });
-      SmoNote.transpose(mm, par, offset, selection.measure.keySignature);
+      SmoNote.transpose(mm, par, offset, selection.measure.keySignature, selection.measure.keySignature);
     });
   }
 
@@ -463,7 +463,6 @@ export class SmoOperation {
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value
   static transpose(selection: SmoSelection, offset: number) {
-    let pitchIx: number = 0;
     let trans: Pitch;
     let transInt: number = 0;
     let i: number = 0;
@@ -474,8 +473,7 @@ export class SmoOperation {
     const note = selection.note;
     if (measure && note) {
       const pitchar: Pitch[] = [];
-      pitchIx = 0;
-      note.pitches.forEach((opitch) => {
+      note.pitches.forEach((opitch, pitchIx) => {
         // Only translate selected pitches
         const shouldXpose = selection.selector.pitches.length === 0 ||
           selection.selector.pitches.indexOf(pitchIx) >= 0;
@@ -505,7 +503,6 @@ export class SmoOperation {
           }
         });
         pitchar.push(trans as Pitch);
-        pitchIx += 1;
       });
       note.pitches = pitchar;
       return true;
@@ -996,6 +993,9 @@ export class SmoOperation {
     let j = 0;
     const measureRanges: Record<number, number> = {};
     const measureCount = score.staves[0].measures.length;
+    if (score.staves[0].partInfo.expandMultimeasureRests === true) {
+      return;
+    }
     while (i < measureCount) {
       if (score.isMultimeasureRest(i)) {
         for (j = i + 1; j < measureCount; ++j) {

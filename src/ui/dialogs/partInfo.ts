@@ -70,6 +70,13 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   set restoreScoreView(value: boolean) {
     this.restoreView = value;
   }
+  get expandMultimeasureRest() {
+    return this.partInfo.expandMultimeasureRests;
+  }
+  set expandMultimeasureRest(value: boolean) {
+    this.partInfo.expandMultimeasureRests = value;
+    this.update();
+  }
   get noteSpacing() {
     return this.partInfo.layoutManager.globalLayout.noteSpacing;
   }
@@ -195,32 +202,30 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
       label: 'Part Settings', elements:
         [{
           smoName: 'partName',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiTextInputComponent',
           label: 'Part Name'
         }, {
           smoName: 'partAbbreviation',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiTextInputComponent',
           label: 'Part Abbrev.'
         }, {
           smoName: 'preserveTextGroups',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Part-specific text'
         }, {
           smoName: 'cueInScore',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Show as Cues in score'
         }, {
           smoName: 'includeNext',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Include Next Staff in Part'
+        },  {
+          smoName: 'expandMultimeasureRest',
+          control: 'SuiToggleComponent',
+          label: 'Expand Multimeasure Rests'
         }, {
           smoName: 'restoreScoreView',
-          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Restore View on Close'
         }, {

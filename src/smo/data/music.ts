@@ -657,11 +657,12 @@ export class SmoMusic {
       ]};
     return tbl;
   }
-  static findRoleForPitches(pitches: Pitch[], keySignature: string) {
-    pitches.forEach((pitch) => {
-      pitch.role = SmoMusic.findRoleOfPitch(pitch, keySignature);
-    });
-  }
+  /**
+   * Find the harmonic role for the given pitch
+   * @param smoPitch 
+   * @param keySignature 
+   * @returns 
+   */
   static findRoleOfPitch(smoPitch: Pitch, keySignature: string) {
     const keyRoles = SmoMusic.enharmonicRoles[keySignature];
     if (!keyRoles) {
@@ -673,6 +674,14 @@ export class SmoMusic {
     }
     return keyRole.role;
   }
+  /**
+   * Given a harmonic role, find the pitch that matches it.  If there is no one, just
+   * return the raw transposition
+   * @param role 
+   * @param keySignature 
+   * @param transposedPitch 
+   * @returns 
+   */
   static findPitchForRole(role: string, keySignature: string, transposedPitch: Pitch): Pitch {
     const keyRoles = SmoMusic.enharmonicRoles[keySignature];
     if (!keyRoles) {
@@ -687,6 +696,20 @@ export class SmoMusic {
       octave += 1;
     }
     return { letter: keyRole.letter, accidental: keyRole.accidental, octave };
+  }
+  static rawTranspose(pitch: Pitch, offset: number) {
+    return SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + offset);
+  }
+  static transposePitchForKey(pitch: Pitch, originalKey: string, destinationKey: string, offset: number): Pitch {
+    const transposedPitch = SmoMusic.getEnharmonicInKey(SmoMusic.rawTranspose(pitch, offset), destinationKey);
+    if (originalKey === destinationKey) {
+      return transposedPitch;
+    }
+    const role = SmoMusic.findRoleOfPitch(pitch, originalKey);
+    if (role.length) {
+      return SmoMusic.findPitchForRole(role, destinationKey, transposedPitch);
+    }
+    return transposedPitch;
   }
 
   /**

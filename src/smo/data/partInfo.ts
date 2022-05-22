@@ -15,8 +15,8 @@ export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
 export const SmoPartInfoStringTypes: SmoPartInfoStringType[] = ['partName', 'partAbbreviation'];
 export type SmoPartInfoNumType = 'stavesAfter' | 'stavesBefore';
 export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'stavesBefore'];
-export type SmoPartInfoBooleanType = 'preserveTextGroups' | 'cueInScore';
-export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups', 'cueInScore'];
+export type SmoPartInfoBooleanType = 'preserveTextGroups' | 'cueInScore' | 'expandMultimeasureRests';
+export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
 
 /**
  * Data contained in a part.  A part has its own text, measure formatting and page layouts,
@@ -43,7 +43,8 @@ export interface SmoPartInfoParams {
   measureFormatting?: Record<number, SmoMeasureFormat>,
   textGroups: SmoTextGroup[],
   preserveTextGroups: boolean,
-  cueInScore: boolean
+  cueInScore: boolean,
+  expandMultimeasureRests: boolean // not persisted
 }
 /**
  * Part info contains information that group 1 or 2 adjacent staves.
@@ -61,6 +62,7 @@ export class SmoPartInfo extends StaffModifierBase {
   preserveTextGroups: boolean = false;
   cueInScore: boolean = false;
   displayCues: boolean = false;
+  expandMultimeasureRests: boolean = false;
   static get defaults(): SmoPartInfoParams {
     return JSON.parse(JSON.stringify({
       partName: 'Staff ',
@@ -71,7 +73,8 @@ export class SmoPartInfo extends StaffModifierBase {
       pageLayoutMap: {},
       stavesAfter: 0,
       stavesBefore: 0,
-      cueInScore: false
+      cueInScore: false,
+      expandMultimeasureRests: false
     }));
   }
   constructor(params: SmoPartInfoParams) {

@@ -802,11 +802,10 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
           const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
           note.pitches = [defp];
         } else {
-          SmoMusic.findRoleForPitches(note.pitches, this.keySignature);
-          note.transpose(pitches, diff, targetKey);
+          note.transpose(pitches, diff, this.keySignature, targetKey);
           note.getGraceNotes().forEach((gn) => {
             const gpitch: number[] = [...Array(gn.pitches.length).keys()];
-            const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+            const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature, targetKey);
             gn.pitches = xpose.pitches;
           });
         }

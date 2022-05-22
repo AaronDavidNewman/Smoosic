@@ -549,7 +549,14 @@ export class SmoScore {
       if (this.staves[i].isRehearsal(measureIndex)) {
         return false;
       }
+      if (this.staves[i].measureInstrumentMap[measureIndex]) {
+        return false;
+      }
+      if (this.staves[i].keySignatureMap[measureIndex]) {
+        return false;
+      }
     }
+    const measure = this.staves[0].measures[measureIndex];
     return true;
   }
 

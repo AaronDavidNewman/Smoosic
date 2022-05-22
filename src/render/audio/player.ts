@@ -41,7 +41,7 @@ export class CuedAudioContexts {
   paramLinkHead: SoundParamMeasureLink | null = null;
   paramLinkTail: SoundParamMeasureLink | null = null;
   soundListLength = 0;
-  playWaitTimer = 0;
+  playWaitTimer = 0;  
   playMeasureIndex: number = 0; // index of the measure we are playing
   cueMeasureIndex: number = 0; // measure index we are populating
   complete: boolean = false;
@@ -65,7 +65,9 @@ export class SuiAudioPlayer {
   static set playing(val) {
     SuiAudioPlayer._playing = val;
   }
-
+  static get audioBufferSize() {
+    return 512;
+  }
   static incrementInstanceId() {
     const id = SuiAudioPlayer.instanceId + 1;
     SuiAudioPlayer.instanceId = id;
@@ -108,8 +110,9 @@ export class SuiAudioPlayer {
   getNoteSounds(measureIndex: number) {
     const measureNotes: Record<number, SoundParams[]> = {};
     const measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
+    const freqDuplicates: Record<number, Record<number, boolean>> = {};
     this.score.staves.forEach((staff) => {
-      const measure = staff.measures[measureIndex];      
+      const measure = staff.measures[measureIndex];
       measure.voices.forEach((voice) => {
         let curTick = 0;
         voice.notes.forEach((smoNote) => {
@@ -117,10 +120,16 @@ export class SuiAudioPlayer {
           const xpose = -1 * measure.transposeIndex;
           if (smoNote.noteType === 'n') {
             smoNote.pitches.forEach((pitch, pitchIx) => {
-              const xpitch = SmoMusic.smoIntToPitch(
-                SmoMusic.smoPitchToInt(pitch) + xpose);
-              const mtone: SmoMicrotone | null = smoNote.getMicrotone(pitchIx) ?? null;
-              frequencies.push(SmoAudioPitch.smoPitchToFrequency(xpitch, 0, mtone));
+              const freq = SmoAudioPitch.smoPitchToFrequency(pitch, xpose, smoNote.getMicrotone(pitchIx) ?? null);
+              const freqRound = Math.round(freq);
+              if (!freqDuplicates[curTick]) {
+                freqDuplicates[curTick] = {};
+              }
+              const freqBeat = freqDuplicates[curTick];
+              if (!freqBeat[freqRound]) {
+                freqBeat[freqRound] = true;
+                frequencies.push(freq);
+              }
             });
           const duration = smoNote.tickCount;
           const volume = SmoAudioScore.volumeFromNote(smoNote, SmoAudioScore.dynamicVolumeMap.p);
@@ -154,7 +163,7 @@ export class SuiAudioPlayer {
     const { endTicks, measureNotes } = { endTicks: this.cuedSounds.paramLinkHead.endTicks, measureNotes: this.cuedSounds.paramLinkHead.soundParams };
     this.cuedSounds.paramLinkHead = this.cuedSounds.paramLinkHead.next;
     const maxMeasures = this.score.staves[0].measures.length;
-    const smoTemp = this.score.staves[0].measures[0].getTempo();
+    const smoTemp = this.score.staves[0].measures[measureIndex].getTempo();
     const tempo = smoTemp.bpm * (smoTemp.beatDuration / 4096);
     const keys: number[] = [];
     Object.keys(measureNotes).forEach((key) => {
@@ -167,7 +176,6 @@ export class SuiAudioPlayer {
         const soundData = measureNotes[beatTime];
         const cuedSound: CuedAudioContext = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
         const tail = { sound: cuedSound, next: null };
-        this.cuedSounds.soundListLength += 1;
         if (this.cuedSounds.soundTail === null) {
           this.cuedSounds.soundTail = tail;
           this.cuedSounds.soundHead = tail;
@@ -176,24 +184,20 @@ export class SuiAudioPlayer {
           this.cuedSounds.soundTail = this.cuedSounds.soundTail.next;
         }
         const timeRatio = 60000 / (tempo * 4096);
-        const freqMap:Record<number, number> = {};
         soundData.forEach((sound) => {
           for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
             const freq = sound.frequencies[i];
-            const freqRound = Math.round(freq);
-            if (!freqMap[freqRound]) {
-              freqMap[freqRound] = sound.volume;
-              const adjDuration = Math.round(sound.duration * timeRatio) + 150;
-              const params = this.audioDefaults;
-              params.frequency = freq;
-              params.duration = adjDuration;
-              params.gain = sound.volume;
-              const osc = new SuiSampler(params);
-              cuedSound.oscs.push(osc);
-            }
-        }
+            const adjDuration = Math.round(sound.duration * timeRatio) + 150;
+            const params = this.audioDefaults;
+            params.frequency = freq;
+            params.duration = adjDuration;
+            params.gain = sound.volume;
+            const osc = new SuiSampler(params);
+            cuedSound.oscs.push(osc);
+          }
         });
-      if (j + 1 < keys.length) {
+        this.cuedSounds.soundListLength += cuedSound.oscs.length;
+        if (j + 1 < keys.length) {
           cuedSound.waitTime = (keys[j + 1] - keys[j]) * timeRatio;
         } else if (measureIndex + 1 < maxMeasures) {
           // If the next measure, calculate the frequencies for the next track.
@@ -211,7 +215,7 @@ export class SuiAudioPlayer {
     }
     const interval = 20;
     let draining = false;
-    const buffer = 64;
+    const buffer = SuiAudioPlayer.audioBufferSize;
     const timer = setInterval(() => {
       if (this.cuedSounds.complete || SuiAudioPlayer.playing === false) {
         clearInterval(timer);
@@ -230,34 +234,30 @@ export class SuiAudioPlayer {
     }, interval);
   }
   playSounds() {
-    const interval = 10;
     let accum = 0;
     this.cuedSounds.playMeasureIndex = 0;
     this.cuedSounds.playWaitTimer = 0;
-    const timer = setInterval(() => {
-      if (this.cuedSounds.soundHead === null) {
-        clearInterval(timer);
-        return;
-      }
-      if (SuiAudioPlayer._playing === false) {
-        clearInterval(timer);
-        return;
-      }
-      const cuedSound = this.cuedSounds.soundHead.sound;
-      const expire = accum + interval;
-      if (expire > this.cuedSounds.playWaitTimer) {
+    const timer = () => {
+      setTimeout(() => {
+        if (this.cuedSounds.soundHead === null) {
+          SuiAudioPlayer._playing = false;
+          return;
+        }
+        if (SuiAudioPlayer._playing === false) {
+          return;
+        }
+        const cuedSound = this.cuedSounds.soundHead.sound;
         SuiAudioPlayer._playChord(cuedSound.oscs);
-        // this.playAfter(expire  - this.cuedSounds.playWaitTimer, cuedSound.oscs);
         this.cuedSounds.soundHead = this.cuedSounds.soundHead.next;
-        this.cuedSounds.soundListLength -= 1;
+        this.cuedSounds.soundListLength -= cuedSound.oscs.length;
         this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
         this.cuedSounds.playMeasureIndex += 1;
         this.cuedSounds.playWaitTimer = cuedSound.waitTime;
         accum = 0;
-      } else {
-        accum += interval;
-      }
-    }, interval);
+        timer();
+      }, this.cuedSounds.playWaitTimer);
+    }
+    timer();
   }
   playAfter(milliseconds: number, oscs: SuiOscillator[]) {
     setTimeout(() => {
@@ -291,9 +291,16 @@ export class SuiAudioPlayer {
     setTimeout(() => {
       this.populateSounds(measureIndex);
     }, 1);
-    setTimeout(() => {
-      this.playSounds();
-    }, 500);
+    const bufferThenPlay = () => {
+       setTimeout(() => {
+        if (this.cuedSounds.soundListLength >= SuiAudioPlayer.audioBufferSize || this.cuedSounds.complete) {
+          this.playSounds();
+        } else {
+          bufferThenPlay();
+        }
+       }, 50);
+    }
+    bufferThenPlay();
   }
 
   static stopPlayer() {
