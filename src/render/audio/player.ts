@@ -109,7 +109,7 @@ export class SuiAudioPlayer {
 
   getNoteSounds(measureIndex: number) {
     const measureNotes: Record<number, SoundParams[]> = {};
-    const measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
+    let measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
     const freqDuplicates: Record<number, Record<number, boolean>> = {};
     this.score.staves.forEach((staff) => {
       const measure = staff.measures[measureIndex];
@@ -149,8 +149,10 @@ export class SuiAudioPlayer {
       });
     });
     const keys = Object.keys(measureNotes).map((x) => parseInt(x, 10));
-    const max: number = keys.reduce((a, b) => a > b ? a : b);
-    return { endTicks: measureTicks - max, measureNotes };
+    if (keys.length) {
+      measureTicks -= keys.reduce((a, b) => a > b ? a : b);
+    }
+    return { endTicks: measureTicks, measureNotes };
   }
   
   createCuedSound(measureIndex: number) {
@@ -219,6 +221,10 @@ export class SuiAudioPlayer {
     const timer = setInterval(() => {
       if (this.cuedSounds.complete || SuiAudioPlayer.playing === false) {
         clearInterval(timer);
+        return;
+      }
+      if (this.cuedSounds.paramLinkHead === null) {
+        this.cuedSounds.complete = true;
         return;
       }
       if (draining && this.cuedSounds.soundListLength > buffer / 4) {

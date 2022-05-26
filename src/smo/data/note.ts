@@ -578,6 +578,9 @@ export class SmoNote implements Transposable {
   static transpose(note: Transposable, pitchArray: number[], offset: number, originalKey: string, destinationKey: string): Transposable {
     let index: number = 0;
     let j: number = 0;
+    if (offset === 0 && originalKey === destinationKey) {
+      return note;
+    }
     // If no specific pitch, use all the pitches
     if (pitchArray.length === 0) {
       pitchArray = Array.from(note.pitches.keys());

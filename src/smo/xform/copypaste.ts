@@ -14,7 +14,8 @@ const VF = eval('Vex.Flow');
 
 interface PasteNote {
   note: SmoNote,
-  selector: SmoSelector
+  selector: SmoSelector,
+  originalKey: string
 }
 /**
  * PasteBuffer holds copied music, and handles the action of pasting the music to
@@ -87,6 +88,11 @@ export class PasteBuffer {
         });
       }
       const isTuplet: boolean = selection?.note?.isTuplet ?? false;
+      // We store copy in concert pitch.  The originalKey is the original key of the copy.
+      // the destKey is the originalKey in concert pitch.
+      const originalKey = selection.measure.keySignature;
+      const keyOffset = -1 * selection.measure.transposeIndex;
+      const destKey = SmoMusic.vexKeySignatureTranspose(originalKey, keyOffset).toLocaleLowerCase();
       if (isTuplet) {
         const tuplet = (selection.measure.getTupletForNote(selection.note) as SmoTuplet);
         const index = tuplet.getIndexOfNote(selection.note);
@@ -94,18 +100,17 @@ export class PasteBuffer {
           const ntuplet = SmoTuplet.cloneTuplet(tuplet);
           this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
           ntuplet.notes.forEach((nnote) => {
-            // Store the role of the notes in the part key, transpose to 'c'.
             const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
-              [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, 'c') as SmoNote;
-            this.notes.push({ selector, note: xposeNote });
+              [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, destKey) as SmoNote;
+            this.notes.push({ selector, note: xposeNote, originalKey: destKey });
             selector = JSON.parse(JSON.stringify(selector));
             selector.tick += 1;
           });
         }
       } else if (selection.note) {
         const note = SmoNote.transpose(SmoNote.clone(selection.note),
-          [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, 'c') as SmoNote;
-        this.notes.push({ selector, note });
+          [], keyOffset, selection.measure.keySignature, destKey) as SmoNote;
+        this.notes.push({ selector, note, originalKey: destKey });
       }
     });
     this.notes.sort((a, b) =>
@@ -295,7 +300,7 @@ export class PasteBuffer {
         note.pitches.forEach((pitch, ix) => {
           pitchAr.push(ix);
         });
-        SmoNote.transpose(note, pitchAr, measure.transposeIndex, 'c', measure.keySignature);
+        SmoNote.transpose(note, pitchAr, measure.transposeIndex, selection.originalKey, measure.keySignature);
       }
       this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
       if (note.isTuplet) {

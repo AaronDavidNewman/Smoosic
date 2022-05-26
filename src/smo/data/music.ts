@@ -702,9 +702,6 @@ export class SmoMusic {
   }
   static transposePitchForKey(pitch: Pitch, originalKey: string, destinationKey: string, offset: number): Pitch {
     const transposedPitch = SmoMusic.getEnharmonicInKey(SmoMusic.rawTranspose(pitch, offset), destinationKey);
-    if (originalKey === destinationKey) {
-      return transposedPitch;
-    }
     const role = SmoMusic.findRoleOfPitch(pitch, originalKey);
     if (role.length) {
       return SmoMusic.findPitchForRole(role, destinationKey, transposedPitch);
