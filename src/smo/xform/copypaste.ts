@@ -17,6 +17,10 @@ interface PasteNote {
   selector: SmoSelector,
   originalKey: string
 }
+interface ModifierPlacement {
+  modifier: StaffModifierBase,
+  ticksToStart: number
+}
 /**
  * PasteBuffer holds copied music, and handles the action of pasting the music to
  * a different point in the score.  It does this by serializing the measure(s) from the source
@@ -33,6 +37,7 @@ export class PasteBuffer {
   score: SmoScore | null = null;
   tupletNoteMap: Record<string, SmoTuplet> = { };
   modifiers: StaffModifierBase[] = [];
+  modifiersToPlace: ModifierPlacement[] = [];
   destination: SmoSelector = SmoSelector.default;
   staffSelectors: SmoSelector[] = [];
   constructor() {
@@ -261,29 +266,41 @@ export class PasteBuffer {
     return voiceTicks;
   }
 
-  // ### _populateModifier
-  // If the destination contains a modifier start and end, copy and paste it.
+  /**
+   * If the source contains a staff modifier that ends on the source selection, copy the modifier
+   * @param srcSelector 
+   * @param destSelector 
+   * @param staff 
+   * @returns 
+   */
   _populateModifier(srcSelector: SmoSelector, destSelector: SmoSelector, staff: SmoSystemStaff) {
-    // If this is the ending point of a staff modifier, paste the modifier
     const mod = this._findPlacedModifier(srcSelector);
     if (mod && this.score) {
-      const tickOffset = SmoSelection.countTicks(this.score, srcSelector, destSelector);
-      const startSelection = SmoSelection.selectionFromSelector(this.score, mod.startSelector);
-      if (startSelection) {
-        const newStart = SmoSelection.advanceTicks(this.score, startSelection, tickOffset);
-        if (newStart) {
-          mod.startSelector = JSON.parse(JSON.stringify(newStart.selector));
-          mod.endSelector = JSON.parse(JSON.stringify(destSelector));
-          mod.attrs.id = VF.Element.newID();
-          staff.addStaffModifier(mod);
-        }
+      // Don't copy modifiers that cross staff boundaries outside the source staff b/c it's not clear what
+      // the dest staff should be
+      if (mod.startSelector.staff !== mod.endSelector.staff && srcSelector.staff !== destSelector.staff) {
+        return;
       }
+      const repl = StaffModifierBase.deserialize(mod.serialize());
+      repl.endSelector = JSON.parse(JSON.stringify(destSelector));
+      const tickOffset = SmoSelection.countTicks(this.score, mod.startSelector, mod.endSelector);
+      this.modifiersToPlace.push({
+        modifier: repl,
+        ticksToStart: tickOffset
+      });
     }
   }
 
-  // ### _populateNew
-  // Start copying the paste buffer into the destination by copying the notes and working out
-  // the measure overlap
+  /**
+   * Start copying the paste buffer into the destination by copying the notes and working out
+   * the measure overlap
+   * 
+   * @param voice 
+   * @param measure 
+   * @param tickmap 
+   * @param startSelector 
+   * @returns 
+   */
   _populateNew(voice: SmoVoice, measure: SmoMeasure, tickmap: TickMap, startSelector: SmoSelector) {
     let currentDuration = tickmap.durationMap[startSelector.tick];
     let i = 0;
@@ -411,6 +428,7 @@ export class PasteBuffer {
   pasteSelections(score: SmoScore, selector: SmoSelector) {
     let i = 0;
     this.destination = selector;
+    this.modifiersToPlace = [];
     if (this.notes.length < 1) {
       return;
     }
@@ -465,6 +483,21 @@ export class PasteBuffer {
       const nsel: SmoSelection | null = SmoSelection.measureSelection(this.score as SmoScore, selector.staff, selector.measure);
       if (nsel) {
         this.replacementMeasures.push(nsel);
+      }
+    });
+    this.modifiersToPlace.forEach((mod) => {
+      let selection = SmoSelection.selectionFromSelector(this.score!, mod.modifier.endSelector);
+      while (selection && mod.ticksToStart !== 0) {
+        if (mod.ticksToStart < 0) {
+          selection = SmoSelection.nextNoteSelectionFromSelector(this.score!, selection.selector);
+        } else {
+          selection = SmoSelection.lastNoteSelectionFromSelector(this.score!, selection.selector);
+        }
+        mod.ticksToStart -= 1 * Math.sign(mod.ticksToStart);
+      }
+      if (selection) {
+        mod.modifier.startSelector = JSON.parse(JSON.stringify(selection.selector));
+        selection.staff.addStaffModifier(mod.modifier);
       }
     });
   }

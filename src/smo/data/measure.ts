@@ -958,26 +958,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
     return ticks;
   }
-  /**
-   * Count the number of ticks in the measure after the supplied tick index
-   * @param voiceIndex 
-   * @param tickIndex 
-   * @returns 
-   */
-  getRemainingTicks(voiceIndex: number, tickIndex: number): number {
-    let i = 0;
-    let rv = 0;
-    if (this.voices.length < voiceIndex + 1) {
-      return rv;
-    }
-    if (this.voices[voiceIndex].notes.length < tickIndex + 1) {
-      return rv;
-    }
-    for (i = tickIndex; i < this.voices[voiceIndex].notes.length; ++i) {
-      rv += this.voices[voiceIndex].notes[i].tickCount;
-    }
-    return rv;
-  }
+
   getClosestTickCountIndex(voiceIndex: number, tickCount: number): number {
     let i = 0;
     let rv = 0;

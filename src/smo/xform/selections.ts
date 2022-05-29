@@ -354,31 +354,31 @@ export class SmoSelection {
     return rv;
   }
   /**
-   * Count the number of ticks between selector 1 and selector 2;
+   * Count the number of tick indices between selector 1 and selector 2;
    * @param score 
    * @param sel1 
    * @param sel2 
    * @returns 
    */
   static countTicks(score: SmoScore, sel1: SmoSelector, sel2: SmoSelector): number {
-    const selAr = SmoSelector.order(sel1, sel2);
-    const startSel = selAr[0];
-    const endSel = selAr[1];
-    let ticks: number = 0;
-    let startSelection = SmoSelection.selectionFromSelector(score, startSel);
-    const endSelection = SmoSelection.selectionFromSelector(score, endSel);
-    while (startSel.measure <= endSel.measure) {      
-      if (startSelection === null || startSelection.note === null || endSelection === null || endSelection.note === null) {
-        return ticks;
-      }
-      if (startSel.measure === endSel.measure) {
-        ticks += endSelection.measure.getRemainingTicks(endSel.voice, endSel.tick) - startSelection.measure.getRemainingTicks(endSel.voice, endSel.tick);
+    if (SmoSelector.eq(sel1, sel2)) {
+      return 0;
+    }
+    const backwards = SmoSelector.gt(sel1, sel2);
+    let ticks = 0;
+    const startSelection = SmoSelection.selectionFromSelector(score, sel1);
+    let endSelection = SmoSelection.selectionFromSelector(score, sel2);
+    while (endSelection !== null && startSelection !== null) {
+      if (SmoSelector.eq(startSelection.selector, endSelection.selector)) {
         break;
       }
-      ticks += startSelection.measure.getRemainingTicks(startSel.voice, startSel.tick);
-      startSel.measure += 1;
-      startSel.tick = 0;
-      startSelection = SmoSelection.selectionFromSelector(score, startSel);
+      if (backwards) {
+        endSelection = SmoSelection.nextNoteSelectionFromSelector(score, endSelection.selector);
+        ticks -= 1;
+      } else {
+        endSelection = SmoSelection.lastNoteSelectionFromSelector(score, endSelection.selector);
+        ticks += 1;
+      }
     }
     return ticks;
   }

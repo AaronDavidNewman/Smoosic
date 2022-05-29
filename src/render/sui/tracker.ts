@@ -218,7 +218,7 @@ export class SuiTracker extends SuiMapper {
       return [];
     }
     const ff = this.modifierSelections.filter((mm) =>
-      mm.modifier.attrs.type === 'SmoGraceNote'
+      mm.modifier?.attrs?.type === 'SmoGraceNote'
     );
     return ff;
   }
