@@ -483,7 +483,9 @@ export class SuiInlineText {
       this._calculateBlockIndex();
     }
 
-    this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
+    this.context.setFont({
+      family: this.fontFamily, size: this.fontSize, weight: this.fontWeight, style: this.fontStyle
+    });
     const group = this.context.openGroup();
     const mmClass = 'suiInlineText';
     let ix = 0;
@@ -521,13 +523,17 @@ export class SuiInlineText {
     }
 
     // This is how svgcontext expects to get 'style'
-    const weight = this.fontWeight + ',' + this.fontStyle;
+    const weight = this.fontWeight;
+    const style = this.fontStyle;
+    const family = this.fontFamily;
 
     if (sp || sub) {
       this.context.save();
-      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight);
+      this.context.setFont({
+        family, size: this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight, style
+      });
     } else {
-      this.context.setFont(this.fontFamily, this.fontSize * block.scale, weight);
+      this.context.setFont({ family, size: this.fontSize * block.scale, weight, style });
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.fillText(block.text, block.x, y);

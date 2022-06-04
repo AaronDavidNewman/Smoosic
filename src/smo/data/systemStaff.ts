@@ -8,14 +8,13 @@
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
-import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
-import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, SmoSlur } from './staffModifiers';
+import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, SmoTie } from './staffModifiers';
 import { SmoPartInfo } from './partInfo';
 import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoBarline } from '../../../release/smoosic';
 
 const VF = eval('Vex.Flow');
 /**
@@ -408,11 +407,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     );
   }
 
-  getTiesStartingAt(selector: SmoSelector) {
+  getTiesStartingAt(selector: SmoSelector): SmoTie[] {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
-    );
+    ) as SmoTie[];
   }
+
   getTiesEndingAt(selector: SmoSelector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'

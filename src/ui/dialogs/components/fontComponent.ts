@@ -68,8 +68,8 @@ export class SuiFontComponent extends SuiComponentBase {
     this.italicsCtrl = new SuiToggleComposite(
       this.dialog,
       {
-        id: this.id + 'italics',
-        smoName: 'italics',
+        id: this.id + 'italic',
+        smoName: 'italic',
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiToggleComponent',
@@ -115,7 +115,7 @@ export class SuiFontComponent extends SuiComponentBase {
       family: this.familyPart.getValue().toString(),
       size: this.sizePart.getValue(),
       weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
-      style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
+      style: this.italicsCtrl.getValue() ? 'italic' : 'normal'
     };
   }
   setValue(value: FontInfo) {
@@ -124,7 +124,7 @@ export class SuiFontComponent extends SuiComponentBase {
     if (typeof(value.size) !== 'number') {
       value.size = SmoScoreText.fontPointSize(value.size);
     }
-    if (value.style && value.style === 'italics') {
+    if (value.style && value.style === 'italic') {
       italics = true;
     }
     const boldString = SmoScoreText.weightString(value.weight);

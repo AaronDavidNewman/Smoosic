@@ -3769,7 +3769,7 @@ class SuiReverb {
         this.length = SuiReverb.defaults.length;
         this.decay = SuiReverb.defaults.decay;
         this._context = context;
-        this._buildImpulse();
+        // this._buildImpulse();
     }
     static get defaults() {
         return { length: 0.2, decay: 0.5 };
@@ -4111,33 +4111,56 @@ exports.SuiSampler = SuiSampler;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiAudioPlayer = void 0;
+exports.SuiAudioPlayer = exports.CuedAudioContexts = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const oscillator_1 = __webpack_require__(/*! ./oscillator */ "./src/render/audio/oscillator.ts");
 const audioTrack_1 = __webpack_require__(/*! ../../smo/xform/audioTrack */ "./src/smo/xform/audioTrack.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+class CuedAudioContexts {
+    constructor() {
+        this.soundHead = null;
+        this.soundTail = null;
+        this.paramLinkHead = null;
+        this.paramLinkTail = null;
+        this.soundListLength = 0;
+        this.playWaitTimer = 0;
+        this.playMeasureIndex = 0; // index of the measure we are playing
+        this.cueMeasureIndex = 0; // measure index we are populating
+        this.complete = false;
+    }
+    reset() {
+        this.soundHead = null;
+        this.soundTail = null;
+        this.paramLinkHead = null;
+        this.soundListLength = 0;
+        this.playWaitTimer = 0;
+        this.playMeasureIndex = 0;
+        this.cueMeasureIndex = 0;
+        this.complete = false;
+    }
+}
+exports.CuedAudioContexts = CuedAudioContexts;
 // ## SuiAudioPlayer
 // Play the music, ja!
 class SuiAudioPlayer {
     constructor(parameters) {
-        // TODO: use precreated tracks.  Right now it takes too long to create a whole score, we should 
-        // try to pro-rate it as we play.  But if we do a measure at a time, there can be a noticable gap
-        // between measures.
-        this.tracks = [];
+        this.audioDefaults = oscillator_1.SuiOscillator.defaults;
+        this.openTies = {};
         this.instanceId = SuiAudioPlayer.incrementInstanceId();
         SuiAudioPlayer.playing = false;
         this.paused = false;
-        this.startIndex = parameters.startIndex;
-        this.playIndex = 0;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
-        const converter = new audioTrack_1.SmoAudioScore(this.score, 4096);
-        this.audio = converter.convert();
         // Assume tempo is same for all measures
-        this.tempoMap = this.audio.tempoMap;
+        this.cuedSounds = new CuedAudioContexts();
     }
     static set playing(val) {
         SuiAudioPlayer._playing = val;
+    }
+    static get audioBufferSize() {
+        return 512;
     }
     static incrementInstanceId() {
         const id = SuiAudioPlayer.instanceId + 1;
@@ -4157,121 +4180,236 @@ class SuiAudioPlayer {
         }
         SuiAudioPlayer.playing = false;
     }
-    static getMeasureSounds(track, measureIndex, sendEmpty) {
-        const notes = track.measureNoteMap[measureIndex];
-        const trackSounds = [];
-        let hasSounds = false;
-        notes.forEach((note) => {
-            const noteSound = {
-                frequencies: note.frequencies,
-                duration: note.duration,
-                offset: note.offset,
-                volume: note.volume,
-                noteType: note.noteType
-            };
-            if (note.noteType === 'n' || sendEmpty) {
-                hasSounds = true;
-            }
-            trackSounds.push(noteSound);
-        });
-        if (!hasSounds) {
-            return [];
-        }
-        return trackSounds;
-    }
-    // ### getTrackSounds
-    // convert track data to frequency/volume
-    static getTrackSounds(tracks, measureIndex) {
-        const offsetSounds = {};
-        tracks.forEach((track, trackIx) => {
-            let measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, false);
-            // If empty measures, include at least one track for the correct duration.
-            if (measureSounds.length < 1 && trackIx === tracks.length - 1) {
-                measureSounds = SuiAudioPlayer.getMeasureSounds(track, measureIndex, true);
-            }
-            measureSounds.forEach((sound) => {
-                if (!offsetSounds[sound.offset]) {
-                    offsetSounds[sound.offset] = [];
-                }
-                // sound.volume = sound.volume / (trackLen * 2);
-                offsetSounds[sound.offset].push(sound);
+    getNoteSoundData(measureIndex) {
+        const measureNotes = {};
+        let measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
+        const freqDuplicates = {};
+        this.score.staves.forEach((staff, staffIx) => {
+            const measure = staff.measures[measureIndex];
+            measure.voices.forEach((voice, voiceIx) => {
+                let curTick = 0;
+                voice.notes.forEach((smoNote, tickIx) => {
+                    const frequencies = [];
+                    const xpose = -1 * measure.transposeIndex;
+                    const selector = selections_1.SmoSelector.default;
+                    selector.measure = measureIndex;
+                    selector.staff = staffIx;
+                    selector.voice = voiceIx;
+                    selector.tick = tickIx;
+                    let ties = [];
+                    const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
+                    if (smoNote.noteType === 'n') {
+                        ties = staff.getTiesStartingAt(selector);
+                        smoNote.pitches.forEach((pitch, pitchIx) => {
+                            var _a;
+                            const freq = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, xpose, (_a = smoNote.getMicrotone(pitchIx)) !== null && _a !== void 0 ? _a : null);
+                            const freqRound = Math.round(freq);
+                            if (!freqDuplicates[curTick]) {
+                                freqDuplicates[curTick] = {};
+                            }
+                            const freqBeat = freqDuplicates[curTick];
+                            if (!freqBeat[freqRound]) {
+                                freqBeat[freqRound] = true;
+                                frequencies.push(freq);
+                            }
+                        });
+                        const duration = smoNote.tickCount;
+                        const volume = audioTrack_1.SmoAudioScore.volumeFromNote(smoNote, audioTrack_1.SmoAudioScore.dynamicVolumeMap.p);
+                        if (!measureNotes[curTick]) {
+                            measureNotes[curTick] = [];
+                        }
+                        const soundData = {
+                            frequencies,
+                            volume,
+                            offset: 0,
+                            noteType: smoNote.noteType,
+                            duration
+                        };
+                        // If this is continuation of tied note, just change duration
+                        if (this.openTies[tieIx]) {
+                            this.openTies[tieIx].duration += duration;
+                            if (ties.length === 0) {
+                                this.openTies[tieIx] = null;
+                            }
+                        }
+                        else if (ties.length) {
+                            // If start of tied note, record the tie note, the next note in this voice
+                            // will adjust duration
+                            this.openTies[tieIx] = soundData;
+                            measureNotes[curTick].push(soundData);
+                        }
+                        else {
+                            measureNotes[curTick].push(soundData);
+                        }
+                    }
+                    curTick += smoNote.tickCount;
+                });
             });
         });
-        const keys = Object.keys(offsetSounds);
-        // keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-        return { offsets: keys, offsetSounds };
+        const keys = Object.keys(measureNotes).map((x) => parseInt(x, 10));
+        if (keys.length) {
+            measureTicks -= keys.reduce((a, b) => a > b ? a : b);
+        }
+        return { endTicks: measureTicks, measureNotes };
     }
-    // ### playSoundsAtOffset
-    // Play the track data at the current measure, the tick offset is specified.
-    playSoundsAtOffset(sounds, offsetIndex) {
-        let complete = false;
-        let waitTime = 0;
+    createCuedSound(measureIndex) {
         let i = 0;
-        const audio = this.audio;
-        const tracker = this.tracker;
-        const measureIndex = this.startIndex;
-        if (!SuiAudioPlayer.playing) {
+        let j = 0;
+        if (!SuiAudioPlayer.playing || this.cuedSounds.paramLinkHead === null) {
             return;
         }
-        const tracks = audio.tracks;
-        const tempo = audio.tempoMap[measureIndex];
-        const soundData = sounds.offsetSounds[sounds.offsets[offsetIndex]];
-        const maxMeasures = tracks[0].lastMeasure;
-        const timeRatio = 60000 / (tempo * 4096);
-        const oscs = [];
-        // Update the music cursor
-        const ts = new Date().valueOf();
-        tracker.musicCursor({ staff: 0, measure: measureIndex, voice: 0, tick: offsetIndex, pitches: [] });
-        // Create oscillators for each pitch in the chord.
-        soundData.forEach((sound) => {
-            for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
-                const freq = sound.frequencies[i];
-                const adjDuration = Math.round(sound.duration * timeRatio) + 150;
-                const params = oscillator_1.SuiOscillator.defaults;
-                params.frequency = freq;
-                params.duration = adjDuration;
-                params.gain = sound.volume;
-                const osc = new oscillator_1.SuiSampler(params);
-                oscs.push(osc);
-            }
+        // TODO base on the selection start.
+        const { endTicks, measureNotes } = { endTicks: this.cuedSounds.paramLinkHead.endTicks, measureNotes: this.cuedSounds.paramLinkHead.soundParams };
+        this.cuedSounds.paramLinkHead = this.cuedSounds.paramLinkHead.next;
+        const maxMeasures = this.score.staves[0].measures.length;
+        const smoTemp = this.score.staves[0].measures[measureIndex].getTempo();
+        const tempo = smoTemp.bpm * (smoTemp.beatDuration / 4096);
+        const keys = [];
+        Object.keys(measureNotes).forEach((key) => {
+            keys.push(parseInt(key, 10));
         });
-        // Play the chords and dispose when done.
-        if (oscs.length) {
-            SuiAudioPlayer._playChord(oscs);
-        }
-        setTimeout(() => {
-            // Decide what the next note will be on this track - either another note in this
-            // measure, or the first note in next measure.
-            if (sounds.offsets.length > offsetIndex + 1) {
-                const nextOffset = parseInt(sounds.offsets[offsetIndex + 1], 10);
-                waitTime = nextOffset - parseInt(sounds.offsets[offsetIndex], 10);
-                offsetIndex += 1;
+        // There is a key for each note in the measure.  The value is the number of ticks before that note is played
+        for (j = 0; j < keys.length; ++j) {
+            // setTimeout(() => {
+            const beatTime = keys[j];
+            const soundData = measureNotes[beatTime];
+            const cuedSound = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
+            const tail = { sound: cuedSound, next: null };
+            if (this.cuedSounds.soundTail === null) {
+                this.cuedSounds.soundTail = tail;
+                this.cuedSounds.soundHead = tail;
+            }
+            else {
+                this.cuedSounds.soundTail.next = { sound: cuedSound, next: null };
+                this.cuedSounds.soundTail = this.cuedSounds.soundTail.next;
+            }
+            const timeRatio = 60000 / (tempo * 4096);
+            soundData.forEach((sound) => {
+                for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
+                    const freq = sound.frequencies[i];
+                    const adjDuration = Math.round(sound.duration * timeRatio) + 150;
+                    const params = this.audioDefaults;
+                    params.frequency = freq;
+                    params.duration = adjDuration;
+                    params.gain = sound.volume;
+                    const osc = new oscillator_1.SuiSampler(params);
+                    cuedSound.oscs.push(osc);
+                }
+            });
+            this.cuedSounds.soundListLength += cuedSound.oscs.length;
+            if (j + 1 < keys.length) {
+                cuedSound.waitTime = (keys[j + 1] - keys[j]) * timeRatio;
             }
             else if (measureIndex + 1 < maxMeasures) {
                 // If the next measure, calculate the frequencies for the next track.
-                waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
-                this.startIndex += 1;
-                this.playIndex += 1;
-                sounds = SuiAudioPlayer.getTrackSounds(audio.tracks, this.startIndex);
-                // sounds = this.tracks[this.playIndex];
-                offsetIndex = 0;
+                this.cuedSounds.cueMeasureIndex += 1;
+                cuedSound.waitTime = endTicks * timeRatio;
             }
             else {
-                complete = true;
+                this.cuedSounds.complete = true;
             }
-            // Decide how long to wait until the next sound in the chord.
-            const elapsed = new Date().valueOf() - ts;
-            waitTime = (waitTime - elapsed) * timeRatio;
+            // }, 1);
+        }
+    }
+    populateSounds(measureIndex) {
+        if (!SuiAudioPlayer.playing) {
+            return;
+        }
+        const interval = 20;
+        let draining = false;
+        const buffer = SuiAudioPlayer.audioBufferSize;
+        const timer = setInterval(() => {
+            if (this.cuedSounds.complete || SuiAudioPlayer.playing === false) {
+                clearInterval(timer);
+                return;
+            }
+            if (this.cuedSounds.paramLinkHead === null) {
+                this.cuedSounds.complete = true;
+                return;
+            }
+            if (draining && this.cuedSounds.soundListLength > buffer / 4) {
+                return;
+            }
+            if (this.cuedSounds.soundListLength > buffer) {
+                draining = true;
+                return;
+            }
+            draining = false;
+            this.createCuedSound(measureIndex);
+            measureIndex += 1;
+        }, interval);
+    }
+    playSounds() {
+        let accum = 0;
+        this.cuedSounds.playMeasureIndex = 0;
+        this.cuedSounds.playWaitTimer = 0;
+        const timer = () => {
             setTimeout(() => {
-                if (!complete) {
-                    this.playSoundsAtOffset(sounds, offsetIndex);
+                if (this.cuedSounds.soundHead === null) {
+                    SuiAudioPlayer._playing = false;
+                    return;
+                }
+                if (SuiAudioPlayer._playing === false) {
+                    return;
+                }
+                const cuedSound = this.cuedSounds.soundHead.sound;
+                SuiAudioPlayer._playChord(cuedSound.oscs);
+                this.cuedSounds.soundHead = this.cuedSounds.soundHead.next;
+                this.cuedSounds.soundListLength -= cuedSound.oscs.length;
+                this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
+                this.cuedSounds.playMeasureIndex += 1;
+                this.cuedSounds.playWaitTimer = cuedSound.waitTime;
+                accum = 0;
+                timer();
+            }, this.cuedSounds.playWaitTimer);
+        };
+        timer();
+    }
+    playAfter(milliseconds, oscs) {
+        setTimeout(() => {
+            SuiAudioPlayer._playChord(oscs);
+        }, milliseconds);
+    }
+    startPlayer(measureIndex) {
+        var _a, _b;
+        this.openTies = {};
+        this.cuedSounds.reset();
+        this.cuedSounds.cueMeasureIndex = (_b = (_a = this.tracker.getFirstMeasureOfSelection()) === null || _a === void 0 ? void 0 : _a.measureNumber.measureIndex) !== null && _b !== void 0 ? _b : 0;
+        this.cuedSounds.playMeasureIndex = this.cuedSounds.cueMeasureIndex;
+        this.cuedSounds.paramLinkHead = null;
+        this.cuedSounds.paramLinkTail = null;
+        const endMeasure = this.score.staves[0].measures.length;
+        let i = 0;
+        for (i = this.cuedSounds.cueMeasureIndex; i < endMeasure; ++i) {
+            const { endTicks, measureNotes } = this.getNoteSoundData(i);
+            const node = {
+                soundParams: measureNotes,
+                endTicks,
+                next: null
+            };
+            if (this.cuedSounds.paramLinkHead === null) {
+                this.cuedSounds.paramLinkHead = node;
+                this.cuedSounds.paramLinkTail = node;
+            }
+            else {
+                this.cuedSounds.paramLinkTail.next = node;
+                this.cuedSounds.paramLinkTail = this.cuedSounds.paramLinkTail.next;
+            }
+        }
+        setTimeout(() => {
+            this.populateSounds(measureIndex);
+        }, 1);
+        const bufferThenPlay = () => {
+            setTimeout(() => {
+                if (this.cuedSounds.soundListLength >= SuiAudioPlayer.audioBufferSize || this.cuedSounds.complete) {
+                    this.playSounds();
                 }
                 else {
-                    tracker.clearMusicCursor();
-                    SuiAudioPlayer.playing = false;
+                    bufferThenPlay();
                 }
-            }, waitTime);
-        }, 1);
+            }, 50);
+        };
+        bufferThenPlay();
     }
     static stopPlayer() {
         if (SuiAudioPlayer._playingInstance) {
@@ -4299,18 +4437,20 @@ class SuiAudioPlayer {
     }
     // Starts the player.
     play() {
+        var _a, _b;
         let i = 0;
         if (SuiAudioPlayer.playing) {
             return;
         }
         SuiAudioPlayer._playingInstance = this;
         SuiAudioPlayer.playing = true;
+        const startIndex = (_b = (_a = this.tracker.getFirstMeasureOfSelection()) === null || _a === void 0 ? void 0 : _a.measureNumber.measureIndex) !== null && _b !== void 0 ? _b : 0;
         //for (i = this.startIndex; i < this.score.staves[0].measures.length; ++i) {
         //   this.tracks.push(SuiAudioPlayer.getTrackSounds(this.audio.tracks, i));
         // }
-        this.playIndex = 0;
-        const sounds = SuiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex);
-        this.playSoundsAtOffset(sounds, 0);
+        // const sounds = SuiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex);
+        // this.playSoundsAtOffset(sounds, 0);
+        this.startPlayer(startIndex);
     }
 }
 exports.SuiAudioPlayer = SuiAudioPlayer;
@@ -4440,7 +4580,7 @@ const VF = eval('Vex.Flow');
  * Utilities for estimating measure/system/page width and height
  */
 class suiLayoutFormatter {
-    static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
+    static estimateMusicWidth(smoMeasure, noteSpacing, tickContexts) {
         const widths = [];
         // The below line was commented out b/c voiceIX was defined but never used
         // let voiceIx = 0;
@@ -4453,16 +4593,17 @@ class suiLayoutFormatter {
         //     o  x   x  #o
         const tmObj = smoMeasure.createMeasureTickmaps();
         smoMeasure.voices.forEach((voice) => {
-            let accidentJustify = 0;
-            Object.keys(accidentMap).forEach((k) => {
-                accidentJustify += accidentMap[k];
-            });
             let width = 0;
             let duration = 0;
             voice.notes.forEach((note) => {
                 let noteWidth = 0;
                 const dots = (note.dots ? note.dots : 0);
                 let headWidth = glyphDimensions_1.vexGlyph.width(glyphDimensions_1.vexGlyph.dimensions.noteHead);
+                // Maybe not the best place for this...ideally we'd get the note head glyph from
+                // the ntoe.
+                if (note.tickCount >= 4096 * 4 && note.noteType === 'n') {
+                    headWidth *= 2;
+                }
                 const dotWidth = glyphDimensions_1.vexGlyph.width(glyphDimensions_1.vexGlyph.dimensions.dot);
                 noteWidth += headWidth +
                     glyphDimensions_1.vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
@@ -4477,13 +4618,6 @@ class suiLayoutFormatter {
                         accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
                     if (declared !== pitch.accidental || pitch.cautionary) {
                         noteWidth += glyphDimensions_1.vexGlyph.accidentalWidth(pitch.accidental);
-                        if (!accidentMap[duration]) {
-                            accidentMap[duration] = glyphDimensions_1.vexGlyph.accidentalWidth(pitch.accidental);
-                        }
-                        else {
-                            // if accidentals are aligned, don't count width twice
-                            accidentJustify -= glyphDimensions_1.vexGlyph.accidentalWidth(pitch.accidental);
-                        }
                     }
                 });
                 let verse = 0;
@@ -4514,12 +4648,17 @@ class suiLayoutFormatter {
                     verse += 1;
                     lyricBase = note.getLyricForVerse(verse, noteModifiers_1.SmoLyric.parsers.lyric);
                 }
+                if (!tickContexts[duration]) {
+                    tickContexts[duration] = {
+                        widths: [],
+                        tickCounts: []
+                    };
+                }
+                tickContexts[duration].widths.push(noteWidth);
+                tickContexts[duration].tickCounts.push(note.tickCount);
                 duration += note.tickCount;
                 width += noteWidth;
             });
-            if (accidentJustify > 0) {
-                width += accidentJustify;
-            }
             widths.push(width);
         });
         widths.sort((a, b) => a > b ? -1 : 1);
@@ -4555,9 +4694,9 @@ class suiLayoutFormatter {
         }
         return width;
     }
-    static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
+    static estimateMeasureWidth(measure, noteSpacing, tickContexts) {
         // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-        let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
+        let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
         measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
         measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
         measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
@@ -6756,6 +6895,12 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         y = scoreLayout.topMargin;
         x = scoreLayout.leftMargin;
         while (measureIx < this.score.staves[0].measures.length) {
+            if (this.score.isPartExposed()) {
+                if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
+                    measureIx += 1;
+                    continue;
+                }
+            }
             measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
             x = measureEstimate.x;
             if (systemIndex > 0 &&
@@ -6821,10 +6966,16 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         const s = {};
         const measures = this._getMeasuresInColumn(measureIx);
         let rowInSystem = 0;
+        let voiceCount = 0;
+        let unalignedCtxCount = 0;
+        let wsum = 0;
+        let dsum = 0;
+        let maxCfgWidth = 0;
         // Keep running tab of accidental widths for justification
-        const accidentalMap = {};
+        const contextMap = {};
         measures.forEach((measure) => {
             beamers_1.SmoBeamer.applyBeams(measure);
+            voiceCount += measure.voices.length;
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
             measure.svg.lineIndex = lineIndex;
@@ -6848,18 +6999,49 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             measure.setX(x, 'render:estimateColumn');
             // Add custom width to measure:
             measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-            formatter_1.suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
+            formatter_1.suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
             y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+            maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
             rowInSystem += 1;
         });
-        // justify this column to the maximum width
-        const maxMeasure = measures.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
-        const maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-        const maxAdjMeasure = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b);
-        const maxAdj = maxAdjMeasure.svg.adjX;
+        // justify this column to the maximum width        
+        const startX = measures[0].staffX;
+        const adjX = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
+        const contexts = Object.keys(contextMap);
+        const widths = [];
+        const durations = [];
+        let minTotalWidth = 0;
+        contexts.forEach((strIx) => {
+            const ix = parseInt(strIx);
+            let tickWidth = 0;
+            const context = contextMap[ix];
+            if (context.tickCounts.length < voiceCount) {
+                unalignedCtxCount += 1;
+            }
+            context.widths.forEach((w, ix) => {
+                wsum += w;
+                dsum += context.tickCounts[ix];
+                widths.push(w);
+                durations.push(context.tickCounts[ix]);
+                tickWidth = Math.max(tickWidth, w);
+            });
+            minTotalWidth += tickWidth;
+        });
+        const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);
+        const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
+        const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
+        const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
+        const davg = dsum / durations.length;
+        const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
+        const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
+        const unalignedPadding = 5;
+        const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
+        const unalignedPad = unalignedPadding * unalignedCtxCount;
+        const maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
+        const maxX = startX + maxWidth;
         measures.forEach((measure) => {
-            measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)), 'render:estimateColumn');
-            measure.svg.adjX = maxAdj;
+            measure.setWidth(maxWidth, 'render:estimateColumn');
+            measure.svg.adjX = adjX;
         });
         const rv = { measures, y, x: maxX };
         return rv;
@@ -7279,6 +7461,7 @@ class SuiScoreView {
             this.score.staves.forEach((staff) => {
                 staff.partInfo.displayCues = false;
             });
+            operations_1.SmoOperation.computeMultipartRest(nscore);
         }
         else {
             this.score.staves.forEach((staff) => {
@@ -7924,13 +8107,15 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const grace = this.tracker.getSelectedGraceNotes();
         if (grace.length) {
             grace.forEach((artifact) => {
-                if (artifact.selection !== null) {
+                if (artifact.selection !== null && artifact.selection.note !== null) {
                     const gn1 = artifact.modifier;
-                    operations_1.SmoOperation.transposeGraceNotes(artifact.selection, [gn1], offset);
+                    const index = artifact.selection.note.graceNotes.findIndex((x) => x.attrs.id === gn1.attrs.id);
                     const altSelection = this._getEquivalentSelection(artifact.selection);
-                    const gn2 = this._getEquivalentGraceNote(altSelection, gn1);
-                    operations_1.SmoOperation.transposeGraceNotes(artifact.selection, [artifact.modifier], offset);
-                    operations_1.SmoOperation.transposeGraceNotes(altSelection, [gn2], offset);
+                    if (altSelection && altSelection.note !== null) {
+                        const gn2 = altSelection.note.graceNotes[index];
+                        operations_1.SmoOperation.transposeGraceNotes(altSelection, [gn2], offset);
+                    }
+                    operations_1.SmoOperation.transposeGraceNotes(artifact.selection, [gn1], offset);
                 }
             });
         }
@@ -8772,6 +8957,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const storeStaff = this.staffMap[0] - info.stavesBefore;
         const partLength = info.stavesBefore + info.stavesAfter + 1;
         const resetView = !scoreModifiers_1.SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager.getGlobalLayout());
+        const restChange = this.score.staves[0].partInfo.expandMultimeasureRests != info.expandMultimeasureRests;
         for (i = 0; i < partLength; ++i) {
             const nStaffIndex = storeStaff + i;
             const nInfo = new partInfo_1.SmoPartInfo(info);
@@ -8785,7 +8971,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 this.score.layoutManager = nInfo.layoutManager;
             }
         }
-        if (resetView) {
+        if (resetView || restChange) {
             this.renderer.rerenderAll();
         }
         return this.renderer.updatePromise();
@@ -9052,6 +9238,7 @@ class SuiScroller {
     constructor(selector, renderer) {
         this.viewport = common_1.SvgBox.default;
         this.logicalViewport = common_1.SvgBox.default;
+        this.scrolling = false;
         const self = this;
         this.selector = selector;
         this._scroll = { x: 0, y: 0 };
@@ -9076,8 +9263,6 @@ class SuiScroller {
     // update viewport in response to scroll events
     handleScroll(x, y) {
         this._scroll = { x, y };
-        this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
-        this.deferUpdateDebug();
     }
     updateDebug() {
         const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
@@ -9103,15 +9288,15 @@ class SuiScroller {
     // not larger than the screen)
     scrollVisibleBox(box) {
         let yoff = 0;
-        const topY = this.scrollState.y;
-        const bottomY = topY + this.logicalViewport.height;
-        if (topY >= box.y || box.y + box.height >= bottomY) {
-            yoff = (box.y - this.scrollState.y) + 20;
+        let xoff = 0;
+        const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, box, { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
+        if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
+            yoff = screenBox.y;
         }
-        const xoff = 0;
-        if (xoff !== 0 || yoff !== 0) {
-            this.scrollOffset(xoff, yoff);
+        if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
+            xoff = screenBox.x;
         }
+        this.scrollOffset(xoff, yoff);
     }
     // Update viewport size, and also fix height of scroll region.
     updateViewport() {
@@ -9130,17 +9315,9 @@ class SuiScroller {
     // ### scrollOffset
     // scroll the offset from the starting scroll point
     scrollOffset(x, y) {
-        const self = this;
-        const cur = { x: this._scroll.x, y: this._scroll.y };
-        setTimeout(() => {
-            if (x) {
-                $(this.selector)[0].scrollLeft = cur.x + x;
-            }
-            if (y) {
-                $(this.selector)[0].scrollTop = cur.y + y;
-            }
-            self.handleScroll($(this.selector)[0].scrollLeft, $(this.selector)[0].scrollTop);
-        }, 1);
+        const xScreen = this._scroll.x + x;
+        const yScreen = this._scroll.y + y;
+        this.scrollAbsolute(xScreen, yScreen);
     }
     // ### netScroll
     // return the net amount we've scrolled, based on when the maps were make (initial)
@@ -11373,7 +11550,9 @@ class SuiInlineText {
         if (!this.updatedMetrics) {
             this._calculateBlockIndex();
         }
-        this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
+        this.context.setFont({
+            family: this.fontFamily, size: this.fontSize, weight: this.fontWeight, style: this.fontStyle
+        });
         const group = this.context.openGroup();
         const mmClass = 'suiInlineText';
         let ix = 0;
@@ -11407,13 +11586,17 @@ class SuiInlineText {
             this.context.setFillStyle('#999');
         }
         // This is how svgcontext expects to get 'style'
-        const weight = this.fontWeight + ',' + this.fontStyle;
+        const weight = this.fontWeight;
+        const style = this.fontStyle;
+        const family = this.fontFamily;
         if (sp || sub) {
             this.context.save();
-            this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight);
+            this.context.setFont({
+                family, size: this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight, style
+            });
         }
         else {
-            this.context.setFont(this.fontFamily, this.fontSize * block.scale, weight);
+            this.context.setFont({ family, size: this.fontSize * block.scale, weight, style });
         }
         if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
             this.context.fillText(block.text, block.x, y);
@@ -11769,7 +11952,7 @@ class SuiTracker extends mapper_1.SuiMapper {
     // ### musicCursor
     // the little birdie that follows the music as it plays
     musicCursor(selector) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c;
         const key = selections_1.SmoSelector.getNoteKey(selector);
         if (!this.score) {
             return;
@@ -11779,17 +11962,17 @@ class SuiTracker extends mapper_1.SuiMapper {
             const measureSel = selections_1.SmoSelection.measureSelection(this.score, this.score.staves.length - 1, selector.measure);
             const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
             const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
-            if (((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox) && ((_d = (_c = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure) === null || _c === void 0 ? void 0 : _c.svg) === null || _d === void 0 ? void 0 : _d.logicalBox)) {
+            if (measure.svg.logicalBox && ((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox)) {
                 const screenBox = svgHelpers_1.SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
-                const y = screenBox.y;
+                const y = Math.max(screenBox.y - 20, 0);
                 let x = screenBox.x;
                 const noteSelector = selections_1.SmoSelection.noteFromSelector(this.score, selector);
-                if ((_e = noteSelector === null || noteSelector === void 0 ? void 0 : noteSelector.note) === null || _e === void 0 ? void 0 : _e.logicalBox) {
+                if ((_c = noteSelector === null || noteSelector === void 0 ? void 0 : noteSelector.note) === null || _c === void 0 ? void 0 : _c.logicalBox) {
                     x = noteSelector.note.logicalBox.x;
                 }
                 const mbox = { x, y, width: 1, height: 1 };
                 const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
-                const outerBox = { x, y, width: mbox.width, height: (sysBottom - y) * 2 };
+                const outerBox = { x, y, width: mbox.width, height: (sysBottom - y) };
                 const at = [];
                 const symbol = '\u25BC';
                 at.push({ y: mbox.y });
@@ -11892,7 +12075,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!this.modifierSelections.length) {
             return [];
         }
-        const ff = this.modifierSelections.filter((mm) => mm.modifier.attrs.type === 'SmoGraceNote');
+        const ff = this.modifierSelections.filter((mm) => { var _a, _b; return ((_b = (_a = mm.modifier) === null || _a === void 0 ? void 0 : _a.attrs) === null || _b === void 0 ? void 0 : _b.type) === 'SmoGraceNote'; });
         return ff;
     }
     isGraceNoteSelected() {
@@ -12075,17 +12258,28 @@ class SuiTracker extends mapper_1.SuiMapper {
     }
     // if we are being moved right programmatically, avoid playing the selected note.
     moveSelectionRight(score, evKey, skipPlay) {
-        if (this.selections.length === 0) {
+        if (this.selections.length === 0 || this.score === null) {
             return;
         }
+        // const original = JSON.parse(JSON.stringify(this.getExtremeSelection(-1).selector));
         const nselect = this._getOffsetSelection(1);
+        // skip any measures that are not displayed due to rest or repetition
+        const mselect = selections_1.SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
+        if (mselect === null || mselect === void 0 ? void 0 : mselect.measure.svg.multimeasureLength) {
+            nselect.measure += mselect === null || mselect === void 0 ? void 0 : mselect.measure.svg.multimeasureLength;
+        }
         this._replaceSelection(nselect, skipPlay);
     }
     moveSelectionLeft() {
-        if (this.selections.length === 0) {
+        if (this.selections.length === 0 || this.score === null) {
             return;
         }
         const nselect = this._getOffsetSelection(-1);
+        // Skip multimeasure rests in parts
+        const mselect = selections_1.SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
+        while (nselect.measure > 0 && mselect && (mselect.measure.svg.hideMultimeasure || mselect.measure.svg.multimeasureLength > 0)) {
+            nselect.measure -= 1;
+        }
         this._replaceSelection(nselect, false);
     }
     moveSelectionLeftMeasure() {
@@ -12623,7 +12817,7 @@ class vexGlyph {
                 height: 5,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 10,
                 vexGlyph: 'augmentationDot'
             },
             // want to add extra space just for clef.
@@ -12771,11 +12965,12 @@ const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const VF = eval('Vex.Flow');
 class VxMeasure {
-    constructor(context, selection, printing) {
+    constructor(context, selection, printing, softmax) {
         this.rendered = false;
         this.noteToVexMap = {};
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
+        this.multimeasureRest = null;
         this.vexNotes = [];
         this.vexBeamGroups = [];
         this.vexTuplets = [];
@@ -12794,6 +12989,7 @@ class VxMeasure {
         this.vexBeamGroups = [];
         this.vexBeamGroups = [];
         this.beamToVexMap = {};
+        this.softmax = softmax;
     }
     static get fillStyle() {
         return '#000';
@@ -13250,31 +13446,39 @@ class VxMeasure {
         this.noteToVexMap = {};
         // If there are multiple voices, add them all to the formatter at the same time so they don't collide
         for (j = 0; j < this.smoMeasure.voices.length; ++j) {
-            this.createVexNotes(j);
-            this.createVexTuplets(j);
-            this.createVexBeamGroups(j);
-            // Create a voice in 4/4 and add above notes
-            const voice = new VF.Voice({
-                num_beats: this.smoMeasure.timeSignature.actualBeats,
-                beat_value: this.smoMeasure.timeSignature.beatDuration
-            }).setMode(VF.Voice.Mode.SOFT);
-            voice.addTickables(this.voiceNotes);
-            this.voiceAr.push(voice);
+            if (!this.smoMeasure.svg.multimeasureLength) {
+                this.createVexNotes(j);
+                this.createVexTuplets(j);
+                this.createVexBeamGroups(j);
+                // Create a voice in 4/4 and add above notes
+                const voice = new VF.Voice({
+                    num_beats: this.smoMeasure.timeSignature.actualBeats,
+                    beat_value: this.smoMeasure.timeSignature.beatDuration
+                }).setMode(VF.Voice.Mode.SOFT);
+                voice.addTickables(this.voiceNotes);
+                this.voiceAr.push(voice);
+            }
         }
         // Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.format.customProportion, globalSoftmax: false });
+        let proportion = this.smoMeasure.format.proportionality;
+        this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
         this.voiceAr.forEach((voice) => {
             this.formatter.joinVoices([voice]);
         });
     }
     format(voices) {
+        if (this.smoMeasure.svg.multimeasureLength > 0) {
+            this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
+            this.multimeasureRest.setContext(this.context);
+            this.multimeasureRest.setStave(this.stave);
+            return;
+        }
         const timestamp = new Date().valueOf();
         this.formatter.format(voices, this.smoMeasure.staffWidth -
             (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
     }
     render() {
-        var self = this;
         var group = this.context.openGroup();
         var mmClass = this.smoMeasure.getClassId();
         var j = 0;
@@ -13288,11 +13492,14 @@ class VxMeasure {
                 this.voiceAr[j].draw(this.context, this.stave);
             }
             this.vexBeamGroups.forEach((b) => {
-                b.setContext(self.context).draw();
+                b.setContext(this.context).draw();
             });
             this.vexTuplets.forEach((tuplet) => {
-                tuplet.setContext(self.context).draw();
+                tuplet.setContext(this.context).draw();
             });
+            if (this.multimeasureRest) {
+                this.multimeasureRest.draw();
+            }
             // this._updateLyricDomSelectors();
             this.renderDynamics();
             // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
@@ -13332,6 +13539,7 @@ const svgHelpers_1 = __webpack_require__(/*! ../sui/svgHelpers */ "./src/render/
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const VF = eval('Vex.Flow');
 /**
  * Create a system of staves and draw music on it.  This calls the Vex measure
@@ -13709,6 +13917,10 @@ class VxSystem {
     // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
     // groups
     renderMeasure(smoMeasure, measureMapper, printing) {
+        var _a, _b;
+        if (smoMeasure.svg.hideMultimeasure) {
+            return;
+        }
         let brackets = false;
         const staff = this.score.staves[smoMeasure.measureNumber.staffId];
         const staffId = staff.staffId;
@@ -13721,7 +13933,11 @@ class VxSystem {
         if (selection === null) {
             return;
         }
-        const vxMeasure = new vxMeasure_1.VxMeasure(this.context, selection, printing);
+        let softmax = selection.measure.format.proportionality;
+        if (softmax === measureModifiers_1.SmoMeasureFormat.defaultProportionality) {
+            softmax = (_b = (_a = this.score.layoutManager) === null || _a === void 0 ? void 0 : _a.getGlobalLayout().proportionality) !== null && _b !== void 0 ? _b : 0;
+        }
+        const vxMeasure = new vxMeasure_1.VxMeasure(this.context, selection, printing, softmax);
         // create the vex notes, beam groups etc. for the measure
         vxMeasure.preFormat();
         this.vxMeasures.push(vxMeasure);
@@ -13982,7 +14198,9 @@ class SmoMeasure {
             forceClef: false,
             forceKeySignature: false,
             forceTimeSignature: false,
-            forceTempo: false
+            forceTempo: false,
+            hideMultimeasure: false,
+            multimeasureLength: 0
         };
         const defaults = SmoMeasure.defaults;
         exports.SmoMeasureNumberParams.forEach((param) => {
@@ -14491,7 +14709,7 @@ class SmoMeasure {
      * @param offset
      * @param newClef
      */
-    transposeToOffset(offset, newClef) {
+    transposeToOffset(offset, targetKey, newClef) {
         const diff = offset - this.transposeIndex;
         this.voices.forEach((voice) => {
             voice.notes.forEach((note) => {
@@ -14502,10 +14720,10 @@ class SmoMeasure {
                     note.pitches = [defp];
                 }
                 else {
-                    note.transpose(pitches, diff, this.keySignature);
+                    note.transpose(pitches, diff, this.keySignature, targetKey);
                     note.getGraceNotes().forEach((gn) => {
                         const gpitch = [...Array(gn.pitches.length).keys()];
-                        const xpose = note_1.SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+                        const xpose = note_1.SmoNote.transpose(gn, gpitch, diff, this.keySignature, targetKey);
                         gn.pitches = xpose.pitches;
                     });
                 }
@@ -14647,26 +14865,6 @@ class SmoMeasure {
         });
         return ticks;
     }
-    /**
-     * Count the number of ticks in the measure after the supplied tick index
-     * @param voiceIndex
-     * @param tickIndex
-     * @returns
-     */
-    getRemainingTicks(voiceIndex, tickIndex) {
-        let i = 0;
-        let rv = 0;
-        if (this.voices.length < voiceIndex + 1) {
-            return rv;
-        }
-        if (this.voices[voiceIndex].notes.length < tickIndex + 1) {
-            return rv;
-        }
-        for (i = tickIndex; i < this.voices[voiceIndex].notes.length; ++i) {
-            rv += this.voices[voiceIndex].notes[i].tickCount;
-        }
-        return rv;
-    }
     getClosestTickCountIndex(voiceIndex, tickCount) {
         let i = 0;
         let rv = 0;
@@ -14790,6 +14988,16 @@ class SmoMeasure {
                 note.clef = clef;
             });
         });
+    }
+    isRest() {
+        let i = 0;
+        for (i = 0; i < this.voices.length; ++i) {
+            const voice = this.voices[i];
+            if (voice.notes.length === 1 && voice.notes[0].isRest()) {
+                return true;
+            }
+        }
+        return false;
     }
     // ### populateVoice
     // Create a new voice in this measure, and populate it with the default note
@@ -15064,7 +15272,7 @@ class SmoMeasureModifierBase {
     }
 }
 exports.SmoMeasureModifierBase = SmoMeasureModifierBase;
-exports.SmoMeasureFormatNumberKeys = ['customStretch', 'customProportion', 'padLeft', 'measureIndex'];
+exports.SmoMeasureFormatNumberKeys = ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
 exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
 /**
  * Measure format holds parameters about the automatic formatting of the measure itself, such as the witch and
@@ -15075,10 +15283,11 @@ exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak'
 class SmoMeasureFormat extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoMeasureFormat');
-        this.customStretch = 0;
-        this.customProportion = 100;
+        this.customStretch = SmoMeasureFormat.defaultProportionality;
+        this.proportionality = 0;
         this.systemBreak = false;
         this.pageBreak = false;
+        this.restBreak = false;
         this.padLeft = 0;
         this.padAllInSystem = true;
         this.autoJustify = true;
@@ -15092,10 +15301,16 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         });
     }
     static get attributes() {
-        return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
+        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak'];
     }
     static get formatAttributes() {
-        return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+    }
+    static get defaultProportionality() {
+        return 0;
+    }
+    static get legacyProportionality() {
+        return 0;
     }
     static fromLegacyMeasure(measure) {
         const o = {};
@@ -15114,9 +15329,10 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
     static get defaults() {
         return JSON.parse(JSON.stringify({
             customStretch: 0,
-            customProportion: 100,
+            proportionality: SmoMeasureFormat.defaultProportionality,
             systemBreak: false,
             pageBreak: false,
+            restBreak: false,
             padLeft: 0,
             padAllInSystem: true,
             autoJustify: true,
@@ -15743,6 +15959,8 @@ class SmoAudioPitch {
 exports.SmoAudioPitch = SmoAudioPitch;
 SmoAudioPitch.frequencies = null;
 const VF = eval('Vex.Flow');
+;
+;
 /**
  * Helper functions that build on the VX music theory routines, and other
  * utilities I wish were in VF.Music but aren't
@@ -15995,6 +16213,322 @@ class SmoMusic {
                 >= 3 ? note_1.SmoNote.flagStates.down : note_1.SmoNote.flagStates.up;
         }
         return fs;
+    }
+    /**
+     * The purpose of this table is to keep consistent enharmonic spelling when transposing
+     * instruments in different keys.  It is not theoritically complete, e.g.
+     * there is no reason to distinguish between #5 used as a leading tone for vi- or
+     * as an augmented chord, the spelling is the same.  It does not show a preference
+     * for notes that don't have an obvious purpose in the key, e.g. it does not try to compute the
+     * equivalent to 'e#' in the key of 'c'.  The computation of the 'intended key area' is
+     * beyond the scope of a music program to interpret.
+     */
+    static get enharmonicRoles() {
+        const tbl = { 'c': [
+                { letter: 'c', accidental: 'n', role: 'tonic' },
+                { letter: 'c', accidental: '#', role: '7/2' },
+                { letter: 'd', accidental: 'b', role: 'b9' },
+                { letter: 'd', accidental: 'n', role: '2' },
+                { letter: 'd', accidental: '#', role: '7/3' },
+                { letter: 'e', accidental: 'b', role: 'b3' },
+                { letter: 'e', accidental: 'n', role: '3' },
+                { letter: 'f', accidental: 'n', role: '4' },
+                { letter: 'f', accidental: '#', role: '#11' },
+                { letter: 'g', accidental: 'b', role: 'b5' },
+                { letter: 'g', accidental: 'n', role: '5' },
+                { letter: 'g', accidental: '#', role: '7/6' },
+                { letter: 'a', accidental: 'b', role: 'b6' },
+                { letter: 'a', accidental: 'n', role: '6' },
+                { letter: 'a', accidental: '#', role: '7/7' },
+                { letter: 'b', accidental: 'b', role: 'b7' },
+                { letter: 'b', accidental: 'n', role: '7' }
+            ], 'c#': [
+                { letter: 'c', accidental: '#', role: 'tonic' },
+                { letter: 'c', accidental: '##', role: '7/2' },
+                { letter: 'd', accidental: 'n', role: 'b9' },
+                { letter: 'd', accidental: '#', role: '2' },
+                { letter: 'd', accidental: '##', role: '#2' },
+                { letter: 'f', accidental: 'b', role: 'b3' },
+                { letter: 'e', accidental: '#', role: '3' },
+                { letter: 'f', accidental: '#', role: '4' },
+                { letter: 'f', accidental: '##', role: '#11' },
+                { letter: 'g', accidental: 'n', role: 'b5' },
+                { letter: 'g', accidental: '#', role: '5' },
+                { letter: 'g', accidental: '##', role: '7/6' },
+                { letter: 'a', accidental: 'n', role: 'b6' },
+                { letter: 'a', accidental: '#', role: '6' },
+                { letter: 'a', accidental: '##', role: '7/7' },
+                { letter: 'b', accidental: 'n', role: 'b7' },
+                { letter: 'b', accidental: '#', role: '7' }
+            ], 'db': [
+                { letter: 'd', accidental: 'b', role: 'tonic' },
+                { letter: 'd', accidental: 'n', role: '7/2' },
+                { letter: 'e', accidental: 'bb', role: 'b9' },
+                { letter: 'e', accidental: 'b', role: '2' },
+                { letter: 'e', accidental: 'n', role: '7/3' },
+                { letter: 'f', accidental: 'b', role: 'b3' },
+                { letter: 'f', accidental: 'n', role: '3' },
+                { letter: 'g', accidental: 'b', role: '4' },
+                { letter: 'g', accidental: 'n', role: '#11' },
+                { letter: 'a', accidental: 'bb', role: 'b5' },
+                { letter: 'a', accidental: 'b', role: '5' },
+                { letter: 'a', accidental: 'n', role: '7/6' },
+                { letter: 'b', accidental: 'bb', role: 'b6' },
+                { letter: 'b', accidental: 'b', role: '6' },
+                { letter: 'b', accidental: 'n', role: '7/7' },
+                { letter: 'c', accidental: 'b', role: 'b7' },
+                { letter: 'b', accidental: '#', role: '7' }
+            ], 'd': [
+                { letter: 'd', accidental: 'n', role: 'tonic' },
+                { letter: 'd', accidental: '#', role: '7/2' },
+                { letter: 'e', accidental: 'b', role: 'b9' },
+                { letter: 'e', accidental: 'n', role: '2' },
+                { letter: 'e', accidental: '#', role: '7/3' },
+                { letter: 'f', accidental: 'n', role: 'b3' },
+                { letter: 'f', accidental: '#', role: '3' },
+                { letter: 'g', accidental: 'n', role: '4' },
+                { letter: 'g', accidental: '#', role: '#11' },
+                { letter: 'a', accidental: 'b', role: 'b5' },
+                { letter: 'a', accidental: 'n', role: '5' },
+                { letter: 'a', accidental: '#', role: '7/6' },
+                { letter: 'b', accidental: 'b', role: 'b6' },
+                { letter: 'b', accidental: 'n', role: '6' },
+                { letter: 'b', accidental: '#', role: '7/7' },
+                { letter: 'c', accidental: 'n', role: 'b7' },
+                { letter: 'c', accidental: '#', role: '7' }
+            ], 'eb': [
+                { letter: 'e', accidental: 'b', role: 'tonic' },
+                { letter: 'e', accidental: 'n', role: '7/2' },
+                { letter: 'f', accidental: 'b', role: 'b9' },
+                { letter: 'f', accidental: 'n', role: '2' },
+                { letter: 'f', accidental: '#', role: '7/3' },
+                { letter: 'g', accidental: 'b', role: 'b3' },
+                { letter: 'g', accidental: 'n', role: '3' },
+                { letter: 'a', accidental: 'b', role: '4' },
+                { letter: 'a', accidental: 'n', role: '#11' },
+                { letter: 'b', accidental: 'bb', role: 'b5' },
+                { letter: 'b', accidental: 'b', role: '5' },
+                { letter: 'b', accidental: 'n', role: '7/6' },
+                { letter: 'c', accidental: 'b', role: '6' },
+                { letter: 'c', accidental: 'n', role: '6' },
+                { letter: 'c', accidental: '#', role: '7/7' },
+                { letter: 'd', accidental: 'b', role: 'b7' },
+                { letter: 'd', accidental: 'n', role: '7' }
+            ], 'e': [
+                { letter: 'e', accidental: 'n', role: 'tonic' },
+                { letter: 'e', accidental: '#', role: '7/2' },
+                { letter: 'f', accidental: 'n', role: 'b9' },
+                { letter: 'f', accidental: '#', role: '2' },
+                { letter: 'f', accidental: '##', role: '7/3' },
+                { letter: 'g', accidental: 'n', role: 'b3' },
+                { letter: 'g', accidental: '#', role: '3' },
+                { letter: 'a', accidental: 'n', role: '4' },
+                { letter: 'a', accidental: '#', role: '#11' },
+                { letter: 'b', accidental: 'b', role: 'b5' },
+                { letter: 'b', accidental: 'n', role: '5' },
+                { letter: 'b', accidental: '#', role: '7/6' },
+                { letter: 'c', accidental: 'n', role: 'b6' },
+                { letter: 'c', accidental: '#', role: '6' },
+                { letter: 'c', accidental: '##', role: '7/7' },
+                { letter: 'd', accidental: 'n', role: 'b7' },
+                { letter: 'd', accidental: '#', role: 'b7' }
+            ], 'f': [
+                { letter: 'f', accidental: 'n', role: 'tonic' },
+                { letter: 'f', accidental: '#', role: '7/2' },
+                { letter: 'g', accidental: 'b', role: 'b9' },
+                { letter: 'g', accidental: 'n', role: '2' },
+                { letter: 'g', accidental: '#', role: '7/3' },
+                { letter: 'a', accidental: 'b', role: 'b3' },
+                { letter: 'a', accidental: 'n', role: '3' },
+                { letter: 'b', accidental: 'b', role: '4' },
+                { letter: 'b', accidental: 'n', role: '#11' },
+                { letter: 'c', accidental: 'b', role: 'b5' },
+                { letter: 'c', accidental: 'n', role: '5' },
+                { letter: 'c', accidental: '#', role: '7/6' },
+                { letter: 'd', accidental: 'b', role: 'b6' },
+                { letter: 'd', accidental: 'n', role: '6' },
+                { letter: 'd', accidental: '#', role: '7/7' },
+                { letter: 'e', accidental: 'b', role: 'b7' },
+                { letter: 'e', accidental: 'n', role: '7' }
+            ], 'f#': [
+                { letter: 'f', accidental: '#', role: 'tonic' },
+                { letter: 'f', accidental: '##', role: '7/2' },
+                { letter: 'g', accidental: 'n', role: 'b9' },
+                { letter: 'g', accidental: '#', role: '2' },
+                { letter: 'g', accidental: '##', role: '#2' },
+                { letter: 'a', accidental: 'n', role: 'b3' },
+                { letter: 'a', accidental: '#', role: '3' },
+                { letter: 'b', accidental: 'n', role: '4' },
+                { letter: 'b', accidental: '#', role: '#11' },
+                { letter: 'c', accidental: 'n', role: 'b5' },
+                { letter: 'c', accidental: '#', role: '5' },
+                { letter: 'c', accidental: '##', role: '7/6' },
+                { letter: 'd', accidental: 'n', role: 'b6' },
+                { letter: 'd', accidental: '#', role: '6' },
+                { letter: 'd', accidental: '##', role: '7/7' },
+                { letter: 'e', accidental: 'n', role: 'b7' },
+                { letter: 'e', accidental: '#', role: '7' }
+            ], 'gb': [
+                { letter: 'g', accidental: 'b', role: 'tonic' },
+                { letter: 'g', accidental: 'n', role: '7/2' },
+                { letter: 'a', accidental: 'bb', role: 'b9' },
+                { letter: 'a', accidental: 'b', role: '2' },
+                { letter: 'a', accidental: 'n', role: '7/3' },
+                { letter: 'a', accidental: 'bb', role: 'b3' },
+                { letter: 'b', accidental: 'b', role: '3' },
+                { letter: 'c', accidental: 'b', role: '4' },
+                { letter: 'c', accidental: 'n', role: '#11' },
+                { letter: 'd', accidental: 'bb', role: 'b5' },
+                { letter: 'd', accidental: 'b', role: '5' },
+                { letter: 'd', accidental: 'n', role: '7/6' },
+                { letter: 'e', accidental: 'bb', role: 'b6' },
+                { letter: 'e', accidental: 'b', role: '6' },
+                { letter: 'e', accidental: 'n', role: '7/7' },
+                { letter: 'f', accidental: 'b', role: 'b7' },
+                { letter: 'f', accidental: 'n', role: '7' }
+            ], 'g': [
+                { letter: 'g', accidental: 'n', role: 'tonic' },
+                { letter: 'g', accidental: '#', role: '7/2' },
+                { letter: 'g', accidental: 'b', role: 'b9' },
+                { letter: 'a', accidental: 'n', role: '2' },
+                { letter: 'a', accidental: '#', role: '7/3' },
+                { letter: 'b', accidental: 'b', role: 'b3' },
+                { letter: 'b', accidental: 'n', role: '3' },
+                { letter: 'c', accidental: 'n', role: '4' },
+                { letter: 'c', accidental: '#', role: '#11' },
+                { letter: 'd', accidental: 'b', role: 'b5' },
+                { letter: 'd', accidental: 'n', role: '5' },
+                { letter: 'd', accidental: '#', role: '7/6' },
+                { letter: 'e', accidental: 'b', role: 'b6' },
+                { letter: 'e', accidental: 'n', role: '6' },
+                { letter: 'e', accidental: '#', role: '7/7' },
+                { letter: 'f', accidental: 'n', role: 'b7' },
+                { letter: 'f', accidental: '#', role: '7' }
+            ], 'ab': [
+                { letter: 'a', accidental: 'b', role: 'tonic' },
+                { letter: 'a', accidental: 'n', role: '7/2' },
+                { letter: 'b', accidental: 'bb', role: 'b9' },
+                { letter: 'b', accidental: 'b', role: '2' },
+                { letter: 'b', accidental: 'n', role: '7/3' },
+                { letter: 'b', accidental: 'bb', role: 'b3' },
+                { letter: 'c', accidental: 'n', role: '3' },
+                { letter: 'd', accidental: 'b', role: '4' },
+                { letter: 'd', accidental: 'n', role: '#11' },
+                { letter: 'e', accidental: 'bb', role: 'b5' },
+                { letter: 'e', accidental: 'b', role: '5' },
+                { letter: 'e', accidental: 'n', role: '7/6' },
+                { letter: 'f', accidental: 'b', role: 'b6' },
+                { letter: 'f', accidental: 'n', role: '6' },
+                { letter: 'f', accidental: '#', role: '7/7' },
+                { letter: 'g', accidental: 'b', role: 'b7' },
+                { letter: 'g', accidental: 'n', role: '7' }
+            ], 'a': [
+                { letter: 'a', accidental: 'n', role: 'tonic' },
+                { letter: 'a', accidental: '#', role: '7/2' },
+                { letter: 'b', accidental: 'b', role: 'b9' },
+                { letter: 'b', accidental: 'n', role: '2' },
+                { letter: 'b', accidental: '#', role: '7/3' },
+                { letter: 'c', accidental: 'n', role: 'b3' },
+                { letter: 'c', accidental: '#', role: '3' },
+                { letter: 'd', accidental: 'n', role: '4' },
+                { letter: 'd', accidental: '#', role: '#11' },
+                { letter: 'e', accidental: 'b', role: 'b5' },
+                { letter: 'e', accidental: 'n', role: '5' },
+                { letter: 'e', accidental: '#', role: '7/6' },
+                { letter: 'f', accidental: 'n', role: 'b6' },
+                { letter: 'f', accidental: '#', role: '6' },
+                { letter: 'f', accidental: '##', role: '7/7' },
+                { letter: 'g', accidental: 'n', role: 'b7' },
+                { letter: 'g', accidental: '#', role: '7' }
+            ], 'bb': [
+                { letter: 'b', accidental: 'b', role: 'tonic' },
+                { letter: 'b', accidental: 'n', role: '7/2' },
+                { letter: 'c', accidental: 'b', role: 'b9' },
+                { letter: 'c', accidental: 'n', role: '2' },
+                { letter: 'c', accidental: '#', role: '7/3' },
+                { letter: 'd', accidental: 'b', role: 'b3' },
+                { letter: 'd', accidental: 'n', role: '3' },
+                { letter: 'e', accidental: 'b', role: '4' },
+                { letter: 'e', accidental: 'n', role: '#11' },
+                { letter: 'f', accidental: 'b', role: 'b5' },
+                { letter: 'f', accidental: 'n', role: '5' },
+                { letter: 'f', accidental: '#', role: '7/6' },
+                { letter: 'g', accidental: 'b', role: 'b6' },
+                { letter: 'g', accidental: 'n', role: '6' },
+                { letter: 'g', accidental: '#', role: '7/7' },
+                { letter: 'a', accidental: 'b', role: 'b7' },
+                { letter: 'a', accidental: 'n', role: '7' }
+            ], 'b': [
+                { letter: 'b', accidental: 'n', role: 'tonic' },
+                { letter: 'b', accidental: '#', role: '7/2' },
+                { letter: 'c', accidental: 'n', role: 'b9' },
+                { letter: 'c', accidental: '#', role: '2' },
+                { letter: 'c', accidental: '##', role: '7/3' },
+                { letter: 'd', accidental: 'n', role: 'b3' },
+                { letter: 'd', accidental: '#', role: '3' },
+                { letter: 'e', accidental: 'n', role: '4' },
+                { letter: 'e', accidental: '#', role: '#11' },
+                { letter: 'f', accidental: 'n', role: 'b5' },
+                { letter: 'f', accidental: '#', role: '5' },
+                { letter: 'f', accidental: '##', role: '7/6' },
+                { letter: 'g', accidental: 'n', role: 'b6' },
+                { letter: 'g', accidental: '#', role: '6' },
+                { letter: 'g', accidental: '##', role: '7/7' },
+                { letter: 'a', accidental: 'n', role: 'b7' },
+                { letter: 'a', accidental: '#', role: 'b7' }
+            ] };
+        return tbl;
+    }
+    /**
+     * Find the harmonic role for the given pitch
+     * @param smoPitch
+     * @param keySignature
+     * @returns
+     */
+    static findRoleOfPitch(smoPitch, keySignature) {
+        const keyRoles = SmoMusic.enharmonicRoles[keySignature];
+        if (!keyRoles) {
+            return '';
+        }
+        const keyRole = keyRoles.find((x) => x.letter === smoPitch.letter.toLocaleLowerCase() && x.accidental === smoPitch.accidental.toLowerCase());
+        if (!keyRole) {
+            return '';
+        }
+        return keyRole.role;
+    }
+    /**
+     * Given a harmonic role, find the pitch that matches it.  If there is no one, just
+     * return the raw transposition
+     * @param role
+     * @param keySignature
+     * @param transposedPitch
+     * @returns
+     */
+    static findPitchForRole(role, keySignature, transposedPitch) {
+        const keyRoles = SmoMusic.enharmonicRoles[keySignature];
+        if (!keyRoles) {
+            return JSON.parse(JSON.stringify(transposedPitch));
+        }
+        const keyRole = keyRoles.find((x) => x.role === role);
+        if (!keyRole) {
+            return JSON.parse(JSON.stringify(transposedPitch));
+        }
+        let octave = transposedPitch.octave;
+        if ((transposedPitch.letter === 'a' || transposedPitch.letter === 'b') && keyRole.letter === 'c') {
+            octave += 1;
+        }
+        return { letter: keyRole.letter, accidental: keyRole.accidental, octave };
+    }
+    static rawTranspose(pitch, offset) {
+        return SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + offset);
+    }
+    static transposePitchForKey(pitch, originalKey, destinationKey, offset) {
+        const transposedPitch = SmoMusic.getEnharmonicInKey(SmoMusic.rawTranspose(pitch, offset), destinationKey);
+        const role = SmoMusic.findRoleOfPitch(pitch, originalKey);
+        if (role.length) {
+            return SmoMusic.findPitchForRole(role, destinationKey, transposedPitch);
+        }
+        return transposedPitch;
     }
     /**
      * convert from SMO to VEX format so we can use the VexFlow tables and methods
@@ -16540,8 +17074,7 @@ class SmoMusic {
         return 0;
     }
     /**
-    // Given a vex noteProp and an offset, offset that number
-    // of 1/2 steps.
+     * Transpose a `Pitch` `offset` 1/2 steps
      * @param pitch
      * @param offset
      * @returns
@@ -16552,12 +17085,14 @@ class SmoMusic {
         let vexKey = SmoMusic.pitchToVexKey(pitch);
         vexKey = SmoMusic.vexToCannonical(vexKey);
         const rootIndex = canon.indexOf(vexKey);
-        const index = (rootIndex + canon.length + offset) % canon.length;
         let octave = pitch.octave;
         if (Math.abs(offset) >= 12) {
             const octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
             octave += octaveOffset;
-            offset = offset % 12;
+            offset = offset - (12 * octaveOffset);
+            if (offset < 0) {
+                offset = 12 + offset;
+            }
         }
         if (rootIndex + offset >= canon.length) {
             octave += 1;
@@ -16566,6 +17101,7 @@ class SmoMusic {
             octave -= 1;
         }
         const rv = JSON.parse(JSON.stringify(pitch));
+        const index = (rootIndex + canon.length + offset) % canon.length;
         vexKey = canon[index];
         if (vexKey.length > 1) {
             rv.accidental = vexKey.substring(1);
@@ -17357,11 +17893,12 @@ class SmoNote {
      * transpose a note or grace note to a key-friendly enharmonic
      * @param pitchArray
      * @param offset
-     * @param keySignature
+     * @param originalKey - keySignature from original note
+     * @param destinationKey - keySignature we are transposing into
      * @returns
      */
-    transpose(pitchArray, offset, keySignature) {
-        return SmoNote.transpose(this, pitchArray, offset, keySignature);
+    transpose(pitchArray, offset, originalKey, destinationKey) {
+        return SmoNote.transpose(this, pitchArray, offset, originalKey, destinationKey);
     }
     /**
      * used to add chord and pitch by piano widget
@@ -17391,18 +17928,19 @@ class SmoNote {
      * @param note note to transpose
      * @param pitchArray an array of indices (not pitches) that indicate which pitches get altered if a chord
      * @param offset in 1/2 step
-     * @param keySignature for finding key-friendly enharmonic
+     * @param originalKey original key for enharmonic-friendly key
+     * @param destinationKey destination key signature
      * @returns
      */
-    static transpose(note, pitchArray, offset, keySignature) {
+    static transpose(note, pitchArray, offset, originalKey, destinationKey) {
         let index = 0;
         let j = 0;
-        let letterKey = 'a';
-        // note.noteType = 'n';
+        if (offset === 0 && originalKey === destinationKey) {
+            return note;
+        }
+        // If no specific pitch, use all the pitches
         if (pitchArray.length === 0) {
-            note.pitches.forEach((m) => {
-                pitchArray.push(note.pitches.indexOf(m));
-            });
+            pitchArray = Array.from(note.pitches.keys());
         }
         for (j = 0; j < pitchArray.length; ++j) {
             index = pitchArray[j];
@@ -17410,18 +17948,8 @@ class SmoNote {
                 SmoNote.addPitchOffset(note, offset);
             }
             else {
-                const pitch = music_1.SmoMusic.getKeyOffset(note.pitches[index], offset);
-                if (keySignature) {
-                    letterKey = pitch.letter + pitch.accidental;
-                    letterKey = music_1.SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-                    pitch.letter = letterKey[0];
-                    if (letterKey.length < 2) {
-                        pitch.accidental = 'n';
-                    }
-                    else {
-                        pitch.accidental = letterKey.substring(1);
-                    }
-                }
+                const original = JSON.parse(JSON.stringify(note.pitches[index]));
+                const pitch = music_1.SmoMusic.transposePitchForKey(original, originalKey, destinationKey, offset);
                 note.pitches[index] = pitch;
             }
         }
@@ -18177,7 +18705,7 @@ const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/
 const VF = eval('Vex.Flow');
 exports.SmoPartInfoStringTypes = ['partName', 'partAbbreviation'];
 exports.SmoPartInfoNumTypes = ['stavesAfter', 'stavesBefore'];
-exports.SmoPartInfoBooleanTypes = ['preserveTextGroups', 'cueInScore'];
+exports.SmoPartInfoBooleanTypes = ['preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
 /**
  * Part info contains information that group 1 or 2 adjacent staves.
  * Parts can have formatting that is indepenedent of the score
@@ -18195,6 +18723,7 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
         this.preserveTextGroups = false;
         this.cueInScore = false;
         this.displayCues = false;
+        this.expandMultimeasureRests = false;
         if (!params.layoutManager) {
             this.layoutManager = new scoreModifiers_1.SmoLayoutManager(scoreModifiers_1.SmoLayoutManager.defaults);
         }
@@ -18232,7 +18761,8 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
             pageLayoutMap: {},
             stavesAfter: 0,
             stavesBefore: 0,
-            cueInScore: false
+            cueInScore: false,
+            expandMultimeasureRests: false
         }));
     }
     serialize() {
@@ -18308,7 +18838,6 @@ exports.SmoScorePreferenceNumbers = ['defaultDupleDuration', 'defaultTripleDurat
  * @param autoAdvance Sibelius-like behavior of advancing cursor when a letter note is placed
  * @param defaultDupleDuration in ticks, even metered measures
  * @param defaultTripleDuration in ticks, 6/8 etc.
- * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
  * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
@@ -18319,7 +18848,6 @@ class SmoScorePreferences {
         this.autoAdvance = true;
         this.defaultDupleDuration = 4096;
         this.defaultTripleDuration = 6144;
-        this.customProportion = 100;
         this.showPiano = true;
         this.transposingScore = false;
         if (params) {
@@ -18337,7 +18865,6 @@ class SmoScorePreferences {
             autoAdvance: true,
             defaultDupleDuration: 4096,
             defaultTripleDuration: 6144,
-            customProportion: 100,
             showPiano: true,
             transposingScore: false
         };
@@ -18404,7 +18931,6 @@ class SmoScore {
                 autoAdvance: true,
                 defaultDupleDuration: 4096,
                 defaultTripleDuration: 6144,
-                customProportion: 100,
                 showPiano: true,
                 transposingScore: false
             },
@@ -18621,8 +19147,12 @@ class SmoScore {
         jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
         // Explode the sparse arrays of attributes into the measures
         SmoScore.deserializeColumnMapped(jsonObj);
+        // meaning of customProportion has changed, backwards-compatiblity
         if (typeof (jsonObj.score.preferences) !== 'undefined' && typeof (jsonObj.score.preferences.customProportion) === 'number') {
-            measureModifiers_1.SmoMeasureFormat.defaults.customProportion = jsonObj.score.preferences.customProportion;
+            measureModifiers_1.SmoMeasureFormat.defaults.proportionality = jsonObj.score.preferences.customProportion;
+            if (measureModifiers_1.SmoMeasureFormat.defaults.proportionality === measureModifiers_1.SmoMeasureFormat.legacyProportionality) {
+                measureModifiers_1.SmoMeasureFormat.defaults.proportionality = measureModifiers_1.SmoMeasureFormat.defaultProportionality;
+            }
         }
         // up-convert legacy layout data
         if (jsonObj.score.layout) {
@@ -18731,6 +19261,31 @@ class SmoScore {
             stave.staffId = i;
             stave.numberMeasures();
         }
+    }
+    isMultimeasureRest(measureIndex) {
+        let i = 0;
+        for (i = 0; i < this.staves.length; ++i) {
+            if (!this.staves[i].isRest(measureIndex)) {
+                return false;
+            }
+            if (this.staves[i].getVoltasForMeasure(measureIndex).length > 0) {
+                return false;
+            }
+            if (this.staves[i].isRepeat(measureIndex)) {
+                return false;
+            }
+            if (this.staves[i].isRehearsal(measureIndex)) {
+                return false;
+            }
+            if (this.staves[i].measureInstrumentMap[measureIndex]) {
+                return false;
+            }
+            if (this.staves[i].keySignatureMap[measureIndex]) {
+                return false;
+            }
+        }
+        const measure = this.staves[0].measures[measureIndex];
+        return true;
     }
     updateMeasureFormats() {
         this.staves.forEach((staff) => {
@@ -18874,7 +19429,7 @@ class SmoScore {
             staff.measures.forEach((mm) => {
                 if (mm.transposeIndex !== 0) {
                     const concert = music_1.SmoMusic.vexKeySigWithOffset(mm.keySignature, -1 * mm.transposeIndex);
-                    mm.transposeToOffset(0);
+                    mm.transposeToOffset(0, concert);
                     mm.transposeIndex = 0;
                     mm.keySignature = concert;
                 }
@@ -18891,7 +19446,7 @@ class SmoScore {
                 const inst = staff.getStaffInstrument(mm.measureNumber.measureIndex);
                 if (inst.keyOffset !== 0) {
                     const concert = music_1.SmoMusic.vexKeySigWithOffset(mm.keySignature, inst.keyOffset);
-                    mm.transposeToOffset(inst.keyOffset);
+                    mm.transposeToOffset(inst.keyOffset, concert);
                     mm.transposeIndex = inst.keyOffset;
                     mm.keySignature = concert;
                 }
@@ -19206,7 +19761,7 @@ class SmoPageLayout extends SmoScoreModifierBase {
     }
 }
 exports.SmoPageLayout = SmoPageLayout;
-exports.GlobalLayoutAttributesArray = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
+exports.GlobalLayoutAttributesArray = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'proportionality'];
 /**
  * Storage and utilities for layout information in the score.  Each
  * manager has one set of page height/width, since svg element
@@ -19240,7 +19795,8 @@ class SmoLayoutManager extends SmoScoreModifierBase {
             zoomScale: 2.0,
             noteSpacing: 1.0,
             pageWidth: 8 * 96 + 48,
-            pageHeight: 11 * 96
+            pageHeight: 11 * 96,
+            proportionality: 5
         };
     }
     static get defaults() {
@@ -20558,12 +21114,24 @@ class SmoSystemStaff {
             for (i; i <= entry.instrument.endSelector.measure; ++i) {
                 const measure = this.measures[i];
                 const concertKey = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
-                measure.transposeToOffset(entry.instrument.keyOffset, entry.instrument.clef);
+                const targetKey = music_1.SmoMusic.vexKeySigWithOffset(concertKey, entry.instrument.keyOffset);
+                measure.transposeToOffset(entry.instrument.keyOffset, targetKey, entry.instrument.clef);
                 measure.transposeIndex = entry.instrument.keyOffset;
-                measure.keySignature = music_1.SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
+                measure.keySignature = targetKey;
                 measure.setClef(entry.instrument.clef);
             }
         });
+    }
+    isRest(index) {
+        return this.measures[index].isRest();
+    }
+    isRepeat(index) {
+        return !(this.measures[index].getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.singleBar &&
+            (this.measures[index].getStartBarline().barline === measureModifiers_1.SmoBarline.barlines.singleBar ||
+                this.measures[index].getStartBarline().barline === measureModifiers_1.SmoBarline.barlines.noBar));
+    }
+    isRehearsal(index) {
+        return !(typeof (this.measures[index].getRehearsalMark()) === 'undefined');
     }
     // ### addStaffModifier
     // add a staff modifier, or replace a modifier of same type
@@ -23503,7 +24071,8 @@ class XmlToSmo {
         return 0.264583;
     }
     static get customProportionDefault() {
-        return score_1.SmoScore.defaults.preferences.customProportion;
+        var _a, _b;
+        return (_b = (_a = score_1.SmoScore.defaults.layoutManager) === null || _a === void 0 ? void 0 : _a.getGlobalLayout().proportionality) !== null && _b !== void 0 ? _b : 0;
     }
     static get pageLayoutMap() {
         return [
@@ -24084,7 +24653,7 @@ class XmlToSmo {
             smoMeasure.format.measureIndex = xmlState.measureNumber;
             smoMeasure.format.systemBreak = xmlHelpers_1.XmlHelpers.isSystemBreak(measureElement);
             smoMeasure.tempo = xmlState.tempo;
-            smoMeasure.format.customProportion = XmlToSmo.customProportionDefault;
+            smoMeasure.format.proportionality = XmlToSmo.customProportionDefault;
             xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
             smoMeasure.keySignature = xmlState.keySignature;
             smoMeasure.timeSignature = measure_1.SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
@@ -24207,7 +24776,7 @@ class SmoAudioScore {
     // ### volumeFromNote
     // Return a normalized volume from the dynamic setting of the note
     // or supplied default if none exists
-    volumeFromNote(smoNote, def) {
+    static volumeFromNote(smoNote, def) {
         if (typeof (def) === 'undefined' || def === 0) {
             def = SmoAudioScore.dynamicVolumeMap[noteModifiers_1.SmoDynamicText.dynamics.PP];
         }
@@ -24305,13 +24874,13 @@ class SmoAudioScore {
             if (endSelection !== null && typeof (endSelection.note) !== 'undefined') {
                 const endNote = endSelection.note;
                 const curNote = selection.note;
-                endDynamic = this.volumeFromNote(endNote);
-                const startDynamic = this.volumeFromNote(curNote, track.volume);
+                endDynamic = SmoAudioScore.volumeFromNote(endNote);
+                const startDynamic = SmoAudioScore.volumeFromNote(curNote, track.volume);
                 if (startDynamic === endDynamic) {
                     const nextSelection = selections_1.SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
                     if (nextSelection) {
                         const nextNote = nextSelection.note;
-                        endDynamic = this.volumeFromNote(nextNote);
+                        endDynamic = SmoAudioScore.volumeFromNote(nextNote);
                     }
                 }
                 if (startDynamic === endDynamic) {
@@ -24331,7 +24900,7 @@ class SmoAudioScore {
     computeVolume(track, selection) {
         const note = selection.note;
         if (track.volume === 0) {
-            track.volume = this.volumeFromNote(note, SmoAudioScore.dynamicVolumeMap.p);
+            track.volume = SmoAudioScore.volumeFromNote(note, SmoAudioScore.dynamicVolumeMap.p);
             return;
         }
         if (track.hairpins.length) {
@@ -24340,7 +24909,7 @@ class SmoAudioScore {
             track.volume += hp.delta * coff;
         }
         else {
-            track.volume = this.volumeFromNote(note, track.volume);
+            track.volume = SmoAudioScore.volumeFromNote(note, track.volume);
         }
     }
     getSlurInfo(track, selection) {
@@ -24860,6 +25429,7 @@ class PasteBuffer {
         this.score = null;
         this.tupletNoteMap = {};
         this.modifiers = [];
+        this.modifiersToPlace = [];
         this.destination = selections_1.SmoSelector.default;
         this.staffSelectors = [];
         this.notes = [];
@@ -24913,6 +25483,11 @@ class PasteBuffer {
                 });
             }
             const isTuplet = (_b = (_a = selection === null || selection === void 0 ? void 0 : selection.note) === null || _a === void 0 ? void 0 : _a.isTuplet) !== null && _b !== void 0 ? _b : false;
+            // We store copy in concert pitch.  The originalKey is the original key of the copy.
+            // the destKey is the originalKey in concert pitch.
+            const originalKey = selection.measure.keySignature;
+            const keyOffset = -1 * selection.measure.transposeIndex;
+            const destKey = music_1.SmoMusic.vexKeySignatureTranspose(originalKey, keyOffset).toLocaleLowerCase();
             if (isTuplet) {
                 const tuplet = selection.measure.getTupletForNote(selection.note);
                 const index = tuplet.getIndexOfNote(selection.note);
@@ -24920,15 +25495,16 @@ class PasteBuffer {
                     const ntuplet = tuplet_1.SmoTuplet.cloneTuplet(tuplet);
                     this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
                     ntuplet.notes.forEach((nnote) => {
-                        this.notes.push({ selector, note: nnote });
+                        const xposeNote = note_1.SmoNote.transpose(note_1.SmoNote.clone(nnote), [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, destKey);
+                        this.notes.push({ selector, note: xposeNote, originalKey: destKey });
                         selector = JSON.parse(JSON.stringify(selector));
                         selector.tick += 1;
                     });
                 }
             }
             else if (selection.note) {
-                const note = note_1.SmoNote.clone(selection.note);
-                this.notes.push({ selector, note });
+                const note = note_1.SmoNote.transpose(note_1.SmoNote.clone(selection.note), [], keyOffset, selection.measure.keySignature, destKey);
+                this.notes.push({ selector, note, originalKey: destKey });
             }
         });
         this.notes.sort((a, b) => selections_1.SmoSelector.gt(a.selector, b.selector) ? 1 : -1);
@@ -25070,28 +25646,40 @@ class PasteBuffer {
         });
         return voiceTicks;
     }
-    // ### _populateModifier
-    // If the destination contains a modifier start and end, copy and paste it.
+    /**
+     * If the source contains a staff modifier that ends on the source selection, copy the modifier
+     * @param srcSelector
+     * @param destSelector
+     * @param staff
+     * @returns
+     */
     _populateModifier(srcSelector, destSelector, staff) {
-        // If this is the ending point of a staff modifier, paste the modifier
         const mod = this._findPlacedModifier(srcSelector);
         if (mod && this.score) {
-            const tickOffset = selections_1.SmoSelection.countTicks(this.score, srcSelector, destSelector);
-            const startSelection = selections_1.SmoSelection.selectionFromSelector(this.score, mod.startSelector);
-            if (startSelection) {
-                const newStart = selections_1.SmoSelection.advanceTicks(this.score, startSelection, tickOffset);
-                if (newStart) {
-                    mod.startSelector = JSON.parse(JSON.stringify(newStart.selector));
-                    mod.endSelector = JSON.parse(JSON.stringify(destSelector));
-                    mod.attrs.id = VF.Element.newID();
-                    staff.addStaffModifier(mod);
-                }
+            // Don't copy modifiers that cross staff boundaries outside the source staff b/c it's not clear what
+            // the dest staff should be
+            if (mod.startSelector.staff !== mod.endSelector.staff && srcSelector.staff !== destSelector.staff) {
+                return;
             }
+            const repl = staffModifiers_1.StaffModifierBase.deserialize(mod.serialize());
+            repl.endSelector = JSON.parse(JSON.stringify(destSelector));
+            const tickOffset = selections_1.SmoSelection.countTicks(this.score, mod.startSelector, mod.endSelector);
+            this.modifiersToPlace.push({
+                modifier: repl,
+                ticksToStart: tickOffset
+            });
         }
     }
-    // ### _populateNew
-    // Start copying the paste buffer into the destination by copying the notes and working out
-    // the measure overlap
+    /**
+     * Start copying the paste buffer into the destination by copying the notes and working out
+     * the measure overlap
+     *
+     * @param voice
+     * @param measure
+     * @param tickmap
+     * @param startSelector
+     * @returns
+     */
     _populateNew(voice, measure, tickmap, startSelector) {
         let currentDuration = tickmap.durationMap[startSelector.tick];
         let i = 0;
@@ -25108,7 +25696,7 @@ class PasteBuffer {
                 note.pitches.forEach((pitch, ix) => {
                     pitchAr.push(ix);
                 });
-                note_1.SmoNote.transpose(note, pitchAr, measure.transposeIndex, measure.keySignature);
+                note_1.SmoNote.transpose(note, pitchAr, measure.transposeIndex, selection.originalKey, measure.keySignature);
             }
             this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
             if (note.isTuplet) {
@@ -25221,6 +25809,7 @@ class PasteBuffer {
     pasteSelections(score, selector) {
         let i = 0;
         this.destination = selector;
+        this.modifiersToPlace = [];
         if (this.notes.length < 1) {
             return;
         }
@@ -25272,6 +25861,22 @@ class PasteBuffer {
             const nsel = selections_1.SmoSelection.measureSelection(this.score, selector.staff, selector.measure);
             if (nsel) {
                 this.replacementMeasures.push(nsel);
+            }
+        });
+        this.modifiersToPlace.forEach((mod) => {
+            let selection = selections_1.SmoSelection.selectionFromSelector(this.score, mod.modifier.endSelector);
+            while (selection && mod.ticksToStart !== 0) {
+                if (mod.ticksToStart < 0) {
+                    selection = selections_1.SmoSelection.nextNoteSelectionFromSelector(this.score, selection.selector);
+                }
+                else {
+                    selection = selections_1.SmoSelection.lastNoteSelectionFromSelector(this.score, selection.selector);
+                }
+                mod.ticksToStart -= 1 * Math.sign(mod.ticksToStart);
+            }
+            if (selection) {
+                mod.modifier.startSelector = JSON.parse(JSON.stringify(selection.selector));
+                selection.staff.addStaffModifier(mod.modifier);
             }
         });
     }
@@ -25632,7 +26237,7 @@ class SmoOperation {
             mm.pitches.forEach(() => {
                 par.push(par.length);
             });
-            note_1.SmoNote.transpose(mm, par, offset, selection.measure.keySignature);
+            note_1.SmoNote.transpose(mm, par, offset, selection.measure.keySignature, selection.measure.keySignature);
         });
     }
     static slashGraceNotes(selections) {
@@ -25727,7 +26332,6 @@ class SmoOperation {
     // ## Description
     // Transpose the selected note, trying to find a key-signature friendly value
     static transpose(selection, offset) {
-        let pitchIx = 0;
         let trans;
         let transInt = 0;
         let i = 0;
@@ -25738,8 +26342,7 @@ class SmoOperation {
         const note = selection.note;
         if (measure && note) {
             const pitchar = [];
-            pitchIx = 0;
-            note.pitches.forEach((opitch) => {
+            note.pitches.forEach((opitch, pitchIx) => {
                 // Only translate selected pitches
                 const shouldXpose = selection.selector.pitches.length === 0 ||
                     selection.selector.pitches.indexOf(pitchIx) >= 0;
@@ -25767,7 +26370,6 @@ class SmoOperation {
                     }
                 });
                 pitchar.push(trans);
-                pitchIx += 1;
             });
             note.pitches = pitchar;
             return true;
@@ -26226,6 +26828,46 @@ class SmoOperation {
         selections[0].staff.measureInstrumentMap = instMap;
         selections[0].staff.updateInstrumentOffsets();
     }
+    static computeMultipartRest(score) {
+        let i = 0;
+        let j = 0;
+        const measureRanges = {};
+        const measureCount = score.staves[0].measures.length;
+        if (score.staves[0].partInfo.expandMultimeasureRests === true) {
+            return;
+        }
+        while (i < measureCount) {
+            if (score.isMultimeasureRest(i)) {
+                for (j = i + 1; j < measureCount; ++j) {
+                    if (!score.isMultimeasureRest(j)) {
+                        break;
+                    }
+                }
+                if (j - i >= 2) {
+                    measureRanges[i] = j;
+                }
+                i = j + 1;
+            }
+            else {
+                const startMeasure = i;
+                score.staves.forEach((staff) => {
+                    staff.measures[startMeasure].svg.hideMultimeasure = false;
+                });
+                i += 1;
+            }
+        }
+        const multiKeys = Object.keys(measureRanges).map((x) => parseInt(x, 10));
+        multiKeys.forEach((key) => {
+            const endMeasure = measureRanges[key];
+            score.staves.forEach((staff) => {
+                staff.measures[key].svg.multimeasureLength = endMeasure - key;
+                staff.measures[key].svg.hideMultimeasure = false;
+                for (i = key + 1; i < endMeasure; ++i) {
+                    staff.measures[i].svg.hideMultimeasure = true;
+                }
+            });
+        });
+    }
 }
 exports.SmoOperation = SmoOperation;
 
@@ -26553,31 +27195,32 @@ class SmoSelection {
         return rv;
     }
     /**
-     * Count the number of ticks between selector 1 and selector 2;
+     * Count the number of tick indices between selector 1 and selector 2;
      * @param score
      * @param sel1
      * @param sel2
      * @returns
      */
     static countTicks(score, sel1, sel2) {
-        const selAr = SmoSelector.order(sel1, sel2);
-        const startSel = selAr[0];
-        const endSel = selAr[1];
+        if (SmoSelector.eq(sel1, sel2)) {
+            return 0;
+        }
+        const backwards = SmoSelector.gt(sel1, sel2);
         let ticks = 0;
-        let startSelection = SmoSelection.selectionFromSelector(score, startSel);
-        const endSelection = SmoSelection.selectionFromSelector(score, endSel);
-        while (startSel.measure <= endSel.measure) {
-            if (startSelection === null || startSelection.note === null || endSelection === null || endSelection.note === null) {
-                return ticks;
-            }
-            if (startSel.measure === endSel.measure) {
-                ticks += endSelection.measure.getRemainingTicks(endSel.voice, endSel.tick) - startSelection.measure.getRemainingTicks(endSel.voice, endSel.tick);
+        const startSelection = SmoSelection.selectionFromSelector(score, sel1);
+        let endSelection = SmoSelection.selectionFromSelector(score, sel2);
+        while (endSelection !== null && startSelection !== null) {
+            if (SmoSelector.eq(startSelection.selector, endSelection.selector)) {
                 break;
             }
-            ticks += startSelection.measure.getRemainingTicks(startSel.voice, startSel.tick);
-            startSel.measure += 1;
-            startSel.tick = 0;
-            startSelection = SmoSelection.selectionFromSelector(score, startSel);
+            if (backwards) {
+                endSelection = SmoSelection.nextNoteSelectionFromSelector(score, endSelection.selector);
+                ticks -= 1;
+            }
+            else {
+                endSelection = SmoSelection.lastNoteSelectionFromSelector(score, endSelection.selector);
+                ticks += 1;
+            }
         }
         return ticks;
     }
@@ -35952,8 +36595,8 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
             increment: 0.1
         });
         this.italicsCtrl = new toggle_1.SuiToggleComposite(this.dialog, {
-            id: this.id + 'italics',
-            smoName: 'italics',
+            id: this.id + 'italic',
+            smoName: 'italic',
             parentControl: this,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiToggleComponent',
@@ -35992,7 +36635,7 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
             family: this.familyPart.getValue().toString(),
             size: this.sizePart.getValue(),
             weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
-            style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
+            style: this.italicsCtrl.getValue() ? 'italic' : 'normal'
         };
     }
     setValue(value) {
@@ -36001,7 +36644,7 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
         if (typeof (value.size) !== 'number') {
             value.size = scoreModifiers_1.SmoScoreText.fontPointSize(value.size);
         }
-        if (value.style && value.style === 'italics') {
+        if (value.style && value.style === 'italic') {
             italics = true;
         }
         const boldString = scoreModifiers_1.SmoScoreText.weightString(value.weight);
@@ -39411,10 +40054,10 @@ class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
         this.writeNumber('customStretch', value);
     }
     get customProportion() {
-        return this.format.customProportion;
+        return this.format.proportionality;
     }
     set customProportion(value) {
-        this.writeNumber('customProportion', value);
+        this.writeNumber('proportionality', value);
     }
     get autoJustify() {
         return this.format.autoJustify;
@@ -39754,6 +40397,13 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
     set restoreScoreView(value) {
         this.restoreView = value;
     }
+    get expandMultimeasureRest() {
+        return this.partInfo.expandMultimeasureRests;
+    }
+    set expandMultimeasureRest(value) {
+        this.partInfo.expandMultimeasureRests = value;
+        this.update();
+    }
     get noteSpacing() {
         return this.partInfo.layoutManager.globalLayout.noteSpacing;
     }
@@ -39894,32 +40544,30 @@ exports.SuiPartInfoDialog = SuiPartInfoDialog;
 SuiPartInfoDialog.dialogElements = {
     label: 'Part Settings', elements: [{
             smoName: 'partName',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiTextInputComponent',
             label: 'Part Name'
         }, {
             smoName: 'partAbbreviation',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiTextInputComponent',
             label: 'Part Abbrev.'
         }, {
             smoName: 'preserveTextGroups',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiToggleComponent',
             label: 'Part-specific text'
         }, {
             smoName: 'cueInScore',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiToggleComponent',
             label: 'Show as Cues in score'
         }, {
             smoName: 'includeNext',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiToggleComponent',
             label: 'Include Next Staff in Part'
         }, {
+            smoName: 'expandMultimeasureRest',
+            control: 'SuiToggleComponent',
+            label: 'Expand Multimeasure Rests'
+        }, {
             smoName: 'restoreScoreView',
-            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiToggleComponent',
             label: 'Restore View on Close'
         }, {

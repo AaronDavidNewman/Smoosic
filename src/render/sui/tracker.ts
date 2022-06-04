@@ -93,9 +93,9 @@ export class SuiTracker extends SuiMapper {
       const zmeasureSel = SmoSelection.measureSelection(this.score,
         0, selector.measure);
       const measure = measureSel?.measure as SmoMeasure;
-      if (zmeasureSel?.measure?.svg?.logicalBox && measureSel?.measure?.svg?.logicalBox) {
+      if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
         const screenBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
-        const y: number = screenBox.y;
+        const y: number = Math.max(screenBox.y - 20, 0);
         let x = screenBox.x;
         const noteSelector = SmoSelection.noteFromSelector(this.score, selector);
         if (noteSelector?.note?.logicalBox) {
@@ -104,7 +104,7 @@ export class SuiTracker extends SuiMapper {
 
         const mbox = { x, y, width: 1, height: 1 };
         const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
-        const outerBox = { x, y, width: mbox.width, height:  (sysBottom - y) * 2 }; 
+        const outerBox = { x, y, width: mbox.width, height:  (sysBottom - y) }; 
         
         const at = [];
         const symbol = '\u25BC';

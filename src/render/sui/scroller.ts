@@ -18,6 +18,7 @@ export class SuiScroller {
   _offsetInitial: SvgPoint;
   viewport: SvgBox = SvgBox.default;
   logicalViewport: SvgBox = SvgBox.default;
+  scrolling: boolean = false;
   // ### constructor
   // selector is the scrollable DOM container of the music container
   // (grandparent of svg element)
@@ -48,12 +49,6 @@ export class SuiScroller {
   // update viewport in response to scroll events
   handleScroll(x: number, y: number) {
     this._scroll = { x, y };
-    this.viewport = SvgHelpers.boxPoints(
-      $(this.selector).offset().left,
-      $(this.selector).offset().top,
-      $(this.selector).width(),
-      $(this.selector).height());
-    this.deferUpdateDebug();
   }
   updateDebug() {
     const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
@@ -81,15 +76,16 @@ export class SuiScroller {
   // not larger than the screen)
   scrollVisibleBox(box: SvgBox) {
     let yoff = 0;
-    const topY = this.scrollState.y;
-    const bottomY = topY + this.logicalViewport.height;
-    if (topY >= box.y || box.y + box.height >= bottomY) {      
-      yoff = (box.y - this.scrollState.y) + 20;
+    let xoff = 0;
+    const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderer.svg, box,
+      { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
+    if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
+      yoff = screenBox.y;
     }
-    const xoff = 0;
-    if (xoff !== 0 || yoff !== 0) {
-      this.scrollOffset(xoff, yoff);
+    if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
+      xoff = screenBox.x;
     }
+    this.scrollOffset(xoff, yoff);
   }
   // Update viewport size, and also fix height of scroll region.
   updateViewport() {
@@ -118,17 +114,9 @@ export class SuiScroller {
   // ### scrollOffset
   // scroll the offset from the starting scroll point
   scrollOffset(x: number, y: number) {
-    const self = this;
-    const cur = { x: this._scroll.x, y: this._scroll.y };
-    setTimeout(() => {
-      if (x) {
-        $(this.selector)[0].scrollLeft = cur.x + x;
-      }
-      if (y) {
-        $(this.selector)[0].scrollTop = cur.y + y;
-      }
-      self.handleScroll($(this.selector)[0].scrollLeft, $(this.selector)[0].scrollTop);
-    }, 1);
+    const xScreen = this._scroll.x + x;
+    const yScreen = this._scroll.y + y;
+    this.scrollAbsolute(xScreen, yScreen);
   }
 
   // ### netScroll
