@@ -354,15 +354,15 @@ export class SmoOperation {
       modifiers = [modifiers];
     }
     modifiers.forEach((mm: SmoGraceNote) => {
-      const par: number[] = [];
+      const par: Pitch[] = [];
       if (!mm) {
         console.warn('bad modifier grace note');
         return;
       }
-      mm.pitches.forEach(() => {
-        par.push(par.length);
+      mm.pitches.forEach((pitch) => {
+        par.push(SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + offset));
       });
-      SmoNote.transpose(mm, par, offset, selection.measure.keySignature, selection.measure.keySignature);
+      mm.pitches = par;
     });
   }
 
@@ -481,27 +481,29 @@ export class SmoOperation {
         // Translate the pitch, ignoring enharmonic
         trans = shouldXpose ? SmoMusic.getKeyOffset(opitch, offset)
           : JSON.parse(JSON.stringify(opitch));
-        trans = SmoMusic.getEnharmonicInKey(trans, measure.keySignature);
-        if (!trans.accidental) {
-          trans.accidental = 'n';
-        }
-        transInt = SmoMusic.smoPitchToInt(trans);
-
-        // Look through the earlier notes in the measure and try
-        // to find an equivalent note, and convert it if it exists.
-        measure.voices.forEach((voice) => {
-          for (i = 0; i < selection.selector.tick
-            && i < voice.notes.length; ++i) {
-            const prevNote = voice.notes[i];
-            // eslint-disable-next-line
-            prevNote.pitches.forEach((prevPitch: Pitch) => {
-              const prevInt = SmoMusic.smoPitchToInt(prevPitch);
-              if (prevInt === transInt) {
-                trans = JSON.parse(JSON.stringify(prevPitch));
-              }
-            });
+        if (shouldXpose) {
+          trans = SmoMusic.getEnharmonicInKey(trans, measure.keySignature);
+          if (!trans.accidental) {
+            trans.accidental = 'n';
           }
-        });
+          transInt = SmoMusic.smoPitchToInt(trans);
+
+          // Look through the earlier notes in the measure and try
+          // to find an equivalent note, and convert it if it exists.
+          measure.voices.forEach((voice) => {
+            for (i = 0; i < selection.selector.tick
+              && i < voice.notes.length; ++i) {
+              const prevNote = voice.notes[i];
+              // eslint-disable-next-line
+              prevNote.pitches.forEach((prevPitch: Pitch) => {
+                const prevInt = SmoMusic.smoPitchToInt(prevPitch);
+                if (prevInt === transInt) {
+                  trans = JSON.parse(JSON.stringify(prevPitch));
+                }
+              });
+            }
+          });
+        }
         pitchar.push(trans as Pitch);
       });
       note.pitches = pitchar;
@@ -682,8 +684,10 @@ export class SmoOperation {
   static removeEnding(score: SmoScore, ending: SmoVolta) {
     let i = 0;
     score.staves.forEach((staff) => {
-      for (i = (ending.startSelector as SmoSelector).measure; i <= (ending.endSelector as SmoSelector).measure; ++i) {
-        staff.measures[i].removeNthEnding(ending.number);
+      // bug
+      // Due to deleted measures, volta might not match up so look through all measures.
+      for (i = 0; i < staff.measures.length; ++i) {
+        staff.measures[i].removeNthEnding(ending);
       }
     });
   }

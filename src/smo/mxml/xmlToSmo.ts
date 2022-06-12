@@ -6,7 +6,7 @@
  */
 import { XmlHelpers } from './xmlHelpers';
 import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
-import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
+import { SmoLayoutManager, SmoTextGroup, SmoPageLayout } from '../data/scoreModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, SmoVolta, SmoBarline } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';
@@ -15,10 +15,9 @@ import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifier
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoNote, SmoNoteParams } from '../data/note';
 import { Pitch, PitchKey, Clef } from '../data/common';
-import { SmoSlur } from '../../../release/smoosic';
 import { SmoSelection } from '../xform/selections';
 import { SmoOperation } from '../xform/operations';
-import { SmoInstrument } from '../data/staffModifiers';
+import { SmoInstrument, SmoSlur } from '../data/staffModifiers';
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -27,6 +26,12 @@ import { SmoInstrument } from '../data/staffModifiers';
 export class XmlToSmo {
   static get mmPerPixel() {
     return 0.264583;
+  }
+  /**
+   * Vex renders everything as if the font size were 39
+   */
+  static get vexFontSize() {
+    return 39;
   }
   static get customProportionDefault(): number {
     return SmoScore.defaults.layoutManager?.getGlobalLayout().proportionality ?? 0;
@@ -99,7 +104,7 @@ export class XmlToSmo {
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
-          XmlToSmo.defaults(scoreElement, rv, layoutDefaults);
+          XmlToSmo.defaults(scoreElement, rv, layoutDefaults, xmlState);
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart();
           XmlToSmo.part(scoreElement, xmlState);
@@ -198,20 +203,10 @@ export class XmlToSmo {
    * @param score 
    * @param layoutDefaults 
    */
-  static defaults(defaultsElement: Element, score: SmoScore, layoutDefaults: SmoLayoutManager) {
+  static defaults(defaultsElement: Element, score: SmoScore, layoutDefaults: SmoLayoutManager, xmlState: XmlState) {
     // Default scale for mxml
     let scale = 1 / 7;
     const currentScale = layoutDefaults.getGlobalLayout().svgScale;
-    const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
-    if (pageLayoutNode.length) {
-      XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
-    }
-    const pageMarginNode = XmlHelpers.getChildrenFromPath(defaultsElement,
-      ['page-layout', 'page-margins']);
-    if (pageMarginNode.length) {
-      XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
-    }
-
     const scaleNode = defaultsElement.getElementsByTagName('scaling');
     if (scaleNode.length) {
       const mm = XmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
@@ -220,9 +215,33 @@ export class XmlToSmo {
         scale = mm / tn;
       }
     }
-    // Convert from mm to pixels, this is our default svg scale
-    // mm per tenth * pixels / mm gives us pixels per tenth
-    layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / XmlToSmo.mmPerPixel;
+    const fontNode = defaultsElement.getElementsByTagName('music-font');
+    // All musicxml sizes are given in 'tenths'.  Smoosic and vex use pixels. so find the ratio and 
+    // normalize all values.
+    xmlState.pixelsPerTenth = scale / XmlToSmo.mmPerPixel;
+    if (fontNode.length) {
+      const fontString = fontNode[0].getAttribute('font-size');
+      if (fontString) {
+        xmlState.musicFontSize = parseInt(fontString, 10);
+      }
+    }
+    const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
+    if (pageLayoutNode.length) {
+      XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
+      layoutDefaults.globalLayout.pageHeight *= xmlState.pixelsPerTenth;
+      layoutDefaults.globalLayout.pageWidth *= xmlState.pixelsPerTenth;
+    }
+    const pageMarginNode = XmlHelpers.getChildrenFromPath(defaultsElement,
+      ['page-layout', 'page-margins']);
+    if (pageMarginNode.length) {
+      XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
+      SmoPageLayout.attributes.forEach((attr) => {
+        layoutDefaults.pageLayouts[0][attr] *= xmlState.pixelsPerTenth;
+      });
+    }
+    
+    // svgScale is the ratio of music font size to the default Vex font size (39).
+    layoutDefaults.globalLayout.svgScale = xmlState.musicFontSize / XmlToSmo.vexFontSize;
     score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
   }
 

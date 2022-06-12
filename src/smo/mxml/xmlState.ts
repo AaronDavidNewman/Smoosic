@@ -114,6 +114,8 @@ export class XmlState {
   keySignature: string = 'c';
   timeSignature: string = '4/4';
   voiceIndex: number = 0;
+  pixelsPerTenth: number = 0.4;
+  musicFontSize: number = 14;
   // Initialize things that persist throughout a staff
   // likc hairpins and slurs
   initializeForPart() {

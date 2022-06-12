@@ -107,7 +107,7 @@ export class SuiAudioPlayer {
 
   getNoteSoundData(measureIndex: number) {
     const measureNotes: Record<number, SoundParams[]> = {};
-    let measureTicks = this.score.staves[0].measures[0].getMaxTicksVoice();
+    let measureTicks = this.score.staves[0].measures[measureIndex].getMaxTicksVoice();
     const freqDuplicates: Record<number, Record<number, boolean>> = {};
     this.score.staves.forEach((staff, staffIx) => {
       const measure = staff.measures[measureIndex];
@@ -123,7 +123,7 @@ export class SuiAudioPlayer {
           selector.tick = tickIx;
           let ties: SmoTie[] = [];
           const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
-          if (smoNote.noteType === 'n') {
+          if (smoNote.noteType === 'n' && measure.clef !== 'percussion') {
             ties = staff.getTiesStartingAt(selector);
             smoNote.pitches.forEach((pitch, pitchIx) => {
               const freq = SmoAudioPitch.smoPitchToFrequency(pitch, xpose, smoNote.getMicrotone(pitchIx) ?? null);

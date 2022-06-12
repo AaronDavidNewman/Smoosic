@@ -653,7 +653,7 @@ export class SmoMusic {
         { letter: 'g', accidental: '#', role: '6'},
         { letter: 'g', accidental: '##', role: '7/7'},
         { letter: 'a', accidental: 'n', role: 'b7'},
-        { letter: 'a', accidental: '#', role: 'b7'}
+        { letter: 'a', accidental: '#', role: '7'}
       ]};
     return tbl;
   }
