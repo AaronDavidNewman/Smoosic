@@ -53,6 +53,13 @@ export class SuiGlobalLayoutAdapter extends SuiComponentAdapter {
   set zoomScale(value: number) {
     this.writeValue('zoomScale', value);
   }
+  get maxMeasureSystem() {
+    return this.scoreLayout.maxMeasureSystem;
+  }
+  set maxMeasureSystem(value: number) {
+    this.writeValue('maxMeasureSystem', value);
+  }
+
   get pageSize() {
     const sz = SmoScore.pageSizeFromDimensions(this.scoreLayout.pageWidth, this.scoreLayout.pageHeight);
     if (sz === null) {
@@ -134,6 +141,12 @@ export class SuiGlobalLayoutDialog extends SuiDialogAdapterBase<SuiGlobalLayoutA
           control: 'SuiRockerComponent',
           label: '% Note size',
           dataType: 'percent'
+        }, {
+          smoName: 'maxMeasureSystem',
+          defaultValue: SmoLayoutManager.defaults.globalLayout.maxMeasureSystem,
+          control: 'SuiRockerComponent',
+          label: 'Max Measure/System (0=auto)',
+          dataType: 'int'
         }],
       staticText: []
     };

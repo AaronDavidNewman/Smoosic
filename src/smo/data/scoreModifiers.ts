@@ -174,8 +174,8 @@ export class SmoPageLayout extends SmoScoreModifierBase {
   }
 }
 export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
-export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale' | 'proportionality';
-export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'proportionality'];
+export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale' | 'proportionality' | 'maxMeasureSystem';
+export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'proportionality', 'maxMeasureSystem'];
 /**
  * Global layout are parameters that determine the layout of the whole score, because they affect the containing svg element
  * @category {SmoParams}
@@ -186,7 +186,8 @@ export interface SmoGlobalLayout {
   noteSpacing: number;
   pageWidth: number;
   pageHeight: number;
-  proportionality: number
+  proportionality: number,
+  maxMeasureSystem: number
 }
 
 /**
@@ -206,6 +207,7 @@ export interface ScaledPageLayout {
   interGap: number;
   intraGap: number;
   pages: number;
+  maxMeasureSystem: number;
 }
 /**
  * Constructor parameters for {@link SmoLayoutManager}
@@ -230,7 +232,8 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
       noteSpacing: 1.0,
       pageWidth: 8 * 96 + 48,
       pageHeight: 11 * 96,
-      proportionality: 5
+      proportionality: 5,
+      maxMeasureSystem: 0
     };
   }
   static get defaults(): SmoLayoutManagerParams {
@@ -240,7 +243,7 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     };
   }
   static get attributes(): GlobalLayoutAttributes[] {
-    return ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
+    return ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'maxMeasureSystem'];
   }
   // Attributes that are scaled by svgScale
   /* static get scalableAttributes(): Global {
@@ -280,12 +283,17 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     rv.noteSpacing = globalLayout.noteSpacing * globalLayout.svgScale;
     rv.svgScale = globalLayout.svgScale;
     rv.zoomScale = globalLayout.zoomScale;
+    rv.maxMeasureSystem = globalLayout.maxMeasureSystem;
+    
     return rv as ScaledPageLayout;
   }
   globalLayout: SmoGlobalLayout;
   pageLayouts: SmoPageLayout[] = [];
   constructor(params: SmoLayoutManagerParams) {
     super('SmoLayoutManager');
+    if (typeof(params.globalLayout.maxMeasureSystem) === 'undefined') {
+      params.globalLayout.maxMeasureSystem = SmoLayoutManager.defaultLayout.maxMeasureSystem;
+    }
     this.globalLayout = JSON.parse(JSON.stringify(params.globalLayout));
     if (params.pageLayouts.length) {
       params.pageLayouts.forEach((plp) => {

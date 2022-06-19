@@ -494,11 +494,15 @@ export class SuiScoreRender extends SuiRenderState {
     let wsum = 0;
     let dsum = 0;
     let maxCfgWidth = 0;
+    let isPickup = false;
     // Keep running tab of accidental widths for justification
     const contextMap: Record<number, SuiTickContext> = {};
     measures.forEach((measure) => {
       SmoBeamer.applyBeams(measure);
       voiceCount += measure.voices.length;
+      if (measure.isPickup()) {
+        isPickup = true;
+      }
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
       measure.svg.lineIndex = lineIndex;
@@ -566,7 +570,13 @@ export class SuiScoreRender extends SuiRenderState {
 
     const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
     const unalignedPad = unalignedPadding * unalignedCtxCount;
-    const maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
+    let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
+    if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
+      // Add 1 because there is some overhead in each measure, 
+      // so there can never be (width/max) measures in the system
+      const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
+      maxWidth = Math.max(maxWidth, defaultWidth);
+    }
     const maxX = startX + maxWidth;
     measures.forEach((measure) => {
       measure.setWidth(maxWidth, 'render:estimateColumn');

@@ -15,7 +15,7 @@ export class SuiPartMenu extends SuiMenuBase {
     menuItems: [
       {
         icon: '',
-        text: 'Part Properties',
+        text: 'View Part',
         value: 'editPart'
       },  {
         icon: '',
@@ -58,19 +58,27 @@ export class SuiPartMenu extends SuiMenuBase {
       });
   }
   editPart() {
-    createAndDisplayDialog(SuiPartInfoDialog,
-      {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        undoBuffer: this.view.undoBuffer,
-        eventSource: this.eventSource,
-        id: 'editPart',
-        ctor: 'SuiPartInfoDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
-      }
-    );
+    const selection = this.view.tracker.selections[0];
+    const self = this;
+
+    if (this.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
+      this.view.exposePart(selection.staff);
+    }
+    this.view.renderPromise().then(() => {
+      createAndDisplayDialog(SuiPartInfoDialog,
+        {
+          completeNotifier: self.completeNotifier!,
+          view: self.view,
+          undoBuffer: self.view.undoBuffer,
+          eventSource: self.eventSource,
+          id: 'editPart',
+          ctor: 'SuiPartInfoDialog',
+          tracker: self.view.tracker,
+          modifier: null,
+          startPromise: self.closePromise
+        }
+      );
+    });
   }
   editInstrument() {
     createAndDisplayDialog(SuiInstrumentDialog,
@@ -84,8 +92,7 @@ export class SuiPartMenu extends SuiMenuBase {
         tracker: this.view.tracker,
         modifier: null,
         startPromise: this.closePromise
-      }
-    );
+      });
   }
   pageLayout() {
     createAndDisplayDialog(SuiPageLayoutDialog,

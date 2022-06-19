@@ -11,7 +11,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 
 export class SuiReverb {
   static get defaults() {
-    return { length: 0.2, decay: 0.5 };
+    return { length: 0.05, decay: 2 };
   }
   static impulse: AudioBuffer | null;
 
@@ -41,8 +41,8 @@ export class SuiReverb {
 
     for (i = 0; i < length; i++) {
       n = this.reverse ? length - i : i;
-      impulseL[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
-      impulseR[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+      impulseL[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay) * this.damp;
+      impulseR[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay) * this.damp;
     }
     SuiReverb.impulse = impulse;
 
@@ -52,6 +52,7 @@ export class SuiReverb {
   input: ConvolverNode;
   length: number;
   decay: number;
+  damp: number = 0.5;
   reverse: boolean = false;
   _context: AudioContext;
   constructor(context: AudioContext) {
@@ -59,7 +60,7 @@ export class SuiReverb {
     this.length = SuiReverb.defaults.length;
     this.decay = SuiReverb.defaults.decay;
     this._context = context;
-    // this._buildImpulse();
+    this._buildImpulse();
   }
 }
 
@@ -361,7 +362,7 @@ export class SuiSampler extends SuiOscillator {
     const gain1 = audio.createGain();
     const gp1 = this.gain;
     // const gain2 = audio.createGain();
-    // const delay = audio.createDelay(0.5);
+    const delay = audio.createDelay(this.reverb.length);
     gain1.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
     gain1.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
     gain1.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
@@ -378,9 +379,11 @@ export class SuiSampler extends SuiOscillator {
       / Math.log(2);
 
     osc.detune.value = cents;
+    // osc.connect(gain1);
+    osc.connect(this.reverb.input);
     osc.connect(gain1);
-    // osc.connect(this.reverb.input);
-    // this.reverb.connect(delay);
+    this.reverb.connect(delay);
+    delay.connect(audio.destination);
     // osc.connect(gain);
     // delay.connect(gain2);
     gain1.connect(audio.destination);

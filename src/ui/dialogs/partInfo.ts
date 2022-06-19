@@ -21,16 +21,9 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.currentView = this.view.getView();
-    const selection = this.view.tracker.selections[0];
     const selector = SmoSelector.default;
-
-    if (this.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
-      this.view.exposePart(selection.staff);
-    }
-    // Note: exposing the part will change the score, need to reselect.  The new score will have the part as the 
-    // 0th stave
     this.selection = SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure)!;
-    this.partInfo = this.selection.staff.partInfo;
+    this.partInfo = new SmoPartInfo(this.selection.staff.partInfo);
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
     if (this.view.isPartExposed()) {
       this.restoreView = false;
@@ -100,6 +93,12 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   }
   set svgScale(value: number) {
     this.writeLayoutValue('svgScale', value);
+  }
+  get maxMeasureSystem() {
+    return this.partInfo.layoutManager.globalLayout.maxMeasureSystem;
+  }
+  set maxMeasureSystem(value: number) {
+    this.writeLayoutValue('maxMeasureSystem', value);
   }
   get zoomScale() {
     return this.partInfo.layoutManager.globalLayout.zoomScale;
@@ -278,6 +277,12 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
           control: 'SuiRockerComponent',
           label: '% Note size',
           dataType: 'percent'
+        }, {
+          smoName: 'maxMeasureSystem',
+          defaultValue: SmoLayoutManager.defaults.globalLayout.maxMeasureSystem,
+          control: 'SuiRockerComponent',
+          label: 'Max Measures/System (0=auto)',
+          dataType: 'int'
         }],
       staticText: []
     };
