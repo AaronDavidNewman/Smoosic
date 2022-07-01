@@ -144,8 +144,7 @@ export class SuiPiano {
       if (!this.renderElement) {
         return;
       }
-      const clientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderElement, SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), 
-        { x: 0, y: 0 })); // last param is scroll offset
+      const clientBox = SvgHelpers.smoBox(SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1)); // last param is scroll offset
 
       var keyPressed = SvgHelpers.findSmallestIntersection(
         clientBox, this.objects) as PianoKey;
@@ -192,8 +191,7 @@ export class SuiPiano {
     if (!this.renderElement) {
       return;
     }
-    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.renderElement, 
-      SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY }),));
+    const logicalBox = SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY });
 
     var keyPressed =
       SvgHelpers.findSmallestIntersection(logicalBox, this.objects) as PianoKey;

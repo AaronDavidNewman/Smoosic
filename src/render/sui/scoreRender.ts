@@ -297,7 +297,7 @@ export class SuiScoreRender extends SuiRenderState {
       if (this.score.preferences.showPiano && !isShowing) {
         SuiPiano.showPiano();
         this.measureMapper!.scroller.updateViewport();
-      } else if (isShowing) {
+      } else if (isShowing && !this.score.preferences.showPiano) {
         SuiPiano.hidePiano();
         this.measureMapper!.scroller.updateViewport();
       }

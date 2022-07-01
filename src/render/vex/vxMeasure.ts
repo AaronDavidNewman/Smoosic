@@ -268,6 +268,9 @@ export class VxMeasure {
         noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
       }
       vexNote = new VF.StaveNote(noteParams);
+      if (voiceIx > 0) {
+        vexNote.setXShift(-10);
+      }
       if (this.smoMeasure.voices.length === 1 &&
         this.smoMeasure.voices[0].notes.length === 1) {
         const sn = this.smoMeasure.voices[0].notes[0];

@@ -13,6 +13,7 @@ export interface SuiAudioPlayerParams {
   startIndex: number,
   tracker: SuiTracker,
   score: SmoScore,
+  useReverb: boolean
 }
 export interface SoundParams {
   frequencies: number[],
@@ -95,12 +96,14 @@ export class SuiAudioPlayer {
   cuedSounds: CuedAudioContexts;
   audioDefaults = SuiOscillator.defaults;
   openTies: Record<string, SoundParams | null> = {};
+  useReverb: boolean;
   constructor(parameters: SuiAudioPlayerParams) {
     this.instanceId = SuiAudioPlayer.incrementInstanceId();
     SuiAudioPlayer.playing = false;
     this.paused = false;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
+    this.useReverb = parameters.useReverb;
     // Assume tempo is same for all measures
     this.cuedSounds = new CuedAudioContexts();
   }
@@ -214,6 +217,7 @@ export class SuiAudioPlayer {
             params.frequency = freq;
             params.duration = adjDuration;
             params.gain = sound.volume;
+            params.useReverb = this.useReverb;
             const osc = new SuiSampler(params);
             cuedSound.oscs.push(osc);
           }

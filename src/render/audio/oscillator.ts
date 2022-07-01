@@ -52,7 +52,7 @@ export class SuiReverb {
   input: ConvolverNode;
   length: number;
   decay: number;
-  damp: number = 0.5;
+  damp: number = 1.0;
   reverse: boolean = false;
   _context: AudioContext;
   constructor(context: AudioContext) {
@@ -79,7 +79,8 @@ export interface SuiOscillatorParams {
   releaseLevel: number,
   waveform: OscillatorType,
   gain: number,
-  wavetable: WaveTable
+  wavetable: WaveTable,
+  useReverb: boolean
 }
 export interface AudioSample {
   sample: AudioBuffer,
@@ -123,7 +124,8 @@ export class SuiOscillator {
       releaseLevel: 0.1,
       waveform: 'custom',
       gain: 0.2,
-      wavetable
+      wavetable,
+      useReverb: false
     };
     return JSON.parse(JSON.stringify(obj));
   }
@@ -292,6 +294,7 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
   releaseLevel: number = 0;
   frequency: number = -1;
   wavetable: WaveTable;
+  useReverb: boolean;
   constructor(parameters: SuiOscillatorParams) {
     smoSerialize.serializedMerge(SuiOscillator.attributes, parameters, this);
     this.reverb = new SuiReverb(SuiOscillator.audio);
@@ -300,6 +303,7 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
     this.sustain = this.sustainEnv * this.duration;
     this.release = this.releaseEnv * this.duration;
     this.wavetable = parameters.wavetable;
+    this.useReverb = parameters.useReverb;
     // this.frequency = this.frequency / 2;  // Overtones below partial
 
     if (parameters.waveform && parameters.waveform !== 'custom') {
@@ -362,7 +366,10 @@ export class SuiSampler extends SuiOscillator {
     const gain1 = audio.createGain();
     const gp1 = this.gain;
     // const gain2 = audio.createGain();
-    const delay = audio.createDelay(this.reverb.length);
+    let delay: DelayNode | null = null;
+    if (this.useReverb) {
+      delay = audio.createDelay(this.reverb.length);
+    }
     gain1.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
     gain1.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
     gain1.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
@@ -380,11 +387,15 @@ export class SuiSampler extends SuiOscillator {
 
     osc.detune.value = cents;
     // osc.connect(gain1);
-    osc.connect(this.reverb.input);
+    if (this.useReverb) {
+      osc.connect(this.reverb.input);
+    }
     osc.connect(gain1);
-    this.reverb.connect(delay);
-    delay.connect(audio.destination);
-    // osc.connect(gain);
+    if (delay) {
+      this.reverb.connect(delay);
+      delay.connect(audio.destination);
+    }
+  // osc.connect(gain);
     // delay.connect(gain2);
     gain1.connect(audio.destination);
     // gain2.connect(audio.destination);

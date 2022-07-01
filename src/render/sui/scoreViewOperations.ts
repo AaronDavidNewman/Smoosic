@@ -1543,7 +1543,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SuiAudioPlayer.playingInstance.play();
       return;
     }
-    new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker }).play();
+    new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: true }).play();
   }
   stopPlayer() {
     SuiAudioPlayer.stopPlayer();
