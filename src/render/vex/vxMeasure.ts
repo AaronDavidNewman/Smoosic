@@ -249,7 +249,8 @@ export class VxMeasure {
       duration = '8';
     }
     // transpose for instrument-specific keys
-    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
+    const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
+    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
     const noteParams = {
       clef: smoNote.clef,
       keys,

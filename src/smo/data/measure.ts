@@ -21,7 +21,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
-import { SmoSelector } from '../../../release/smoosic';
+import { SmoSelector } from '../xform/selections';
 
 /**
  * Voice is just a container for {@link SmoNote}
@@ -1260,8 +1260,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.modifiers.forEach((modifier) => {
       if (modifier.ctor === 'SmoVolta') {
         const volta = modifier as SmoVolta;
+        if (ending.startSelector === null || ending.endSelector === null || volta.startSelector === null || volta.endSelector === null) {
+          return;
+        }
         if (!SmoSelector.sameMeasure(ending.startSelector, volta.startSelector) || !SmoSelector.sameMeasure(ending.endSelector, volta.endSelector)
-          && ending.number !== volta.number) {
+        && ending.number !== volta.number) {
           mods.push(modifier);
         }
       } else {
