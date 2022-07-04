@@ -358,6 +358,16 @@ export class SuiOscillator {
 // ## SuiSampler
 // Class that replaces oscillator with a sampler.
 export class SuiSampler extends SuiOscillator {
+  static resolveAfter(time: number) {
+    return new Promise<void>((resolve) => {
+      const timerFunc = () => {
+        resolve();
+      }
+      setTimeout(() => {
+        timerFunc();
+      }, time);
+    });
+  }
   // Note: samplePromise must be complete before you call this
   play() {
     const self = this;
@@ -366,6 +376,9 @@ export class SuiSampler extends SuiOscillator {
     });
   }
   _play(): Promise<any> {
+    if (this.frequency === 0) {
+      return SuiSampler.resolveAfter(this.duration);
+    }
     const audio = SuiOscillator.audio;
     const attack = this.attack / 1000;
     const decay = this.decay / 1000;

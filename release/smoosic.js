@@ -1045,6 +1045,7 @@ const file_load_1 = __webpack_require__(/*! ../../tests/file-load */ "./tests/fi
 const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const measure_3 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
 const music_1 = __webpack_require__(/*! ../smo/data/music */ "./src/smo/data/music.ts");
+const music_2 = __webpack_require__(/*! ../smo/data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
@@ -1109,6 +1110,7 @@ exports.Smo = {
     MidiToSmo: midiToSmo_1.MidiToSmo,
     SmoToMidi: smoToMidi_1.SmoToMidi,
     SmoMusic: music_1.SmoMusic,
+    SmoAudioPitch: music_2.SmoAudioPitch,
     SmoMeasure: measure_3.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
     SmoNote: note_2.SmoNote,
@@ -3762,6 +3764,7 @@ exports.SuiSampler = exports.SuiOscillator = exports.SuiReverb = void 0;
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
+const music_2 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 class SuiReverb {
     constructor(context) {
         this.damp = 1.0;
@@ -3942,17 +3945,23 @@ class SuiOscillator {
                 const audioElement = document.getElementById('sample' + file);
                 if (audioElement) {
                     const media = audio.createMediaElementSource(audioElement);
-                    mediaElements.push(audioElement);
-                    const req = new XMLHttpRequest();
-                    req.open('GET', media.mediaElement.src, true);
-                    req.responseType = 'arraybuffer';
-                    req.send();
-                    req.onload = () => {
-                        const audioData = req.response;
-                        audio.decodeAudioData(audioData, (decoded) => {
-                            SuiOscillator.samples.push({ sample: decoded, frequency: music_1.SmoAudioPitch.pitchFrequencyMap[file] });
-                        });
-                    };
+                    const patch = audioElement.getAttribute('data-patch');
+                    const pitchString = audioElement.getAttribute('data-pitch');
+                    if (pitchString !== null && patch !== null) {
+                        mediaElements.push(audioElement);
+                        const pitch = music_2.SmoMusic.vexToSmoPitch(pitchString);
+                        const frequency = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, 0, null);
+                        const req = new XMLHttpRequest();
+                        req.open('GET', media.mediaElement.src, true);
+                        req.responseType = 'arraybuffer';
+                        req.send();
+                        req.onload = () => {
+                            const audioData = req.response;
+                            audio.decodeAudioData(audioData, (decoded) => {
+                                SuiOscillator.samples.push({ sample: decoded, frequency, patch });
+                            });
+                        };
+                    }
                 }
             });
         }
@@ -4047,6 +4056,16 @@ SuiOscillator.samples = [];
 // ## SuiSampler
 // Class that replaces oscillator with a sampler.
 class SuiSampler extends SuiOscillator {
+    static resolveAfter(time) {
+        return new Promise((resolve) => {
+            const timerFunc = () => {
+                resolve();
+            };
+            setTimeout(() => {
+                timerFunc();
+            }, time);
+        });
+    }
     // Note: samplePromise must be complete before you call this
     play() {
         const self = this;
@@ -4055,6 +4074,9 @@ class SuiSampler extends SuiOscillator {
         });
     }
     _play() {
+        if (this.frequency === 0) {
+            return SuiSampler.resolveAfter(this.duration);
+        }
         const audio = SuiOscillator.audio;
         const attack = this.attack / 1000;
         const decay = this.decay / 1000;
@@ -4130,6 +4152,10 @@ const oscillator_1 = __webpack_require__(/*! ./oscillator */ "./src/render/audio
 const audioTrack_1 = __webpack_require__(/*! ../../smo/xform/audioTrack */ "./src/smo/xform/audioTrack.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+/**
+ * Maintain a list of buffers ready to play, since this is a
+ * system resource.
+ */
 class CuedAudioContexts {
     constructor() {
         this.soundHead = null;
@@ -4141,6 +4167,30 @@ class CuedAudioContexts {
         this.playMeasureIndex = 0; // index of the measure we are playing
         this.cueMeasureIndex = 0; // measure index we are populating
         this.complete = false;
+    }
+    addToTail(cuedSound) {
+        const tail = { sound: cuedSound, next: null };
+        if (this.soundTail === null) {
+            this.soundTail = tail;
+            this.soundHead = tail;
+        }
+        else {
+            this.soundTail.next = { sound: cuedSound, next: null };
+            this.soundTail = this.soundTail.next;
+        }
+        this.soundListLength += cuedSound.oscs.length;
+    }
+    advanceHead() {
+        if (this.soundHead === null) {
+            return null;
+        }
+        const cuedSound = this.soundHead.sound;
+        this.soundHead = this.soundHead.next;
+        this.soundListLength -= cuedSound.oscs.length;
+        return cuedSound;
+    }
+    get soundCount() {
+        return this.soundListLength;
     }
     reset() {
         this.soundHead = null;
@@ -4268,6 +4318,7 @@ class SuiAudioPlayer {
     createCuedSound(measureIndex) {
         let i = 0;
         let j = 0;
+        let measureBeat = 0;
         if (!SuiAudioPlayer.playing || this.cuedSounds.paramLinkHead === null) {
             return;
         }
@@ -4283,24 +4334,27 @@ class SuiAudioPlayer {
         });
         // There is a key for each note in the measure.  The value is the number of ticks before that note is played
         for (j = 0; j < keys.length; ++j) {
-            // setTimeout(() => {
             const beatTime = keys[j];
             const soundData = measureNotes[beatTime];
             const cuedSound = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
-            const tail = { sound: cuedSound, next: null };
-            if (this.cuedSounds.soundTail === null) {
-                this.cuedSounds.soundTail = tail;
-                this.cuedSounds.soundHead = tail;
-            }
-            else {
-                this.cuedSounds.soundTail.next = { sound: cuedSound, next: null };
-                this.cuedSounds.soundTail = this.cuedSounds.soundTail.next;
-            }
             const timeRatio = 60000 / (tempo * 4096);
+            // If there is complete silence here, put a silent beat
+            if (beatTime > measureBeat) {
+                const params = this.audioDefaults;
+                params.frequency = 0;
+                params.duration = (beatTime - measureBeat) * timeRatio;
+                params.gain = 0;
+                params.useReverb = false;
+                const silence = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j };
+                silence.oscs.push(new oscillator_1.SuiSampler(params));
+                this.cuedSounds.addToTail(silence);
+                measureBeat = beatTime;
+            }
+            this.cuedSounds.addToTail(cuedSound);
             soundData.forEach((sound) => {
+                const adjDuration = Math.round(sound.duration * timeRatio) + 150;
                 for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
                     const freq = sound.frequencies[i];
-                    const adjDuration = Math.round(sound.duration * timeRatio) + 150;
                     const params = this.audioDefaults;
                     params.frequency = freq;
                     params.duration = adjDuration;
@@ -4310,9 +4364,10 @@ class SuiAudioPlayer {
                     cuedSound.oscs.push(osc);
                 }
             });
-            this.cuedSounds.soundListLength += cuedSound.oscs.length;
             if (j + 1 < keys.length) {
-                cuedSound.waitTime = (keys[j + 1] - keys[j]) * timeRatio;
+                const diff = (keys[j + 1] - keys[j]);
+                cuedSound.waitTime = diff * timeRatio;
+                measureBeat += diff;
             }
             else if (measureIndex + 1 < maxMeasures) {
                 // If the next measure, calculate the frequencies for the next track.
@@ -4341,10 +4396,10 @@ class SuiAudioPlayer {
                 this.cuedSounds.complete = true;
                 return;
             }
-            if (draining && this.cuedSounds.soundListLength > buffer / 4) {
+            if (draining && this.cuedSounds.soundCount > buffer / 4) {
                 return;
             }
-            if (this.cuedSounds.soundListLength > buffer) {
+            if (this.cuedSounds.soundCount > buffer) {
                 draining = true;
                 return;
             }
@@ -4354,26 +4409,22 @@ class SuiAudioPlayer {
         }, interval);
     }
     playSounds() {
-        let accum = 0;
         this.cuedSounds.playMeasureIndex = 0;
         this.cuedSounds.playWaitTimer = 0;
         const timer = () => {
             setTimeout(() => {
-                if (this.cuedSounds.soundHead === null) {
+                const cuedSound = this.cuedSounds.advanceHead();
+                if (cuedSound === null) {
                     SuiAudioPlayer._playing = false;
                     return;
                 }
                 if (SuiAudioPlayer._playing === false) {
                     return;
                 }
-                const cuedSound = this.cuedSounds.soundHead.sound;
                 SuiAudioPlayer._playChord(cuedSound.oscs);
-                this.cuedSounds.soundHead = this.cuedSounds.soundHead.next;
-                this.cuedSounds.soundListLength -= cuedSound.oscs.length;
                 this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
                 this.cuedSounds.playMeasureIndex += 1;
                 this.cuedSounds.playWaitTimer = cuedSound.waitTime;
-                accum = 0;
                 timer();
             }, this.cuedSounds.playWaitTimer);
         };
@@ -21130,7 +21181,7 @@ class SmoSystemStaff {
             if (mod.endSelector.staff === from) {
                 mod.endSelector.staff = to;
             }
-            mod.associatedStaff = this.staffId;
+            mod.associatedStaff = to; // this.staffId will remap to 'to' value
         });
     }
     updateMeasureFormatsForPart() {
@@ -40431,6 +40482,7 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
         this.changed = false;
         this.currentView = [];
         this.restoreView = true;
+        this.resetPart = false;
         this.currentView = this.view.getView();
         const selector = selections_1.SmoSelector.default;
         this.selection = selections_1.SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure);
@@ -40443,11 +40495,12 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
     update() {
         const self = this;
         this.changed = true;
-        const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length);
+        const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length) || this.resetPart;
         // Since update will change the displayed score, wait for any display change to complete first.
         this.view.renderer.updatePromise().then(() => {
             self.view.updatePartInfo(self.partInfo);
             if (shouldReset) {
+                self.resetPart = false;
                 self.view.exposePart(self.view.score.staves[0]);
             }
         });
@@ -40478,6 +40531,7 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
     }
     set expandMultimeasureRest(value) {
         this.partInfo.expandMultimeasureRests = value;
+        this.resetPart = true;
         this.update();
     }
     get noteSpacing() {
@@ -40550,11 +40604,15 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
         return this.partInfo.stavesAfter === 1 && this.partInfo.stavesBefore === 0;
     }
     set includeNext(value) {
+        const oldValue = this.partInfo.stavesAfter;
         if (value) {
             this.partInfo.stavesAfter = 1;
         }
         else {
             this.partInfo.stavesAfter = 0;
+        }
+        if (oldValue !== this.partInfo.stavesAfter) {
+            this.resetPart = true;
         }
         this.update();
     }
@@ -41355,7 +41413,7 @@ const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter
 class SuiTempoAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view, tempoText) {
         super(view);
-        this.applyToAll = false;
+        this.applyToAllVal = false;
         this.edited = false;
         this.smoTempoText = tempoText;
         this.backup = new measureModifiers_1.SmoTempoText(this.smoTempoText);
@@ -41380,6 +41438,14 @@ class SuiTempoAdapter extends adapter_1.SuiComponentAdapter {
     }
     cancel() {
         this.view.updateTempoScore(this.backup, false);
+    }
+    get applyToAll() {
+        return this.applyToAllVal;
+    }
+    set applyToAll(val) {
+        this.applyToAllVal = val;
+        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.edited = true;
     }
     commit() { }
     get tempoText() {
