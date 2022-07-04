@@ -7,6 +7,7 @@ import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
+import { SmoMusic } from '../../smo/data/music';
 
 
 export class SuiReverb {
@@ -84,7 +85,8 @@ export interface SuiOscillatorParams {
 }
 export interface AudioSample {
   sample: AudioBuffer,
-  frequency: number
+  frequency: number,
+  patch: string
 }
 
 // ## SuiOscillator
@@ -130,7 +132,7 @@ export class SuiOscillator {
     return JSON.parse(JSON.stringify(obj));
   }
 
-static sampleFiles: string[] = ['bb4', 'cn4'];
+  static sampleFiles: string[] = ['bb4', 'cn4'];
   static samples: AudioSample[] = [];
   static playSelectionNow(selection: SmoSelection, gain: number) {
     // In the midst of re-rendering...
@@ -207,17 +209,23 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
         const audioElement: HTMLMediaElement | null = document.getElementById('sample' + file) as HTMLMediaElement;
         if (audioElement) {
           const media = audio.createMediaElementSource(audioElement);
-          mediaElements.push(audioElement);
-          const req = new XMLHttpRequest();
-          req.open('GET', media.mediaElement.src, true);
-          req.responseType = 'arraybuffer';
-          req.send();
-          req.onload = () => {
-            const audioData = req.response;
-            audio.decodeAudioData(audioData, (decoded) => {
-              SuiOscillator.samples.push({ sample: decoded, frequency: SmoAudioPitch.pitchFrequencyMap[file] });
-            });
-          };
+          const patch = audioElement.getAttribute('data-patch');
+          const pitchString = audioElement.getAttribute('data-pitch');
+          if (pitchString !== null && patch !== null) {
+            mediaElements.push(audioElement);
+            const pitch = SmoMusic.vexToSmoPitch(pitchString);
+            const frequency = SmoAudioPitch.smoPitchToFrequency(pitch, 0, null);
+            const req = new XMLHttpRequest();
+            req.open('GET', media.mediaElement.src, true);
+            req.responseType = 'arraybuffer';
+            req.send();
+            req.onload = () => {
+              const audioData = req.response;
+              audio.decodeAudioData(audioData, (decoded) => {
+                SuiOscillator.samples.push({ sample: decoded, frequency, patch });
+              });
+            };
+          }
         }
       });
     }

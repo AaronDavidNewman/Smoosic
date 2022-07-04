@@ -13,7 +13,7 @@ declare var $: any;
 export class SuiTempoAdapter extends SuiComponentAdapter {
   smoTempoText: SmoTempoText;
   backup: SmoTempoText;
-  applyToAll: boolean = false;
+  applyToAllVal: boolean = false;
   edited: boolean = false;
   constructor(view: SuiScoreViewOperations, tempoText: SmoTempoText) {
     super(view);
@@ -40,6 +40,14 @@ export class SuiTempoAdapter extends SuiComponentAdapter {
   }
   cancel() {
     this.view.updateTempoScore(this.backup, false);
+  }
+  get applyToAll() {
+    return this.applyToAllVal;
+  }
+  set applyToAll(val: boolean) {
+    this.applyToAllVal = val;
+    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.edited = true;
   }
   commit(){}
   get tempoText() {

@@ -264,7 +264,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       if (mod.endSelector.staff === from) {
         mod.endSelector.staff = to;
       }
-      mod.associatedStaff = this.staffId;
+      mod.associatedStaff = to; // this.staffId will remap to 'to' value
     });
   }
   updateMeasureFormatsForPart() {

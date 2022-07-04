@@ -18,6 +18,7 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   changed: boolean = false;
   currentView: ViewMapEntry[] = [];
   restoreView: boolean = true;
+  resetPart: boolean = false;
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.currentView = this.view.getView();
@@ -33,11 +34,12 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     const self = this;
     this.changed = true;
 
-    const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length);
+    const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length) || this.resetPart;
     // Since update will change the displayed score, wait for any display change to complete first.
     this.view.renderer.updatePromise().then(() => {
       self.view.updatePartInfo(self.partInfo);
       if (shouldReset) {
+        self.resetPart = false;
         self.view.exposePart(self.view.score.staves[0]);
       }
     });
@@ -68,6 +70,7 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   }
   set expandMultimeasureRest(value: boolean) {
     this.partInfo.expandMultimeasureRests = value;
+    this.resetPart = true;
     this.update();
   }
   get noteSpacing() {
@@ -140,10 +143,14 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     return this.partInfo.stavesAfter === 1 && this.partInfo.stavesBefore === 0;
   }
   set includeNext(value: boolean) {
+    const oldValue = this.partInfo.stavesAfter;
     if (value) {
       this.partInfo.stavesAfter = 1;
     } else {
       this.partInfo.stavesAfter = 0;
+    }
+    if (oldValue !== this.partInfo.stavesAfter) {
+      this.resetPart = true;
     }
     this.update();
   }

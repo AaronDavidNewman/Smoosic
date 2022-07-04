@@ -115,6 +115,7 @@ import { createLoadTests } from '../../tests/file-load';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
+import { SmoAudioPitch } from '../smo/data/music';
 import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
@@ -183,6 +184,7 @@ export const Smo = {
     MidiToSmo,
     SmoToMidi,
     SmoMusic,
+    SmoAudioPitch,
     SmoMeasure,
     SmoSystemStaff,
     SmoNote,
