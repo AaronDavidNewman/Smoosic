@@ -916,9 +916,6 @@ class SuiEventHandler {
             self.resizeEvent();
         });
         this.helpControls();
-        window.addEventListener('error', function (e) {
-            exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
-        });
     }
 }
 exports.SuiEventHandler = SuiEventHandler;
@@ -4240,6 +4237,7 @@ class SuiAudioPlayer {
         if (SuiAudioPlayer._playingInstance) {
             const a = SuiAudioPlayer._playingInstance;
             a.paused = true;
+            a.tracker.clearMusicCursor();
         }
         SuiAudioPlayer.playing = false;
     }
@@ -4284,7 +4282,8 @@ class SuiAudioPlayer {
                         const soundData = {
                             frequencies,
                             volume,
-                            offset: 0,
+                            offsetPct: curTick / measureTicks,
+                            durationPct: duration / measureTicks,
                             noteType: smoNote.noteType,
                             duration
                         };
@@ -4336,7 +4335,18 @@ class SuiAudioPlayer {
         for (j = 0; j < keys.length; ++j) {
             const beatTime = keys[j];
             const soundData = measureNotes[beatTime];
-            const cuedSound = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
+            let durationPct = 0;
+            let offsetPct = 0;
+            soundData.forEach((ss) => {
+                if (durationPct === 0) {
+                    durationPct = ss.durationPct;
+                    offsetPct = ss.offsetPct;
+                }
+                durationPct = Math.min(durationPct, ss.durationPct);
+                offsetPct = Math.min(offsetPct, ss.offsetPct);
+            });
+            const cuedSound = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j,
+                offsetPct, durationPct };
             const timeRatio = 60000 / (tempo * 4096);
             // If there is complete silence here, put a silent beat
             if (beatTime > measureBeat) {
@@ -4345,7 +4355,8 @@ class SuiAudioPlayer {
                 params.duration = (beatTime - measureBeat) * timeRatio;
                 params.gain = 0;
                 params.useReverb = false;
-                const silence = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j };
+                const silence = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j,
+                    offsetPct, durationPct };
                 silence.oscs.push(new oscillator_1.SuiSampler(params));
                 this.cuedSounds.addToTail(silence);
                 measureBeat = beatTime;
@@ -4416,13 +4427,15 @@ class SuiAudioPlayer {
                 const cuedSound = this.cuedSounds.advanceHead();
                 if (cuedSound === null) {
                     SuiAudioPlayer._playing = false;
+                    this.tracker.clearMusicCursor();
                     return;
                 }
                 if (SuiAudioPlayer._playing === false) {
+                    this.tracker.clearMusicCursor();
                     return;
                 }
                 SuiAudioPlayer._playChord(cuedSound.oscs);
-                this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
+                this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] }, cuedSound.offsetPct, cuedSound.durationPct);
                 this.cuedSounds.playMeasureIndex += 1;
                 this.cuedSounds.playWaitTimer = cuedSound.waitTime;
                 timer();
@@ -11962,7 +11975,6 @@ exports.SuiTracker = void 0;
 const mapper_1 = __webpack_require__(/*! ./mapper */ "./src/render/sui/mapper.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
@@ -12019,50 +12031,46 @@ class SuiTracker extends mapper_1.SuiMapper {
         return this.renderer.svg;
     }
     clearMusicCursor() {
-        if (this.musicCursorGlyph) {
-            this.musicCursorGlyph.remove();
-            this.musicCursorGlyph = null;
+        const ell = document.getElementById('vf-music-cursor');
+        if (ell) {
+            ell.remove();
         }
     }
-    // ### musicCursor
-    // the little birdie that follows the music as it plays
-    musicCursor(selector) {
-        var _a, _b, _c;
+    /**
+     * the little birdie that follows the music as it plays
+     * @param selector
+     * @returns
+     */
+    musicCursor(selector, offsetPct, durationPct) {
+        var _a, _b;
         const key = selections_1.SmoSelector.getNoteKey(selector);
         if (!this.score) {
             return;
         }
         // Get note from 0th staff if we can
-        if (this.measureNoteMap[key]) {
-            const measureSel = selections_1.SmoSelection.measureSelection(this.score, this.score.staves.length - 1, selector.measure);
-            const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
-            const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
-            if (measure.svg.logicalBox && ((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox)) {
-                const screenBox = svgHelpers_1.SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
-                const y = Math.max(screenBox.y - 20, 0);
-                let x = screenBox.x;
-                const noteSelector = selections_1.SmoSelection.noteFromSelector(this.score, selector);
-                if ((_c = noteSelector === null || noteSelector === void 0 ? void 0 : noteSelector.note) === null || _c === void 0 ? void 0 : _c.logicalBox) {
-                    x = noteSelector.note.logicalBox.x;
-                }
-                const mbox = { x, y, width: 1, height: 1 };
-                const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
-                const outerBox = { x, y, width: mbox.width, height: (sysBottom - y) };
-                const at = [];
-                const symbol = '\u25BC';
-                at.push({ y: mbox.y });
-                at.push({ x: mbox.x });
-                at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
-                at.push({ 'font-size': '12pt' });
-                if (!this.musicCursorGlyph) {
-                    this.musicCursorGlyph = svgHelpers_1.SvgHelpers.placeSvgText(this.renderer.context.svg, at, 'music-cursor', symbol);
-                }
-                else {
-                    this.musicCursorGlyph.setAttributeNS('', 'x', mbox.x.toString());
-                    this.musicCursorGlyph.setAttributeNS('', 'y', mbox.y.toString());
-                }
-                this.scroller.scrollVisibleBox(outerBox);
-            }
+        const measureSel = selections_1.SmoSelection.measureSelection(this.score, this.score.staves.length - 1, selector.measure);
+        const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
+        const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
+        if (measure.svg.logicalBox && ((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox)) {
+            const topBox = svgHelpers_1.SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+            const botBox = svgHelpers_1.SvgHelpers.smoBox(measure.svg.logicalBox);
+            const height = (botBox.y + botBox.height) - topBox.y;
+            const measureWidth = botBox.width - measure.svg.adjX;
+            const width = measureWidth * durationPct;
+            const y = topBox.y;
+            const x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+            const screenBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, width, height);
+            const fillParams = {};
+            fillParams['fill-opacity'] = '0.5';
+            fillParams['fill'] = '#4444ff';
+            const ctx = this.renderer.context;
+            this.clearMusicCursor();
+            ctx.save();
+            ctx.openGroup('music-cursor', 'music-cursor');
+            ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
+            ctx.closeGroup();
+            ctx.restore();
+            this.scroller.scrollVisibleBox(screenBox);
         }
     }
     // ### selectModifierById

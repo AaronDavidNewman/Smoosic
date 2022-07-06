@@ -291,8 +291,5 @@ export class SuiEventHandler implements ModalEventHandler {
       self.resizeEvent();
     });
     this.helpControls();
-    window.addEventListener('error', function (e) {
-      SuiExceptionHandler.instance.exceptionHandler(e);
-    });
   }
 }

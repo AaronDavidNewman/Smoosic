@@ -73,53 +73,48 @@ export class SuiTracker extends SuiMapper {
   }
 
   clearMusicCursor() {
-    if (this.musicCursorGlyph) {
-      this.musicCursorGlyph.remove();
-      this.musicCursorGlyph = null;
+    const ell = document.getElementById('vf-music-cursor');
+    if (ell) {
+      ell.remove();
     }
   }
 
-  // ### musicCursor
-  // the little birdie that follows the music as it plays
-  musicCursor(selector: SmoSelector) {
+  /**
+   * the little birdie that follows the music as it plays
+   * @param selector 
+   * @returns 
+   */
+  musicCursor(selector: SmoSelector, offsetPct: number, durationPct: number) {
     const key = SmoSelector.getNoteKey(selector);
     if (!this.score) {
       return;
     }
     // Get note from 0th staff if we can
-    if (this.measureNoteMap[key]) {
-      const measureSel = SmoSelection.measureSelection(this.score,
-        this.score.staves.length - 1, selector.measure);
-      const zmeasureSel = SmoSelection.measureSelection(this.score,
-        0, selector.measure);
-      const measure = measureSel?.measure as SmoMeasure;
-      if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
-        const screenBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
-        const y: number = Math.max(screenBox.y - 20, 0);
-        let x = screenBox.x;
-        const noteSelector = SmoSelection.noteFromSelector(this.score, selector);
-        if (noteSelector?.note?.logicalBox) {
-          x = noteSelector.note.logicalBox.x;
-        }        
-
-        const mbox = { x, y, width: 1, height: 1 };
-        const sysBottom = measure.svg.logicalBox.y + measure.svg.logicalBox.height;
-        const outerBox = { x, y, width: mbox.width, height:  (sysBottom - y) }; 
-        
-        const at = [];
-        const symbol = '\u25BC';
-        at.push({ y: mbox.y });
-        at.push({ x: mbox.x });
-        at.push({ 'font-family': SourceSansProFont.fontFamily });
-        at.push({ 'font-size': '12pt' });
-        if (!this.musicCursorGlyph) {
-          this.musicCursorGlyph = SvgHelpers.placeSvgText(this.renderer.context.svg, at, 'music-cursor', symbol);
-        } else {
-          this.musicCursorGlyph.setAttributeNS('', 'x', mbox.x.toString());
-          this.musicCursorGlyph.setAttributeNS('', 'y', mbox.y.toString());
-        }
-        this.scroller.scrollVisibleBox(outerBox);
-      }
+    const measureSel = SmoSelection.measureSelection(this.score,
+      this.score.staves.length - 1, selector.measure);
+    const zmeasureSel = SmoSelection.measureSelection(this.score,
+      0, selector.measure);
+    const measure = measureSel?.measure as SmoMeasure;
+    if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
+      const topBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+      const botBox = SvgHelpers.smoBox(measure.svg.logicalBox);
+      const height = (botBox.y + botBox.height) - topBox.y;
+      const measureWidth = botBox.width - measure.svg.adjX;
+      const width = measureWidth * durationPct;
+      const y = topBox.y;
+      const x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+      const screenBox = SvgHelpers.boxPoints(x, y, width, height);
+      const fillParams: Record<string, string> = {};
+      fillParams['fill-opacity'] = '0.5';
+      fillParams['fill'] = '#4444ff';
+      const ctx = this.renderer.context;
+      this.clearMusicCursor();
+      ctx.save();
+      ctx.openGroup('music-cursor', 'music-cursor');
+      ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
+      ctx.closeGroup();
+      ctx.restore();
+      this.scroller.scrollVisibleBox(screenBox);        
     }
   }
 

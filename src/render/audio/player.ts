@@ -6,7 +6,6 @@ import { SuiTracker } from '../sui/tracker';
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SmoTie } from '../../smo/data/staffModifiers';
-import { SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoMusic, SmoAudioPitch } from '../../smo/data/music';
 
 export interface SuiAudioPlayerParams {
@@ -18,7 +17,8 @@ export interface SuiAudioPlayerParams {
 export interface SoundParams {
   frequencies: number[],
   duration: number,
-  offset: number,
+  offsetPct: number,
+  durationPct: number,
   volume: number,
   noteType: string
 }
@@ -31,7 +31,9 @@ export interface CuedAudioContext {
   oscs: SuiOscillator[],
   playMeasureIndex: number,
   playTickIndex: number,
-  waitTime: number
+  waitTime: number,
+  offsetPct: number,
+  durationPct: number
 }
 export interface CuedAudioLink {
   sound: CuedAudioContext;
@@ -113,8 +115,10 @@ export class SuiAudioPlayer {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
       a.paused = true;
+      a.tracker.clearMusicCursor();
     }
     SuiAudioPlayer.playing = false;
+
   }
   instanceId: number;
   paused: boolean;
@@ -175,7 +179,8 @@ export class SuiAudioPlayer {
             const soundData: SoundParams = {
               frequencies,
               volume,
-              offset: 0,
+              offsetPct: curTick / measureTicks,
+              durationPct: duration / measureTicks,
               noteType: smoNote.noteType,
               duration
             };
@@ -221,12 +226,23 @@ export class SuiAudioPlayer {
     const keys: number[] = [];
     Object.keys(measureNotes).forEach((key) => {
       keys.push(parseInt(key, 10));
-    });
+    });    
     // There is a key for each note in the measure.  The value is the number of ticks before that note is played
     for (j = 0; j < keys.length; ++j) {
         const beatTime = keys[j];
         const soundData = measureNotes[beatTime];
-        const cuedSound: CuedAudioContext = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j };
+        let durationPct = 0;
+        let offsetPct = 0;
+        soundData.forEach((ss) => {
+          if (durationPct === 0) {
+            durationPct = ss.durationPct;
+            offsetPct = ss.offsetPct;
+          }
+          durationPct = Math.min(durationPct, ss.durationPct);
+          offsetPct = Math.min(offsetPct, ss.offsetPct);
+        });
+        const cuedSound: CuedAudioContext = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j,
+           offsetPct, durationPct };
         const timeRatio = 60000 / (tempo * 4096);
         // If there is complete silence here, put a silent beat
         if (beatTime > measureBeat) {
@@ -235,7 +251,8 @@ export class SuiAudioPlayer {
           params.duration = (beatTime - measureBeat) * timeRatio;
           params.gain = 0;
           params.useReverb = false;
-          const silence: CuedAudioContext = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j };
+          const silence: CuedAudioContext = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j,
+            offsetPct, durationPct };
           silence.oscs.push(new SuiSampler(params));
           this.cuedSounds.addToTail(silence);
           measureBeat = beatTime;
@@ -304,13 +321,16 @@ export class SuiAudioPlayer {
         const cuedSound = this.cuedSounds.advanceHead();
         if (cuedSound === null) {
           SuiAudioPlayer._playing = false;
+          this.tracker.clearMusicCursor();
           return;
         }
         if (SuiAudioPlayer._playing === false) {
+          this.tracker.clearMusicCursor();
           return;
         }
         SuiAudioPlayer._playChord(cuedSound.oscs);
-        this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] });
+        this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] },
+          cuedSound.offsetPct, cuedSound.durationPct);
         this.cuedSounds.playMeasureIndex += 1;
         this.cuedSounds.playWaitTimer = cuedSound.waitTime;
         timer();
