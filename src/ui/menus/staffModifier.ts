@@ -58,8 +58,6 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.decrescendo();
     } else if (op === 'resetSlurs') {
       const self = this;
-      SuiScoreView.resetSlursHack(this.view.score);
-      SuiScoreView.resetSlursHack(this.view.storeScore);
       this.view.refreshViewport().then(() => {
         self.complete();
       });
