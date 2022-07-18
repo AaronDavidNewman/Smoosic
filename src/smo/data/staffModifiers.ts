@@ -258,6 +258,7 @@ export interface SmoSlurParams {
   yOffset: number,
   position: number,
   position_end: number,
+  orientation: number,
   invert: boolean,
   cp1x: number,
   cp1y: number,
@@ -279,6 +280,7 @@ export class SmoSlur extends StaffModifierBase {
       yOffset: 0,
       position: SmoSlur.positions.TOP,
       position_end: SmoSlur.positions.TOP,
+      orientation: SmoSlur.orientations.AUTO,
       invert: false,
       cp1x: 0,
       cp1y: 15,
@@ -293,12 +295,22 @@ export class SmoSlur extends StaffModifierBase {
   static get positions() {
     return {
       HEAD: 1,
-      TOP: 2
+      TOP: 2,
+      ABOVE: 3,
+      BELOW: 4,
+      AUTO: 5
+    };
+  }
+  static get orientations() {
+    return {
+      AUTO: 0,
+      UP: 1,
+      DOWN: 2
     };
   }
   static get parameterArray() {
     return ['startSelector', 'endSelector', 'spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-      'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
+      'orientation', 'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
   }
   spacing: number = 2;
   thickness: number = 2;
@@ -306,6 +318,7 @@ export class SmoSlur extends StaffModifierBase {
   yOffset: number = 10;
   position: number = SmoSlur.positions.TOP;
   position_end: number = SmoSlur.positions.TOP;
+  orientation: number = SmoSlur.orientations.AUTO;
   invert: boolean = false;
   cp1x: number = 0;
   cp1y: number = 15;
@@ -339,12 +352,7 @@ export class SmoSlur extends StaffModifierBase {
     this.startSelector = params.startSelector;
     this.endSelector = params.endSelector;
 
-    // Fix some earlier serialization error.
-    if ((this.position !== SmoSlur.positions.TOP && this.position !== SmoSlur.positions.HEAD) ||
-    (this.position_end !== SmoSlur.positions.TOP && this.position_end !== SmoSlur.positions.HEAD)) {
-      this.position = SmoSlur.positions.HEAD;
-      this.position_end = SmoSlur.positions.HEAD;
-    }
+    // Fix some earlier serialization error.    
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),

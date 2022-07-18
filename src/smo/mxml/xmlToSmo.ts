@@ -17,7 +17,7 @@ import { SmoNote, SmoNoteParams } from '../data/note';
 import { Pitch, PitchKey, Clef } from '../data/common';
 import { SmoSelection } from '../xform/selections';
 import { SmoOperation } from '../xform/operations';
-import { SmoInstrument, SmoSlur } from '../data/staffModifiers';
+import { SmoInstrument, SmoSlur, SmoTie, TieLine } from '../data/staffModifiers';
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -144,6 +144,8 @@ export class XmlToSmo {
         ));
       }
       XmlToSmo.setSlurDefaults(rv);
+      xmlState.completeTies(rv);
+        
       rv.preferences.showPiano = false;
       XmlToSmo.setVoltas(rv, xmlState);
       return rv;
@@ -165,7 +167,11 @@ export class XmlToSmo {
         const sel1 = SmoSelection.noteFromSelector(score, ss.startSelector);
         const sel2 = SmoSelection.noteFromSelector(score, ss.endSelector);
         if (sel1 && sel2) {
-          const slurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
+          let slurPosition = SmoSlur.positions.AUTO;
+          if (slur.position === slur.position_end) {
+            slurPosition = slur.position;
+          }
+          const slurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2, slurPosition, slur.orientation);
           slur.position = slurParams.position;
           slur.position_end = slurParams.position_end;
           slur.invert = slurParams.invert;
@@ -278,7 +284,6 @@ export class XmlToSmo {
     });
     xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
     xmlState.completeSlurs();
-    xmlState.completeTies();
   }
   // ### tempo
   // /score-partwise/measure/direction/sound:tempo
@@ -551,24 +556,28 @@ export class XmlToSmo {
         if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
           const pads = SmoMusic.splitIntoValidDurations(
             xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
+          console.log(`padding ${pads.length} before ${xmlState.staffIndex}-${xmlState.measureIndex}-${xmlState.voiceIndex}-${tickIndex}`);
           pads.forEach((pad) => {
             const clefString: Clef = xmlState.staffArray[staffIndex].clefInfo.clef as Clef;
             const padNote = SmoMeasure.createRestNoteWithDuration(pad,
               clefString);
             padNote.makeHidden(true);
-            voice.notes.push(padNote);
+            voice.notes.push(padNote);            
           });
-          // Offset any partially-completed ties or slurs with the padding
-          slurInfos.forEach((slurInfo) => {
-            slurInfo.selector.tick += pads.length;
-          });
-          tieInfos.forEach((tieInfo) => {
-            tieInfo.selector.tick += pads.length;
-          });
+          // slurs and ties use selector, so this affects them, also
           selector.tick += pads.length;
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }
+        /* slurInfos.forEach((slurInfo) => {
+          console.log(`xml slur: ${slurInfo.selector.staff}-${slurInfo.selector.measure}-${slurInfo.selector.voice}-${slurInfo.selector.tick} ${slurInfo.type} ${slurInfo.number}`);
+          console.log(`  ${slurInfo.placement}`);
+        });*/
+        tieInfos.forEach((tieInfo) => {
+          console.log(`xml tie: ${tieInfo.selector.staff}-${tieInfo.selector.measure}-${tieInfo.selector.voice}-${tieInfo.selector.tick} ${tieInfo.type} `);
+          console.log(`  pitch ${tieInfo.pitchIndex} orient ${tieInfo.orientation} num ${tieInfo.number}`);
+        });
+    
         xmlState.updateSlurStates(slurInfos);
         xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);

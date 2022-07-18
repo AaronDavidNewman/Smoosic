@@ -817,7 +817,7 @@ export class SmoOperation {
    * @param toSelection 
    * @returns 
    */
-  static getDefaultSlurDirection(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection):SmoSlurParams {
+  static getDefaultSlurDirection(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection, forcePosition: number, forceOrientation: number):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
     const sels = SmoSelector.order(fromSelection.selector, toSelection.selector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));
@@ -871,32 +871,46 @@ export class SmoOperation {
     if (Object.keys(beamGroups).length < 2) {
       mixed = false;
     }
-    if (mixed) {
-      // special case: slur 2 notes, note heads close, connect the note heads
-      // to keep a flat arc
-      if (selections.length === 2 && firstGap < 3) {
+    if (forcePosition === SmoSlur.positions.ABOVE) {
+      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+      if (startDir === SmoNote.flagStates.up && forceOrientation !== SmoSlur.orientations.DOWN) {
+        params.invert = true;
+      }
+    } else if (forcePosition === SmoSlur.positions.BELOW) {
+      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
+      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
+      if (startDir === SmoNote.flagStates.down && forceOrientation !== SmoSlur.orientations.UP) {
+        params.invert = true;
+      }
+    } else {
+      if (mixed) {
+        // special case: slur 2 notes, note heads close, connect the note heads
+        // to keep a flat arc
+        if (selections.length === 2 && firstGap < 3) {
+          params.position = SmoSlur.positions.HEAD;
+          params.position_end = SmoSlur.positions.HEAD;
+          params.xOffset = 5;
+        } else {
+          params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+          params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+          if (firstGap >= 3 || lastGap >= 3) {
+            params.cp1y = 45;
+            params.cp2y = 45;
+          }
+        }
+        params.invert = endDir === SmoNote.flagStates.up;
+      }     
+      if (!mixed) {
         params.position = SmoSlur.positions.HEAD;
         params.position_end = SmoSlur.positions.HEAD;
-        params.xOffset = 5;
-      } else {
-        params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-        params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-        if (firstGap >= 3 || lastGap >= 3) {
+        if (firstGap >= 2 || lastGap >= 2) {
           params.cp1y = 45;
           params.cp2y = 45;
+          params.yOffset += 10;
+        } else {
+          params.yOffset += 10;
         }
-      }
-      params.invert = endDir === SmoNote.flagStates.up;
-    }
-    if (!mixed) {
-      params.position = SmoSlur.positions.HEAD;
-      params.position_end = SmoSlur.positions.HEAD;
-      if (firstGap >= 2 || lastGap >= 2) {
-        params.cp1y = 45;
-        params.cp2y = 45;
-        params.yOffset += 10;
-      } else {
-        params.yOffset += 10;
       }
     }
     if (selections.length === 2) {
@@ -905,7 +919,7 @@ export class SmoOperation {
     return params;
   }
   static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) {
-    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection);
+    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
     const modifier: SmoSlur = new SmoSlur(params);
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;

@@ -362,7 +362,7 @@ export class SmoMusic {
     return VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line;
   }
   /**
-   * return flag state (up or down) based on pitch and clef if auto
+   * return flag state (up === 1 or down === 2) based on pitch and clef if auto
    * */
   static flagStateFromNote(clef: Clef, note: SmoNote) {
     let fs = note.flagState;

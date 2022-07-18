@@ -472,28 +472,7 @@ export abstract class SuiScoreView {
       }
     }
   }
-  /**
-   * Fix a bug where the endpoint of slurs is incorrect in saved files
-   * @param score 
-   */
-  static resetSlursHack(score: SmoScore) {
-    score.staves.forEach((staff) => {
-      staff.modifiers.forEach((mod) => {
-        if (mod instanceof SmoSlur) {
-          const slur = mod as SmoSlur;
-          const sel1 = SmoSelection.noteFromSelector(score, slur.startSelector);
-          const sel2 = SmoSelection.noteFromSelector(score, slur.endSelector);
-          if (sel1 && sel2) {
-            const params: SmoSlurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
-            slur.invert = params.invert;
-            SlurNumberParams.forEach((p) => {
-              slur[p] = params[p];
-            });
-          }
-        }
-      });
-    });
-  }
+
   // ### changeScore
   // Update the view after loading or restoring a completely new score
   changeScore(score: SmoScore) {
@@ -502,7 +481,6 @@ export abstract class SuiScoreView {
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
-    SuiScoreView.resetSlursHack(score);
     // If the score is non-transposing, hide the instrument xpose settings
     this._setTransposing();
     this.staffMap = this.defaultStaffMap;

@@ -99,7 +99,7 @@ export class suiLayoutFormatter {
         }
         tickContexts[duration].widths.push(noteWidth);
         tickContexts[duration].tickCounts.push(note.tickCount);
-        duration += note.tickCount;
+        duration += Math.round(note.tickCount);
         width += noteWidth;
       });
       widths.push(width);

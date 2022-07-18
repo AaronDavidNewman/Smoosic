@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoArticulation, SmoNoteModifierBase, SmoOrnament, SmoLyric } from '../data/noteModifiers';
+import { SmoArticulation, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
@@ -27,7 +27,7 @@ export interface XmlDuration {
  * Store slur information when parsing xml
  */
 export interface XmlSlurType {
-  number: number, type: string, orientation: string, selector: SmoSelector, invert: boolean, yOffset: number
+  number: number, type: string, orientation: string, placement: string, controlX: number, controlY: number, selector: SmoSelector, yOffset: number
 }
 /**
  * Store tie  information when parsing xml
@@ -151,6 +151,21 @@ export class XmlHelpers {
       return rv.toString();
     }
     return el[0].textContent as string;
+  }
+  static getNumberFromAttribute(node: Element, attribute: string, defaults: number) {
+    const str = XmlHelpers.getTextFromAttribute(node, attribute, defaults.toString());
+    const rv = parseInt(str, 10);
+    if (isNaN(rv)) {
+      return defaults;
+    }
+    return rv;
+  }
+  static getTextFromAttribute(node: Element, attribute: string, defaults: string): string {
+    const rv = node.getAttribute(attribute);
+    if (rv) {
+      return rv;
+    }
+    return defaults;
   }
   // ### getChildrenFromPath
   // Like xpath, given ['foo', 'bar'] and parent element
@@ -336,22 +351,7 @@ export class XmlHelpers {
     }
     return rv;
   }
-  // Get placement or orientation of a tie or slur.  Xml docs
-  // a little unclear on what to expect and what each mean.
-  static getCurveDirection(node: Element) {
-    const orientation = node.getAttribute('orientation');
-    const placement = node.getAttribute('placement');
-    if (orientation) {
-      return orientation;
-    }
-    if (placement && placement === 'above') {
-      return 'over';
-    }
-    if (placement && placement === 'below') {
-      return 'under';
-    }
-    return 'auto';
-  }
+ 
   static getTieData(noteNode: Element, selector: SmoSelector, pitchIndex: number): XmlTieType[] {
     const rv: XmlTieType[] = [];
     let number = 0;
@@ -359,12 +359,9 @@ export class XmlHelpers {
     nNodes.forEach((nNode) => {
       const slurNodes = [...nNode.getElementsByTagName('tied')];
       slurNodes.forEach((slurNode) => {
-        const orientation = XmlHelpers.getCurveDirection(slurNode);
+        const orientation = XmlHelpers.getTextFromAttribute(slurNode, 'orientation', 'auto');
         const type = slurNode.getAttribute('type') as string;
-        number = parseInt(slurNode.getAttribute('number') as string, 10);
-        if (isNaN(number)) {
-          number = 1;
-        }
+        number = XmlHelpers.getNumberFromAttribute(slurNode, 'number', 1);
         rv.push({ number, type, orientation, selector, pitchIndex });
       });
     });
@@ -378,8 +375,12 @@ export class XmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number') as string, 10);
         const type = slurNode.getAttribute('type') as string;
-        const orientation = XmlHelpers.getCurveDirection(slurNode);
-        const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
+        const orientation = XmlHelpers.getTextFromAttribute(slurNode, 'orienation', 'auto');
+        const placement = XmlHelpers.getTextFromAttribute(slurNode, 'placement', 'auto');
+        const controlX = XmlHelpers.getNumberFromAttribute(slurNode, 'bezier-x', 0);
+        // Y coordinates are reversed from music XML to SVG, hence the -1
+        const controlY = XmlHelpers.getNumberFromAttribute(slurNode, 'bezier-y', 15) * -1;
+        const slurInfo = { number, type, orientation, placement, controlX, controlY, selector, invert: false, yOffset: 0 };
         rv.push(slurInfo);
       });
     });

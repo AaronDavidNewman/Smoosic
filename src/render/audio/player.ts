@@ -199,7 +199,7 @@ export class SuiAudioPlayer {
               measureNotes[curTick].push(soundData);
             }
           }
-          curTick += smoNote.tickCount;
+          curTick += Math.round(smoNote.tickCount);
         });
       });
     });

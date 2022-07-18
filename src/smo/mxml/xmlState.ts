@@ -1,17 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { XmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurType, XmlTupletData, XmlEndingData } from './xmlHelpers';
-import { SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
+import { XmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurType, XmlTupletData } from './xmlHelpers';
+import { SmoScore } from '../data/score';
 import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
+import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams, TieLine } from '../data/staffModifiers';
+import { SmoBarline, SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
+import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
-import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams } from '../data/staffModifiers';
 import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
 import { SmoTuplet } from '../data/tuplet';
-import { SmoSystemStaff } from '../data/systemStaff';
 import { Clef } from '../data/common';
-import { SmoSelector } from '../xform/selections';
-import { SmoBarline } from '../data/measureModifiers';
-import { SmoMeasure } from '../data/measure';
+import { SmoMusic } from '../data/music';
+import { SmoSelector, SmoSelection } from '../xform/selections';
 
 export interface XmlClefInfo {
   clef: string, staffId: number
@@ -80,7 +81,6 @@ export class XmlState {
   staffGroups: XmlStaffGroupInfo[] = [];
   smoStaves: SmoSystemStaff[] = [];
   slurs: Record<number, XmlSlurType | null> = {};
-  ties: Record<number, XmlTieType> = {};
   wedges: XmlWedgeState = {} as XmlWedgeState;
   hairpins: XmlHairpinInfo[] = [];
   instrument: SmoInstrumentParams = SmoInstrument.defaults;
@@ -94,7 +94,7 @@ export class XmlState {
   endBarline: number = SmoBarline.barlines.singleBar;
   measureIndex = -1;
   completedSlurs: SmoSlurParams[] = [];
-  completedTies: XmlCompletedTies[] = [];
+  completedTies: XmlTieType[] = [];
   verseMap: Record<number | string, number> = {};
   measureNumber: number = 0;
   formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
@@ -120,14 +120,12 @@ export class XmlState {
   // likc hairpins and slurs
   initializeForPart() {
     this.slurs = {};
-    this.ties = {};
     this.wedges = {} as XmlWedgeState;
     this.hairpins = [];
     this.globalCursor = 0;
     this.staffVoiceHash = {};
     this.measureIndex = -1;
     this.completedSlurs = [];
-    this.completedTies = [];
     this.verseMap = {};
     this.instrument.keyOffset = 0;
     this.instrumentMap = {};
@@ -332,16 +330,7 @@ export class XmlState {
     tieInfos.forEach((tieInfo) => {
       // tieInfo = { number, type, orientation, selector, pitchIndex }
       if (tieInfo.type === 'start') {
-        this.ties[tieInfo.number] = JSON.parse(JSON.stringify(tieInfo));
-      } else if (tieInfo.type === 'stop') {
-        if (this.ties[tieInfo.number]) {
-          this.completedTies.push({
-            startSelector: JSON.parse(JSON.stringify(this.ties[tieInfo.number].selector)),
-            endSelector: JSON.parse(JSON.stringify(tieInfo.selector)),
-            fromPitch: this.ties[tieInfo.number].pitchIndex,
-            toPitch: tieInfo.pitchIndex
-          });
-        }
+        this.completedTies.push(tieInfo);
       }
     });
   }
@@ -415,14 +404,38 @@ export class XmlState {
   updateSlurStates(slurInfos: XmlSlurType[]) {
     const clef: Clef = this.staffArray[this.staffIndex].clefInfo.clef as Clef;
     const note = this.previousNote;
+    const getForcedSlurDirection = (smoParams: SmoSlurParams, xmlStart: XmlSlurType, xmlEnd: XmlSlurType | null) => {
+      // If the slur direction is specified, otherwise use autor.
+      if (xmlStart.placement === 'above' || xmlEnd?.placement === 'above') {
+        smoParams.position_end = SmoSlur.positions.ABOVE;
+        smoParams.position = SmoSlur.positions.ABOVE;
+        if (xmlStart.orientation === 'over') {
+          smoParams.orientation = SmoSlur.orientations.DOWN;
+        } else if (xmlStart.orientation === 'under') {
+          smoParams.orientation = SmoSlur.orientations.UP;
+        }
+      } else if (xmlStart.placement === 'below' || xmlEnd?.placement === 'below') {
+        smoParams.position_end = SmoSlur.positions.BELOW;
+        smoParams.position = SmoSlur.positions.BELOW;
+        if (xmlStart.orientation === 'over') {
+          smoParams.orientation = SmoSlur.orientations.DOWN;
+        } else if (xmlStart.orientation === 'under') {
+          smoParams.orientation = SmoSlur.orientations.UP;
+        }
+      }
+    };
     slurInfos.forEach((slurInfo) => {
       // slurInfo = { number, type, selector }
       if (slurInfo.type === 'start') {
+        const slurParams = SmoSlur.defaults;
+        // if start and stop come out of order
         if (this.slurs[slurInfo.number] && (this.slurs[slurInfo.number] as XmlSlurType).type === 'stop') {
-          // if start and stop come out of order
-          const slurParams = SmoSlur.defaults;
           slurParams.endSelector = JSON.parse(JSON.stringify((this.slurs[slurInfo.number] as XmlSlurType).selector));
           slurParams.startSelector = slurInfo.selector;
+          slurParams.cp1x = slurInfo.controlX;
+          slurParams.cp1y = slurInfo.controlY;
+          const slurType = this.slurs[slurInfo.number];
+          getForcedSlurDirection(slurParams, slurInfo, slurType);
           this.completedSlurs.push(slurParams);
           this.slurs[slurInfo.number] = null;
         } else {
@@ -435,8 +448,11 @@ export class XmlState {
           const slurParams = SmoSlur.defaults;
           slurParams.startSelector = JSON.parse(JSON.stringify((this.slurs[slurInfo.number] as XmlSlurType).selector));
           slurParams.endSelector = slurInfo.selector;
+          slurParams.cp2x = slurInfo.controlX;
+          slurParams.cp2y = slurInfo.controlY;
           slurParams.yOffset = slurData.yOffset;
-          slurParams.invert = slurData.invert;
+          const slurType = this.slurs[slurInfo.number];
+          getForcedSlurDirection(slurParams, slurInfo, slurType);
           // console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
           this.completedSlurs.push(slurParams);
           this.slurs[slurInfo.number] = null;
@@ -446,19 +462,6 @@ export class XmlState {
       }
     });
   }
-  // ### completeTies
-  completeTies() {
-    this.completedTies.forEach((tie) => {
-      const params = SmoTie.defaults;
-      params.startSelector = tie.startSelector;
-      params.endSelector = tie.endSelector;
-      const smoTie = new SmoTie(params);
-      smoTie.lines = [{
-        from: tie.fromPitch, to: tie.toPitch
-      }];
-      this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
-    });
-  }
   /**
    * After reading in a measure, update any completed slurs and make them
    * into SmoSlur and add them to the SmoSystemGroup objects.
@@ -466,14 +469,42 @@ export class XmlState {
    * (i.e. the staves that have already been parsed in other parts)
    */
   completeSlurs() {
-    this.completedSlurs.forEach((slur) => {
-      const params = SmoSlur.defaults;
-      params.startSelector = slur.startSelector;
-      params.endSelector = slur.endSelector;
-      params.yOffset = slur.yOffset;
-      params.invert = slur.invert;
-      const smoSlur = new SmoSlur(params);
+    this.completedSlurs.forEach((slur) => {      
+      const smoSlur = new SmoSlur(slur);
       this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
+    });
+  }
+  /**
+   * Go through saved start ties, try to find the endpoint of the tie.  Ties in music xml
+   * are a little ambiguous, we assume we are tying to the same pitch
+   * @param score 
+   */
+  completeTies(score: SmoScore) {
+    this.completedTies.forEach((tieInfo) => {
+      const startSelection: SmoSelection | null = SmoSelection.noteFromSelector(score, tieInfo.selector);
+      if (startSelection && startSelection.note) {
+        const startNote = startSelection.note;
+        const endSelection = SmoSelection.nextNoteSelectionFromSelector(score, startSelection.selector);
+        const endNote = endSelection?.note;
+        const pitches: TieLine[] = [];
+        if (endSelection && endNote) {
+          startNote.pitches.forEach((spitch, ix) => {
+            endNote.pitches.forEach((epitch, jx) => {
+              if (SmoMusic.smoPitchToInt(spitch) === SmoMusic.smoPitchToInt(epitch)) {
+                pitches.push({ from: ix, to: jx });
+              }
+            });
+          });
+        }
+        if (pitches.length && endSelection) {
+          const params = SmoTie.defaults;
+          params.startSelector = startSelection.selector;
+          params.endSelector = endSelection.selector;
+          params.lines = pitches;
+          const smoTie = new SmoTie(params);
+          score.staves[smoTie.startSelector.staff].addStaffModifier(smoTie);
+        }
+      }
     });
   }
   // ### backtrackTuplets
