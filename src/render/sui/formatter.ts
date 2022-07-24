@@ -12,7 +12,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoBeamer } from '../../smo/xform/beamers';
 import { SmoScore } from '../../smo/data/score';
 import { layoutDebug } from './layoutDebug';
-import { ScaledPageLayout } from '../../smo/data/scoreModifiers';
+import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
 const VF = eval('Vex.Flow');
@@ -34,9 +34,12 @@ export class SuiLayoutFormatter {
   score: SmoScore;
   systems: Record<number, LineRender> = {};
   columnMeasureMap: Record<number, SmoMeasure[]>;
-  
-  constructor(score: SmoScore) {
+  currentPage: number = 0;
+  svg: SVGSVGElement;
+  lines: number[] = [];
+  constructor(score: SmoScore, svg: SVGSVGElement) {
     this.score = score;
+    this.svg = svg;
     this.columnMeasureMap = {};
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
@@ -47,7 +50,77 @@ export class SuiLayoutFormatter {
       });
     });
   }
+   
+  /**
+   * Once we know which line a measure is going on, make a map for it for easy
+   * looking during rendering
+   * @param measures 
+   * @param lineIndex 
+   * @param systemIndex 
+   */
+  updateSystemMap(measures: SmoMeasure[], lineIndex: number, systemIndex: number) {
+    if (!this.systems[lineIndex]) {
+      const nextLr: LineRender = {
+        systems: {}
+      };
+      this.systems[lineIndex] = nextLr;
+    }
+    const systemRender = this.systems[lineIndex];
+    if (!systemRender.systems[systemIndex]) {
+      systemRender.systems[systemIndex] = measures;
+    }
+  }
+  trimPages(startPageCount: number): boolean {
+    let pl: SmoPageLayout[] | undefined = this.score?.layoutManager?.pageLayouts;
+    if (pl) {
+      if (this.currentPage < pl.length - 1) {
+        this.score!.layoutManager!.trimPages(this.currentPage);
+        pl = this.score?.layoutManager?.pageLayouts;
+      }
+      if (pl && pl.length !== startPageCount) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * see if page breaks this boundary.  If it does, bump the current page and move the system down
+   * to the new page
+   * @param scoreLayout 
+   * @param currentLine 
+   * @param bottomMeasure 
+   * @returns 
+   */
+  checkPageBreak(scoreLayout: ScaledPageLayout, currentLine: SmoMeasure[], bottomMeasure: SmoMeasure): ScaledPageLayout {
+    let pageAdj = 0;
+    const lm: SmoLayoutManager = this.score!.layoutManager!;
+    // See if this measure breaks a page.
+    const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
+    if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+      // Advance to next page settings
+      this.currentPage += 1;
+      // If this is a new page, make sure there is a layout for it.
+      lm.addToPageLayouts(this.currentPage);
+      scoreLayout = lm.getScaledPageLayout(this.currentPage);
 
+      // When adjusting the page, make it so the top staff of the system
+      // clears the bottom of the page.
+      const topMeasure = currentLine.reduce((a, b) =>
+        a.svg.logicalBox.y < b.svg.logicalBox.y ? a : b
+      );
+      const minMaxY = topMeasure.svg.logicalBox.y;
+      pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
+      pageAdj = pageAdj + scoreLayout.topMargin;
+
+      // For each measure on the current line, move it down past the page break;
+      currentLine.forEach((measure) => {
+        measure.setBox(SvgHelpers.boxPoints(
+          measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
+        measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
+      });
+    }
+    return scoreLayout;
+  }
   measureToLeft(measure: SmoMeasure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
@@ -66,7 +139,7 @@ export class SuiLayoutFormatter {
    * @param y 
    * @returns { MeasureEstimate } - the measures in the column and the x, y location
    */
-   estimateColumn(scoreLayout: ScaledPageLayout, measureIx: number, systemIndex: number, lineIndex: number, pageIndex: number, x: number, y: number): MeasureEstimate {
+   estimateColumn(scoreLayout: ScaledPageLayout, measureIx: number, systemIndex: number, lineIndex: number, x: number, y: number): MeasureEstimate {
     const s: any = {};
     const measures = this.columnMeasureMap[measureIx];
     let rowInSystem = 0;
@@ -87,7 +160,7 @@ export class SuiLayoutFormatter {
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
       measure.svg.lineIndex = lineIndex;
-      measure.svg.pageIndex = pageIndex;
+      measure.svg.pageIndex = this.currentPage;
 
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.
@@ -166,6 +239,94 @@ export class SuiLayoutFormatter {
     const rv = { measures, y, x: maxX };
     return rv;
   }
+  layout() {
+    let measureIx = 0;
+    let systemIndex = 0;
+    if (!this.score.layoutManager) {
+      return;
+    }
+    let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
+    let y = 0;
+    let x = 0;
+    let lineIndex = 0;
+    this.lines = [];
+    this.lines.push(lineIndex);
+    let currentLine: SmoMeasure[] = []; // the system we are esimating
+    let measureEstimate: MeasureEstimate | null = null;
+
+    layoutDebug.clearDebugBoxes(layoutDebug.values.pre);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.post);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.system);
+    const timestamp = new Date().valueOf();
+
+    y = scoreLayout.topMargin;
+    x = scoreLayout.leftMargin;
+
+    while (measureIx < this.score.staves[0].measures.length) {
+      if (this.score.isPartExposed()) {
+        if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
+          measureIx += 1;
+          continue;
+        }
+      }
+      measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+      x = measureEstimate.x;
+
+      if (systemIndex > 0 &&
+        (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
+          this.justifyY(scoreLayout, measureEstimate, currentLine, false);
+        // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
+        // start of staff.
+        const bottomMeasure: SmoMeasure = currentLine.reduce((a, b) =>
+          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
+        );
+        this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+
+        const ld = layoutDebug;
+        const sh = SvgHelpers;
+        if (layoutDebug.mask & layoutDebug.values.system) {
+          currentLine.forEach((measure) => {
+            if (measure.svg.logicalBox) {
+              ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.system);
+              ld.debugBox(this.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
+            }
+          });
+        }
+
+        // Now start rendering on the next system.
+        y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
+  
+        currentLine = [];
+        systemIndex = 0;
+        x = scoreLayout.leftMargin;
+        lineIndex += 1;
+        this.lines.push(lineIndex);
+        measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+        x = measureEstimate.x;
+      }
+      // ld declared for lint
+      const ld = layoutDebug;
+      measureEstimate?.measures.forEach((measure) => {
+        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+      });
+      this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
+      currentLine = currentLine.concat(measureEstimate.measures);
+      measureIx += 1;
+      systemIndex += 1;
+      // If this is the last measure but we have not filled the x extent,
+      // still justify the vertical staves and check for page break.
+      if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
+        this.justifyY(scoreLayout, measureEstimate, currentLine, true);
+        const bottomMeasure = currentLine.reduce((a, b) =>
+          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
+        );
+        scoreLayout = this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+      }
+    }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
+  }
+  
   static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>): number {
     const widths: number[] = [];
     // The below line was commented out b/c voiceIX was defined but never used
@@ -315,7 +476,7 @@ export class SuiLayoutFormatter {
    // ### _justifyY
   // when we have finished a line of music, adjust the measures in the system so the
   // top of the staff lines up.
-  _justifyY(svg: SVGSVGElement, scoreLayout: ScaledPageLayout, measureEstimate: MeasureEstimate, currentLine: SmoMeasure[], lastSystem: boolean) {
+  justifyY(scoreLayout: ScaledPageLayout, measureEstimate: MeasureEstimate, currentLine: SmoMeasure[], lastSystem: boolean) {
     let i = 0;
     // We estimate the staves at the same absolute y value.
     // Now, move them down so the top of the staves align for all measures in a  row.
@@ -330,8 +491,8 @@ export class SuiLayoutFormatter {
       const sh = SvgHelpers;
       rowAdj.forEach((measure) => {
         const adj = lowestStaff.staffY - measure.staffY;
-        measure.setY(measure.staffY + adj, '_justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_justifyY');
+        measure.setY(measure.staffY + adj, 'justifyY');
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
       });
       const rightStaff = rowAdj.reduce((a, b) =>
         a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
@@ -344,9 +505,9 @@ export class SuiLayoutFormatter {
       rowAdj.forEach((measure) => {
         measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
         const offset = measure.measureNumber.systemIndex * justifyX;
-        measure.setX(measure.staffX + offset, '_justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), '_justifyY');
-        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        measure.setX(measure.staffX + offset, 'justifyY');
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
       });
     }
   }

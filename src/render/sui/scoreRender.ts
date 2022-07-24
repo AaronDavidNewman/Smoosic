@@ -1,19 +1,20 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoMusic } from '../../smo/data/music';
 import { SvgBox } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
-import { SmoTempoText, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
-import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { SmoBeamer } from '../../smo/xform/beamers';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { VxMeasure } from '../vex/vxMeasure';
 
 import { SuiRenderState, ScoreRenderParams } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
 import { SuiLayoutFormatter, SuiTickContext, LineRender, MeasureEstimate } from './formatter';
+import { SmoBeamer } from '../../smo/xform/beamers';
 import { SuiTextBlock } from './textRender';
 import { layoutDebug } from './layoutDebug';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
@@ -37,9 +38,7 @@ export class SuiScoreRender extends SuiRenderState {
     this.setViewport(true);
   }
   startRenderTime: number = 0;
-  currentPage: number = 0;
-  systems: Record<number, LineRender> = {};
-  
+  formatter: SuiLayoutFormatter | null = null;
 
   // ### createScoreRenderer
   // ### Description;
@@ -143,10 +142,10 @@ export class SuiScoreRender extends SuiRenderState {
     return rv;
   }
   _renderSystem(lineIx: number, printing: boolean) {
-    if (this.score === null) {
+    if (this.score === null || this.formatter === null) {
       return;
     }
-    const columns: Record<number, SmoMeasure[]> = this.systems[lineIx].systems;
+    const columns: Record<number, SmoMeasure[]> = this.formatter.systems[lineIx].systems;
     const vxSystem: VxSystem = new VxSystem(this.context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
@@ -170,7 +169,7 @@ export class SuiScoreRender extends SuiRenderState {
     }
     vxSystem.updateLyricOffsets();
     this.score.staves.forEach((stf) => {
-      this._renderModifiers(stf, vxSystem);
+      this.renderModifiers(stf, vxSystem);
     });
     layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
   }
@@ -215,6 +214,145 @@ export class SuiScoreRender extends SuiRenderState {
       this.backgroundRender = false;
     }
   }
+ // ### _renderModifiers
+  // ### Description:
+  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
+  // is on a different system due to wrapping.
+  renderModifiers(staff: SmoSystemStaff, system: VxSystem) {
+    let nextNote: SmoSelection | null = null;
+    let lastNote: SmoSelection | null = null;
+    let testNote: VxMeasure | null = null;
+    let vxStart: VxMeasure | null = null;
+    let vxEnd: VxMeasure | null = null;
+    const removedModifiers: StaffModifierBase[] = [];
+    if (this.score === null || this.measureMapper === null) {
+      return;
+    }
+    staff.modifiers.forEach((modifier) => {
+      const startNote = SmoSelection.noteSelection(this.score!,
+        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+      const endNote = SmoSelection.noteSelection(this.score!,
+        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+      if (!startNote || !endNote) {
+        // If the modifier doesn't have score endpoints, delete it from the score
+        removedModifiers.push(modifier);
+        return;
+      }
+      if (startNote.note !== null) {
+        vxStart = system.getVxNote(startNote.note);
+      }
+      if (endNote.note !== null) {
+        vxEnd = system.getVxNote(endNote.note);
+      }
+
+      // If the modifier goes to the next staff, draw what part of it we can on this staff.
+      if (vxStart && !vxEnd) {
+        nextNote = SmoSelection.nextNoteSelection(this.score!,
+          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+        if (nextNote === null) {
+          console.warn('bad selector ' + JSON.stringify(modifier.startSelector, null, ' '));
+        } else {
+          if (nextNote.note !== null) {
+            testNote = system.getVxNote(nextNote.note);
+          }
+          while (testNote) {
+            vxEnd = testNote;
+            nextNote = SmoSelection.nextNoteSelection(this.score!,
+              nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+            if (!nextNote) {
+              break;
+            }
+            if (nextNote.note !== null) {
+              testNote = system.getVxNote(nextNote.note);
+            } else {
+              testNote = null;
+            }
+          }
+        }
+      }
+      if (vxEnd && !vxStart) {
+        lastNote = SmoSelection.lastNoteSelection(this.score!,
+          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+        if (lastNote !== null && lastNote.note !== null) {
+          testNote = system.getVxNote(lastNote.note);
+          while (testNote !== null) {
+            vxStart = testNote;
+            lastNote = SmoSelection.lastNoteSelection(this.score!,
+              lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+            if (!lastNote) {
+              break;
+            }
+            if (lastNote.note !== null) {
+              testNote = system.getVxNote(lastNote.note);
+            } else {
+              testNote = null;
+            }
+          }
+        }
+      }
+      if (!vxStart && !vxEnd) {
+        return;
+      }
+      system.renderModifier(this.measureMapper!.scroller, modifier, vxStart, vxEnd, startNote, endNote);
+    });
+    // Silently remove modifiers from the score if the endpoints no longer exist
+    removedModifiers.forEach((mod) => {
+      staff.removeStaffModifier(mod);
+    });
+  }
+
+  drawPageLines() {
+    let i = 0;
+    $(this.context.svg).find('.pageLine').remove();
+    const printing = $('body').hasClass('print-render');
+    const layoutMgr = this.score!.layoutManager;
+    if (printing || !layoutMgr) {
+      return;
+    }
+    for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
+      const scaledPage = layoutMgr.getScaledPageLayout(i);
+      const y = scaledPage.pageHeight * i;
+      SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
+        { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+    }
+  }
+  replaceSelection(staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }>, change: SmoSelection) {
+    let system: VxSystem | null = null;
+    SmoBeamer.applyBeams(change.measure);
+    // Defer modifier update until all selected measures are drawn.
+    if (!staffMap[change.staff.staffId]) {
+      system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
+      staffMap[change.staff.staffId] = { system, staff: change.staff };
+    } else {
+      system = staffMap[change.staff.staffId].system;
+    }
+    const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
+    selections.forEach((selection) => {
+      if (system !== null && this.measureMapper !== null) {
+        system.renderMeasure(selection.measure, this.measureMapper, false);
+      }
+    });
+
+  }
+
+  // ### _replaceMeasures
+  // Do a quick re-render of a measure that has changed.
+  replaceMeasures() {
+    const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
+    if (this.score === null || this.measureMapper === null) {
+      return;
+    }
+    this.replaceQ.forEach((change) => {
+      this.replaceSelection(staffMap, change);
+    });
+    Object.keys(staffMap).forEach((key) => {
+      const obj = staffMap[key];
+      this.renderModifiers(obj.staff, obj.system);
+      obj.system.renderEndings(this.measureMapper!.scroller);
+      obj.system.updateLyricOffsets();
+    });
+    this.replaceQ = [];
+  }
 
   renderAllMeasures(lines: number[]) {
     if (!this.score) {
@@ -238,76 +376,34 @@ export class SuiScoreRender extends SuiRenderState {
     this.startRenderTime = new Date().valueOf();
     this._renderNextSystem(0, lines, printing);
   }
+  // Number the measures at the first measure in each system.
+  numberMeasures() {
+    const printing: boolean = $('body').hasClass('print-render');
+    const staff = this.score!.staves[0];
+    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
+    $('.measure-number').remove();
 
-  // ### _justifyY
-  // when we have finished a line of music, adjust the measures in the system so the
-  // top of the staff lines up.
-  _justifyY(svg: SVGSVGElement, scoreLayout: ScaledPageLayout, measureEstimate: MeasureEstimate, currentLine: SmoMeasure[], lastSystem: boolean) {
-    let i = 0;
-    // We estimate the staves at the same absolute y value.
-    // Now, move them down so the top of the staves align for all measures in a  row.
-    for (i = 0; i < measureEstimate.measures.length; ++i) {
-      let justifyX = 0;
-      const index = i;
-      const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
-      // lowest staff has greatest staffY value.
-      const lowestStaff = rowAdj.reduce((a, b) =>
-        a.staffY > b.staffY ? a : b
-      );
-      const sh = SvgHelpers;
-      rowAdj.forEach((measure) => {
-        const adj = lowestStaff.staffY - measure.staffY;
-        measure.setY(measure.staffY + adj, '_justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_justifyY');
-      });
-      const rightStaff = rowAdj.reduce((a, b) =>
-        a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
+    measures.forEach((measure) => {
+      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
+        const numAr = [];
+        numAr.push({ y: measure.svg.logicalBox.y - 10 });
+        numAr.push({ x: measure.svg.logicalBox.x });
+        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
+        numAr.push({ 'font-size': '10pt' });
+        SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
-      if (!lastSystem) {
-        justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
-          / rowAdj.length);
+        // Show line-feed symbol
+        if (measure.format.systemBreak && !printing) {
+          const starAr = [];
+          const symbol = '\u21b0';
+          starAr.push({ y: measure.svg.logicalBox.y - 5 });
+          starAr.push({ x: measure.svg.logicalBox.x + 25 });
+          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
+          starAr.push({ 'font-size': '12pt' });
+          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
+        }
       }
-      const ld = layoutDebug;
-      rowAdj.forEach((measure) => {
-        measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
-        const offset = measure.measureNumber.systemIndex * justifyX;
-        measure.setX(measure.staffX + offset, '_justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), '_justifyY');
-        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.adjust);
-      });
-    }
-  }
-  // ### _checkPageBreak
-  // See if this line breaks the page boundary
-  _checkPageBreak(scoreLayout: ScaledPageLayout, currentLine: SmoMeasure[], bottomMeasure: SmoMeasure): ScaledPageLayout {
-    let pageAdj = 0;
-    const lm: SmoLayoutManager = this.score!.layoutManager!;
-    // See if this measure breaks a page.
-    const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
-    if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-      // Advance to next page settings
-      this.currentPage += 1;
-      // If this is a new page, make sure there is a layout for it.
-      lm.addToPageLayouts(this.currentPage);
-      scoreLayout = lm.getScaledPageLayout(this.currentPage);
-
-      // When adjusting the page, make it so the top staff of the system
-      // clears the bottom of the page.
-      const topMeasure = currentLine.reduce((a, b) =>
-        a.svg.logicalBox.y < b.svg.logicalBox.y ? a : b
-      );
-      const minMaxY = topMeasure.svg.logicalBox.y;
-      pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
-      pageAdj = pageAdj + scoreLayout.topMargin;
-
-      // For each measure on the current line, move it down past the page break;
-      currentLine.forEach((measure) => {
-        measure.setBox(SvgHelpers.boxPoints(
-          measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
-        measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
-      });
-    }
-    return scoreLayout;
+    });
   }
 
   /**
@@ -319,122 +415,14 @@ export class SuiScoreRender extends SuiRenderState {
       return;
     }
     const score = this.score;
-    const formatter = new SuiLayoutFormatter(score);
-    let measureIx = 0;
-    let systemIndex = 0;
-    if (!this.score.layoutManager) {
-      return;
-    }
-    let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
-    let y = 0;
-    let x = 0;
-    let lineIndex = 0;
-    const lines: number[] = [];
-    lines.push(lineIndex);
-    let currentLine: SmoMeasure[] = []; // the system we are esimating
-    let measureEstimate: MeasureEstimate | null = null;
     $('head title').text(this.score.scoreInfo.name);
-
-    layoutDebug.clearDebugBoxes(layoutDebug.values.pre);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.post);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.system);
-    this.currentPage = 0;
-    this.systems = {};
-    const timestamp = new Date().valueOf();
-
-    const svg = this.context.svg;
+    const formatter = new SuiLayoutFormatter(score, this.context.svg);
     const startPageCount = this.score.layoutManager!.pageLayouts.length;
-
-    y = scoreLayout.topMargin;
-    x = scoreLayout.leftMargin;
-
-    while (measureIx < this.score.staves[0].measures.length) {
-      if (this.score.isPartExposed()) {
-        if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
-          measureIx += 1;
-          continue;
-        }
-      }
-      measureEstimate = formatter.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, this.currentPage, x, y);
-      x = measureEstimate.x;
-
-      if (systemIndex > 0 &&
-        (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
-        this._justifyY(svg, scoreLayout, measureEstimate, currentLine, false);
-        // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
-        // start of staff.
-        const bottomMeasure: SmoMeasure = currentLine.reduce((a, b) =>
-          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
-        );
-        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
-
-        const ld = layoutDebug;
-        const sh = SvgHelpers;
-        if (layoutDebug.mask & layoutDebug.values.system) {
-          currentLine.forEach((measure) => {
-            if (measure.svg.logicalBox) {
-              ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.system);
-              ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
-            }
-          });
-        }
-
-        // Now start rendering on the next system.
-        y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
-  
-        currentLine = [];
-        systemIndex = 0;
-        x = scoreLayout.leftMargin;
-        lines.push(lineIndex);
-        lineIndex += 1;
-        measureEstimate = formatter.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, this.currentPage, x, y);
-        x = measureEstimate.x;
-      }
-      // ld declared for lint
-      const ld = layoutDebug;
-      measureEstimate?.measures.forEach((measure) => {
-        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.pre);
-      });
-      if (!this.systems[lineIndex]) {
-        const nextLr: LineRender = {
-          systems: {}
-        };
-        this.systems[lineIndex] = nextLr;
-      }
-      const systemRender = this.systems[lineIndex];
-      if (!systemRender.systems[systemIndex]) {
-        systemRender.systems[systemIndex] = measureEstimate.measures;
-      }
-
-
-      currentLine = currentLine.concat(measureEstimate.measures);
-      measureIx += 1;
-      systemIndex += 1;
-      // If this is the last measure but we have not filled the x extent,
-      // still justify the vertical staves and check for page break.
-      if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
-        this._justifyY(svg, scoreLayout, measureEstimate, currentLine, true);
-        const bottomMeasure = currentLine.reduce((a, b) =>
-          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
-        );
-        scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
-      }
+    this.formatter = formatter;
+    formatter.layout();    
+    if (this.formatter.trimPages(startPageCount)) {
+      this.setViewport(true);
     }
-    let pl: SmoPageLayout[] | undefined = this.score?.layoutManager?.pageLayouts;
-    if (pl) {
-      if (this.currentPage < pl.length - 1) {
-        this.score!.layoutManager!.trimPages(this.currentPage);
-        pl = this.score?.layoutManager?.pageLayouts;
-      }
-      if (pl.length !== startPageCount) {
-        this.setViewport(true);
-      }  
-    }
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
-    this.renderAllMeasures(lines);
-  }
-
-
- 
+    this.renderAllMeasures(formatter.lines);
+  } 
 }
