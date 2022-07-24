@@ -1231,7 +1231,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.score.scaleTextGroups(original / layout.svgScale);
     this.storeScore.layoutManager!.updateGlobalLayout(layout);
     this.renderer.rerenderAll();
-    return this.renderer.updatePromise();
+    return this.renderer.preserveScroll();
   }
   /**
    * Set the layout of a single page

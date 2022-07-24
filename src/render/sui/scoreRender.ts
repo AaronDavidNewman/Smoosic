@@ -13,7 +13,7 @@ import { SuiRenderState, ScoreRenderParams } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
-import { suiLayoutFormatter, SuiTickContext } from './formatter';
+import { SuiLayoutFormatter, SuiTickContext, LineRender, MeasureEstimate } from './formatter';
 import { SuiTextBlock } from './textRender';
 import { layoutDebug } from './layoutDebug';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
@@ -23,9 +23,6 @@ import { createTopDomContainer } from '../../common/htmlHelpers';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
-export interface MeasureEstimate {
-  measures: SmoMeasure[], x: number, y: number
-}
 
 /**
  * This module renders the entire score.  It calculates the layout first based on the
@@ -41,6 +38,8 @@ export class SuiScoreRender extends SuiRenderState {
   }
   startRenderTime: number = 0;
   currentPage: number = 0;
+  systems: Record<number, LineRender> = {};
+  
 
   // ### createScoreRenderer
   // ### Description;
@@ -67,18 +66,6 @@ export class SuiScoreRender extends SuiRenderState {
       this.unrenderStaff(staff);
     });
     $(this.renderer.getContext().svg).find('g.lineBracket').remove();
-  }
-
-  // ### _measureToLeft
-  // measure to 'left' is on previous row if this is the first column in a system
-  // but we still use it to compute beginning symbols (key sig etc.)
-  _measureToLeft(measure: SmoMeasure) {
-    const j = measure.measureNumber.staffId;
-    const i = measure.measureNumber.measureIndex;
-    if (!this.score || this.score.staves.length <= j) {
-      console.log('no staff');
-    }
-    return (i > 0 ? this.score!.staves[j].measures[i - 1] : null);
   }
 
   renderTextGroup(gg: SmoTextGroup) {
@@ -142,40 +129,6 @@ export class SuiScoreRender extends SuiRenderState {
     this.context.closeGroup();
   }
 
-  // ### calculateBeginningSymbols
-  // calculate which symbols like clef, key signature that we have to render in this measure.
-  calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure, clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
-    // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
-    const xposeScore = this.score?.preferences?.transposingScore && (this.score?.isPartExposed() === false);
-    const xposeOffset = xposeScore ? measure.transposeIndex : 0;
-    const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
-    measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-    measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
-      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
-    if (measure.timeSignature.display === false) {
-      measure.svg.forceTimeSignature = false;
-    }
-    measure.svg.forceTempo = false;
-    const tempo = measure.getTempo();
-    if (tempo && measure.measureNumber.measureIndex === 0) {
-      measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
-    } else if (tempo && tempoLast) {
-      if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
-        measure.svg.forceTempo = tempo.display;
-      }
-    } else if (tempo) {
-      measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
-    }
-    if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
-      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
-      measure.svg.forceKeySignature = true;
-    } else if (systemIndex === 0 && measureKeySig !== 'C') {
-      measure.svg.forceKeySignature = true;
-    } else {
-      measure.svg.forceKeySignature = false;
-    }
-  }
-
   _getMeasuresInColumn(ix: number): SmoMeasure[] {
     const rv: SmoMeasure[] = [];
     if (!this.score) {
@@ -189,18 +142,12 @@ export class SuiScoreRender extends SuiRenderState {
     });
     return rv;
   }
-  _renderSystem(key: string, mscore: Record<string | number, SmoMeasure[]>, printing: boolean) {
-    const columns: Record<number, SmoMeasure[]> = {};    
+  _renderSystem(lineIx: number, printing: boolean) {
     if (this.score === null) {
       return;
     }
-    const vxSystem: VxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
-    mscore[key].forEach((measure) => {
-      if (!columns[measure.measureNumber.systemIndex]) {
-        columns[measure.measureNumber.systemIndex] = [];
-      }
-      columns[measure.measureNumber.systemIndex].push(measure);
-    });
+    const columns: Record<number, SmoMeasure[]> = this.systems[lineIx].systems;
+    const vxSystem: VxSystem = new VxSystem(this.context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
@@ -227,30 +174,25 @@ export class SuiScoreRender extends SuiRenderState {
     });
     layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
   }
-  _renderNextSystemPromise(systemIx: number, mscore: Record<string | number, SmoMeasure[]>, keys: string[], printing: boolean) {
+  _renderNextSystemPromise(systemIx: number, keys: number[], printing: boolean) {
     return new Promise((resolve: any) => {
-      this._renderSystem(keys[systemIx], mscore, printing);
-      resolve();
+      // const sleepDate = new Date().valueOf();
+      this._renderSystem(keys[systemIx], printing);
+      setTimeout(() => {
+        resolve();
+      }, 10);
     });
   }
-  _deferNextSystemPromise(systemIx: number, mscore: Record<string | number, SmoMeasure[]>, keys: string[], printing: boolean) {
-    return new Promise((resolve: any) => {
-      this._renderNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
-        setTimeout(() => {
-          resolve();
-        }, 10);
-      });
-    });
-  }
-  _renderNextSystem(systemIx: number, mscore: Record<string | number, SmoMeasure[]>, keys: string[], printing: boolean) {
+
+  _renderNextSystem(lineIx: number, keys: number[], printing: boolean) {
     createTopDomContainer('#renderProgress', 'progress');
-    if (systemIx < keys.length) {
-      const progress = Math.round((100 * systemIx) / keys.length);
+    if (lineIx < keys.length) {
+      const progress = Math.round((100 * lineIx) / keys.length);
       $('#renderProgress').attr('max', 100);
       $('#renderProgress').val(progress);
-      this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
-        systemIx++;
-        this._renderNextSystem(systemIx, mscore, keys, printing);
+      this._renderNextSystemPromise(lineIx,keys, printing).then(() => {
+        lineIx++;
+        this._renderNextSystem(lineIx, keys, printing);
       });
     } else {
       this.renderScoreModifiers();
@@ -274,23 +216,13 @@ export class SuiScoreRender extends SuiRenderState {
     }
   }
 
-  renderAllMeasures() {
-    const mscore: Record<number,SmoMeasure[]> = {};
+  renderAllMeasures(lines: number[]) {
     if (!this.score) {
       return;
     }
     const printing = $('body').hasClass('print-render');
     $('.measure-format').remove();
-    this.score.staves.forEach((staff) => {
-      staff.measures.forEach((measure) => {
-        if (!mscore[measure.svg.lineIndex]) {
-          mscore[measure.svg.lineIndex] = [];
-        }
-        mscore[measure.svg.lineIndex].push(measure);
-      });
-    });
-
-    const keys = Object.keys(mscore);
+   
     if (!printing) {
       $('body').addClass('show-render-progress');
       const isShowing = SuiPiano.isShowing;
@@ -304,7 +236,7 @@ export class SuiScoreRender extends SuiRenderState {
     }
     this.backgroundRender = true;
     this.startRenderTime = new Date().valueOf();
-    this._renderNextSystem(0, mscore, keys, printing);
+    this._renderNextSystem(0, lines, printing);
   }
 
   // ### _justifyY
@@ -378,10 +310,16 @@ export class SuiScoreRender extends SuiRenderState {
     return scoreLayout;
   }
 
+  /**
+   * This calculates the position of all the elements in the score, then renders the score
+   * @returns 
+   */
   layout() {
     if (!this.score) {
       return;
     }
+    const score = this.score;
+    const formatter = new SuiLayoutFormatter(score);
     let measureIx = 0;
     let systemIndex = 0;
     if (!this.score.layoutManager) {
@@ -391,6 +329,8 @@ export class SuiScoreRender extends SuiRenderState {
     let y = 0;
     let x = 0;
     let lineIndex = 0;
+    const lines: number[] = [];
+    lines.push(lineIndex);
     let currentLine: SmoMeasure[] = []; // the system we are esimating
     let measureEstimate: MeasureEstimate | null = null;
     $('head title').text(this.score.scoreInfo.name);
@@ -400,6 +340,7 @@ export class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
     layoutDebug.clearDebugBoxes(layoutDebug.values.system);
     this.currentPage = 0;
+    this.systems = {};
     const timestamp = new Date().valueOf();
 
     const svg = this.context.svg;
@@ -415,7 +356,7 @@ export class SuiScoreRender extends SuiRenderState {
           continue;
         }
       }
-      measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+      measureEstimate = formatter.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, this.currentPage, x, y);
       x = measureEstimate.x;
 
       if (systemIndex > 0 &&
@@ -441,11 +382,13 @@ export class SuiScoreRender extends SuiRenderState {
 
         // Now start rendering on the next system.
         y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
+  
         currentLine = [];
         systemIndex = 0;
         x = scoreLayout.leftMargin;
+        lines.push(lineIndex);
         lineIndex += 1;
-        measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+        measureEstimate = formatter.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, this.currentPage, x, y);
         x = measureEstimate.x;
       }
       // ld declared for lint
@@ -453,6 +396,17 @@ export class SuiScoreRender extends SuiRenderState {
       measureEstimate?.measures.forEach((measure) => {
         ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.pre);
       });
+      if (!this.systems[lineIndex]) {
+        const nextLr: LineRender = {
+          systems: {}
+        };
+        this.systems[lineIndex] = nextLr;
+      }
+      const systemRender = this.systems[lineIndex];
+      if (!systemRender.systems[systemIndex]) {
+        systemRender.systems[systemIndex] = measureEstimate.measures;
+      }
+
 
       currentLine = currentLine.concat(measureEstimate.measures);
       measureIx += 1;
@@ -467,122 +421,20 @@ export class SuiScoreRender extends SuiRenderState {
         scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
       }
     }
-    const pl: SmoPageLayout[] | undefined = this.score?.layoutManager?.pageLayouts;
+    let pl: SmoPageLayout[] | undefined = this.score?.layoutManager?.pageLayouts;
     if (pl) {
       if (this.currentPage < pl.length - 1) {
         this.score!.layoutManager!.trimPages(this.currentPage);
+        pl = this.score?.layoutManager?.pageLayouts;
       }
       if (pl.length !== startPageCount) {
         this.setViewport(true);
       }  
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
-    this.renderAllMeasures();
+    this.renderAllMeasures(lines);
   }
 
-  // ### _estimateColumns
-  // the new logic to estimate the dimensions of a column of music, corresponding to
-  // a certain measure index.
-  // returns:
-  // {measures,y,x}  the x and y at the left/bottom of the render
-  _estimateColumn(scoreLayout: ScaledPageLayout, measureIx: number, systemIndex: number, lineIndex: number, x: number, y: number): MeasureEstimate {
-    const s: any = {};
-    const measures = this._getMeasuresInColumn(measureIx);
-    let rowInSystem = 0;
-    let voiceCount = 0;
-    let unalignedCtxCount = 0;
-    let wsum = 0;
-    let dsum = 0;
-    let maxCfgWidth = 0;
-    let isPickup = false;
-    // Keep running tab of accidental widths for justification
-    const contextMap: Record<number, SuiTickContext> = {};
-    measures.forEach((measure) => {
-      SmoBeamer.applyBeams(measure);
-      voiceCount += measure.voices.length;
-      if (measure.isPickup()) {
-        isPickup = true;
-      }
-      measure.measureNumber.systemIndex = systemIndex;
-      measure.svg.rowInSystem = rowInSystem;
-      measure.svg.lineIndex = lineIndex;
-      measure.svg.pageIndex = this.currentPage;
 
-      // use measure to left to figure out whether I need to render key signature, etc.
-      // If I am the first measure, just use self and we always render them on the first measure.
-      let measureToLeft = this._measureToLeft(measure);
-      if (!measureToLeft) {
-        measureToLeft = measure;
-      }
-      s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
-      s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
-      s.tempoLast = measureToLeft.getTempo();
-      s.timeSigLast = measureToLeft.timeSignature;
-      s.clefLast = measureToLeft.clef;
-      this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
-
-      // calculate vertical offsets from the baseline
-      const offsets = suiLayoutFormatter.estimateMeasureHeight(measure);
-      measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
-      measure.setY(y - measure.yTop, '_estimateColumns height');
-      measure.setX(x, 'render:estimateColumn');
-
-      // Add custom width to measure:
-      measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-      suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
-      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
-      maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
-      rowInSystem += 1;
-    });
-
-    // justify this column to the maximum width        
-    const startX = measures[0].staffX;
-    const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
-    const contexts = Object.keys(contextMap);
-    const widths: number[] = [];
-    const durations: number[] = [];
-    let minTotalWidth = 0;
-    contexts.forEach((strIx) => {
-      const ix = parseInt(strIx);
-      let tickWidth = 0;
-      const context = contextMap[ix];
-      if (context.tickCounts.length < voiceCount) {
-        unalignedCtxCount += 1;
-      }
-      context.widths.forEach((w, ix) => {
-        wsum += w;
-        dsum += context.tickCounts[ix];
-        widths.push(w);
-        durations.push(context.tickCounts[ix]);
-        tickWidth = Math.max(tickWidth, w);
-      });
-      minTotalWidth += tickWidth;
-    });
-    const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
-    const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
-    const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
-    const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
-
-    const davg = dsum / durations.length;
-    const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
-    const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
-    const unalignedPadding = 5;
-
-    const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
-    const unalignedPad = unalignedPadding * unalignedCtxCount;
-    let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
-    if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
-      // Add 1 because there is some overhead in each measure, 
-      // so there can never be (width/max) measures in the system
-      const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
-      maxWidth = Math.max(maxWidth, defaultWidth);
-    }
-    const maxX = startX + maxWidth;
-    measures.forEach((measure) => {
-      measure.setWidth(maxWidth, 'render:estimateColumn');
-      measure.svg.adjX = adjX;
-    });
-    const rv = { measures, y, x: maxX };
-    return rv;
-  }
+ 
 }

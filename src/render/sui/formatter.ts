@@ -9,18 +9,163 @@ import { SmoMusic } from '../../smo/data/music';
 import { vexGlyph } from '../vex/glyphDimensions';
 import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
+import { SmoBeamer } from '../../smo/xform/beamers';
+import { SmoScore } from '../../smo/data/score';
+import { layoutDebug } from './layoutDebug';
+import { ScaledPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
+import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
 const VF = eval('Vex.Flow');
 
 export interface SuiTickContext {
   widths: number[],
   tickCounts: number[]
 }
-
+export interface MeasureEstimate {
+  measures: SmoMeasure[], x: number, y: number
+}
+export interface LineRender {
+  systems: Record<number, SmoMeasure[]>
+}
 /**
  * Utilities for estimating measure/system/page width and height
  */
-export class suiLayoutFormatter {
+export class SuiLayoutFormatter {
+  score: SmoScore;
+  systems: Record<number, LineRender> = {};
+  columnMeasureMap: Record<number, SmoMeasure[]>;
+  
+  constructor(score: SmoScore) {
+    this.score = score;
+    this.columnMeasureMap = {};
+    this.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (!this.columnMeasureMap[measure.measureNumber.measureIndex]) {
+          this.columnMeasureMap[measure.measureNumber.measureIndex] = [];
+        }
+        this.columnMeasureMap[measure.measureNumber.measureIndex].push(measure);
+      });
+    });
+  }
+
+  measureToLeft(measure: SmoMeasure) {
+    const j = measure.measureNumber.staffId;
+    const i = measure.measureNumber.measureIndex;
+    return (i > 0 ? this.score!.staves[j].measures[i - 1] : null);
+  }
+   // {measures,y,x}  the x and y at the left/bottom of the render
+  /**
+   * Estimate the dimensions of a column when it's rendered.
+   * @param formatter 
+   * @param scoreLayout 
+   * @param measureIx 
+   * @param systemIndex 
+   * @param lineIndex 
+   * @param pageIndex 
+   * @param x 
+   * @param y 
+   * @returns { MeasureEstimate } - the measures in the column and the x, y location
+   */
+   estimateColumn(scoreLayout: ScaledPageLayout, measureIx: number, systemIndex: number, lineIndex: number, pageIndex: number, x: number, y: number): MeasureEstimate {
+    const s: any = {};
+    const measures = this.columnMeasureMap[measureIx];
+    let rowInSystem = 0;
+    let voiceCount = 0;
+    let unalignedCtxCount = 0;
+    let wsum = 0;
+    let dsum = 0;
+    let maxCfgWidth = 0;
+    let isPickup = false;
+    // Keep running tab of accidental widths for justification
+    const contextMap: Record<number, SuiTickContext> = {};
+    measures.forEach((measure) => {
+      SmoBeamer.applyBeams(measure);
+      voiceCount += measure.voices.length;
+      if (measure.isPickup()) {
+        isPickup = true;
+      }
+      measure.measureNumber.systemIndex = systemIndex;
+      measure.svg.rowInSystem = rowInSystem;
+      measure.svg.lineIndex = lineIndex;
+      measure.svg.pageIndex = pageIndex;
+
+      // use measure to left to figure out whether I need to render key signature, etc.
+      // If I am the first measure, just use self and we always render them on the first measure.
+      let measureToLeft = this.measureToLeft(measure);
+      if (!measureToLeft) {
+        measureToLeft = measure;
+      }
+      s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
+      s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
+      s.tempoLast = measureToLeft.getTempo();
+      s.timeSigLast = measureToLeft.timeSignature;
+      s.clefLast = measureToLeft.clef;
+      this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
+
+      // calculate vertical offsets from the baseline
+      const offsets = SuiLayoutFormatter.estimateMeasureHeight(measure);
+      measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
+      measure.setY(y - measure.yTop, 'estimateColumns height');
+      measure.setX(x, 'render:estimateColumn');
+
+      // Add custom width to measure:
+      measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
+      SuiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
+      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+      maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
+      rowInSystem += 1;
+    });
+
+    // justify this column to the maximum width        
+    const startX = measures[0].staffX;
+    const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
+    const contexts = Object.keys(contextMap);
+    const widths: number[] = [];
+    const durations: number[] = [];
+    let minTotalWidth = 0;
+    contexts.forEach((strIx) => {
+      const ix = parseInt(strIx);
+      let tickWidth = 0;
+      const context = contextMap[ix];
+      if (context.tickCounts.length < voiceCount) {
+        unalignedCtxCount += 1;
+      }
+      context.widths.forEach((w, ix) => {
+        wsum += w;
+        dsum += context.tickCounts[ix];
+        widths.push(w);
+        durations.push(context.tickCounts[ix]);
+        tickWidth = Math.max(tickWidth, w);
+      });
+      minTotalWidth += tickWidth;
+    });
+    const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+    const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
+    const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
+    const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
+
+    const davg = dsum / durations.length;
+    const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
+    const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
+    const unalignedPadding = 5;
+
+    const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
+    const unalignedPad = unalignedPadding * unalignedCtxCount;
+    let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
+    if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
+      // Add 1 because there is some overhead in each measure, 
+      // so there can never be (width/max) measures in the system
+      const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
+      maxWidth = Math.max(maxWidth, defaultWidth);
+    }
+    const maxX = startX + maxWidth;
+    measures.forEach((measure) => {
+      measure.setWidth(maxWidth, 'render:estimateColumn');
+      measure.svg.adjX = adjX;
+    });
+    const rv = { measures, y, x: maxX };
+    return rv;
+  }
   static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>): number {
     const widths: number[] = [];
     // The below line was commented out b/c voiceIX was defined but never used
@@ -141,9 +286,9 @@ export class suiLayoutFormatter {
 
   static estimateMeasureWidth(measure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
-    measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
-    measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
+    let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
+    measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
+    measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
     const y = measure.svg.logicalBox.y;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
@@ -167,6 +312,44 @@ export class suiLayoutFormatter {
     return rv;
   }
 
+   // ### _justifyY
+  // when we have finished a line of music, adjust the measures in the system so the
+  // top of the staff lines up.
+  _justifyY(svg: SVGSVGElement, scoreLayout: ScaledPageLayout, measureEstimate: MeasureEstimate, currentLine: SmoMeasure[], lastSystem: boolean) {
+    let i = 0;
+    // We estimate the staves at the same absolute y value.
+    // Now, move them down so the top of the staves align for all measures in a  row.
+    for (i = 0; i < measureEstimate.measures.length; ++i) {
+      let justifyX = 0;
+      const index = i;
+      const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
+      // lowest staff has greatest staffY value.
+      const lowestStaff = rowAdj.reduce((a, b) =>
+        a.staffY > b.staffY ? a : b
+      );
+      const sh = SvgHelpers;
+      rowAdj.forEach((measure) => {
+        const adj = lowestStaff.staffY - measure.staffY;
+        measure.setY(measure.staffY + adj, '_justifyY');
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_justifyY');
+      });
+      const rightStaff = rowAdj.reduce((a, b) =>
+        a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
+
+      if (!lastSystem) {
+        justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
+          / rowAdj.length);
+      }
+      const ld = layoutDebug;
+      rowAdj.forEach((measure) => {
+        measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
+        const offset = measure.measureNumber.systemIndex * justifyX;
+        measure.setX(measure.staffX + offset, '_justifyY');
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), '_justifyY');
+        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+      });
+    }
+  }
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
   static _highestLowestHead(measure: SmoMeasure, note: SmoNote) {
@@ -183,6 +366,50 @@ export class suiLayoutFormatter {
   }
   static textFont(lyric: SmoLyric) {
     return VF.TextFormatter.create(lyric.fontInfo);
+  }
+
+  /**
+   * Calculate the dimensions of symbols based on where in a system we are, like whether we need to show
+   * the key signature, clef etc.
+   * @param systemIndex 
+   * @param measure 
+   * @param clefLast 
+   * @param keySigLast 
+   * @param timeSigLast 
+   * @param tempoLast 
+   * @param score 
+   */
+  calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure,
+    clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
+    // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
+    const xposeScore = this.score?.preferences?.transposingScore && (this.score?.isPartExposed() === false);
+    const xposeOffset = xposeScore ? measure.transposeIndex : 0;
+    const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
+    measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+    measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
+      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
+    if (measure.timeSignature.display === false) {
+      measure.svg.forceTimeSignature = false;
+    }
+    measure.svg.forceTempo = false;
+    const tempo = measure.getTempo();
+    if (tempo && measure.measureNumber.measureIndex === 0) {
+      measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
+    } else if (tempo && tempoLast) {
+      if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
+        measure.svg.forceTempo = tempo.display;
+      }
+    } else if (tempo) {
+      measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
+    }
+    if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
+      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
+      measure.svg.forceKeySignature = true;
+    } else if (systemIndex === 0 && measureKeySig !== 'C') {
+      measure.svg.forceKeySignature = true;
+    } else {
+      measure.svg.forceKeySignature = false;
+    }
   }
 
   // ### estimateMeasureHeight
@@ -207,7 +434,7 @@ export class suiLayoutFormatter {
     }
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
-        const bg = suiLayoutFormatter._beamGroupForNote(measure, note);
+        const bg = SuiLayoutFormatter._beamGroupForNote(measure, note);
         flag = SmoNote.flagStates.auto;
         if (bg && note.noteType === 'n') {
           flag = bg.notes[0].flagState;
@@ -226,7 +453,7 @@ export class suiLayoutFormatter {
               >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }
-        const hiloHead = suiLayoutFormatter._highestLowestHead(measure, note);
+        const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);
         if (flag === SmoNote.flagStates.down) {
           yOffset = Math.min(hiloHead.lo, yOffset);
           heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height, heightOffset);
@@ -240,7 +467,7 @@ export class suiLayoutFormatter {
         const lyrics = note.getTrueLyrics();
         if (lyrics.length) {
           const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
-          const fontInfo = suiLayoutFormatter.textFont(maxLyric);
+          const fontInfo = SuiLayoutFormatter.textFont(maxLyric);
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
         }
         const dynamics = note.getModifiers('SmoDynamicText') as SmoDynamicText[];

@@ -164,22 +164,18 @@ export class XmlToSmo {
       const slurs = staff.modifiers.filter((mm) =>mm.ctor === 'SmoSlur');
       slurs.forEach((ss) => {
         const slur = (ss as any) as SmoSlur;
-        const sel1 = SmoSelection.noteFromSelector(score, ss.startSelector);
-        const sel2 = SmoSelection.noteFromSelector(score, ss.endSelector);
-        if (sel1 && sel2) {
-          let slurPosition = SmoSlur.positions.AUTO;
-          if (slur.position === slur.position_end) {
-            slurPosition = slur.position;
-          }
-          const slurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2, slurPosition, slur.orientation);
-          slur.position = slurParams.position;
-          slur.position_end = slurParams.position_end;
-          slur.invert = slurParams.invert;
-          slur.yOffset = slurParams.yOffset;
-          slur.cp1y = slurParams.cp1y;
-          slur.cp2y = slurParams.cp2y;
-          slur.xOffset = slurParams.xOffset;
+        let slurPosition = SmoSlur.positions.AUTO;
+        if (slur.position === slur.position_end) {
+          slurPosition = slur.position;
         }
+        const slurParams = SmoOperation.getDefaultSlurDirection(score, ss.startSelector, ss.endSelector, slurPosition, slur.orientation);
+        slur.position = slurParams.position;
+        slur.position_end = slurParams.position_end;
+        slur.invert = slurParams.invert;
+        slur.yOffset = slurParams.yOffset;
+        slur.cp1y = slurParams.cp1y;
+        slur.cp2y = slurParams.cp2y;
+        slur.xOffset = slurParams.xOffset;
       });
     });
   }

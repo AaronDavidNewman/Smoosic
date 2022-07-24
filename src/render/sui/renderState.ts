@@ -156,7 +156,7 @@ export abstract class SuiRenderState {
   }
   preserveScroll() {
     const scrollState = this.measureMapper!.scroller.scrollState;
-    this.renderPromise().then(() => {
+    return this.renderPromise().then(() => {
       this.measureMapper!.scroller.restoreScrollState(scrollState);
     });
   }

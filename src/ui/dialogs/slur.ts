@@ -1,10 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogParams } from './dialog';
-import { SmoSlur } from '../../smo/data/staffModifiers';
+import { SmoSlur, SlurNumberParams } from '../../smo/data/staffModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { SvgBox } from '../../smo/data/common';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { SmoOperation } from '../../smo/xform/operations';
+import { SmoScore } from '../../smo/data/score';
 
 declare var $: any;
 
@@ -15,6 +16,7 @@ export class SuiSlurAdapter extends SuiComponentAdapter {
 slur: SmoSlur;
 backup: SmoSlur;
 changed: boolean = false;
+updating: boolean = false;
 constructor(view: SuiScoreViewOperations, slur: SmoSlur) {
   super(view);
   this.slur = slur;
@@ -44,6 +46,57 @@ cancel() {
 }
 commit() {
 
+}
+get resetAll(): boolean {
+  return false;
+}
+set resetAll(value: boolean) {
+  this.resetDefaults = value;
+  const slurs: SmoSlur[] = [];
+  const self = this;
+  this.updating = true;
+  const updateSlur = (score: SmoScore, slur: SmoSlur) => {
+    const params = SmoOperation.getDefaultSlurDirection(score, slur.startSelector, slur.endSelector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+    const original = new SmoSlur(slur);
+    SlurNumberParams.forEach((key) => {
+      slur[key] = params[key];    
+    });
+    return self.view.addOrUpdateStaffModifier(original, slur);
+  }
+  new Promise<void>((resolve) => {
+    const nextSlur = () => {
+      setTimeout(() => {
+        if (slurs.length) {
+          const slur = slurs.pop();
+          updateSlur(self.view.score, slur!).then(() => {
+            nextSlur();
+          });
+        } else {
+          self.updating = false;
+          resolve();
+        }
+      }, 1);
+    }
+    nextSlur();
+  });
+  this.view.score.staves.forEach((staff) => {
+    staff.modifiers.filter((x) => x.ctor === 'SmoSlur').forEach((smoObj) => {
+      const slur = smoObj as SmoSlur;
+      slurs.push(slur);
+    });
+  });
+  this.changed = true;
+}
+get resetDefaults(): boolean {
+  return false;
+}
+set resetDefaults(value: boolean) {
+  const params = SmoOperation.getDefaultSlurDirection(this.view.score, this.slur.startSelector, this.slur.endSelector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+  SlurNumberParams.forEach((key) => {
+    this.slur[key] = params[key];    
+  });
+  this.view.addOrUpdateStaffModifier(this.backup, this.slur);
+  this.changed = true;
 }
 get cp2y(): number {
   return this.slur.cp2y;
@@ -168,6 +221,14 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         control: 'SuiToggleComponent',
         label: 'Invert'
       }, {
+        smoName: 'resetDefaults',
+        control: 'SuiToggleComponent',
+        label: 'Defaults'
+      }, {
+        smoName: 'resetAll',
+        control: 'SuiToggleComponent',
+        label: 'Reset All Slurs'
+      }, {
         smoName: 'cp1x',
         defaultValue: 0,
         control: 'SuiRockerComponent',
@@ -189,6 +250,41 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         label: 'Control Point 2 Y'
       }], staticText: []
     };
+    disableClose() {
+      $(this.dgDom.element).find('.ok-button').prop('disabled', true);
+      $(this.dgDom.element).find('.cancel-button').prop('disabled', true);
+      $(this.dgDom.element).find('.remove-button').prop('disabled', true);
+    }
+    enableClose() {
+      $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+      $(this.dgDom.element).find('.cancel-button').prop('disabled', false);
+      $(this.dgDom.element).find('.remove-button').prop('disabled', false);
+    }
+    modalPromise() {
+      const self = this;
+      return new Promise<void>((resolve) => {
+        const checkComplete = () => {
+          setTimeout(() => {
+            if (self.adapter.updating === false) {             
+              resolve();
+            } else {
+              checkComplete();
+            }  
+          }, 200);
+        };
+        checkComplete();
+      });
+    }
+    changed() {
+      super.changed();
+      if (this.adapter.updating) {
+        const self = this;
+        this.disableClose();
+        this.modalPromise().then(() => {
+          self.enableClose();
+        });
+      }
+    }
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
     super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });

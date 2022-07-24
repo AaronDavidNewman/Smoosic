@@ -817,11 +817,15 @@ export class SmoOperation {
    * @param toSelection 
    * @returns 
    */
-  static getDefaultSlurDirection(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection, forcePosition: number, forceOrientation: number):SmoSlurParams {
+  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector, forcePosition: number, forceOrientation: number):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
-    const sels = SmoSelector.order(fromSelection.selector, toSelection.selector);
+    const sels = SmoSelector.order(fromSelector, toSelector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));
     params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+    const fromSelection = SmoSelection.noteFromSelector(score, fromSelector);
+    if (!fromSelection) {
+      return params;
+    }
     // Get all selections within the slur
     const selections = SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
     const dirs: Record<number, boolean> = {};
@@ -919,7 +923,7 @@ export class SmoOperation {
     return params;
   }
   static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) {
-    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
     const modifier: SmoSlur = new SmoSlur(params);
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
