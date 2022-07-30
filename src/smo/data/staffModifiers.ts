@@ -31,6 +31,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   endSelector: SmoSelector = SmoSelector.default;
   renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
+  element: SVGSVGElement | null = null;
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {

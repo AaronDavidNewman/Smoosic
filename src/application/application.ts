@@ -7,7 +7,7 @@ import { SmoConfiguration, SmoConfigurationParams } from './configuration';
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { XmlToSmo } from '../smo/mxml/xmlToSmo';
-import { SuiScoreRender } from '../render/sui/scoreRender';
+import { SuiRenderState } from '../render/sui/renderState';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { SuiTracker } from '../render/sui/tracker';
@@ -47,7 +47,7 @@ export interface SuiRendererInstance {
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   undoBuffer: UndoBuffer;
-  renderer: SuiScoreRender;
+  renderer: SuiRenderState;
 }
 /**
  * Global instance for debugging
@@ -249,15 +249,14 @@ export class SuiApplication {
     const svgContainer = document.createElement('div');
     $(svgContainer).attr('id', 'boo').addClass('musicContainer');
     $(sdc).append(svgContainer);
-    const renderer = SuiScoreRender.createScoreRenderer(this.config, svgContainer, score);
-    const eventSource = new BrowserEventSource();
     const undoBuffer = new UndoBuffer();
-    eventSource.setRenderElement(renderer.renderElement);
-    const view = new SuiScoreViewOperations(this.config, renderer, score, sdc as HTMLElement, undoBuffer);
+    const view = new SuiScoreViewOperations(this.config, svgContainer, score, sdc as HTMLElement, undoBuffer);
+    const eventSource = new BrowserEventSource();
+    eventSource.setRenderElement(svgContainer);
     this.view = view;
     view.startRenderingEngine();
     return {
-      view, eventSource, undoBuffer, renderer
+      view, eventSource, undoBuffer, renderer: view.renderer
     };
   }
   /**
@@ -302,7 +301,7 @@ export class SuiApplication {
     }
     SuiApplication.instance = this.instance;
     completeNotifier.handler = eventHandler;
-    eventSource.setRenderElement(view.renderer.renderElement);
+    eventSource.setRenderElement(view.renderer.elementId);
     // eslint-disable-next-line
     SuiApplication.instance = this.instance;
     ribbon.display();

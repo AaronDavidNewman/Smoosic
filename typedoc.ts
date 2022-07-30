@@ -13,7 +13,6 @@ export * from './src/render/audio/player';
 export * from './src/render/sui/configuration';
 export * from './src/render/sui/formatter';
 export * from './src/render/sui/layoutDebug';
-export * from './src/render/sui/layoutDemon';
 export * from './src/render/sui/mapper';
 export * from './src/render/sui/piano';
 export * from './src/render/sui/renderState';

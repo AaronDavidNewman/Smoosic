@@ -14,8 +14,6 @@ import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, 
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
-import { SmoToMidi } from '../../smo/midi/smoToMidi';
-import { SmoToXml } from '../../smo/mxml/smoToXml';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
@@ -25,7 +23,6 @@ import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
-import { addFileLink } from '../../common/htmlHelpers';
 import { SuiPiano } from './piano';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;

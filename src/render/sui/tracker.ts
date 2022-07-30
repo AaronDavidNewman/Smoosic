@@ -72,6 +72,9 @@ export class SuiTracker extends SuiMapper {
     return this.renderer.svg;
   }
 
+  getIdleTime(): number {
+    return this.idleTimer;
+  }
   clearMusicCursor() {
     const ell = document.getElementById('vf-music-cursor');
     if (ell) {

@@ -78,7 +78,8 @@ export interface MeasureSvg {
   forceTimeSignature: boolean,
   forceTempo: boolean,
   hideMultimeasure: boolean,
-  multimeasureLength: number
+  multimeasureLength: number,
+  element: SVGSVGElement | null
 }
 
 /**
@@ -293,7 +294,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       forceTimeSignature: false,
       forceTempo: false,
       hideMultimeasure: false,
-      multimeasureLength: 0
+      multimeasureLength: 0,
+      element: null
     };
 
     const defaults = SmoMeasure.defaults;

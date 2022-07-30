@@ -99,6 +99,7 @@ export abstract class SuiMapper {
   abstract _growSelectionRight(hold?: boolean): number;  
   abstract _setModifierAsSuggestion(sel: ModifierTab): void;
   abstract _setArtifactAsSuggestion(sel: SmoSelection): void;
+  abstract getIdleTime(): number;
   updateHighlight() {
     const self = this;
     if (this.selections.length === 0) {

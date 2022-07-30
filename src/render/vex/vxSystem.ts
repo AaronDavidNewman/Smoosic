@@ -349,7 +349,8 @@ export class VxSystem {
       const slurBox = $('.' + artifactId)[0];
       SvgHelpers.translateElement(slurBox, xoffset, 0);
     }
-    modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
+    modifier.element = group;
+    // modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
   }
 
   renderEndings(scroller: SuiScroller) {
@@ -419,7 +420,7 @@ export class VxSystem {
   // ## Description:
   // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
   // groups
-  renderMeasure(smoMeasure: SmoMeasure, measureMapper: SuiMapper, printing: boolean) {
+  renderMeasure(smoMeasure: SmoMeasure, printing: boolean) {
     if (smoMeasure.svg.hideMultimeasure) {
       return;
     }
@@ -470,17 +471,9 @@ export class VxSystem {
       this.vxMeasures.forEach((vv) => {
         if (!vv.rendered) {
           vv.render();
-          // unit test codes don't have tracker.
-          if (measureMapper) {
-            const tmpStaff: SmoSystemStaff | undefined = this.staves.find((ss) => ss.staffId === vv.smoMeasure.measureNumber.staffId);
-            if (tmpStaff) {
-              measureMapper.mapMeasure(tmpStaff, vv.smoMeasure, printing);
-            }
-          }
         }
       });
     }
-
     // Keep track of the y coordinate for the nth staff
     const renderedConnection: Record<string, number> = {};
 

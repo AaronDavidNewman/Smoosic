@@ -29,7 +29,7 @@
                  // create the app in library mode (no UI)
                  // Create an empty score (1 measure rests)
                  const view = application.view;
-                 const score = view.score;
+                 const score = Smo.SmoScore.getDefaultScore(Smo.SmoScore.defaults, null);
                  score.preferences.autoPlay = false; // kind of annoying for this demo
                  const renderer = view.renderer;
                  // Create and start the view object.
@@ -41,8 +41,9 @@
                  const t = ((action, repetition) => {
                    return view.waitableAction(action, repetition);
                  });
-
                  // render the initial score (1 empty measure)
+                 await renderer.renderPromise();
+                 await view.changeScore(score);
                  await renderer.renderPromise();
                  await view.growSelectionRight();
 

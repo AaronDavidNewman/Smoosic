@@ -24,6 +24,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   ctor: string;
   renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
+  element: SVGSVGElement | null = null;
   constructor(ctor: string) {
     this.attrs = {
       id: VF.Element.newID(),

@@ -5,18 +5,19 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
-import { StaffModifierBase, SmoSlur, SlurNumberParams, SmoSlurParams } from '../../smo/data/staffModifiers';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SuiScroller } from './scroller';
 import { SvgHelpers } from './svgHelpers';
 import { SuiTracker } from './tracker';
-import { SuiRenderDemon } from './layoutDemon';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { SmoRenderConfiguration } from './configuration';
 import { SuiRenderState } from './renderState';
+import { ScoreRenderParams } from './scoreRender';
 import { SmoOperation } from '../../smo/xform/operations';
+
 
 declare var $: any;
 
@@ -43,11 +44,16 @@ export abstract class SuiScoreView {
   scroller: SuiScroller;
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
-  layoutDemon: SuiRenderDemon;
   config: SmoRenderConfiguration;
-  constructor(config: SmoRenderConfiguration, renderer: SuiRenderState, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
+  constructor(config: SmoRenderConfiguration, svgContainer: HTMLElement, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
     this.score = score;
-    this.renderer = renderer;
+    const renderParams: ScoreRenderParams = {
+      elementId: svgContainer,
+      score,
+      config,
+      undoBuffer
+    };
+    this.renderer = new SuiRenderState(renderParams);
     this.config = config;
     const scoreJson = score.serialize();
     this.scroller = new SuiScroller(scrollSelector, this.renderer);
@@ -58,7 +64,6 @@ export abstract class SuiScoreView {
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = undoBuffer;
-    this.layoutDemon = new SuiRenderDemon(config, this.renderer, this.undoBuffer, this.tracker);
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView.Instance = this; // for debugging
@@ -348,7 +353,7 @@ export abstract class SuiScoreView {
       this.renderer.score = this.score;
       this.renderer.setViewport(true);
     }
-    this.layoutDemon.startDemon();
+    this.renderer.startDemon();
   }
   getView(): ViewMapEntry[] {
     const rv = [];

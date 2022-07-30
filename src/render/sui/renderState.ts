@@ -6,31 +6,17 @@
  */
 import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SvgBox } from '../../smo/data/common';
 import { SmoRenderConfiguration } from './configuration';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { SvgHelpers } from './svgHelpers';
 import { VxSystem } from '../vex/vxSystem';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoScore } from '../../smo/data/score';
-import { SmoBeamer } from '../../smo/xform/beamers';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
-import { VxMeasure } from '../vex/vxMeasure';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SuiScoreRender, ScoreRenderParams } from './scoreRender';
+import { SuiExceptionHandler } from '../../ui/exceptions';
 
-/**
- * a renderer creates the SVG render context for vexflow from the given element. Then it
- * renders the initial score.
- * @category SuiRenderParams
- */
-export interface ScoreRenderParams {
-  elementId: any,
-  score: SmoScore,
-  config: SmoRenderConfiguration
-}
 declare var $: any;
 const VF = eval('Vex.Flow');
 
@@ -41,61 +27,74 @@ const VF = eval('Vex.Flow');
  * render state is (dirty, etc.)
  * @category SuiRender
  * */
-export abstract class SuiRenderState {
-  config: SmoRenderConfiguration;
+export class SuiRenderState {
   dirty: boolean;
   replaceQ: SmoSelection[];
-  renderTime: number;
   stateRepCount: 0;
-  backgroundRender: boolean;
   viewportChanged: boolean;
   _resetViewport: boolean;
   measureMapper: SuiMapper | null;
   passState: number = SuiRenderState.passStates.initial;
   _score: SmoScore | null = null;
-  renderer: any = null;
-  elementId: any;
   _backupZoomScale: number = 0;
+  renderer: SuiScoreRender;
+  idleRedrawTime: number;
+  idleLayoutTimer: number = 0; // how long the score has been idle
+  demonPollTime: number;
+  handlingRedraw: boolean = false;
   // signal to render demon that we have suspended background
   // rendering because we are recording or playing actions.
   suspendRendering: boolean = false;
-  autoAdjustRenderTime: boolean = true;
+  undoBuffer: UndoBuffer;
+  undoStatus: number = 0;
 
-  constructor(config: SmoRenderConfiguration) {
+  constructor(config: ScoreRenderParams) {
     this.dirty = true;
-    this.config = config;
     this.replaceQ = [];
-    this.renderTime = 0;  // ms to render before time slicing
     this.stateRepCount = 0;
-    this.backgroundRender = false;
     this.setPassState(SuiRenderState.passStates.initial, 'ctor');
     this.viewportChanged = false;
     this._resetViewport = false;
     this.measureMapper = null;
+    this.renderer = new SuiScoreRender(config);
+    this.idleRedrawTime = config.config.idleRedrawTime;
+    this.demonPollTime = config.config.demonPollTime;
+    this.undoBuffer = config.undoBuffer;
+
   }
-  abstract unrenderAll(): void;
-  abstract layout(): void;
-  abstract renderScoreModifiers(): void;
-  abstract renderModifiers(staff: SmoSystemStaff, system: VxSystem): void;
-  abstract replaceMeasures(): void;
-  abstract renderTextGroup(t: SmoTextGroup): void;
-  abstract drawPageLines(): void;
-  
-  
+
+  get elementId() {
+    return this.renderer.elementId;
+  }
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.
   setMeasureMapper(mapper: SuiMapper) {
     this.measureMapper = mapper;
+    this.renderer.measureMapper = mapper;
   }
   set stepMode(value: boolean) {
     this.suspendRendering = value;
-    this.autoAdjustRenderTime = !value;
+    this.renderer.autoAdjustRenderTime = !value;
     if (this.measureMapper) {
       this.measureMapper.deferHighlightMode = !value;
     }
   }
 
+  // ### createScoreRenderer
+  // ### Description;
+  // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
+  // svg element in the dom and interacting with the vex library.
+  static createScoreRenderer(config: SmoRenderConfiguration, renderElement: Element, score: SmoScore, undoBuffer: UndoBuffer): SuiRenderState {
+    const ctorObj: ScoreRenderParams = {
+      config,
+      elementId: renderElement,
+      score,
+      undoBuffer
+    };
+    const renderer = new SuiRenderState(ctorObj);
+    return renderer;
+  }
   static get setFonts(): Record<string, Function> {
     return {
       Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
@@ -104,6 +103,7 @@ export abstract class SuiRenderState {
       Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
     };
   }
+
 
   static setFont(font: string) {
     SuiRenderState.setFonts[font]();
@@ -149,14 +149,34 @@ export abstract class SuiRenderState {
     this.setRefresh();
   }
   get renderStateClean() {
-    return this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false;
+    return this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false;
   }
   get renderStateRendered() {
-    return (this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false) ||
-      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
+    return (this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false) ||
+      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.renderer.backgroundRender === false);
   }
   get viewportCreated() {
-    return this.renderer !== null;
+    return this.renderer.vexRenderer !== null;
+  }
+  /**
+   * Do a quick re-render of a measure that has changed, defer the whole score.
+   * @returns 
+   */
+  replaceMeasures() {
+    const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
+    if (this.score === null || this.measureMapper === null) {
+      return;
+    }
+    this.replaceQ.forEach((change) => {
+      this.renderer.replaceSelection(staffMap, change);
+    });
+    Object.keys(staffMap).forEach((key) => {
+      const obj = staffMap[key];
+      this.renderer.renderModifiers(obj.staff, obj.system);
+      obj.system.renderEndings(this.measureMapper!.scroller);
+      obj.system.updateLyricOffsets();
+    });
+    this.replaceQ = [];
   }
   preserveScroll() {
     const scrollState = this.measureMapper!.scroller.scrollState;
@@ -172,14 +192,14 @@ export abstract class SuiRenderState {
     const endAction = () => {
       self.suspendRendering = oldSuspend;
     };
-    return PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
+    return PromiseHelpers.makePromise(condition, endAction, null, this.demonPollTime);
   }
   createViewportPromise(): Promise<void> {
     const self = this;
     const condition = () => {
       return self.viewportCreated;
     }
-    return PromiseHelpers.makePromise(condition, null, null, this.config.demonPollTime)
+    return PromiseHelpers.makePromise(condition, null, null, this.demonPollTime)
   }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
@@ -193,55 +213,79 @@ export abstract class SuiRenderState {
     this.replaceMeasures();
     return this._renderStatePromise(() => this.renderStateRendered);
   }
-
-  // ### _setViewport
-  // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  _setViewport(reset: boolean, elementId: any) {
-    if (this.score === null) {
+  handleRedrawTimer() {
+    if (this.handlingRedraw) {
       return;
     }
-    const layoutManager = this.score!.layoutManager!;
-    // All pages have same width/height, so use that
-    const layout = layoutManager.getGlobalLayout();
+    if (this.suspendRendering) {
+      return;
+    }
+    this.handlingRedraw = true;
+    const redrawTime = Math.max(this.renderer.renderTime, this.idleRedrawTime);
+    // If there has been a change, redraw the score
+    if (this.passState === SuiRenderState.passStates.initial) {
+      this.dirty = true;
+      this.undoStatus = this.undoBuffer.opCount;
+      this.idleLayoutTimer = Date.now();
 
-    // zoomScale is the zoom level pct.
-    // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
-    //   vs. window size means smaller notes/more notes per page.
-    // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
-    const zoomScale = layoutManager.getZoomScale();
-    const renderScale = layout.svgScale * zoomScale;
-    const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
-    const pageWidth = layout.pageWidth * zoomScale;
-    $(elementId).css('width', '' + Math.round(pageWidth) + 'px');
-    $(elementId).css('height', '' + Math.round(totalHeight) + 'px');
-    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-    if (reset) {
-      $(elementId).html('');
-      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-      this.viewportChanged = true;
-      if (this.measureMapper) {
-        this.measureMapper.scroller.scrollAbsolute(0, 0);
+      // indicate the display is 'dirty' and we will be refreshing it.
+      $('body').addClass('refresh-1');
+      try {
+        // Sort of a hack.  If the viewport changed, the scroll state is already reset
+        // so we can't preserver the scroll state.
+        if (!this.renderer.viewportChanged) {
+          this.preserveScroll();
+        }
+        this.render();
+      } catch (ex) {
+        console.error(ex);
+        SuiExceptionHandler.instance.exceptionHandler(ex);
+        this.handlingRedraw = false;
+      }
+    } else if (this.passState === SuiRenderState.passStates.replace && this.undoStatus === this.undoBuffer.opCount) {
+      // Consider navigation as activity when deciding to refresh
+      this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.measureMapper!.getIdleTime());
+      $('body').addClass('refresh-1');
+      // Do we need to refresh the score?
+      if (this.renderer.backgroundRender === false && Date.now() - this.idleLayoutTimer > redrawTime) {
+        this.passState = SuiRenderState.passStates.initial;
+        if (!this.renderer.viewportChanged) {
+          this.preserveScroll();
+        }
+        this.render();
+      }
+    } else {
+      this.idleLayoutTimer = Date.now();
+      this.undoStatus = this.undoBuffer.opCount;
+      if (this.replaceQ.length > 0) {
+        this.render();
       }
     }
-    SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
-    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    console.log('layout setViewport: pstate initial');
-    this.dirty = true;
-    if (this.measureMapper) {
-      this.measureMapper.scroller.updateViewport();
-    }
+    this.handlingRedraw = false;
+  }
+  pollRedraw() {
+    setTimeout(() => {
+      this.handleRedrawTimer();
+      this.pollRedraw();
+    }, this.demonPollTime);
   }
 
+  startDemon() {
+    this.pollRedraw();
+  }
+  renderTextGroup(gg: SmoTextGroup) {
+    this.renderer.renderTextGroup(gg);
+  }
   /**
    * Set the SVG viewport
    * @param reset whether to re-render the entire SVG DOM
    * @returns 
    */
   setViewport(reset: boolean) {
-    if (!this.score) {
+    if (!this.score || !this.renderer) {
       return;
     }
-    this._setViewport(reset, this.elementId);
+    this.renderer._setViewport(reset);
     this.score!.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (measure.svg.logicalBox && reset) {
@@ -267,7 +311,7 @@ export abstract class SuiRenderState {
     const promise = new Promise<void>((resolve) => {
       const poll = () => {
         setTimeout(() => {
-          if (!self.dirty && !self.backgroundRender) {
+          if (!self.dirty && !self.renderer.backgroundRender) {
             // tracker.highlightSelection();
             $('body').removeClass('print-render');
             $('.vf-selection').remove();
@@ -313,7 +357,7 @@ export abstract class SuiRenderState {
   // ### Description:
   // return the VEX renderer context.
   get context() {
-    return this.renderer.getContext();
+    return this.renderer.vexRenderer.getContext();
   }
   get svg() {
     return this.context.svg;
@@ -338,12 +382,12 @@ export abstract class SuiRenderState {
     SuiRenderState.setFont(font.family);
     this.dirty = true;
     this._score = score;
+    this.renderer.score = score;
     // if (shouldReset) {
-      this.renderTime = 0;
-      this.setViewport(true);
-      if (this.measureMapper) {
-        this.measureMapper.loadScore();
-      }
+    this.setViewport(true);
+    if (this.measureMapper) {
+      this.measureMapper.loadScore();
+    }
   }
 
   // ### undo
@@ -356,19 +400,19 @@ export abstract class SuiRenderState {
     // Unrender the modified music because the IDs may change and normal unrender won't work
     if (buffer) {
       const sel = buffer.selector;
-      if (buffer.type === UndoBuffer.bufferTypes.MEASURE && this.unrenderMeasure !== null) {
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
         const mSelection = SmoSelection.measureSelection(this.score!, sel.staff, sel.measure);
         if (mSelection !== null) {
-          this.unrenderMeasure(mSelection.measure);
+          this.renderer.unrenderMeasure(mSelection.measure);
         }
-      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF && this.unrenderStaff !== null) {
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
         const sSelection = SmoSelection.measureSelection(this.score!, sel.staff, 0);
         if (sSelection !== null) {
-          this.unrenderStaff(sSelection.staff);
+          this.renderer.unrenderStaff(sSelection.staff);
         }
         op = 'setRefresh';
       } else {
-        this.unrenderAll();
+        this.renderer.unrenderAll();
         op = 'setRefresh';
       }
       this._score = undoBuffer.undo(this._score!);
@@ -376,43 +420,26 @@ export abstract class SuiRenderState {
     }
   }
 
-  // ### unrenderMeasure
-  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
-  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-  unrenderMeasure(measure: SmoMeasure) {
-    if (!measure) {
-      return;
-    }
-    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-    measure.setYTop(0, 'unrender');
-  }
 
   unrenderColumn(measure: SmoMeasure) {
     this.score!.staves.forEach((staff) => {
-      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+      this.renderer.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
     });
   }
 
-  // ### unrenderStaff
-  // ### Description:
-  // See unrenderMeasure.  Like that, but with a staff.
-  unrenderStaff(staff: SmoSystemStaff) {
-    staff.measures.forEach((measure) => {
-      this.unrenderMeasure(measure);
-    });
-    staff.modifiers.forEach((modifier) => {
-      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-    });
-  }
-
- 
   // ### forceRender
   // For unit test applictions that want to render right-away
   forceRender() {
     this.setRefresh();
     this.render();
   }
+  unrenderMeasure(measure: SmoMeasure) {
+    this.renderer.unrenderMeasure(measure);
+  }
 
+  renderScoreModifiers() {
+    this.renderer.renderScoreModifiers();
+  }
   render() {
     if (this._resetViewport) {
       this.setViewport(true);
@@ -422,11 +449,11 @@ export abstract class SuiRenderState {
       if (SuiRenderState.passStates.replace === this.passState) {
         this.replaceMeasures();
       } else if (SuiRenderState.passStates.initial === this.passState) {
-        if (this.backgroundRender) {
+        if (this.renderer.backgroundRender) {
           return;
         }
-        this.layout();
-        this.drawPageLines();
+        this.renderer.layout();
+        this.renderer.drawPageLines();
         this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
       }
     } catch (excp) {

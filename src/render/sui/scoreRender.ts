@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SvgBox } from '../../smo/data/common';
+import { SmoModifierBase, SvgBox } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
@@ -8,8 +8,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
-
-import { SuiRenderState, ScoreRenderParams } from './renderState';
+import { SuiMapper } from './mapper';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
@@ -20,54 +19,54 @@ import { layoutDebug } from './layoutDebug';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
+import { UndoBuffer } from '../../smo/xform/undo';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
-
+/**
+ * a renderer creates the SVG render context for vexflow from the given element. Then it
+ * renders the initial score.
+ * @category SuiRenderParams
+ */
+ export interface ScoreRenderParams {
+  elementId: any,
+  score: SmoScore,
+  config: SmoRenderConfiguration,
+  undoBuffer: UndoBuffer
+}
 
 /**
  * This module renders the entire score.  It calculates the layout first based on the
  * computed dimensions.
   * @category SuiRender
 **/
-export class SuiScoreRender extends SuiRenderState {
-  constructor(params: ScoreRenderParams) {
-    super(params.config);
+export class SuiScoreRender {
+  constructor(params: ScoreRenderParams) {    
     this.elementId = params.elementId;
-    // this.score = params.score;
-    this.setViewport(true);
+    this.score = params.score;
+    this._setViewport(true);
   }
+  elementId: any;
   startRenderTime: number = 0;
   formatter: SuiLayoutFormatter | null = null;
+  vexRenderer: any = null;
+  score: SmoScore | null = null;
+  measureMapper: SuiMapper | null = null;
+  viewportChanged: boolean = false;
+  renderTime: number = 0;
+  backgroundRender: boolean = false;
+  _autoAdjustRenderTime: boolean = false;
 
-  // ### createScoreRenderer
-  // ### Description;
-  // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
-  // svg element in the dom and interacting with the vex library.
-  static createScoreRenderer(config: SmoRenderConfiguration, renderElement: Element, score: SmoScore): SuiScoreRender {
-    const ctorObj: ScoreRenderParams = {
-      config,
-      elementId: renderElement,
-      score
-    };
-    const renderer = new SuiScoreRender(ctorObj);
-    return renderer;
+  get autoAdjustRenderTime() {
+    return this._autoAdjustRenderTime;
   }
-
-  // ### unrenderAll
-  // ### Description:
-  // Delete all the svg elements associated with the score.
-  unrenderAll() {
-    if (!this.score) {
+  set autoAdjustRenderTime(value: boolean) {
+    this._autoAdjustRenderTime = value;
+  }
+  renderTextGroup(gg: SmoTextGroup) {
+    if (this.vexRenderer === null) {
       return;
     }
-    this.score.staves.forEach((staff) => {
-      this.unrenderStaff(staff);
-    });
-    $(this.renderer.getContext().svg).find('g.lineBracket').remove();
-  }
-
-  renderTextGroup(gg: SmoTextGroup) {
     let ix = 0;
     let jj = 0;
     if (gg.skipRender || this.score === null || this.measureMapper === null) {
@@ -102,7 +101,7 @@ export class SuiScoreRender extends SuiRenderState {
           }
         }
       }
-      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext(), this.measureMapper!.scroller);
+      const block = SuiTextBlock.fromTextGroup(newGroup, this.context, this.measureMapper!.scroller);
       block.render();
       // For the first one we render, use that as the bounding box for all the text, for
       // purposes of mapper/tracker
@@ -117,9 +116,72 @@ export class SuiScoreRender extends SuiRenderState {
     });
     this.context.closeGroup();
   }
+  
+  // ### unrenderAll
+  // ### Description:
+  // Delete all the svg elements associated with the score.
+  unrenderAll() {
+    if (!this.score) {
+      return;
+    }
+    this.score.staves.forEach((staff) => {
+      this.unrenderStaff(staff);
+    });
+    $(this.context.svg).find('g.lineBracket').remove();
+  }
+  // ### unrenderStaff
+  // ### Description:
+  // See unrenderMeasure.  Like that, but with a staff.
+  unrenderStaff(staff: SmoSystemStaff) {
+    staff.measures.forEach((measure) => {
+      this.unrenderMeasure(measure);
+    });
+    staff.modifiers.forEach((modifier) => {
+      $(this.vexRenderer.context.svg).find('g.' + modifier.attrs.id).remove();
+    });
+  }
+  // ### _setViewport
+  // Create (or recrate) the svg viewport, considering the dimensions of the score.
+  _setViewport(reset: boolean) {
+    if (this.score === null) {
+      return;
+    }
+    const layoutManager = this.score!.layoutManager!;
+    // All pages have same width/height, so use that
+    const layout = layoutManager.getGlobalLayout();
+
+    // zoomScale is the zoom level pct.
+    // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
+    //   vs. window size means smaller notes/more notes per page.
+    // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
+    const zoomScale = layoutManager.getZoomScale();
+    const renderScale = layout.svgScale * zoomScale;
+    const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
+    const pageWidth = layout.pageWidth * zoomScale;
+    $(this.elementId).css('width', '' + Math.round(pageWidth) + 'px');
+    $(this.elementId).css('height', '' + Math.round(totalHeight) + 'px');
+    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
+    if (reset) {
+      $(this.elementId).html('');
+      this.vexRenderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+      this.viewportChanged = true;
+      if (this.measureMapper) {
+        this.measureMapper.scroller.scrollAbsolute(0, 0);
+      }
+    }
+    SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
+    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+    console.log('layout setViewport: pstate initial');
+    if (this.measureMapper) {
+      this.measureMapper.scroller.updateViewport();
+    }
+  }
+  get context() {
+    return this.vexRenderer.getContext();
+  }
 
   renderScoreModifiers() {
-    $(this.renderer.getContext().svg).find('.all-score-text').remove();
+    $(this.context.svg).find('.all-score-text').remove();
     const group = this.context.openGroup();
     group.classList.add('all-score-text');
     this.score!.textGroups.forEach((tg) => {
@@ -127,7 +189,6 @@ export class SuiScoreRender extends SuiRenderState {
     });
     this.context.closeGroup();
   }
-
   _getMeasuresInColumn(ix: number): SmoMeasure[] {
     const rv: SmoMeasure[] = [];
     if (!this.score) {
@@ -141,17 +202,57 @@ export class SuiScoreRender extends SuiRenderState {
     });
     return rv;
   }
+  /**
+   * for music we've just rendered, get the bounding boxes.  We defer this step so we don't force
+   * a reflow, which can slow rendering.
+   * @param vxSystem 
+   * @param measures 
+   * @param modifiers 
+   * @param printing 
+   */
+  measureRenderedElements(vxSystem: VxSystem, measures: SmoMeasure[], modifiers: StaffModifierBase[], printing: boolean) {
+    measures.forEach((smoMeasure) => {
+      const element = smoMeasure.svg.element;
+      if (element) {
+        const lbox = element.getBBox();
+        smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
+      }
+      const vxMeasure = vxSystem.getVxMeasure(smoMeasure);
+      if (vxMeasure) {
+        vxMeasure.modifiersToBox.forEach((modifier) => {
+          if (modifier.element) {
+            modifier.logicalBox = SvgHelpers.smoBox(modifier.element.getBBox());
+          }
+        });
+      }
+      // unit test codes don't have tracker.
+      if (this.measureMapper) {
+        const tmpStaff: SmoSystemStaff | undefined = this.score!.staves.find((ss) => ss.staffId === smoMeasure.measureNumber.staffId);
+        if (tmpStaff) {
+          this.measureMapper.mapMeasure(tmpStaff, smoMeasure, printing);
+        }
+      }  
+    });
+    modifiers.forEach((modifier) => {
+      if (modifier.element) {
+        modifier.logicalBox = SvgHelpers.smoBox(modifier.element.getBBox());
+      }
+    });
+  }
   _renderSystem(lineIx: number, printing: boolean) {
     if (this.score === null || this.formatter === null) {
       return;
     }
+    const measuresToBox: SmoMeasure[] = [];
+    const modifiersToBox: StaffModifierBase[] = [];
     const columns: Record<number, SmoMeasure[]> = this.formatter.systems[lineIx].systems;
     const vxSystem: VxSystem = new VxSystem(this.context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
         if (this.measureMapper !== null) {
-          vxSystem.renderMeasure(measure, this.measureMapper, printing);
+          vxSystem.renderMeasure(measure, printing);
+          measuresToBox.push(measure);
           if (!printing && !measure.format.isDefault) {
             const at = [];
             at.push({ y: measure.svg.logicalBox.y - 5 });
@@ -163,14 +264,18 @@ export class SuiScoreRender extends SuiRenderState {
         }
       });
     });
-    const timestamp = new Date().valueOf();
+    this.score.staves.forEach((stf) => {
+      this.renderModifiers(stf, vxSystem).forEach((modifier) => {
+        modifiersToBox.push(modifier);
+      });
+    });
     if (this.measureMapper !== null) {
       vxSystem.renderEndings(this.measureMapper.scroller);
     }
+    this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
+
+    const timestamp = new Date().valueOf();
     vxSystem.updateLyricOffsets();
-    this.score.staves.forEach((stf) => {
-      this.renderModifiers(stf, vxSystem);
-    });
     layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
   }
   _renderNextSystemPromise(systemIx: number, keys: number[], printing: boolean) {
@@ -197,12 +302,12 @@ export class SuiScoreRender extends SuiRenderState {
       this.renderScoreModifiers();
       this.numberMeasures();
       if (layoutDebug.mask & layoutDebug.values.artifactMap) {
-        this.measureMapper?.artifactMap.debugBox(this.svg);
+        this.measureMapper?.artifactMap.debugBox(this.context.svg);
       }
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
       // score.
-      if (this.autoAdjustRenderTime) {
+      if (this._autoAdjustRenderTime) {
         this.renderTime = new Date().valueOf() - this.startRenderTime;
       }
       $('body').removeClass('show-render-progress');
@@ -214,19 +319,34 @@ export class SuiScoreRender extends SuiRenderState {
       this.backgroundRender = false;
     }
   }
+  
+  // ### unrenderMeasure
+  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+  unrenderMeasure(measure: SmoMeasure) {
+    if (!measure) {
+      return;
+    }
+    if (measure.svg.element) {
+      measure.svg.element.remove();
+      measure.svg.element = null;
+    }
+    measure.setYTop(0, 'unrender');
+  }
  // ### _renderModifiers
   // ### Description:
   // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
   // is on a different system due to wrapping.
-  renderModifiers(staff: SmoSystemStaff, system: VxSystem) {
+  renderModifiers(staff: SmoSystemStaff, system: VxSystem): StaffModifierBase[] {
     let nextNote: SmoSelection | null = null;
     let lastNote: SmoSelection | null = null;
     let testNote: VxMeasure | null = null;
     let vxStart: VxMeasure | null = null;
     let vxEnd: VxMeasure | null = null;
+    const modifiersToBox: StaffModifierBase[] = [];
     const removedModifiers: StaffModifierBase[] = [];
     if (this.score === null || this.measureMapper === null) {
-      return;
+      return [];
     }
     staff.modifiers.forEach((modifier) => {
       const startNote = SmoSelection.noteSelection(this.score!,
@@ -294,11 +414,13 @@ export class SuiScoreRender extends SuiRenderState {
         return;
       }
       system.renderModifier(this.measureMapper!.scroller, modifier, vxStart, vxEnd, startNote, endNote);
+      modifiersToBox.push(modifier);
     });
     // Silently remove modifiers from the score if the endpoints no longer exist
     removedModifiers.forEach((mod) => {
       staff.removeStaffModifier(mod);
     });
+    return modifiersToBox;
   }
 
   drawPageLines() {
@@ -312,7 +434,7 @@ export class SuiScoreRender extends SuiRenderState {
     for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
       const scaledPage = layoutMgr.getScaledPageLayout(i);
       const y = scaledPage.pageHeight * i;
-      SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
+      SvgHelpers.line(this.context.svg, 0, y, scaledPage.pageWidth, y,
         { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
     }
   }
@@ -327,31 +449,14 @@ export class SuiScoreRender extends SuiRenderState {
       system = staffMap[change.staff.staffId].system;
     }
     const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
+    const measuresToMeasure: SmoMeasure[] = [];
     selections.forEach((selection) => {
       if (system !== null && this.measureMapper !== null) {
-        system.renderMeasure(selection.measure, this.measureMapper, false);
+        system.renderMeasure(selection.measure, false);
+        measuresToMeasure.push(selection.measure);
       }
     });
-
-  }
-
-  // ### _replaceMeasures
-  // Do a quick re-render of a measure that has changed.
-  replaceMeasures() {
-    const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
-    if (this.score === null || this.measureMapper === null) {
-      return;
-    }
-    this.replaceQ.forEach((change) => {
-      this.replaceSelection(staffMap, change);
-    });
-    Object.keys(staffMap).forEach((key) => {
-      const obj = staffMap[key];
-      this.renderModifiers(obj.staff, obj.system);
-      obj.system.renderEndings(this.measureMapper!.scroller);
-      obj.system.updateLyricOffsets();
-    });
-    this.replaceQ = [];
+    this.measureRenderedElements(system, measuresToMeasure, [], false);
   }
 
   renderAllMeasures(lines: number[]) {
@@ -421,7 +526,7 @@ export class SuiScoreRender extends SuiRenderState {
     this.formatter = formatter;
     formatter.layout();    
     if (this.formatter.trimPages(startPageCount)) {
-      this.setViewport(true);
+      this._setViewport(true);
     }
     this.renderAllMeasures(formatter.lines);
   } 

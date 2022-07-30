@@ -19,6 +19,9 @@ export class SuiGlobalLayoutAdapter extends SuiComponentAdapter {
     this.view = view;
   }
   writeValue(attr: GlobalLayoutAttributes, value: number) {
+    if (this.scoreLayout[attr] === value) {
+      return;
+    }
     this.scoreLayout[attr] = value;
     this.view.setGlobalLayout(this.scoreLayout)
     this.changed = true;

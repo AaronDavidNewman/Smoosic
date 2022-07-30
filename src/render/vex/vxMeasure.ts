@@ -12,7 +12,7 @@ import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
-import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 
@@ -41,7 +41,7 @@ export class VxMeasure {
   voiceAr: any[] = [];
   formatter: any = null;
   allCues: boolean = false;
-
+  modifiersToBox: SmoNoteModifierBase[] = [];
 
   constructor(context: any, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
@@ -326,7 +326,8 @@ export class VxMeasure {
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
-    textObj.logicalBox = SvgHelpers.smoBox(group.getBBox());
+    textObj.element = group;
+    this.modifiersToBox.push(textObj);
     this.context.closeGroup();
   }
 
@@ -496,7 +497,10 @@ export class VxMeasure {
   // we can align across multiple staves
   preFormat() {
     var j = 0;
-    $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
+    if (this.smoMeasure.svg.element !== null) {
+      this.smoMeasure.svg.element.remove();
+      this.smoMeasure.svg.element = null;
+    }
 
     // Note: need to do this to get it into VEX KS format
     const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
@@ -586,6 +590,7 @@ export class VxMeasure {
   }
   render() {
     var group = this.context.openGroup() as SVGSVGElement;
+    this.smoMeasure.svg.element = group;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
     const timestamp = new Date().valueOf();
@@ -615,10 +620,8 @@ export class VxMeasure {
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
-      layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
+      // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 
-      const lbox = group.getBBox();
-      this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
       this.rendered = true;
     } catch (exc) {
       console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
