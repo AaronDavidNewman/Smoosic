@@ -142,8 +142,8 @@ export class SmoPageLayout extends SmoScoreModifierBase {
     return JSON.parse(JSON.stringify({
       leftMargin: 30,
       rightMargin: 30,
-      topMargin: 40,
-      bottomMargin: 40,
+      topMargin: 144,
+      bottomMargin: 72,
       interGap: 30,
       intraGap: 10
     }));

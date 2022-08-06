@@ -191,6 +191,10 @@ export class SuiMenuManager {
 
   slashMenuMode(completeNotifier: CompleteNotifier) {
     var self = this;
+    if (this.closeMenuPromise) {
+      console.log('menu already open, skipping');
+      return;
+    }
     this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
     // A menu asserts this event when it is done.
@@ -199,6 +203,7 @@ export class SuiMenuManager {
         layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
         self.unattach();
         $('body').removeClass('slash-menu');
+        self.closeMenuPromise = null;
         resolve();
       });
     });
