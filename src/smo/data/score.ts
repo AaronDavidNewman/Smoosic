@@ -29,6 +29,13 @@ export interface FontPurpose {
   size: number,
   custom: boolean
 }
+
+export type engravingFontType =  'Bravura' |  'Gonville' | 'Petaluma' | 'Leland';
+export const engravingFontTypes: engravingFontType[] = ['Bravura', 'Gonville', 'Petaluma', 'Leland'];
+export function isEngravingFont(et: engravingFontType | string): et is engravingFontType {
+  return (engravingFontTypes as any[]).indexOf(et) >= 0;
+}
+
 // @internal
 export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
 /**
@@ -354,6 +361,22 @@ export class SmoScore {
     this.preferences = pref;
     SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
     SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
+  }
+  get engravingFont(): engravingFontType {
+    const efont = this.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
+    if (efont) {
+      const val: engravingFontType | undefined = engravingFontTypes.find((x) => x === efont.family);
+      if (val) {
+        return val;
+      }
+    }
+    return 'Bravura';
+  }
+  set engravingFont(value: engravingFontType) {
+    const efont = this.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
+    if (efont && isEngravingFont(value)) {
+      efont.family = value;
+    }
   }
   static upConvertGlobalLayout(jsonObj: any) {
     // upconvert global layout, which used to be directly on layoutManager

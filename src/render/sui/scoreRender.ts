@@ -56,6 +56,7 @@ export class SuiScoreRender {
   renderTime: number = 0;
   backgroundRender: boolean = false;
   _autoAdjustRenderTime: boolean = false;
+  allScoreText: SVGSVGElement | null = null;
 
   get autoAdjustRenderTime() {
     return this._autoAdjustRenderTime;
@@ -72,8 +73,13 @@ export class SuiScoreRender {
     if (gg.skipRender || this.score === null || this.measureMapper === null) {
       return;
     }
+    if (gg.element) {
+      gg.element.remove();
+      gg.element = null;
+    }
     gg.logicalBox = SvgBox.default;
     const group = this.context.openGroup();
+    gg.element = group;
     group.id = gg.attrs.id;
     const scaledScoreLayout = this.score!.layoutManager!.getScaledPageLayout(0);
 
@@ -137,7 +143,10 @@ export class SuiScoreRender {
       this.unrenderMeasure(measure);
     });
     staff.modifiers.forEach((modifier) => {
-      $(this.vexRenderer.context.svg).find('g.' + modifier.attrs.id).remove();
+      if (modifier.element) {
+        modifier.element.remove();
+        modifier.element = null;
+      }
     });
   }
   // ### _setViewport
@@ -181,9 +190,20 @@ export class SuiScoreRender {
   }
 
   renderScoreModifiers() {
-    $(this.context.svg).find('.all-score-text').remove();
+    // remove existing modifiers, and also remove parent group for 'extra'
+    // groups associated with pagination (once per page etc)
+    this.score!.textGroups.forEach((tg) => {
+      if (tg.element) {
+        tg.element.remove();
+        tg.element = null;
+      }
+    });
+    if (this.allScoreText) {
+      this.allScoreText.remove();
+    }
     const group = this.context.openGroup();
-    group.classList.add('all-score-text');
+    this.allScoreText = group;
+    // group.classList.add('all-score-text');
     this.score!.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });

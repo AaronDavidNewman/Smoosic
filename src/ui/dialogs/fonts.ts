@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { FontInfo } from '../../smo/data/common';
-import { SmoScore, FontPurpose,  } from '../../smo/data/score';
+import { SmoScore, FontPurpose, isEngravingFont } from '../../smo/data/score';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
@@ -78,7 +78,9 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
     const current = this.getInfo(SmoScore.fontPurposes.ENGRAVING);
     current.family = value;
     const fp = this.changeFont(SmoScore.fontPurposes.ENGRAVING, 'engraving', current);
-    this.view.setEngravingFontFamily(fp.family);
+    if (isEngravingFont(fp.family)) {
+      this.view.setEngravingFontFamily(fp.family);
+    }
   }
   set chordFont(fontInfo: FontInfo) {
     const fp = this.changeFont(SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);

@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
-import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
+import { SmoScore, SmoScorePreferences, SmoScoreInfo, engravingFontType } from '../../smo/data/score';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
@@ -1263,14 +1263,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param family 
    * @returns 
    */
-  setEngravingFontFamily(family: string): Promise<void> {
-    const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    if (engrave && altEngrave) {
-      engrave.family = family;
-      altEngrave.family = family;
-      SuiRenderState.setFont(engrave.family);
-    }
+  setEngravingFontFamily(family: engravingFontType): Promise<void> {
+    this.score.engravingFont = family;
+    this.storeScore.engravingFont = family;
+    this.renderer.notifyFontChange();   
     this.renderer.setRefresh();
     return this.renderer.updatePromise();
   }

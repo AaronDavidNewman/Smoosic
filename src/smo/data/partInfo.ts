@@ -18,6 +18,12 @@ export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'staves
 export type SmoPartInfoBooleanType = 'preserveTextGroups' | 'cueInScore' | 'expandMultimeasureRests';
 export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
 
+export interface SmoMidiInstrument {
+  channel: number,
+  program: number,
+  volume: number,
+  pan: number
+}
 /**
  * Data contained in a part.  A part has its own text, measure formatting and page layouts,
  * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves.
@@ -44,6 +50,8 @@ export interface SmoPartInfoParams {
   textGroups: SmoTextGroup[],
   preserveTextGroups: boolean,
   cueInScore: boolean,
+  midiDevice: string | null,
+  midiInstrument: SmoMidiInstrument | null,
   expandMultimeasureRests: boolean // not persisted
 }
 /**
@@ -63,6 +71,8 @@ export class SmoPartInfo extends StaffModifierBase {
   cueInScore: boolean = false;
   displayCues: boolean = false;
   expandMultimeasureRests: boolean = false;
+  midiInstrument: SmoMidiInstrument| null;
+  midiDevice: string | null;
   static get defaults(): SmoPartInfoParams {
     return JSON.parse(JSON.stringify({
       partName: 'Staff ',
@@ -74,6 +84,8 @@ export class SmoPartInfo extends StaffModifierBase {
       stavesAfter: 0,
       stavesBefore: 0,
       cueInScore: false,
+      midiDevice: null,
+      midiInstrument: null,
       expandMultimeasureRests: false
     }));
   }
@@ -103,6 +115,12 @@ export class SmoPartInfo extends StaffModifierBase {
     SmoPartInfoBooleanTypes.forEach((st) => {
       this[st] = params[st] ?? false;
     });
+    this.midiDevice = params.midiDevice;
+    if (params.midiInstrument) {
+      this.midiInstrument = JSON.parse(JSON.stringify(params.midiInstrument));
+    } else {
+      this.midiInstrument = null;
+    }
   }
   serialize() {
     const rv : any = {};
@@ -121,6 +139,12 @@ export class SmoPartInfo extends StaffModifierBase {
       rv.textGroups.push(tg.serialize());
     });
     rv.measureFormatting = {};
+    if (this.midiInstrument) {
+      rv.midiInstrument = JSON.parse(JSON.stringify(this.midiInstrument));
+    }
+    if (this.midiDevice) {
+      rv.midiDevice = this.midiDevice;
+    }
     Object.keys(this.measureFormatting).forEach((key) => {
       const numKey = parseInt(key, 10);
       rv.measureFormatting[numKey] = this.measureFormatting[numKey];

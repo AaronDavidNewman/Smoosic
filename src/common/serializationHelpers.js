@@ -261,7 +261,19 @@ export class smoSerialize {
       "xg": "preserveTextGroups",
       "yg": "cueInScore",
       "zg": "tie_spacing",
-      "ah": "position_end"      
+      "ah": "position_end",
+      "bh": "transposingScore",
+      "ch": "proportionality",
+      "dh": "maxMeasureSystem",
+      "eh": "cp2x",
+      "fh": "restBreak",
+      "gh": "expandMultimeasureRests",
+      "hh": "midiInstrument",
+      "ih": "channel",
+      "jh": "program",
+      "kh": "volume",
+      "lh": "pan",
+      "mh": "midiDevice"
       }`;
     return JSON.parse(_tm);
   }

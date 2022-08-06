@@ -1382,6 +1382,9 @@ export class SmoMusic {
   }
   static smoTicksToVexDots(ticks: number) {
     const vd = SmoMusic.ticksToDuration[ticks];
+    if (!vd) {
+      return 0;
+    }
     const dots = (vd.match(/d/g) || []).length;
     return dots;
   }

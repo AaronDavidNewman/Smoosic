@@ -10,10 +10,12 @@ import { SmoBarline, TimeSignature } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
 import { SmoLyric } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
+import { SmoTuplet } from '../data/tuplet';
 
 import { XmlHelpers } from './xmlHelpers';
 import { SmoTempoText } from '../data/measureModifiers';
 import { XmlToSmo } from './xmlToSmo';
+import { SmoSystemGroup } from '../data/scoreModifiers';
 
 
 interface SlurXml {
@@ -27,23 +29,23 @@ interface SlurXml {
 interface SmoState {
   divisions: number,
   measureNumber: number,
+  measureIndex: number,
   transposeOffset: number,
   tickCount: number,
   voiceIndex: number,
   keySignature: string,
   voiceTickIndex: number,
   voice?: SmoVoice,
-  staff?: SmoSystemStaff,
+  partStaves: SmoSystemStaff[],
+  staffPartIx: number, // index of staff in part
   slurs: SlurXml[],
   lyricState: Record<number, string>,
   measureTicks: number,
-  measure?: SmoMeasure,
   note?: SmoNote,
   beamState: number,
   beamTicks: number,
   timeSignature?: TimeSignature,
-  tempo?: SmoTempoText,
-  clef: Clef
+  tempo?: SmoTempoText
 }
 
 /**
@@ -62,17 +64,18 @@ export class SmoToXml {
     return JSON.parse(JSON.stringify({
       divisions: 0,
       measureNumber: 0,
+      measureIndex: 0,
       transposeOffset: 0,
       tickCount: 0,
       voiceIndex: 0,
       keySignature: 'C',
       voiceTickIndex: 0,
       slurs: [],
+      partStaves: [],
       lyricState: {},
       measureTicks: 0,
       beamState: 0,
-      beamTicks: 4096,
-      clef: 'treble'
+      beamTicks: 4096
     }));
   }
   /**
@@ -81,6 +84,8 @@ export class SmoToXml {
    * @returns 
    */
   static convert(score: SmoScore): XMLDocument {
+    let staffGroupIx = 0;
+    let staffIx = 0;
     const nn = XmlHelpers.createTextElementChild;
     const dom = XmlHelpers.createRootElement();
     const root = dom.children[0];
@@ -97,45 +102,92 @@ export class SmoToXml {
     nn(encoding, 'encoding-date', dateString, 'date');
     const defaults = nn(root, 'defaults', null, '');
     const scaling = nn(defaults, 'scaling', null, '');
-    // reverse this:
-    // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
-    const mm = XmlToSmo.mmPerPixel * 42 * score.layoutManager!.getGlobalLayout().svgScale;
+    const svgScale = score.layoutManager!.getGlobalLayout().svgScale;
+
+    // music in vexflow is rendered at a font size of 38
+    const mm = XmlToSmo.mmPerPixel * 42 * svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout', null, '');
-    XmlToSmo.pageLayoutMap.forEach((map) => {
-      nn(pageLayout, map.xml, score.layoutManager!.globalLayout, map.smo);
+    const musicFont = nn(defaults, 'music-font', null, '');
+    const engrave = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    XmlHelpers.createAttribute(musicFont, 'font-size', 38 * svgScale );
+    if (engrave) {
+      XmlHelpers.createAttribute(musicFont, 'font-family', engrave.family);
+    }
+    const tenthConversion = (25.2 / 96) * (40 / mm);
+    const pageDims = {
+      'page-height': score.layoutManager!.globalLayout.pageHeight * tenthConversion,
+      'page-width' : score.layoutManager!.globalLayout.pageWidth * tenthConversion
+    };
+    Object.keys(pageDims).forEach((dim) => {
+      nn(pageLayout, dim, pageDims, dim);
     });
+    const margins =  { 'left-margin': score.layoutManager!.pageLayouts[0].leftMargin * tenthConversion,
+      'right-margin': score.layoutManager!.pageLayouts[0].rightMargin * tenthConversion,
+      'top-margin': score.layoutManager!.pageLayouts[0].topMargin * tenthConversion,
+      'bottom-margin': score.layoutManager!.pageLayouts[0].bottomMargin * tenthConversion };
     const pageMargins = nn(pageLayout, 'page-margins', null, '');
-    XmlToSmo.pageMarginMap.forEach((map) => {
-      nn(pageMargins, map.xml, score.layoutManager!.pageLayouts[0], map.smo);
+    Object.keys(margins).forEach((margin) => {
+      nn(pageMargins, margin, margins, margin);
     });
     const partList = nn(root, 'part-list', null, '');
     score.staves.forEach((staff) => {
-      const id = 'P' + staff.staffId;
-      const scorePart = nn(partList, 'score-part', null, '');
-      XmlHelpers.createAttributes(scorePart, { id });
-      nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
+      score.systemGroups.forEach((sg) => {
+        if (sg.startSelector.staff === staff.staffId && sg.startSelector.staff < sg.endSelector.staff ) {
+          const partGroup = nn(partList, 'part-group', null, '');
+          XmlHelpers.createAttributes(partGroup, { number: staffGroupIx, type: 'start' });
+          const groupSymbol = nn(partGroup, 'group-symbol', null, '');
+          let symbolText = 'line';
+          if (sg.leftConnector === SmoSystemGroup.connectorTypes['brace']) {
+            symbolText = 'brace';
+          } else if (sg.leftConnector === SmoSystemGroup.connectorTypes['bracket']) {
+            symbolText = 'bracket';
+          } else if (sg.leftConnector === SmoSystemGroup.connectorTypes['double']) {
+            symbolText = 'square';
+          }
+          groupSymbol.textContent = symbolText;
+        } else if (sg.endSelector.staff === staff.staffId && sg.startSelector.staff < sg.endSelector.staff ) {
+          const partGroup = nn(partList, 'part-group', null, '');
+          XmlHelpers.createAttributes(partGroup, { number: staffGroupIx, type: 'stop' });
+        }
+      });
+      if (!staff.partInfo.stavesBefore) {
+        const id = 'P' + staff.staffId;
+        const scorePart = nn(partList, 'score-part', null, '');
+        XmlHelpers.createAttributes(scorePart, { id });
+        nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
+      }
     });
     const smoState: SmoState = SmoToXml.defaultState;
-    score.staves.forEach((staff) => {
+    for (staffIx = 0; staffIx < score.staves.length; ++staffIx) {
+      smoState.partStaves = [];
+      // If this is the second staff in a part, we've already output the music with the
+      // first stave
+      if (score.staves[staffIx].partInfo.stavesBefore > 0) {
+        continue;
+      }
+      smoState.partStaves.push(score.staves[staffIx]);
+      if (smoState.partStaves[0].partInfo.stavesAfter > 0 && staffIx < score.staves.length + 1) {
+        smoState.partStaves.push(score.staves[staffIx + 1]);
+      }      
       const part = nn(root, 'part', null, '');
-      const id = 'P' + staff.staffId;
+      const id = 'P' + smoState.partStaves[0].staffId;
       XmlHelpers.createAttributes(part, { id });
       smoState.measureNumber = 1;
       smoState.tickCount = 0;
       smoState.transposeOffset = 0;
-      smoState.staff = staff;
       smoState.slurs = [];
       smoState.lyricState = {};
-      staff.measures.forEach((measure) => {
-        smoState.measureTicks = 0;
-        smoState.measure = measure;
+      for (smoState.measureIndex = 0; smoState.measureIndex < smoState.partStaves[0].measures.length; ++smoState.measureIndex) {
         const measureElement = nn(part, 'measure', null, '');
-        SmoToXml.measure(measureElement, smoState);
-        smoState.measureNumber += 1;
-      });
-    });
+        for (smoState.staffPartIx = 0; smoState.staffPartIx < smoState.partStaves.length; ++smoState.staffPartIx) {
+          smoState.measureTicks = 0;
+          // each staff in a part goes in the same measure element.  If this is a subsequent part, we've already 
+          SmoToXml.measure(measureElement, smoState);
+        }
+      }
+    }
     return dom;
   }
   /**
@@ -146,19 +198,19 @@ export class SmoToXml {
    */
   static measure(measureElement: Element, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
-    if (!smoState.measure) {
-      return;
-    }
-    const measure = smoState.measure;
+    const measure = smoState.partStaves[smoState.staffPartIx].measures[smoState.measureIndex];
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
     }
-    if (smoState.measure.getForceSystemBreak()) {
+    if (smoState.staffPartIx === 0) {
+
+    }
+    if (measure.getForceSystemBreak()) {
       const printElement = nn(measureElement, 'print', null, '');
       XmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
     }
     XmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
-    SmoToXml.attributes(measureElement, smoState);
+    SmoToXml.attributes(measureElement, measure, smoState);
     smoState.voiceIndex = 1;
     smoState.beamState = SmoToXml.beamStates.none;
     smoState.beamTicks = 0;
@@ -170,16 +222,24 @@ export class SmoToXml {
         smoState.note = note;
         // Start wedge before note starts
         SmoToXml.direction(measureElement, smoState, true);
-        SmoToXml.note(measureElement, smoState);
+        SmoToXml.note(measureElement, measure, note, smoState);
         // End wedge on next tick
         SmoToXml.direction(measureElement, smoState, false);
       });
+      // If this is the end of a voice, back up the time to align the voices
       if (measure.voices.length > smoState.voiceIndex) {
         smoState.voiceIndex += 1;
         const backupElement = nn(measureElement, 'backup', null, '');
         nn(backupElement, 'duration', { duration: smoState.measureTicks }, 'duration');
       } else {
-        smoState.tickCount += smoState.measureTicks;
+        if (smoState.partStaves.length > 1 && smoState.staffPartIx + 1 < smoState.partStaves.length) {
+        // If this is the end of a measure, and this is the first part in the staff, back it up for the second staff
+        const backupElement = nn(measureElement, 'backup', null, '');
+          nn(backupElement, 'duration', { duration: smoState.measureTicks }, 'duration');  
+          smoState.tickCount += smoState.measureTicks;
+        } else if (smoState.partStaves.length === 1) {
+          smoState.tickCount += smoState.measureTicks;
+        }
       }
       smoState.measureTicks = 0;
     });
@@ -194,25 +254,27 @@ export class SmoToXml {
   static barline(measureElement: Element, smoState: SmoState, start: boolean) {
     const nn = XmlHelpers.createTextElementChild;
     let barlineElement = null;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
     if (start) {
-      if (smoState.measure!.getStartBarline().barline === SmoBarline.barlines.startRepeat) {
+      if (measure!.getStartBarline().barline === SmoBarline.barlines.startRepeat) {
         barlineElement = nn(measureElement, 'barline', null, '');
         const repeatElement = nn(barlineElement, 'repeat', null, '');
         XmlHelpers.createAttributes(repeatElement, { direction: 'forward' });
       }
     }
-    const voltas = smoState.staff!.getVoltasForMeasure(smoState.measure!.measureNumber.measureIndex);
+    const voltas = staff.getVoltasForMeasure(measure!.measureNumber.measureIndex);
     const numArray: number[] = [];
     voltas.forEach((volta) => {
-      if ((start && volta?.startSelector?.measure === smoState.measure!.measureNumber.measureIndex) || 
-          (!start && volta?.endSelector?.measure === smoState.measure!.measureNumber.measureIndex)) {
+      if ((start && volta?.startSelector?.measure === measure.measureNumber.measureIndex) || 
+          (!start && volta?.endSelector?.measure === measure.measureNumber.measureIndex)) {
         numArray.push(volta.number);
       }
     });
-    if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.endBar) {
+    if (!start && measure!.getEndBarline().barline === SmoBarline.barlines.endBar) {
       barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
       nn(barlineElement, 'bar-style', { style: 'light-heavy'} , 'style');
-    } else if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.doubleBar) {
+    } else if (!start && measure!.getEndBarline().barline === SmoBarline.barlines.doubleBar) {
       barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
       nn(barlineElement, 'bar-style', { style: 'light-light'} , 'style');
     }
@@ -223,7 +285,7 @@ export class SmoToXml {
       const endString = start ? 'start' : 'stop';
       XmlHelpers.createAttributes(endElement, { type: endString, number: numstr });
     }
-    if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.endRepeat) {
+    if (!start && measure!.getEndBarline().barline === SmoBarline.barlines.endRepeat) {
       barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
       const repeatElement = nn(barlineElement, 'repeat', null, '');
       XmlHelpers.createAttributes(repeatElement, { direction: 'backward' });
@@ -237,8 +299,8 @@ export class SmoToXml {
    */
   static slur(notationsElement: Element, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
-    const staff: SmoSystemStaff = smoState.staff as SmoSystemStaff;
-    const measure = smoState.measure as SmoMeasure;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
     const getNumberForSlur = ((slurs: SlurXml[]) => {
       let rv = 1;
       const hash: Record<number, boolean> = {};
@@ -298,26 +360,17 @@ export class SmoToXml {
    * @param smoState 
    * @returns 
    */
-  static tuplet(noteElement: Element, notationsElement: Element, smoState: SmoState) {
-    if (!smoState.measure) {
-      return;
-    }
-    if (!smoState.note) {
-      return;
-    }
+  static tupletTime(noteElement: Element, tuplet: SmoTuplet, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
-    const measure = smoState.measure;
-    const note = smoState.note;
-    const tuplet = measure.getTupletForNote(note);
-    if (!tuplet) {
-      return;
-    }
     const obj = {
-      actualNotes: tuplet.numNotes, normalNotes: 4096 / tuplet.stemTicks
+      actualNotes: tuplet.numNotes, normalNotes: tuplet.notes_occupied
     };
     const timeModification = nn(noteElement, 'time-modification', null, '');
     nn(timeModification, 'actual-notes', obj, 'actualNotes');
     nn(timeModification, 'normal-notes', obj, 'normalNotes');
+  }
+  static tupletNotation(notationsElement: Element, tuplet: SmoTuplet, note: SmoNote) {
+    const nn = XmlHelpers.createTextElementChild;
     if (tuplet.getIndexOfNote(note) === 0) {
       const tupletElement = nn(notationsElement, 'tuplet', null, '');
       XmlHelpers.createAttributes(tupletElement, {
@@ -330,6 +383,7 @@ export class SmoToXml {
       });
     }
   }
+
   /**
    * /score-partwise/measure/note/pitch
    * @param pitch 
@@ -412,8 +466,8 @@ export class SmoToXml {
     const nn = XmlHelpers.createTextElementChild;
     const directionElement = measureElement.ownerDocument.createElement('direction');
     const dtype = nn(directionElement, 'direction-type', null, '');
-    const staff = smoState.staff as SmoSystemStaff;
-    const measure = smoState.measure!;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
     const tempo = measure.getTempo();
     if (beforeNote === true && (tempo.display || measure.measureNumber.measureIndex === 0)) {
       const tempoBpm = Math.round(tempo.bpm * tempo.beatDuration / 4096);
@@ -516,8 +570,7 @@ export class SmoToXml {
    * @param measureElement 
    * @param smoState 
    */
-  static note(measureElement: Element, smoState: SmoState) {
-    const note: SmoNote = smoState.note!;
+  static note(measureElement: Element, measure: SmoMeasure, note: SmoNote, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
     let i = 0;
     for (i = 0; i < note.pitches.length; ++i) {
@@ -538,9 +591,14 @@ export class SmoToXml {
       }
       const duration = note.tickCount;
       smoState.measureTicks += duration;
+      const tuplet = measure.getTupletForNote(note);
       nn(noteElement, 'duration', { duration }, 'duration');
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
-      nn(noteElement, 'type', { type: XmlHelpers.closestStemType(note.tickCount) },
+      let typeTickCount = note.tickCount;
+      if (tuplet) {
+        typeTickCount = tuplet.stemTicks;
+      }
+      nn(noteElement, 'type', { type: XmlHelpers.closestStemType(typeTickCount) },
         'type');
       const dots = SmoMusic.smoTicksToVexDots(note.tickCount);
       for (j = 0; j < dots; ++j) {
@@ -553,13 +611,23 @@ export class SmoToXml {
         nn(noteElement, 'stem', { direction: 'down' }, 'direction');
       }
       // stupid musicxml requires beam to be last.
+      const notationsElement = noteElement.ownerDocument.createElement('notations');
+      // time modification (tuplet) comes before notations which have tuplet beaming rules
+      if (tuplet) {
+        SmoToXml.tupletTime(noteElement, tuplet, smoState);
+      }
+      // If a multi-part staff, we need to include 'staff' element
+      if (smoState.partStaves.length > 1) {
+        nn(noteElement, 'staff', { staffIx: smoState.staffPartIx + 1 }, 'staffIx');
+      }
       if (!isChord) {
         SmoToXml.beamNote(noteElement, smoState);
       }
-      const notationsElement = noteElement.ownerDocument.createElement('notations');
-      SmoToXml.tuplet(noteElement, notationsElement, smoState);
       if (!isChord) {
         SmoToXml.slur(notationsElement, smoState);
+      }
+      if (tuplet) {
+        SmoToXml.tupletNotation(notationsElement, tuplet, note);
       }
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);
@@ -577,12 +645,8 @@ export class SmoToXml {
    * @param smoState 
    * @returns 
    */
-  static key(attributesElement: Element, smoState: SmoState) {
+  static key(attributesElement: Element, measure: SmoMeasure, smoState: SmoState) {
     let fifths = 0;
-    if (!smoState.measure) {
-      return;
-    }
-    const measure = smoState.measure;
     if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
       return; // no key change
     }
@@ -606,7 +670,8 @@ export class SmoToXml {
    */
   static time(attributesElement: Element, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
-    const measure = smoState.measure as SmoMeasure;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
     const currentTs = (smoState.timeSignature as TimeSignature) ?? null;
     if (currentTs !== null && TimeSignature.equal(currentTs, measure.timeSignature)) {
       return;
@@ -624,46 +689,66 @@ export class SmoToXml {
    * @param smoState 
    * @returns 
    */
-  static clef(attributesElement: Element, smoState: SmoState) {
-    const measure = smoState.measure;
-    if (!measure) {
-      return;
-    }
-    if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
-      return; // no change
-    }
-    const nn = XmlHelpers.createTextElementChild;
-    const xmlClef = SmoMusic.clefSigns[measure.clef];
-    const clefElement = nn(attributesElement, 'clef', null, '');
-    nn(clefElement, 'sign', xmlClef.sign, 'sign');
-    if (typeof(xmlClef.line) !== 'undefined') {
-      nn(clefElement, 'line', xmlClef, 'line');
-    }
-    if (typeof(xmlClef.octave) !== 'undefined') {
-      nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
-    }
-    smoState.clef = measure.clef;
+  static clef(attributesElement: Element, smoState: SmoState) {    
+    smoState.partStaves.forEach((staff, staffIx) => {
+      const measure = staff.measures[smoState.measureIndex];
+      let prevMeasure: SmoMeasure | null = null;
+      let clefChange: Clef | null = null;
+      if (smoState.measureIndex > 0) {
+        prevMeasure = staff.measures[smoState.measureIndex - 1];
+      }
+      if (prevMeasure && prevMeasure.clef !== measure.clef) {
+        clefChange = measure.clef;
+      }
+      // both clefs are defined in the first measure one time.
+      if (smoState.measureIndex === 0 && smoState.staffPartIx === 0) {
+        clefChange = measure.clef;
+      }
+      if (clefChange) {
+        const nn = XmlHelpers.createTextElementChild;
+        const xmlClef = SmoMusic.clefSigns[clefChange];
+        const clefElement = nn(attributesElement, 'clef', null, '');
+        nn(clefElement, 'sign', xmlClef.sign, 'sign');
+        if (typeof(xmlClef.line) !== 'undefined') {
+          nn(clefElement, 'line', xmlClef, 'line');
+        }
+        if (typeof(xmlClef.octave) !== 'undefined') {
+          nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
+        }
+        XmlHelpers.createAttribute(clefElement,  'number', (staffIx + 1).toString());
+      }
+    });
   }
   /**
    * /score-partwise/part/measure/attributes
    * @param measureElement 
    * @param smoState 
    */
-  static attributes(measureElement: Element, smoState: SmoState) {
+  static attributes(measureElement: Element, measure: SmoMeasure, smoState: SmoState) {
     const nn = XmlHelpers.createTextElementChild;
     const attributesElement = measureElement.ownerDocument.createElement('attributes');
     if (smoState.divisions < 1) {
       nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
       smoState.divisions = 4096;
     }
-    SmoToXml.key(attributesElement, smoState);
+    SmoToXml.key(attributesElement, measure, smoState);
     SmoToXml.time(attributesElement, smoState);
+    // only call out number of staves in a part at the beginning of the part
+    if (smoState.measureIndex === 0 && smoState.staffPartIx === 0) {
+      SmoToXml.staves(attributesElement, smoState);
+    }
     SmoToXml.clef(attributesElement, smoState);
     SmoToXml.transpose(attributesElement, smoState);
     if (attributesElement.children.length > 0) {
       // don't add an empty attributes element
       measureElement.appendChild(attributesElement);
     }
+  }
+  static staves(attributesElement: Element, smoState: SmoState) {
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const staffCount = staff.partInfo.stavesAfter > 0 ? 2 : 1;
+    const nn = XmlHelpers.createTextElementChild;
+    nn(attributesElement, 'staves', { staffCount: staffCount.toString() }, 'staffCount');
   }
   /**
    * /score-partwise/part/measure/attributes/transpose
@@ -672,10 +757,8 @@ export class SmoToXml {
    * @returns 
    */
   static transpose(attributesElement: Element, smoState: SmoState) {
-    const measure = smoState.measure;
-    if (!measure) {
-      return;
-    }
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
     if (measure.transposeIndex !== smoState.transposeOffset) {
       smoState.transposeOffset = measure.transposeIndex;
       const nn = XmlHelpers.createTextElementChild;

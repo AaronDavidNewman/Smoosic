@@ -318,7 +318,7 @@ export class SuiXmlSaveAdapter extends SuiComponentAdapter {
     const ser = new XMLSerializer();
     const xmlText = ser.serializeToString(dom);
     if (!this.fileName.endsWith('.xml') && !this.fileName.endsWith('.mxml')) {
-      this.fileName = this.fileName + '.mxml';
+      this.fileName = this.fileName + '.xml';
     }
     addFileLink(this.fileName, xmlText, $('.saveLink'));
     $('.saveLink a')[0].click();

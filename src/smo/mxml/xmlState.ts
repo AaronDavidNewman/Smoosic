@@ -6,6 +6,7 @@ import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams, TieLine } from '../data/staffModifiers';
 import { SmoBarline, SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
+import { SmoPartInfo } from '../data/partInfo';
 import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
 import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
@@ -65,6 +66,11 @@ export interface XmlEnding {
   end: number,
   number: number
 }
+export interface XmlPartGroup {
+  partNum: number,
+  group: SmoSystemGroup,
+  parts: number[]
+}
 /**
  * Keep state of musical objects while parsing music xml
  * @category SmoToXml
@@ -115,7 +121,10 @@ export class XmlState {
   timeSignature: string = '4/4';
   voiceIndex: number = 0;
   pixelsPerTenth: number = 0.4;
-  musicFontSize: number = 14;
+  musicFontSize: number = 16;
+  partId: string = '';
+  parts: Record<string, SmoPartInfo> = {};  
+  openPartGroup: XmlPartGroup | null = null;
   // Initialize things that persist throughout a staff
   // likc hairpins and slurs
   initializeForPart() {
@@ -129,6 +138,8 @@ export class XmlState {
     this.verseMap = {};
     this.instrument.keyOffset = 0;
     this.instrumentMap = {};
+    this.partId = '';
+    this.clefInfo = [];
     this.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
   }
   // ### initializeForMeasure
@@ -214,7 +225,10 @@ export class XmlState {
     const lyric = new SmoLyric(params);
     note.addLyric(lyric);
   }
-  // ### processWedge (hairpin)
+  /**
+   * process a wedge aka hairpin dynamic
+   * @param wedgeInfo 
+   */
   processWedge(wedgeInfo: XmlWedgeInfo) {
     if (wedgeInfo.type) {
       // If we already know about this wedge, it must have been

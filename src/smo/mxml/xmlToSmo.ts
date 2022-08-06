@@ -6,18 +6,18 @@
  */
 import { XmlHelpers } from './xmlHelpers';
 import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
-import { SmoLayoutManager, SmoTextGroup, SmoPageLayout } from '../data/scoreModifiers';
+import { SmoLayoutManager, SmoTextGroup, SmoPageLayout, SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, SmoVolta, SmoBarline } from '../data/measureModifiers';
-import { SmoScore } from '../data/score';
+import { SmoScore, isEngravingFont } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';
 import { SmoMusic } from '../data/music';
 import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoNote, SmoNoteParams } from '../data/note';
 import { Pitch, PitchKey, Clef } from '../data/common';
-import { SmoSelection } from '../xform/selections';
 import { SmoOperation } from '../xform/operations';
 import { SmoInstrument, SmoSlur, SmoTie, TieLine } from '../data/staffModifiers';
+import { SmoPartInfo } from '../data/partInfo';
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -108,6 +108,8 @@ export class XmlToSmo {
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart();
           XmlToSmo.part(scoreElement, xmlState);
+        } else if (scoreElement.tagName === 'part-list') {
+          XmlToSmo.partList(scoreElement, rv, xmlState);
         }
       });
       // The entire score is parsed and xmlState now contains the staves.
@@ -148,6 +150,9 @@ export class XmlToSmo {
         
       rv.preferences.showPiano = false;
       XmlToSmo.setVoltas(rv, xmlState);
+      rv.staves.forEach((staff) => {
+
+      });
       return rv;
     } catch (exc) {
       console.warn(exc);
@@ -179,6 +184,7 @@ export class XmlToSmo {
       });
     });
   }
+
   /**
    * After parsing the XML, resolve the voltas we've saved
    * @param score 
@@ -198,7 +204,96 @@ export class XmlToSmo {
       });
     });
   }
+  static partList(partList: Element, score: SmoScore, state: XmlState) {
+    const children = partList.children;
+    let partIndex = 0;
+    var i = 0;
+    for (i = 0;i < children.length; ++i) {
+      const child = children[i];
+      if (child.tagName === 'score-part') {
+        const partElement = child;
+        const partData = new SmoPartInfo(SmoPartInfo.defaults);
+        partData.partName = XmlHelpers.getTextFromElement(partElement, 'part-name', 'part ' + i);
+        const partId = XmlHelpers.getTextFromAttribute(partElement, 'id', i.toString());
+        if (state.openPartGroup) {
+          state.openPartGroup.parts.push(partIndex);
+        }
+        partIndex += 1;
+        state.parts[partId] = partData;
+        partData.partAbbreviation = XmlHelpers.getTextFromElement(partElement, 'part-abbreviation', 'p.');
+        partData.midiDevice = XmlHelpers.getTextFromElement(partElement, 'part-abbreviation', null);
+        // it seems like musicxml doesn't allow for different music font size in parts vs. score
+        // partData.layoutManager.globalLayout.svgScale = 0.55;
+        partData.layoutManager.globalLayout.svgScale = state.musicFontSize / XmlToSmo.vexFontSize;
+        const midiElements = partElement.getElementsByTagName('midi-instrument');
+        if (midiElements.length) {
+          const midiElement = midiElements[0];
+          partData.midiInstrument = {
+            channel: XmlHelpers.getNumberFromElement(midiElement, 'midi-channel', 1),
+            program: XmlHelpers.getNumberFromElement(midiElement, 'midi-program', 1),
+            volume:  XmlHelpers.getNumberFromElement(midiElement, 'volume', 80),
+            pan: XmlHelpers.getNumberFromElement(midiElement, 'pan', 0)
+          };
+        }
+      } else if (child.tagName === 'part-group') {
+        const groupElement = child;
+        if (state.openPartGroup) {
+          const staffGroup = state.openPartGroup.group;
+          state.openPartGroup.parts.forEach((part) => {
+            if (staffGroup.startSelector.staff === 0 || staffGroup.startSelector.staff > part) {
+              staffGroup.startSelector.staff = part;
+            }
+            if (staffGroup.endSelector.staff < part) {
+              staffGroup.endSelector.staff = part;
+            }
+          });
+          score.systemGroups.push(staffGroup);
+          state.openPartGroup = null;
+        } else {
+          const staffGroup = new SmoSystemGroup(SmoSystemGroup.defaults); 
+          const groupNum = XmlHelpers.getNumberFromAttribute(groupElement, 'number', 1);
+          const xmlSymbol = XmlHelpers.getTextFromElement(groupElement, 'group-symbol', 'single');
+          if (xmlSymbol === 'single') {
+            staffGroup.leftConnector = SmoSystemGroup.connectorTypes['single'];
+          } else if (xmlSymbol === 'brace') {
+            staffGroup.leftConnector = SmoSystemGroup.connectorTypes['brace'];
+          } if (xmlSymbol === 'bracket') {
+            staffGroup.leftConnector = SmoSystemGroup.connectorTypes['bracket'];
+          } if (xmlSymbol === 'square') {
+            staffGroup.leftConnector = SmoSystemGroup.connectorTypes['double'];
+          }
+          state.openPartGroup = {
+            partNum: groupNum,
+            parts: [],
+            group: staffGroup
+          }
+        }
 
+      }
+    }
+  }
+  /**
+   * page-layout element occurs in a couple of places
+   * @param defaultsElement
+   * @param layoutDefaults 
+   * @param xmlState 
+   */
+  static pageSizeFromLayout(defaultsElement: Element, layoutDefaults: SmoLayoutManager, xmlState: XmlState) {
+    const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
+    if (pageLayoutNode.length) {
+      XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
+      layoutDefaults.globalLayout.pageHeight *= xmlState.pixelsPerTenth;
+      layoutDefaults.globalLayout.pageWidth *= xmlState.pixelsPerTenth;
+    }
+    const pageMarginNode = XmlHelpers.getChildrenFromPath(defaultsElement,
+      ['page-layout', 'page-margins']);
+    if (pageMarginNode.length) {
+      XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
+      SmoPageLayout.attributes.forEach((attr) => {
+        layoutDefaults.pageLayouts[0][attr] *= xmlState.pixelsPerTenth;
+      });
+    }
+  }
   /**
    * /score-partwise/defaults
    * @param defaultsElement 
@@ -226,22 +321,13 @@ export class XmlToSmo {
       if (fontString) {
         xmlState.musicFontSize = parseInt(fontString, 10);
       }
+      const fontFamily = fontNode[0].getAttribute('font-family');
+      if (fontFamily && isEngravingFont(fontFamily)) {
+        score.engravingFont =fontFamily;
+      }
     }
-    const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
-    if (pageLayoutNode.length) {
-      XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
-      layoutDefaults.globalLayout.pageHeight *= xmlState.pixelsPerTenth;
-      layoutDefaults.globalLayout.pageWidth *= xmlState.pixelsPerTenth;
-    }
-    const pageMarginNode = XmlHelpers.getChildrenFromPath(defaultsElement,
-      ['page-layout', 'page-margins']);
-    if (pageMarginNode.length) {
-      XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
-      SmoPageLayout.attributes.forEach((attr) => {
-        layoutDefaults.pageLayouts[0][attr] *= xmlState.pixelsPerTenth;
-      });
-    }
-    
+    XmlToSmo.pageSizeFromLayout(defaultsElement, layoutDefaults, xmlState);
+   
     // svgScale is the ratio of music font size to the default Vex font size (39).
     layoutDefaults.globalLayout.svgScale = xmlState.musicFontSize / XmlToSmo.vexFontSize;
     score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
@@ -251,8 +337,10 @@ export class XmlToSmo {
   // /score-partwise/part
   static part(partElement: Element, xmlState: XmlState) {
     let staffId = xmlState.smoStaves.length;
-    console.log('part ' + partElement.getAttribute('id'));
+    const partId = XmlHelpers.getTextFromAttribute(partElement, 'id', '');
+    console.log('part ' + partId);
     xmlState.initializeForPart();
+    xmlState.partId = partId;
     const stavesForPart: SmoSystemStaff[] = [];
     const measureElements = [...partElement.getElementsByTagName('measure')];
     measureElements.forEach((measureElement) => {
@@ -269,7 +357,13 @@ export class XmlToSmo {
           const params = SmoSystemStaff.defaults;
           params.staffId = staffId;
           params.measureInstrumentMap = xmlState.instrumentMap;
-          stavesForPart.push(new SmoSystemStaff(params));
+          const newStaff = new SmoSystemStaff(params);
+          if (xmlState.parts[partId]) {
+            console.log('putting part ' + partId + ' in staff ' + newStaff.staffId);
+            newStaff.partInfo = new SmoPartInfo(xmlState.parts[partId]);
+          }
+          console.log('createing stave ' + newStaff.staffId);
+          stavesForPart.push(newStaff);
           staffId += 1;
         }
         const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
@@ -278,6 +372,14 @@ export class XmlToSmo {
       const oldStaffId = staffId - stavesForPart.length;
       xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
     });
+    if (stavesForPart.length > 1) {
+      stavesForPart[0].partInfo.stavesAfter = 1;
+      stavesForPart[0].partInfo.stavesBefore = 0;
+      console.log('part has stave after ' + stavesForPart[0].staffId);
+      stavesForPart[1].partInfo.stavesAfter = 0;
+      stavesForPart[1].partInfo.stavesBefore = 1;
+      console.log('part has stave before ' + stavesForPart[1].staffId);
+    }
     xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
     xmlState.completeSlurs();
   }
@@ -569,10 +671,10 @@ export class XmlToSmo {
           console.log(`xml slur: ${slurInfo.selector.staff}-${slurInfo.selector.measure}-${slurInfo.selector.voice}-${slurInfo.selector.tick} ${slurInfo.type} ${slurInfo.number}`);
           console.log(`  ${slurInfo.placement}`);
         });*/
-        tieInfos.forEach((tieInfo) => {
+        /* tieInfos.forEach((tieInfo) => {
           console.log(`xml tie: ${tieInfo.selector.staff}-${tieInfo.selector.measure}-${tieInfo.selector.voice}-${tieInfo.selector.tick} ${tieInfo.type} `);
           console.log(`  pitch ${tieInfo.pitchIndex} orient ${tieInfo.orientation} num ${tieInfo.number}`);
-        });
+        });*/
     
         xmlState.updateSlurStates(slurInfos);
         xmlState.updateTieStates(tieInfos);
@@ -596,6 +698,11 @@ export class XmlToSmo {
       }
     }
   }
+  static print(printElement: Element, xmlState: XmlState) {
+    if (xmlState.parts[xmlState.partId]) {
+      XmlToSmo.pageSizeFromLayout(printElement, xmlState.parts[xmlState.partId].layoutManager, xmlState);
+    }
+  }
   // ### parseMeasureElement
   // /score-partwise/part/measure
   // A measure in music xml might represent several measures in SMO at the same
@@ -604,7 +711,7 @@ export class XmlToSmo {
     xmlState.initializeForMeasure(measureElement);
     const elements = [...measureElement.children];
     let hasNotes = false;
-    elements.forEach((element) => {
+    elements.forEach((element) => {      
       if (element.tagName === 'backup') {
         xmlState.currentDuration -= XmlHelpers.durationFromNode(element, 0);
       }
@@ -622,6 +729,8 @@ export class XmlToSmo {
         hasNotes = true;
       } else if (element.tagName === 'barline') {
         xmlState.updateEndings(element);
+      } else if (element.tagName === 'print') {
+        XmlToSmo.print(element, xmlState);
       }
     });
     // If a measure has no notes, just make one with the defaults

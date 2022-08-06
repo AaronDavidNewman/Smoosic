@@ -113,6 +113,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-webpack');
   grunt.loadNpmTasks('grunt-typedoc');
+  console.log(new Date());
 
   // Default task(s).
   grunt.registerTask('default', ['eslint', 'webpack:build', 'copy', 'typedoc']);

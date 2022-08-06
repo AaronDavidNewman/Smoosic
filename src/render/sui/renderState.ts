@@ -95,7 +95,7 @@ export class SuiRenderState {
     const renderer = new SuiRenderState(ctorObj);
     return renderer;
   }
-  static get setFonts(): Record<string, Function> {
+  static get setFontStack(): Record<string, Function> {
     return {
       Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
       Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
@@ -103,17 +103,14 @@ export class SuiRenderState {
       Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
     };
   }
-
-
-  static setFont(font: string) {
-    SuiRenderState.setFonts[font]();
-  }
-
   static get passStates(): Record<string, number> {
     return { initial: 0, clean: 2, replace: 3 };
   }
   get renderElement(): Element {
     return this.elementId;
+  }
+  notifyFontChange() {
+    SuiRenderState.setFontStack[this.score!.engravingFont]();
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||
@@ -375,14 +372,11 @@ export class SuiRenderState {
       shouldReset = true;
     } */
     this.setPassState(SuiRenderState.passStates.initial, 'load score');
-    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    if (!font) {
-      return;
-    }
-    SuiRenderState.setFont(font.family);
+    const font = score.engravingFont;
     this.dirty = true;
     this._score = score;
     this.renderer.score = score;
+    this.notifyFontChange();
     // if (shouldReset) {
     this.setViewport(true);
     if (this.measureMapper) {
