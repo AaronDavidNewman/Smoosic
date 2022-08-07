@@ -333,8 +333,11 @@ export class XmlToSmo {
     score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
   }
 
-  // ### part
-  // /score-partwise/part
+  /**
+   * /score-partwise/part
+   * @param partElement 
+   * @param xmlState 
+   */
   static part(partElement: Element, xmlState: XmlState) {
     let staffId = xmlState.smoStaves.length;
     const partId = XmlHelpers.getTextFromAttribute(partElement, 'id', '');
@@ -382,9 +385,13 @@ export class XmlToSmo {
     }
     xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
     xmlState.completeSlurs();
+    xmlState.assignRehearsalMarks();
   }
-  // ### tempo
-  // /score-partwise/measure/direction/sound:tempo
+  /**
+   * /score-partwise/measure/direction/sound:tempo
+   * @param element 
+   * @returns 
+   */
   static tempo(element: Element) {
     let tempoText = '';
     let customText = tempoText;
@@ -421,16 +428,27 @@ export class XmlToSmo {
     });
     return rv;
   }
-  // ### dynamics
-  // /score-partwise/part/measure/direction/dynamics
-  static dynamics(directionElement: Element, xmlState: XmlState) {
+  /**
+   * /score-partwise/measure/direction/dynamics
+   * @param element 
+   * @returns 
+   */
+   static dynamics(directionElement: Element, xmlState: XmlState) {
     let offset = 1;
     const dynamicNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'dynamics']);
+    const rehearsalNodes = XmlHelpers.getChildrenFromPath(directionElement,
+      ['direction-type', 'rehearsal']);
     const offsetNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['offset']);
     if (offsetNodes.length) {
       offset = parseInt(offsetNodes[0].textContent as string, 10);
+    }
+    if (rehearsalNodes.length) {
+      const rm =  rehearsalNodes[0].textContent;
+      if (rm) {
+        xmlState.rehearsalMark = rm;
+      }
     }
     dynamicNodes.forEach((dynamic) => {
       xmlState.dynamics.push({
@@ -703,10 +721,13 @@ export class XmlToSmo {
       XmlToSmo.pageSizeFromLayout(printElement, xmlState.parts[xmlState.partId].layoutManager, xmlState);
     }
   }
-  // ### parseMeasureElement
-  // /score-partwise/part/measure
-  // A measure in music xml might represent several measures in SMO at the same
-  // column in the score
+  /**
+   * /score-partwise/part/measure
+   * A measure in music xml might represent several measures in SMO at the same
+   * column in the score
+   * @param measureElement 
+   * @param xmlState 
+   */
   static measure(measureElement: Element, xmlState: XmlState) {
     xmlState.initializeForMeasure(measureElement);
     const elements = [...measureElement.children];
@@ -738,6 +759,9 @@ export class XmlToSmo {
       xmlState.clefInfo.forEach((clefInfo) => {
         xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
       });
+    }
+    if (xmlState.rehearsalMark.length) {
+      xmlState.rehearsalMarks[xmlState.measureIndex] = xmlState.rehearsalMark;
     }
     xmlState.staffArray.forEach((staffData) => {
       const clef = staffData.clefInfo.clef as Clef;

@@ -6,7 +6,7 @@ import { SmoMusic } from '../data/music';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoScore } from '../data/score';
-import { SmoBarline, TimeSignature } from '../data/measureModifiers';
+import { SmoBarline, TimeSignature, SmoRehearsalMark, SmoMeasureModifierBase } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
 import { SmoLyric } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
@@ -186,6 +186,7 @@ export class SmoToXml {
           // each staff in a part goes in the same measure element.  If this is a subsequent part, we've already 
           SmoToXml.measure(measureElement, smoState);
         }
+        smoState.measureNumber += 1;
       }
     }
     return dom;
@@ -201,9 +202,6 @@ export class SmoToXml {
     const measure = smoState.partStaves[smoState.staffPartIx].measures[smoState.measureIndex];
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
-    }
-    if (smoState.staffPartIx === 0) {
-
     }
     if (measure.getForceSystemBreak()) {
       const printElement = nn(measureElement, 'print', null, '');
@@ -465,13 +463,37 @@ export class SmoToXml {
     let addDirection = false;
     const nn = XmlHelpers.createTextElementChild;
     const directionElement = measureElement.ownerDocument.createElement('direction');
-    const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.partStaves[smoState.staffPartIx];
     const measure = staff.measures[smoState.measureIndex];
+    const directionChildren: Element[] = [];
     const tempo = measure.getTempo();
-    if (beforeNote === true && (tempo.display || measure.measureNumber.measureIndex === 0)) {
+    let displayTempo = false;
+    if (smoState.tempo) {
+      if (tempo.display && measure.measureNumber.measureIndex === 0 && smoState.measureTicks === 0) {
+        displayTempo = true;
+      } else if (tempo.display && !SmoTempoText.eq(smoState.tempo, tempo)) {
+        displayTempo = true;
+      }
+    } else {
+      displayTempo = true;
+    }
+    smoState.tempo = new SmoTempoText(tempo);
+    if (beforeNote === true && smoState.staffPartIx === 0 && smoState.measureTicks === 0 && smoState.partStaves[0].staffId === 0) {
+      const mark: SmoMeasureModifierBase | undefined = measure.getRehearsalMark();
+      if (mark) {
+        const rmtype = nn(directionElement, 'direction-type', null, '');
+        const xmark = (mark as SmoRehearsalMark);
+        const rElement = nn(rmtype, 'rehearsal', { mark: xmark.symbol }, 'mark');
+        XmlHelpers.createAttribute(rElement, 'enclosure', 'square');
+        XmlHelpers.createAttribute(directionElement, 'placement', 'above');
+        addDirection = true;
+      }
+    }
+    if (beforeNote === true && displayTempo) {
+      addDirection = true;
       const tempoBpm = Math.round(tempo.bpm * tempo.beatDuration / 4096);
-      const tempoElement = nn(directionElement, 'direction-type', null, '');      
+      const tempoElement = nn(directionElement, 'direction-type', null, '');
+      XmlHelpers.createAttribute(directionElement, 'placement', 'above');
       let tempoText = tempo.tempoText;
       if (tempo.tempoMode === SmoTempoText.tempoModes.customMode) {
         tempoText = tempo.customText;
@@ -497,8 +519,9 @@ export class SmoToXml {
         nn(metronomeElement, 'per-minute', { tempo }, 'bpm');
       }
       // Sound is supposed to come last under 'direction' element
-      const soundElement = nn(directionElement, 'sound', null, '');
+      const soundElement = measureElement.ownerDocument.createElement('sound');
       soundElement.setAttribute('tempo', tempoBpm.toString());
+      directionChildren.push(soundElement);
     }
     const selector: SmoSelector = {
       staff: staff.staffId,
@@ -517,19 +540,24 @@ export class SmoToXml {
       SmoSelector.sameNote(mod.endSelector, selector) &&
       (mod.attrs.type === 'SmoStaffHairpin')) as SmoStaffHairpin;
     if (endWedge && !beforeNote) {
+      const wedgeDirection = nn(measureElement, 'direction', null, '');
+      const dtype = nn(wedgeDirection, 'direction-type', null, '');
       const wedgeElement = nn(dtype, 'wedge', null, '');
       XmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
-      addDirection = true;
     }
     if (startWedge && beforeNote) {
+      const wedgeDirection = nn(measureElement, 'direction', null, '');
+      const dtype = nn(wedgeDirection, 'direction-type', null, '');
       const wedgeElement = nn(dtype, 'wedge', null, '');
       const wedgeType = startWedge.hairpinType === SmoStaffHairpin.types.CRESCENDO ?
         'crescendo' : 'diminuendo';
       XmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
-      addDirection = true;
     }
     if (addDirection) {
       measureElement.appendChild(directionElement);
+      directionChildren.forEach((el) => {
+        directionElement.append(el);
+      })
     }
   }
   /**

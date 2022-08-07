@@ -114,7 +114,7 @@ export class SuiRenderState {
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||
-      this.passState === SuiRenderState.passStates.replace) {
+      this.passState === SuiRenderState.passStates.replace) {        
       if (Array.isArray(selection)) {
         this.replaceQ = this.replaceQ.concat(selection);
       } else {
@@ -282,7 +282,7 @@ export class SuiRenderState {
     if (!this.score || !this.renderer) {
       return;
     }
-    this.renderer._setViewport(reset);
+    this.renderer.setViewport(reset);
     this.score!.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (measure.svg.logicalBox && reset) {

@@ -1,9 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoModifierBase, SvgBox } from '../../smo/data/common';
+import { SvgBox } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
-import { SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
@@ -12,7 +12,7 @@ import { SuiMapper } from './mapper';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
-import { SuiLayoutFormatter, SuiTickContext, LineRender, MeasureEstimate } from './formatter';
+import { SuiLayoutFormatter, RenderedPage } from './formatter';
 import { SmoBeamer } from '../../smo/xform/beamers';
 import { SuiTextBlock } from './textRender';
 import { layoutDebug } from './layoutDebug';
@@ -35,6 +35,8 @@ const VF = eval('Vex.Flow');
   undoBuffer: UndoBuffer
 }
 
+
+
 /**
  * This module renders the entire score.  It calculates the layout first based on the
  * computed dimensions.
@@ -44,7 +46,7 @@ export class SuiScoreRender {
   constructor(params: ScoreRenderParams) {    
     this.elementId = params.elementId;
     this.score = params.score;
-    this._setViewport(true);
+    this.setViewport(true);
   }
   elementId: any;
   startRenderTime: number = 0;
@@ -55,8 +57,10 @@ export class SuiScoreRender {
   viewportChanged: boolean = false;
   renderTime: number = 0;
   backgroundRender: boolean = false;
+  renderedPages: Record<number, RenderedPage | null> = {};
   _autoAdjustRenderTime: boolean = false;
   allScoreText: SVGSVGElement | null = null;
+  renderingPage: number = -1;
 
   get autoAdjustRenderTime() {
     return this._autoAdjustRenderTime;
@@ -149,15 +153,21 @@ export class SuiScoreRender {
       }
     });
   }
+  clearRenderedPage(pg: number) {
+    if (this.renderedPages[pg]) {
+      this.renderedPages[pg] = null;
+    }
+  }
   // ### _setViewport
   // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  _setViewport(reset: boolean) {
+  setViewport(reset: boolean) {
     if (this.score === null) {
       return;
     }
     const layoutManager = this.score!.layoutManager!;
     // All pages have same width/height, so use that
     const layout = layoutManager.getGlobalLayout();
+    this.renderedPages = {};
 
     // zoomScale is the zoom level pct.
     // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
@@ -266,12 +276,29 @@ export class SuiScoreRender {
     const measuresToBox: SmoMeasure[] = [];
     const modifiersToBox: StaffModifierBase[] = [];
     const columns: Record<number, SmoMeasure[]> = this.formatter.systems[lineIx].systems;
+
+    // If this page hasn't changed since rendered
+    const pageIndex = columns[0][0].svg.pageIndex;
+    if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
+      return;
+    }
+    this.renderingPage = pageIndex;
     const vxSystem: VxSystem = new VxSystem(this.context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
         if (this.measureMapper !== null) {
           vxSystem.renderMeasure(measure, printing);
+          const pageIndex = measure.svg.pageIndex;
+          const renderMeasures = this.renderedPages[pageIndex];
+          if (!renderMeasures) {
+            this.renderedPages[pageIndex] = {
+              startMeasure: measure.measureNumber.measureIndex,
+              endMeasure: measure.measureNumber.measureIndex
+            }
+          } else {
+            renderMeasures.endMeasure = measure.measureNumber.measureIndex;
+          }
           measuresToBox.push(measure);
           if (!printing && !measure.format.isDefault) {
             const at = [];
@@ -460,6 +487,9 @@ export class SuiScoreRender {
   }
   replaceSelection(staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }>, change: SmoSelection) {
     let system: VxSystem | null = null;
+    if (this.renderedPages[change.measure.svg.pageIndex]) {
+      this.renderedPages[change.measure.svg.pageIndex] = null;
+    }
     SmoBeamer.applyBeams(change.measure);
     // Defer modifier update until all selected measures are drawn.
     if (!staffMap[change.staff.staffId]) {
@@ -499,6 +529,7 @@ export class SuiScoreRender {
     }
     this.backgroundRender = true;
     this.startRenderTime = new Date().valueOf();
+    this.renderingPage = -1;
     this._renderNextSystem(0, lines, printing);
   }
   // Number the measures at the first measure in each system.
@@ -541,12 +572,12 @@ export class SuiScoreRender {
     }
     const score = this.score;
     $('head title').text(this.score.scoreInfo.name);
-    const formatter = new SuiLayoutFormatter(score, this.context.svg);
+    const formatter = new SuiLayoutFormatter(score, this.context.svg, this.renderedPages);
     const startPageCount = this.score.layoutManager!.pageLayouts.length;
     this.formatter = formatter;
     formatter.layout();    
     if (this.formatter.trimPages(startPageCount)) {
-      this._setViewport(true);
+      this.setViewport(true);
     }
     this.renderAllMeasures(formatter.lines);
   } 

@@ -27,6 +27,11 @@ export interface MeasureEstimate {
 export interface LineRender {
   systems: Record<number, SmoMeasure[]>
 }
+
+export interface RenderedPage {
+  startMeasure: number,
+  endMeasure: number
+}
 /**
  * Utilities for estimating measure/system/page width and height
  */
@@ -36,11 +41,13 @@ export class SuiLayoutFormatter {
   columnMeasureMap: Record<number, SmoMeasure[]>;
   currentPage: number = 0;
   svg: SVGSVGElement;
+  renderedPages: Record<number,RenderedPage | null>;
   lines: number[] = [];
-  constructor(score: SmoScore, svg: SVGSVGElement) {
+  constructor(score: SmoScore, svg: SVGSVGElement, renderedPages: Record<number, RenderedPage | null>) {
     this.score = score;
     this.svg = svg;
     this.columnMeasureMap = {};
+    this.renderedPages = renderedPages;
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (!this.columnMeasureMap[measure.measureNumber.measureIndex]) {
@@ -98,6 +105,9 @@ export class SuiLayoutFormatter {
     const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
       // Advance to next page settings
+      if (this.renderedPages[this.currentPage]) {
+
+      }
       this.currentPage += 1;
       // If this is a new page, make sure there is a layout for it.
       lm.addToPageLayouts(this.currentPage);
@@ -250,6 +260,7 @@ export class SuiLayoutFormatter {
     let x = 0;
     let lineIndex = 0;
     this.lines = [];
+    let pageCheck = 0;
     this.lines.push(lineIndex);
     let currentLine: SmoMeasure[] = []; // the system we are esimating
     let measureEstimate: MeasureEstimate | null = null;
@@ -282,6 +293,23 @@ export class SuiLayoutFormatter {
           a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
         );
         this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+        const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
+        if (renderedPage) {
+          if (pageCheck !== this.currentPage) {
+            if (renderedPage.endMeasure !== measureIx - 1) {
+              this.renderedPages[pageCheck] = null;
+            }            
+            const nextPage = this.renderedPages[this.currentPage];
+            if (nextPage && nextPage.startMeasure !== measureIx) {
+              this.renderedPages[this.currentPage] = null;
+            }
+          } else {
+            if (renderedPage.startMeasure > measureIx || renderedPage.endMeasure < measureIx) {
+              this.renderedPages[pageCheck] = null;
+            }
+          }
+        }
+        pageCheck = this.currentPage;
 
         const ld = layoutDebug;
         const sh = SvgHelpers;

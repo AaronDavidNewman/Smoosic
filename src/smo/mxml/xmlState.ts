@@ -5,7 +5,7 @@ import { SmoScore } from '../data/score';
 import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams, TieLine } from '../data/staffModifiers';
-import { SmoBarline, SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
+import { SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoTempoText } from '../data/measureModifiers';
 import { SmoPartInfo } from '../data/partInfo';
 import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
@@ -123,6 +123,8 @@ export class XmlState {
   pixelsPerTenth: number = 0.4;
   musicFontSize: number = 16;
   partId: string = '';
+  rehearsalMark = '';
+  rehearsalMarks: Record<number, string> = {};
   parts: Record<string, SmoPartInfo> = {};  
   openPartGroup: XmlPartGroup | null = null;
   // Initialize things that persist throughout a staff
@@ -166,6 +168,7 @@ export class XmlState {
     this.endBarline = SmoBarline.barlines.singleBar;
     this.previousNote = new SmoNote(SmoNote.defaults);
     this.measureIndex += 1;
+    this.rehearsalMark = '';
   }
   // ### initializeStaff
   // voices are not sequential, seem to have artitrary numbers and
@@ -474,6 +477,15 @@ export class XmlState {
           this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
         }
       }
+    });
+  }
+  assignRehearsalMarks() {
+    Object.keys(this.rehearsalMarks).forEach((rm) => {
+      const measureIx = parseInt(rm, 10);
+      this.smoStaves.forEach((staff) => {
+        const mark = new SmoRehearsalMark(SmoRehearsalMark.defaults);
+        staff.addRehearsalMark(measureIx, mark);
+      });
     });
   }
   /**
