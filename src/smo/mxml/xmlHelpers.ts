@@ -105,7 +105,7 @@ export class XmlHelpers {
       turn: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.turn, offset: SmoOrnament.offsets.on } },
       'inverted-turn': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.turnInverted } },
       mordent: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordent } },
-      'inveterd-mordent': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
+      'inverted-mordent': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
       shake: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
       'trill-mark': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.trill } },
     };
@@ -116,8 +116,8 @@ export class XmlHelpers {
   static createRootElement() {
     const doc = document.implementation.createDocument('', '', null);
     const rootElem = doc.createElement('score-partwise');
-    const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF8"');
-    rootElem.setAttribute('version', '2.0');
+    const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
+    rootElem.setAttribute('version', '3.1');
     doc.appendChild(rootElem);
     doc.insertBefore(piElement, rootElem);
     return doc;
@@ -416,7 +416,7 @@ export class XmlHelpers {
         const articulations = [...nNode.getElementsByTagName(typ)];
         articulations.forEach((articulation) => {
           Object.keys(XmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
-            if ([...articulation.getElementsByTagName(key)].length) {
+            if (articulation.getElementsByTagName(key).length) {
               const ctor = eval('globalThis.Smo.' + XmlHelpers.ornamentXmlToSmoMap[key].ctor);
               rv.push(new ctor(XmlHelpers.ornamentXmlToSmoMap[key].params));
             }

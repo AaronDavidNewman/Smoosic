@@ -1320,6 +1320,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     selections.forEach((selection) => {
       // Unrender the deleted measure
       this.score.staves.forEach((staff) => {
+        this.tracker.clearMeasureMap(staff.measures[index]);
         this.renderer.unrenderMeasure(staff.measures[index]);
         this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
         // A little hacky - delete the modifiers if they start or end on
@@ -1331,11 +1332,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
         });
       });
       // Remove the SVG artifacts mapped to this measure.
-      this.tracker.deleteMeasure(selection);
       this.score.deleteMeasure(index);
       this.storeScore.deleteMeasure(index);
     });
-    this.tracker.loadScore();
     this.renderer.setRefresh();
     return this.renderer.updatePromise();
   }

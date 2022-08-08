@@ -244,7 +244,11 @@ export class SuiTracker extends SuiMapper {
     if (ix + offset < 0 || ix + offset >= left.length) {
       return;
     }
-    this.modifierSelections.push(left[ix + offset]);
+    const leftSel = left[ix + offset];
+    if (!leftSel) {
+      console.warn('bad selector in _growGraceNoteSelections');
+    }
+    this.modifierSelections.push(leftSel);
     this._highlightModifier();
   }
   get autoPlay(): boolean {
@@ -622,7 +626,11 @@ export class SuiTracker extends SuiMapper {
         this.suggestFadeTimer = null;
       }
       this.modifierIndex = -1;
-      this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
+      const selToAdd = this.modifierTabs[this.modifierSuggestion];
+      if (!selToAdd) {
+        console.warn('bad modifier selection in selectSuggestion');
+      }
+      this.modifierSelections = [selToAdd];
       this.modifierSuggestion = -1;
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
@@ -654,6 +662,9 @@ export class SuiTracker extends SuiMapper {
     const preselected = this.selections[0] ?
       SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
 
+    if (this.selections.length === 0) {
+      this.selections.push(this.suggestion);
+    }
     const note = this.selections[0].note as SmoNote;
     if (preselected && note.pitches.length > 1) {
       this.pitchIndex =  (this.pitchIndex + 1) % note.pitches.length;
@@ -664,7 +675,11 @@ export class SuiTracker extends SuiMapper {
     if (preselected && this.modifierTabs.length) {
       const mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
       if (mods.length) {
-        this.modifierSelections[0] = mods[0];
+        const modToAdd = mods[0];
+        if (!modToAdd) {
+          console.warn('bad modifier selection in selectSuggestion 2');
+        }
+        this.modifierSelections[0] = modToAdd;
         this.modifierIndex = mods[0].index;
         this._highlightModifier();
         return;

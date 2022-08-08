@@ -261,6 +261,7 @@ export class SuiLayoutFormatter {
     let lineIndex = 0;
     this.lines = [];
     let pageCheck = 0;
+    // let firstMeasureOnPage = 0;
     this.lines.push(lineIndex);
     let currentLine: SmoMeasure[] = []; // the system we are esimating
     let measureEstimate: MeasureEstimate | null = null;
@@ -350,6 +351,13 @@ export class SuiLayoutFormatter {
           a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
         );
         scoreLayout = this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+      }
+    }
+    // If a measure was added to the last page, make sure we re-render the page
+    const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
+    if (renderedPage) {
+      if (renderedPage.endMeasure !== measureIx) {
+        this.renderedPages[pageCheck] = null;
       }
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);

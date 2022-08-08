@@ -8,7 +8,7 @@ import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoScore } from '../data/score';
 import { SmoBarline, TimeSignature, SmoRehearsalMark, SmoMeasureModifierBase } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
-import { SmoLyric } from '../data/noteModifiers';
+import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
 import { SmoTuplet } from '../data/tuplet';
 
@@ -87,7 +87,7 @@ export class SmoToXml {
     let staffGroupIx = 0;
     let staffIx = 0;
     const nn = XmlHelpers.createTextElementChild;
-    const dom = XmlHelpers.createRootElement();
+    const dom = XmlHelpers.createRootElement();    
     const root = dom.children[0];
     const work = nn(root, 'work', null, '');
     nn(work, 'work-title', score.scoreInfo, 'title');
@@ -189,8 +189,34 @@ export class SmoToXml {
         smoState.measureNumber += 1;
       }
     }
-    return dom;
+    
+    return SmoToXml.prettifyXml(dom);
   }
+  /**
+   * MuseScore doesn't like minified xml, so we pretty-print it.
+   * @param xmlDoc 
+   * @returns 
+   */
+  static prettifyXml(xmlDoc: XMLDocument) {
+    var xsltDoc = new DOMParser().parseFromString([
+        // describes how we want to modify the XML - indent everything
+        '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+        '  <xsl:strip-space elements="*"/>',
+        '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
+        '    <xsl:value-of select="normalize-space(.)"/>',
+        '  </xsl:template>',
+        '  <xsl:template match="node()|@*">',
+        '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+        '  </xsl:template>',
+        '  <xsl:output indent="yes"/>',
+        '</xsl:stylesheet>',
+    ].join('\n'), 'application/xml');
+
+    var xsltProcessor = new XSLTProcessor();    
+    xsltProcessor.importStylesheet(xsltDoc);
+    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+    return resultDoc;
+};
   /**
    * /score-partwise/part/measure
    * @param measureElement 
@@ -556,7 +582,7 @@ export class SmoToXml {
     if (addDirection) {
       measureElement.appendChild(directionElement);
       directionChildren.forEach((el) => {
-        directionElement.append(el);
+        directionElement.appendChild(el);
       })
     }
   }
@@ -656,6 +682,38 @@ export class SmoToXml {
       }
       if (tuplet) {
         SmoToXml.tupletNotation(notationsElement, tuplet, note);
+      }
+      const ornaments = note.getOrnaments();
+      if (ornaments.length) {
+        const ornamentsElement = noteElement.ownerDocument.createElement('ornaments');
+        ornamentsElement.textContent = '\n';
+        ornaments.forEach((ornament) => {
+          if (SmoOrnament.xmlOrnaments[ornament.ornament]) {
+            const sub = nn(ornamentsElement, SmoOrnament.xmlOrnaments[ornament.ornament], null, '');
+            XmlHelpers.createAttribute(sub, 'placement', 'above');
+          }
+        });
+        if (ornamentsElement.children.length) {
+          notationsElement.appendChild(ornamentsElement);
+        }
+      } 
+      const jazzOrnaments = note.getJazzOrnaments();
+      const articulations = note.articulations;
+      if (jazzOrnaments.length || articulations.length) {
+        const articulationsElement = noteElement.ownerDocument.createElement('articulations');
+        jazzOrnaments.forEach((ornament) => {
+          if (SmoOrnament.xmlJazz[ornament.ornament]) {
+            nn(articulationsElement, SmoOrnament.xmlJazz[ornament.ornament], null, '');
+          }
+        });
+        articulations.forEach((articulation) => {
+          if (SmoArticulation.xmlArticulations[articulation.articulation]) {
+            nn(articulationsElement, SmoArticulation.xmlArticulations[articulation.articulation], null, '');
+          }
+        });
+        if (articulationsElement.children.length) {
+          notationsElement.append(articulationsElement);
+        }
       }
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);

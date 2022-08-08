@@ -232,13 +232,13 @@ export class SmoOrnament extends SmoNoteModifierBase {
     turn: 'turn',
     turnInverted: 'turn_inverted',
     trill: 'tr',
-    upprail: 'upprail',
-    prailup: 'prailup',
-    praildown: 'praildown',
+    upprall: 'upprall',
+    prallup: 'prallup',
+    pralldown: 'pralldown',
     upmordent: 'upmordent',
     downmordent: 'downmordent',
-    lineprail: 'linepraile',
-    prailprail: 'prailprail',
+    lineprall: 'lineprall',
+    prallprall: 'prallprall',
     scoop: 'scoop',
     fall_short: 'fall',
     dropLong: 'fallLong',
@@ -246,6 +246,25 @@ export class SmoOrnament extends SmoNoteModifierBase {
     doitLong: 'doitLong',
     flip: 'flip',
     smear: 'smear'
+  }
+  static readonly xmlOrnaments: Record<string, string> = {
+    mordent: 'mordent',
+    mordent_inverted: 'inverted-mordent',
+    turn: 'turn',
+    turn_inverted: 'inverted-turn',
+    upmordent: 'mordent',
+    downmordent: 'mordent',
+    lineprall: 'schleifer',
+    prallprall: 'schleifer',
+    prallup: 'schleifer',
+    tr: 'trill-mark'
+  }
+  // jazz ornaments in vex are articulations in music xml
+  static readonly xmlJazz: Record<string, string> = {
+    doit: 'doit',
+    scoop: 'scoop',
+    dropLong: 'falloff',
+    drop: 'plop'
   }
   static get jazzOrnaments(): string[] {
     return ['SCOOP', 'FALL_SHORT', 'FALL_LONG', 'DOIT', 'LIFT', 'FLIP', 'SMEAR'];
@@ -330,6 +349,12 @@ export class SmoArticulation extends SmoNoteModifierBase {
       pizzicato: 'pizzicato',
       fermata: 'fermata'
     };
+  }
+  static readonly xmlArticulations: Record<string, string> = {
+    accent: 'accent',
+    staccato: 'staccato',
+    tenuto: 'tenuto',
+    marcato: 'strong-accent'
   }
   static get positions() {
     return {

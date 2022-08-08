@@ -378,6 +378,10 @@ export class SuiScoreRender {
       measure.svg.element.remove();
       measure.svg.element = null;
     }
+    const renderPage = this.renderedPages[measure.svg.pageIndex];
+    if (renderPage) {
+      this.renderedPages[measure.svg.pageIndex] = null;
+    }
     measure.setYTop(0, 'unrender');
   }
  // ### _renderModifiers
