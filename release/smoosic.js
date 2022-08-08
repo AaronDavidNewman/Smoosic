@@ -29,7 +29,6 @@ const configuration_1 = __webpack_require__(/*! ./configuration */ "./src/applic
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
-const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
 const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
 const arial_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/arial_metrics */ "./src/styles/font_metrics/arial_metrics.js");
@@ -241,15 +240,14 @@ class SuiApplication {
         const svgContainer = document.createElement('div');
         $(svgContainer).attr('id', 'boo').addClass('musicContainer');
         $(sdc).append(svgContainer);
-        const renderer = scoreRender_1.SuiScoreRender.createScoreRenderer(this.config, svgContainer, score);
-        const eventSource = new eventSource_1.BrowserEventSource();
         const undoBuffer = new undo_1.UndoBuffer();
-        eventSource.setRenderElement(renderer.renderElement);
-        const view = new scoreViewOperations_1.SuiScoreViewOperations(this.config, renderer, score, sdc, undoBuffer);
+        const view = new scoreViewOperations_1.SuiScoreViewOperations(this.config, svgContainer, score, sdc, undoBuffer);
+        const eventSource = new eventSource_1.BrowserEventSource();
+        eventSource.setRenderElement(svgContainer);
         this.view = view;
         view.startRenderingEngine();
         return {
-            view, eventSource, undoBuffer, renderer
+            view, eventSource, undoBuffer, renderer: view.renderer
         };
     }
     /**
@@ -294,7 +292,7 @@ class SuiApplication {
         };
         SuiApplication.instance = this.instance;
         completeNotifier.handler = eventHandler;
-        eventSource.setRenderElement(view.renderer.renderElement);
+        eventSource.setRenderElement(view.renderer.elementId);
         // eslint-disable-next-line
         SuiApplication.instance = this.instance;
         ribbon.display();
@@ -3497,7 +3495,19 @@ class smoSerialize {
       "xg": "preserveTextGroups",
       "yg": "cueInScore",
       "zg": "tie_spacing",
-      "ah": "position_end"      
+      "ah": "position_end",
+      "bh": "transposingScore",
+      "ch": "proportionality",
+      "dh": "maxMeasureSystem",
+      "eh": "cp2x",
+      "fh": "restBreak",
+      "gh": "expandMultimeasureRests",
+      "hh": "midiInstrument",
+      "ih": "channel",
+      "jh": "program",
+      "kh": "volume",
+      "lh": "pan",
+      "mh": "midiDevice"
       }`;
         return JSON.parse(_tm);
     }
@@ -4304,7 +4314,7 @@ class SuiAudioPlayer {
                             measureNotes[curTick].push(soundData);
                         }
                     }
-                    curTick += smoNote.tickCount;
+                    curTick += Math.round(smoNote.tickCount);
                 });
             });
         });
@@ -4641,7 +4651,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.suiLayoutFormatter = void 0;
+exports.SuiLayoutFormatter = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -4653,11 +4663,315 @@ const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/
 const glyphDimensions_1 = __webpack_require__(/*! ../vex/glyphDimensions */ "./src/render/vex/glyphDimensions.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const note_1 = __webpack_require__(/*! ../../smo/data/note */ "./src/smo/data/note.ts");
+const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data//measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const VF = eval('Vex.Flow');
 /**
  * Utilities for estimating measure/system/page width and height
  */
-class suiLayoutFormatter {
+class SuiLayoutFormatter {
+    constructor(score, svg, renderedPages) {
+        this.systems = {};
+        this.currentPage = 0;
+        this.lines = [];
+        this.score = score;
+        this.svg = svg;
+        this.columnMeasureMap = {};
+        this.renderedPages = renderedPages;
+        this.score.staves.forEach((staff) => {
+            staff.measures.forEach((measure) => {
+                if (!this.columnMeasureMap[measure.measureNumber.measureIndex]) {
+                    this.columnMeasureMap[measure.measureNumber.measureIndex] = [];
+                }
+                this.columnMeasureMap[measure.measureNumber.measureIndex].push(measure);
+            });
+        });
+    }
+    /**
+     * Once we know which line a measure is going on, make a map for it for easy
+     * looking during rendering
+     * @param measures
+     * @param lineIndex
+     * @param systemIndex
+     */
+    updateSystemMap(measures, lineIndex, systemIndex) {
+        if (!this.systems[lineIndex]) {
+            const nextLr = {
+                systems: {}
+            };
+            this.systems[lineIndex] = nextLr;
+        }
+        const systemRender = this.systems[lineIndex];
+        if (!systemRender.systems[systemIndex]) {
+            systemRender.systems[systemIndex] = measures;
+        }
+    }
+    trimPages(startPageCount) {
+        var _a, _b, _c, _d;
+        let pl = (_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.layoutManager) === null || _b === void 0 ? void 0 : _b.pageLayouts;
+        if (pl) {
+            if (this.currentPage < pl.length - 1) {
+                this.score.layoutManager.trimPages(this.currentPage);
+                pl = (_d = (_c = this.score) === null || _c === void 0 ? void 0 : _c.layoutManager) === null || _d === void 0 ? void 0 : _d.pageLayouts;
+            }
+            if (pl && pl.length !== startPageCount) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * see if page breaks this boundary.  If it does, bump the current page and move the system down
+     * to the new page
+     * @param scoreLayout
+     * @param currentLine
+     * @param bottomMeasure
+     * @returns
+     */
+    checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
+        let pageAdj = 0;
+        const lm = this.score.layoutManager;
+        // See if this measure breaks a page.
+        const maxY = bottomMeasure.svg.logicalBox.y + bottomMeasure.svg.logicalBox.height;
+        if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+            // Advance to next page settings
+            if (this.renderedPages[this.currentPage]) {
+            }
+            this.currentPage += 1;
+            // If this is a new page, make sure there is a layout for it.
+            lm.addToPageLayouts(this.currentPage);
+            scoreLayout = lm.getScaledPageLayout(this.currentPage);
+            // When adjusting the page, make it so the top staff of the system
+            // clears the bottom of the page.
+            const topMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y < b.svg.logicalBox.y ? a : b);
+            const minMaxY = topMeasure.svg.logicalBox.y;
+            pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
+            pageAdj = pageAdj + scoreLayout.topMargin;
+            // For each measure on the current line, move it down past the page break;
+            currentLine.forEach((measure) => {
+                measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
+                measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
+            });
+        }
+        return scoreLayout;
+    }
+    measureToLeft(measure) {
+        const j = measure.measureNumber.staffId;
+        const i = measure.measureNumber.measureIndex;
+        return (i > 0 ? this.score.staves[j].measures[i - 1] : null);
+    }
+    // {measures,y,x}  the x and y at the left/bottom of the render
+    /**
+     * Estimate the dimensions of a column when it's rendered.
+     * @param formatter
+     * @param scoreLayout
+     * @param measureIx
+     * @param systemIndex
+     * @param lineIndex
+     * @param pageIndex
+     * @param x
+     * @param y
+     * @returns { MeasureEstimate } - the measures in the column and the x, y location
+     */
+    estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y) {
+        const s = {};
+        const measures = this.columnMeasureMap[measureIx];
+        let rowInSystem = 0;
+        let voiceCount = 0;
+        let unalignedCtxCount = 0;
+        let wsum = 0;
+        let dsum = 0;
+        let maxCfgWidth = 0;
+        let isPickup = false;
+        // Keep running tab of accidental widths for justification
+        const contextMap = {};
+        measures.forEach((measure) => {
+            beamers_1.SmoBeamer.applyBeams(measure);
+            voiceCount += measure.voices.length;
+            if (measure.isPickup()) {
+                isPickup = true;
+            }
+            measure.measureNumber.systemIndex = systemIndex;
+            measure.svg.rowInSystem = rowInSystem;
+            measure.svg.lineIndex = lineIndex;
+            measure.svg.pageIndex = this.currentPage;
+            // use measure to left to figure out whether I need to render key signature, etc.
+            // If I am the first measure, just use self and we always render them on the first measure.
+            let measureToLeft = this.measureToLeft(measure);
+            if (!measureToLeft) {
+                measureToLeft = measure;
+            }
+            s.measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
+            s.keySigLast = music_1.SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
+            s.tempoLast = measureToLeft.getTempo();
+            s.timeSigLast = measureToLeft.timeSignature;
+            s.clefLast = measureToLeft.clef;
+            this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
+            // calculate vertical offsets from the baseline
+            const offsets = SuiLayoutFormatter.estimateMeasureHeight(measure);
+            measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
+            measure.setY(y - measure.yTop, 'estimateColumns height');
+            measure.setX(x, 'render:estimateColumn');
+            // Add custom width to measure:
+            measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
+            SuiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
+            y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+            maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
+            rowInSystem += 1;
+        });
+        // justify this column to the maximum width        
+        const startX = measures[0].staffX;
+        const adjX = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
+        const contexts = Object.keys(contextMap);
+        const widths = [];
+        const durations = [];
+        let minTotalWidth = 0;
+        contexts.forEach((strIx) => {
+            const ix = parseInt(strIx);
+            let tickWidth = 0;
+            const context = contextMap[ix];
+            if (context.tickCounts.length < voiceCount) {
+                unalignedCtxCount += 1;
+            }
+            context.widths.forEach((w, ix) => {
+                wsum += w;
+                dsum += context.tickCounts[ix];
+                widths.push(w);
+                durations.push(context.tickCounts[ix]);
+                tickWidth = Math.max(tickWidth, w);
+            });
+            minTotalWidth += tickWidth;
+        });
+        const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);
+        const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
+        const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
+        const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
+        const davg = dsum / durations.length;
+        const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
+        const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
+        const unalignedPadding = 5;
+        const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
+        const unalignedPad = unalignedPadding * unalignedCtxCount;
+        let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
+        if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
+            // Add 1 because there is some overhead in each measure, 
+            // so there can never be (width/max) measures in the system
+            const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
+            maxWidth = Math.max(maxWidth, defaultWidth);
+        }
+        const maxX = startX + maxWidth;
+        measures.forEach((measure) => {
+            measure.setWidth(maxWidth, 'render:estimateColumn');
+            measure.svg.adjX = adjX;
+        });
+        const rv = { measures, y, x: maxX };
+        return rv;
+    }
+    layout() {
+        let measureIx = 0;
+        let systemIndex = 0;
+        if (!this.score.layoutManager) {
+            return;
+        }
+        let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
+        let y = 0;
+        let x = 0;
+        let lineIndex = 0;
+        this.lines = [];
+        let pageCheck = 0;
+        // let firstMeasureOnPage = 0;
+        this.lines.push(lineIndex);
+        let currentLine = []; // the system we are esimating
+        let measureEstimate = null;
+        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.pre);
+        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.post);
+        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.adjust);
+        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.system);
+        const timestamp = new Date().valueOf();
+        y = scoreLayout.topMargin;
+        x = scoreLayout.leftMargin;
+        while (measureIx < this.score.staves[0].measures.length) {
+            if (this.score.isPartExposed()) {
+                if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
+                    measureIx += 1;
+                    continue;
+                }
+            }
+            measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+            x = measureEstimate.x;
+            if (systemIndex > 0 &&
+                (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
+                this.justifyY(scoreLayout, measureEstimate, currentLine, false);
+                // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
+                // start of staff.
+                const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
+                this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+                const renderedPage = this.renderedPages[pageCheck];
+                if (renderedPage) {
+                    if (pageCheck !== this.currentPage) {
+                        if (renderedPage.endMeasure !== measureIx - 1) {
+                            this.renderedPages[pageCheck] = null;
+                        }
+                        const nextPage = this.renderedPages[this.currentPage];
+                        if (nextPage && nextPage.startMeasure !== measureIx) {
+                            this.renderedPages[this.currentPage] = null;
+                        }
+                    }
+                    else {
+                        if (renderedPage.startMeasure > measureIx || renderedPage.endMeasure < measureIx) {
+                            this.renderedPages[pageCheck] = null;
+                        }
+                    }
+                }
+                pageCheck = this.currentPage;
+                const ld = layoutDebug_1.layoutDebug;
+                const sh = svgHelpers_1.SvgHelpers;
+                if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.system) {
+                    currentLine.forEach((measure) => {
+                        if (measure.svg.logicalBox) {
+                            ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.system);
+                            ld.debugBox(this.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug_1.layoutDebug.values.post);
+                        }
+                    });
+                }
+                // Now start rendering on the next system.
+                y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
+                currentLine = [];
+                systemIndex = 0;
+                x = scoreLayout.leftMargin;
+                lineIndex += 1;
+                this.lines.push(lineIndex);
+                measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+                x = measureEstimate.x;
+            }
+            // ld declared for lint
+            const ld = layoutDebug_1.layoutDebug;
+            measureEstimate === null || measureEstimate === void 0 ? void 0 : measureEstimate.measures.forEach((measure) => {
+                ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
+            });
+            this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
+            currentLine = currentLine.concat(measureEstimate.measures);
+            measureIx += 1;
+            systemIndex += 1;
+            // If this is the last measure but we have not filled the x extent,
+            // still justify the vertical staves and check for page break.
+            if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
+                this.justifyY(scoreLayout, measureEstimate, currentLine, true);
+                const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
+                scoreLayout = this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+            }
+        }
+        // If a measure was added to the last page, make sure we re-render the page
+        const renderedPage = this.renderedPages[pageCheck];
+        if (renderedPage) {
+            if (renderedPage.endMeasure !== measureIx) {
+                this.renderedPages[pageCheck] = null;
+            }
+        }
+        layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
+    }
     static estimateMusicWidth(smoMeasure, noteSpacing, tickContexts) {
         const widths = [];
         // The below line was commented out b/c voiceIX was defined but never used
@@ -4734,7 +5048,7 @@ class suiLayoutFormatter {
                 }
                 tickContexts[duration].widths.push(noteWidth);
                 tickContexts[duration].tickCounts.push(note.tickCount);
-                duration += note.tickCount;
+                duration += Math.round(note.tickCount);
                 width += noteWidth;
             });
             widths.push(width);
@@ -4774,9 +5088,9 @@ class suiLayoutFormatter {
     }
     static estimateMeasureWidth(measure, noteSpacing, tickContexts) {
         // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-        let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
-        measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
-        measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
+        let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
+        measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
+        measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
         measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
         const y = measure.svg.logicalBox.y;
         measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
@@ -4798,6 +5112,40 @@ class suiLayoutFormatter {
         });
         return rv;
     }
+    // ### _justifyY
+    // when we have finished a line of music, adjust the measures in the system so the
+    // top of the staff lines up.
+    justifyY(scoreLayout, measureEstimate, currentLine, lastSystem) {
+        let i = 0;
+        // We estimate the staves at the same absolute y value.
+        // Now, move them down so the top of the staves align for all measures in a  row.
+        for (i = 0; i < measureEstimate.measures.length; ++i) {
+            let justifyX = 0;
+            const index = i;
+            const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
+            // lowest staff has greatest staffY value.
+            const lowestStaff = rowAdj.reduce((a, b) => a.staffY > b.staffY ? a : b);
+            const sh = svgHelpers_1.SvgHelpers;
+            rowAdj.forEach((measure) => {
+                const adj = lowestStaff.staffY - measure.staffY;
+                measure.setY(measure.staffY + adj, 'justifyY');
+                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
+            });
+            const rightStaff = rowAdj.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
+            if (!lastSystem) {
+                justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
+                    / rowAdj.length);
+            }
+            const ld = layoutDebug_1.layoutDebug;
+            rowAdj.forEach((measure) => {
+                measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
+                const offset = measure.measureNumber.systemIndex * justifyX;
+                measure.setX(measure.staffX + offset, 'justifyY');
+                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+                ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.adjust);
+            });
+        }
+    }
     // ### _highestLowestHead
     // highest value is actually the one lowest on the page
     static _highestLowestHead(measure, note) {
@@ -4814,6 +5162,53 @@ class suiLayoutFormatter {
     }
     static textFont(lyric) {
         return VF.TextFormatter.create(lyric.fontInfo);
+    }
+    /**
+     * Calculate the dimensions of symbols based on where in a system we are, like whether we need to show
+     * the key signature, clef etc.
+     * @param systemIndex
+     * @param measure
+     * @param clefLast
+     * @param keySigLast
+     * @param timeSigLast
+     * @param tempoLast
+     * @param score
+     */
+    calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
+        var _a, _b, _c;
+        // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
+        const xposeScore = ((_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.preferences) === null || _b === void 0 ? void 0 : _b.transposingScore) && (((_c = this.score) === null || _c === void 0 ? void 0 : _c.isPartExposed()) === false);
+        const xposeOffset = xposeScore ? measure.transposeIndex : 0;
+        const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
+        measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+        measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 ||
+            (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
+        if (measure.timeSignature.display === false) {
+            measure.svg.forceTimeSignature = false;
+        }
+        measure.svg.forceTempo = false;
+        const tempo = measure.getTempo();
+        if (tempo && measure.measureNumber.measureIndex === 0) {
+            measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
+        }
+        else if (tempo && tempoLast) {
+            if (!measureModifiers_1.SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
+                measure.svg.forceTempo = tempo.display;
+            }
+        }
+        else if (tempo) {
+            measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
+        }
+        if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
+            measure.canceledKeySignature = music_1.SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
+            measure.svg.forceKeySignature = true;
+        }
+        else if (systemIndex === 0 && measureKeySig !== 'C') {
+            measure.svg.forceKeySignature = true;
+        }
+        else {
+            measure.svg.forceKeySignature = false;
+        }
     }
     // ### estimateMeasureHeight
     // The baseline is the top line of the staff.  aboveBaseline is a negative number
@@ -4836,7 +5231,7 @@ class suiLayoutFormatter {
         }
         measure.voices.forEach((voice) => {
             voice.notes.forEach((note) => {
-                const bg = suiLayoutFormatter._beamGroupForNote(measure, note);
+                const bg = SuiLayoutFormatter._beamGroupForNote(measure, note);
                 flag = note_1.SmoNote.flagStates.auto;
                 if (bg && note.noteType === 'n') {
                     flag = bg.notes[0].flagState;
@@ -4856,7 +5251,7 @@ class suiLayoutFormatter {
                             >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
                     }
                 }
-                const hiloHead = suiLayoutFormatter._highestLowestHead(measure, note);
+                const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);
                 if (flag === note_1.SmoNote.flagStates.down) {
                     yOffset = Math.min(hiloHead.lo, yOffset);
                     heightOffset = Math.max(hiloHead.hi + glyphDimensions_1.vexGlyph.stem.height, heightOffset);
@@ -4871,7 +5266,7 @@ class suiLayoutFormatter {
                 const lyrics = note.getTrueLyrics();
                 if (lyrics.length) {
                     const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
-                    const fontInfo = suiLayoutFormatter.textFont(maxLyric);
+                    const fontInfo = SuiLayoutFormatter.textFont(maxLyric);
                     lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
                 }
                 const dynamics = note.getModifiers('SmoDynamicText');
@@ -4885,7 +5280,7 @@ class suiLayoutFormatter {
         return { belowBaseline: heightOffset, aboveBaseline: yOffset };
     }
 }
-exports.suiLayoutFormatter = suiLayoutFormatter;
+exports.SuiLayoutFormatter = SuiLayoutFormatter;
 
 
 /***/ }),
@@ -5033,104 +5428,6 @@ layoutDebug.mask = 0;
 layoutDebug._textDebug = [];
 layoutDebug.timestampHash = {};
 layoutDebug._dialogEvents = [];
-
-
-/***/ }),
-
-/***/ "./src/render/sui/layoutDemon.ts":
-/*!***************************************!*\
-  !*** ./src/render/sui/layoutDemon.ts ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiRenderDemon = void 0;
-const exceptions_1 = __webpack_require__(/*! ../../ui/exceptions */ "./src/ui/exceptions.js");
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-class SuiRenderDemon {
-    constructor(config, renderer, undoBuffer, tracker) {
-        this.idleLayoutTimer = 0; // how long the score has been idle
-        this.undoStatus = 0;
-        this.handling = false;
-        this.idleLayoutTimer = 0;
-        this.config = config;
-        this.undoStatus = 0;
-        this.renderer = renderer;
-        this.undoBuffer = undoBuffer;
-        this.tracker = tracker;
-    }
-    resetIdleTimer() {
-        this.idleLayoutTimer = Date.now();
-    }
-    handleRedrawTimer() {
-        if (this.handling) {
-            return;
-        }
-        if (this.renderer.suspendRendering) {
-            return;
-        }
-        this.handling = true;
-        const redrawTime = Math.max(this.renderer.renderTime, this.config.idleRedrawTime);
-        // If there has been a change, redraw the score
-        if (this.renderer.passState === renderState_1.SuiRenderState.passStates.initial) {
-            this.renderer.dirty = true;
-            this.undoStatus = this.undoBuffer.opCount;
-            this.idleLayoutTimer = Date.now();
-            // indicate the display is 'dirty' and we will be refreshing it.
-            $('body').addClass('refresh-1');
-            try {
-                // Sort of a hack.  If the viewport changed, the scroll state is already reset
-                // so we can't preserver the scroll state.
-                if (!this.renderer.viewportChanged) {
-                    this.renderer.preserveScroll();
-                }
-                this.render();
-            }
-            catch (ex) {
-                console.error(ex);
-                exceptions_1.SuiExceptionHandler.instance.exceptionHandler(ex);
-                this.handling = false;
-            }
-        }
-        else if (this.renderer.passState === renderState_1.SuiRenderState.passStates.replace && this.undoStatus === this.undoBuffer.opCount) {
-            // Consider navigation as activity when deciding to refresh
-            this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.tracker.idleTimer);
-            $('body').addClass('refresh-1');
-            // Do we need to refresh the score?
-            if (this.renderer.backgroundRender === false && Date.now() - this.idleLayoutTimer > redrawTime) {
-                this.renderer.passState = renderState_1.SuiRenderState.passStates.initial;
-                if (!this.renderer.viewportChanged) {
-                    this.renderer.preserveScroll();
-                }
-                this.render();
-            }
-        }
-        else {
-            this.idleLayoutTimer = Date.now();
-            this.undoStatus = this.undoBuffer.opCount;
-            if (this.renderer.replaceQ.length > 0) {
-                this.render();
-            }
-        }
-        this.handling = false;
-    }
-    // ### pollRedraw
-    // if anything has changed over some period, prepare to redraw everything.
-    pollRedraw() {
-        setTimeout(() => {
-            this.handleRedrawTimer();
-            this.pollRedraw();
-        }, this.config.demonPollTime);
-    }
-    startDemon() {
-        this.pollRedraw();
-    }
-    render() {
-        this.renderer.render();
-    }
-}
-exports.SuiRenderDemon = SuiRenderDemon;
 
 
 /***/ }),
@@ -6028,14 +6325,10 @@ exports.SuiPiano = SuiPiano;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiRenderState = void 0;
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
+const scoreRender_1 = __webpack_require__(/*! ./scoreRender */ "./src/render/sui/scoreRender.ts");
+const exceptions_1 = __webpack_require__(/*! ../../ui/exceptions */ "./src/ui/exceptions.js");
 const VF = eval('Vex.Flow');
 /**
  * Manage the state of the score rendering.  The score can be rendered either completely,
@@ -6048,37 +6341,57 @@ class SuiRenderState {
     constructor(config) {
         this.passState = SuiRenderState.passStates.initial;
         this._score = null;
-        this.renderer = null;
         this._backupZoomScale = 0;
+        this.idleLayoutTimer = 0; // how long the score has been idle
+        this.handlingRedraw = false;
         // signal to render demon that we have suspended background
         // rendering because we are recording or playing actions.
         this.suspendRendering = false;
-        this.autoAdjustRenderTime = true;
+        this.undoStatus = 0;
         this.dirty = true;
-        this.config = config;
         this.replaceQ = [];
-        this.renderTime = 0; // ms to render before time slicing
         this.stateRepCount = 0;
-        this.backgroundRender = false;
         this.setPassState(SuiRenderState.passStates.initial, 'ctor');
         this.viewportChanged = false;
         this._resetViewport = false;
         this.measureMapper = null;
+        this.renderer = new scoreRender_1.SuiScoreRender(config);
+        this.idleRedrawTime = config.config.idleRedrawTime;
+        this.demonPollTime = config.config.demonPollTime;
+        this.undoBuffer = config.undoBuffer;
+    }
+    get elementId() {
+        return this.renderer.elementId;
     }
     // ### setMeasureMapper
     // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
     // so the UI stays in sync with the location of elements in the score.
     setMeasureMapper(mapper) {
         this.measureMapper = mapper;
+        this.renderer.measureMapper = mapper;
     }
     set stepMode(value) {
         this.suspendRendering = value;
-        this.autoAdjustRenderTime = !value;
+        this.renderer.autoAdjustRenderTime = !value;
         if (this.measureMapper) {
             this.measureMapper.deferHighlightMode = !value;
         }
     }
-    static get setFonts() {
+    // ### createScoreRenderer
+    // ### Description;
+    // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
+    // svg element in the dom and interacting with the vex library.
+    static createScoreRenderer(config, renderElement, score, undoBuffer) {
+        const ctorObj = {
+            config,
+            elementId: renderElement,
+            score,
+            undoBuffer
+        };
+        const renderer = new SuiRenderState(ctorObj);
+        return renderer;
+    }
+    static get setFontStack() {
         return {
             Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
             Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
@@ -6086,14 +6399,14 @@ class SuiRenderState {
             Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
         };
     }
-    static setFont(font) {
-        SuiRenderState.setFonts[font]();
-    }
     static get passStates() {
         return { initial: 0, clean: 2, replace: 3 };
     }
     get renderElement() {
         return this.elementId;
+    }
+    notifyFontChange() {
+        SuiRenderState.setFontStack[this.score.engravingFont]();
     }
     addToReplaceQueue(selection) {
         if (this.passState === SuiRenderState.passStates.clean ||
@@ -6128,18 +6441,38 @@ class SuiRenderState {
         this.setRefresh();
     }
     get renderStateClean() {
-        return this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false;
+        return this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false;
     }
     get renderStateRendered() {
-        return (this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false) ||
-            (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
+        return (this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false) ||
+            (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.renderer.backgroundRender === false);
     }
     get viewportCreated() {
-        return this.renderer !== null;
+        return this.renderer.vexRenderer !== null;
+    }
+    /**
+     * Do a quick re-render of a measure that has changed, defer the whole score.
+     * @returns
+     */
+    replaceMeasures() {
+        const staffMap = {};
+        if (this.score === null || this.measureMapper === null) {
+            return;
+        }
+        this.replaceQ.forEach((change) => {
+            this.renderer.replaceSelection(staffMap, change);
+        });
+        Object.keys(staffMap).forEach((key) => {
+            const obj = staffMap[key];
+            this.renderer.renderModifiers(obj.staff, obj.system);
+            obj.system.renderEndings(this.measureMapper.scroller);
+            obj.system.updateLyricOffsets();
+        });
+        this.replaceQ = [];
     }
     preserveScroll() {
         const scrollState = this.measureMapper.scroller.scrollState;
-        this.renderPromise().then(() => {
+        return this.renderPromise().then(() => {
             this.measureMapper.scroller.restoreScrollState(scrollState);
         });
     }
@@ -6150,14 +6483,14 @@ class SuiRenderState {
         const endAction = () => {
             self.suspendRendering = oldSuspend;
         };
-        return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
+        return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, this.demonPollTime);
     }
     createViewportPromise() {
         const self = this;
         const condition = () => {
             return self.viewportCreated;
         };
-        return promiseHelpers_1.PromiseHelpers.makePromise(condition, null, null, this.config.demonPollTime);
+        return promiseHelpers_1.PromiseHelpers.makePromise(condition, null, null, this.demonPollTime);
     }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
@@ -6167,71 +6500,72 @@ class SuiRenderState {
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
     updatePromise() {
-        this._replaceMeasures();
+        this.replaceMeasures();
         return this._renderStatePromise(() => this.renderStateRendered);
     }
-    // Number the measures at the first measure in each system.
-    numberMeasures() {
-        const printing = $('body').hasClass('print-render');
-        const staff = this.score.staves[0];
-        const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
-        $('.measure-number').remove();
-        measures.forEach((measure) => {
-            if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
-                const numAr = [];
-                numAr.push({ y: measure.svg.logicalBox.y - 10 });
-                numAr.push({ x: measure.svg.logicalBox.x });
-                numAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
-                numAr.push({ 'font-size': '10pt' });
-                svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
-                // Show line-feed symbol
-                if (measure.format.systemBreak && !printing) {
-                    const starAr = [];
-                    const symbol = '\u21b0';
-                    starAr.push({ y: measure.svg.logicalBox.y - 5 });
-                    starAr.push({ x: measure.svg.logicalBox.x + 25 });
-                    starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
-                    starAr.push({ 'font-size': '12pt' });
-                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
-                }
-            }
-        });
-    }
-    // ### _setViewport
-    // Create (or recrate) the svg viewport, considering the dimensions of the score.
-    _setViewport(reset, elementId) {
-        if (this.score === null) {
+    handleRedrawTimer() {
+        if (this.handlingRedraw) {
             return;
         }
-        const layoutManager = this.score.layoutManager;
-        // All pages have same width/height, so use that
-        const layout = layoutManager.getGlobalLayout();
-        // zoomScale is the zoom level pct.
-        // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
-        //   vs. window size means smaller notes/more notes per page.
-        // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
-        const zoomScale = layoutManager.getZoomScale();
-        const renderScale = layout.svgScale * zoomScale;
-        const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
-        const pageWidth = layout.pageWidth * zoomScale;
-        $(elementId).css('width', '' + Math.round(pageWidth) + 'px');
-        $(elementId).css('height', '' + Math.round(totalHeight) + 'px');
-        // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-        if (reset) {
-            $(elementId).html('');
-            this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-            this.viewportChanged = true;
-            if (this.measureMapper) {
-                this.measureMapper.scroller.scrollAbsolute(0, 0);
+        if (this.suspendRendering) {
+            return;
+        }
+        this.handlingRedraw = true;
+        const redrawTime = Math.max(this.renderer.renderTime, this.idleRedrawTime);
+        // If there has been a change, redraw the score
+        if (this.passState === SuiRenderState.passStates.initial) {
+            this.dirty = true;
+            this.undoStatus = this.undoBuffer.opCount;
+            this.idleLayoutTimer = Date.now();
+            // indicate the display is 'dirty' and we will be refreshing it.
+            $('body').addClass('refresh-1');
+            try {
+                // Sort of a hack.  If the viewport changed, the scroll state is already reset
+                // so we can't preserver the scroll state.
+                if (!this.renderer.viewportChanged) {
+                    this.preserveScroll();
+                }
+                this.render();
+            }
+            catch (ex) {
+                console.error(ex);
+                exceptions_1.SuiExceptionHandler.instance.exceptionHandler(ex);
+                this.handlingRedraw = false;
             }
         }
-        svgHelpers_1.SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
-        // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-        console.log('layout setViewport: pstate initial');
-        this.dirty = true;
-        if (this.measureMapper) {
-            this.measureMapper.scroller.updateViewport();
+        else if (this.passState === SuiRenderState.passStates.replace && this.undoStatus === this.undoBuffer.opCount) {
+            // Consider navigation as activity when deciding to refresh
+            this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.measureMapper.getIdleTime());
+            $('body').addClass('refresh-1');
+            // Do we need to refresh the score?
+            if (this.renderer.backgroundRender === false && Date.now() - this.idleLayoutTimer > redrawTime) {
+                this.passState = SuiRenderState.passStates.initial;
+                if (!this.renderer.viewportChanged) {
+                    this.preserveScroll();
+                }
+                this.render();
+            }
         }
+        else {
+            this.idleLayoutTimer = Date.now();
+            this.undoStatus = this.undoBuffer.opCount;
+            if (this.replaceQ.length > 0) {
+                this.render();
+            }
+        }
+        this.handlingRedraw = false;
+    }
+    pollRedraw() {
+        setTimeout(() => {
+            this.handleRedrawTimer();
+            this.pollRedraw();
+        }, this.demonPollTime);
+    }
+    startDemon() {
+        this.pollRedraw();
+    }
+    renderTextGroup(gg) {
+        this.renderer.renderTextGroup(gg);
     }
     /**
      * Set the SVG viewport
@@ -6239,10 +6573,10 @@ class SuiRenderState {
      * @returns
      */
     setViewport(reset) {
-        if (!this.score) {
+        if (!this.score || !this.renderer) {
             return;
         }
-        this._setViewport(reset, this.elementId);
+        this.renderer.setViewport(reset);
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.svg.logicalBox && reset) {
@@ -6267,7 +6601,7 @@ class SuiRenderState {
         const promise = new Promise((resolve) => {
             const poll = () => {
                 setTimeout(() => {
-                    if (!self.dirty && !self.backgroundRender) {
+                    if (!self.dirty && !self.renderer.backgroundRender) {
                         // tracker.highlightSelection();
                         $('body').removeClass('print-render');
                         $('.vf-selection').remove();
@@ -6291,21 +6625,6 @@ class SuiRenderState {
         this.setViewport(true);
         this.setRefresh();
     }
-    clearLine(measure) {
-        const lineIndex = measure.svg.lineIndex;
-        const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
-        let i = 0;
-        for (i = startIndex; i < lineIndex + 1; ++i) {
-            // for lint error
-            const index = i;
-            this.score.staves.forEach((staff) => {
-                const mms = staff.measures.filter((mm) => mm.svg.lineIndex === index);
-                mms.forEach((mm) => {
-                    mm.svg.logicalBox = common_1.SvgBox.default;
-                });
-            });
-        }
-    }
     setPassState(st, location) {
         const oldState = this.passState;
         let msg = '';
@@ -6326,7 +6645,7 @@ class SuiRenderState {
     // ### Description:
     // return the VEX renderer context.
     get context() {
-        return this.renderer.getContext();
+        return this.renderer.vexRenderer.getContext();
     }
     get svg() {
         return this.context.svg;
@@ -6335,7 +6654,6 @@ class SuiRenderState {
         return this._score;
     }
     set score(score) {
-        let shouldReset = false;
         if (score === null) {
             return;
         }
@@ -6343,20 +6661,16 @@ class SuiRenderState {
           shouldReset = true;
         } */
         this.setPassState(SuiRenderState.passStates.initial, 'load score');
-        const font = score.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
-        if (!font) {
-            return;
-        }
-        SuiRenderState.setFont(font.family);
+        const font = score.engravingFont;
         this.dirty = true;
         this._score = score;
+        this.renderer.score = score;
+        this.notifyFontChange();
         // if (shouldReset) {
-        this.renderTime = 0;
         this.setViewport(true);
         if (this.measureMapper) {
             this.measureMapper.loadScore();
         }
-        // }
     }
     // ### undo
     // Undo is handled by the render state machine, because the layout has to first
@@ -6368,41 +6682,194 @@ class SuiRenderState {
         // Unrender the modified music because the IDs may change and normal unrender won't work
         if (buffer) {
             const sel = buffer.selector;
-            if (buffer.type === undo_1.UndoBuffer.bufferTypes.MEASURE && this.unrenderMeasure !== null) {
+            if (buffer.type === undo_1.UndoBuffer.bufferTypes.MEASURE) {
                 const mSelection = selections_1.SmoSelection.measureSelection(this.score, sel.staff, sel.measure);
                 if (mSelection !== null) {
-                    this.unrenderMeasure(mSelection.measure);
+                    this.renderer.unrenderMeasure(mSelection.measure);
                 }
             }
-            else if (buffer.type === undo_1.UndoBuffer.bufferTypes.STAFF && this.unrenderStaff !== null) {
+            else if (buffer.type === undo_1.UndoBuffer.bufferTypes.STAFF) {
                 const sSelection = selections_1.SmoSelection.measureSelection(this.score, sel.staff, 0);
                 if (sSelection !== null) {
-                    this.unrenderStaff(sSelection.staff);
+                    this.renderer.unrenderStaff(sSelection.staff);
                 }
                 op = 'setRefresh';
             }
             else {
-                this.unrenderAll();
+                this.renderer.unrenderAll();
                 op = 'setRefresh';
             }
             this._score = undoBuffer.undo(this._score);
             this[op]();
         }
     }
-    // ### unrenderMeasure
-    // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
-    // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-    unrenderMeasure(measure) {
-        if (!measure) {
-            return;
-        }
-        $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-        measure.setYTop(0, 'unrender');
-    }
     unrenderColumn(measure) {
         this.score.staves.forEach((staff) => {
-            this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+            this.renderer.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
         });
+    }
+    // ### forceRender
+    // For unit test applictions that want to render right-away
+    forceRender() {
+        this.setRefresh();
+        this.render();
+    }
+    unrenderMeasure(measure) {
+        this.renderer.unrenderMeasure(measure);
+    }
+    renderScoreModifiers() {
+        this.renderer.renderScoreModifiers();
+    }
+    render() {
+        if (this._resetViewport) {
+            this.setViewport(true);
+            this._resetViewport = false;
+        }
+        try {
+            if (SuiRenderState.passStates.replace === this.passState) {
+                this.replaceMeasures();
+            }
+            else if (SuiRenderState.passStates.initial === this.passState) {
+                if (this.renderer.backgroundRender) {
+                    return;
+                }
+                this.renderer.layout();
+                this.renderer.drawPageLines();
+                this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+            }
+        }
+        catch (excp) {
+            console.warn('exception in render: ' + excp);
+        }
+        this.dirty = false;
+    }
+}
+exports.SuiRenderState = SuiRenderState;
+
+
+/***/ }),
+
+/***/ "./src/render/sui/scoreRender.ts":
+/*!***************************************!*\
+  !*** ./src/render/sui/scoreRender.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScoreRender = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
+const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/formatter.ts");
+const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
+const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const VF = eval('Vex.Flow');
+/**
+ * This module renders the entire score.  It calculates the layout first based on the
+ * computed dimensions.
+  * @category SuiRender
+**/
+class SuiScoreRender {
+    constructor(params) {
+        this.startRenderTime = 0;
+        this.formatter = null;
+        this.vexRenderer = null;
+        this.score = null;
+        this.measureMapper = null;
+        this.viewportChanged = false;
+        this.renderTime = 0;
+        this.backgroundRender = false;
+        this.renderedPages = {};
+        this._autoAdjustRenderTime = false;
+        this.allScoreText = null;
+        this.renderingPage = -1;
+        this.elementId = params.elementId;
+        this.score = params.score;
+        this.setViewport(true);
+    }
+    get autoAdjustRenderTime() {
+        return this._autoAdjustRenderTime;
+    }
+    set autoAdjustRenderTime(value) {
+        this._autoAdjustRenderTime = value;
+    }
+    renderTextGroup(gg) {
+        if (this.vexRenderer === null) {
+            return;
+        }
+        let ix = 0;
+        let jj = 0;
+        if (gg.skipRender || this.score === null || this.measureMapper === null) {
+            return;
+        }
+        if (gg.element) {
+            gg.element.remove();
+            gg.element = null;
+        }
+        gg.logicalBox = common_1.SvgBox.default;
+        const group = this.context.openGroup();
+        gg.element = group;
+        group.id = gg.attrs.id;
+        const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
+        // If this is a per-page score text, get a text group copy for each page.
+        // else the array contains the original.
+        const groupAr = scoreModifiers_1.SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
+        groupAr.forEach((newGroup) => {
+            // If this text is attached to the measure, base the block location on the rendered measure location.
+            if (newGroup.attachToSelector) {
+                // If this text is attached to a staff that is not visible, don't draw it.
+                const mappedStaff = this.score.staves.find((staff) => staff.getMappedStaffId() === newGroup.selector.staff);
+                if (!mappedStaff) {
+                    return;
+                }
+                // Indicate the new map;
+                // newGroup.selector.staff = mappedStaff.staffId;        
+                const mmSel = selections_1.SmoSelection.measureSelection(this.score, mappedStaff.staffId, newGroup.selector.measure);
+                if (mmSel) {
+                    const mm = mmSel.measure;
+                    if (mm.svg.logicalBox.width > 0) {
+                        const xoff = mm.svg.logicalBox.x + newGroup.musicXOffset;
+                        const yoff = mm.svg.logicalBox.y + newGroup.musicYOffset;
+                        newGroup.textBlocks[0].text.x = xoff;
+                        newGroup.textBlocks[0].text.y = yoff;
+                    }
+                }
+            }
+            const block = textRender_1.SuiTextBlock.fromTextGroup(newGroup, this.context, this.measureMapper.scroller);
+            block.render();
+            // For the first one we render, use that as the bounding box for all the text, for
+            // purposes of mapper/tracker
+            if (ix === 0) {
+                gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
+                // map all the child scoreText objects, too.
+                for (jj = 0; jj < gg.textBlocks.length; ++jj) {
+                    gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+                }
+            }
+            ix += 1;
+        });
+        this.context.closeGroup();
+    }
+    // ### unrenderAll
+    // ### Description:
+    // Delete all the svg elements associated with the score.
+    unrenderAll() {
+        if (!this.score) {
+            return;
+        }
+        this.score.staves.forEach((staff) => {
+            this.unrenderStaff(staff);
+        });
+        $(this.context.svg).find('g.lineBracket').remove();
     }
     // ### unrenderStaff
     // ### Description:
@@ -6412,22 +6879,254 @@ class SuiRenderState {
             this.unrenderMeasure(measure);
         });
         staff.modifiers.forEach((modifier) => {
-            $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+            if (modifier.element) {
+                modifier.element.remove();
+                modifier.element = null;
+            }
         });
+    }
+    clearRenderedPage(pg) {
+        if (this.renderedPages[pg]) {
+            this.renderedPages[pg] = null;
+        }
+    }
+    // ### _setViewport
+    // Create (or recrate) the svg viewport, considering the dimensions of the score.
+    setViewport(reset) {
+        if (this.score === null) {
+            return;
+        }
+        const layoutManager = this.score.layoutManager;
+        // All pages have same width/height, so use that
+        const layout = layoutManager.getGlobalLayout();
+        this.renderedPages = {};
+        // zoomScale is the zoom level pct.
+        // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
+        //   vs. window size means smaller notes/more notes per page.
+        // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
+        const zoomScale = layoutManager.getZoomScale();
+        const renderScale = layout.svgScale * zoomScale;
+        const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
+        const pageWidth = layout.pageWidth * zoomScale;
+        $(this.elementId).css('width', '' + Math.round(pageWidth) + 'px');
+        $(this.elementId).css('height', '' + Math.round(totalHeight) + 'px');
+        // Reset means we remove the previous SVG element.  Otherwise, we just alter it
+        if (reset) {
+            $(this.elementId).html('');
+            this.vexRenderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+            this.viewportChanged = true;
+            if (this.measureMapper) {
+                this.measureMapper.scroller.scrollAbsolute(0, 0);
+            }
+        }
+        svgHelpers_1.SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
+        // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+        console.log('layout setViewport: pstate initial');
+        if (this.measureMapper) {
+            this.measureMapper.scroller.updateViewport();
+        }
+    }
+    get context() {
+        return this.vexRenderer.getContext();
+    }
+    renderScoreModifiers() {
+        // remove existing modifiers, and also remove parent group for 'extra'
+        // groups associated with pagination (once per page etc)
+        this.score.textGroups.forEach((tg) => {
+            if (tg.element) {
+                tg.element.remove();
+                tg.element = null;
+            }
+        });
+        if (this.allScoreText) {
+            this.allScoreText.remove();
+        }
+        const group = this.context.openGroup();
+        this.allScoreText = group;
+        // group.classList.add('all-score-text');
+        this.score.textGroups.forEach((tg) => {
+            this.renderTextGroup(tg);
+        });
+        this.context.closeGroup();
+    }
+    _getMeasuresInColumn(ix) {
+        const rv = [];
+        if (!this.score) {
+            return [];
+        }
+        this.score.staves.forEach((staff) => {
+            const inst = staff.measures.find((ss) => ss.measureNumber.measureIndex === ix);
+            if (inst) {
+                rv.push(inst);
+            }
+        });
+        return rv;
+    }
+    /**
+     * for music we've just rendered, get the bounding boxes.  We defer this step so we don't force
+     * a reflow, which can slow rendering.
+     * @param vxSystem
+     * @param measures
+     * @param modifiers
+     * @param printing
+     */
+    measureRenderedElements(vxSystem, measures, modifiers, printing) {
+        measures.forEach((smoMeasure) => {
+            const element = smoMeasure.svg.element;
+            if (element) {
+                const lbox = element.getBBox();
+                smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
+            }
+            const vxMeasure = vxSystem.getVxMeasure(smoMeasure);
+            if (vxMeasure) {
+                vxMeasure.modifiersToBox.forEach((modifier) => {
+                    if (modifier.element) {
+                        modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(modifier.element.getBBox());
+                    }
+                });
+            }
+            // unit test codes don't have tracker.
+            if (this.measureMapper) {
+                const tmpStaff = this.score.staves.find((ss) => ss.staffId === smoMeasure.measureNumber.staffId);
+                if (tmpStaff) {
+                    this.measureMapper.mapMeasure(tmpStaff, smoMeasure, printing);
+                }
+            }
+        });
+        modifiers.forEach((modifier) => {
+            if (modifier.element) {
+                modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(modifier.element.getBBox());
+            }
+        });
+    }
+    _renderSystem(lineIx, printing) {
+        if (this.score === null || this.formatter === null) {
+            return;
+        }
+        const measuresToBox = [];
+        const modifiersToBox = [];
+        const columns = this.formatter.systems[lineIx].systems;
+        // If this page hasn't changed since rendered
+        const pageIndex = columns[0][0].svg.pageIndex;
+        if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
+            return;
+        }
+        this.renderingPage = pageIndex;
+        const vxSystem = new vxSystem_1.VxSystem(this.context, 0, lineIx, this.score);
+        const colKeys = Object.keys(columns);
+        colKeys.forEach((colKey) => {
+            columns[parseInt(colKey, 10)].forEach((measure) => {
+                if (this.measureMapper !== null) {
+                    vxSystem.renderMeasure(measure, printing);
+                    const pageIndex = measure.svg.pageIndex;
+                    const renderMeasures = this.renderedPages[pageIndex];
+                    if (!renderMeasures) {
+                        this.renderedPages[pageIndex] = {
+                            startMeasure: measure.measureNumber.measureIndex,
+                            endMeasure: measure.measureNumber.measureIndex
+                        };
+                    }
+                    else {
+                        renderMeasures.endMeasure = measure.measureNumber.measureIndex;
+                    }
+                    measuresToBox.push(measure);
+                    if (!printing && !measure.format.isDefault) {
+                        const at = [];
+                        at.push({ y: measure.svg.logicalBox.y - 5 });
+                        at.push({ x: measure.svg.logicalBox.x + 25 });
+                        at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
+                        at.push({ 'font-size': '12pt' });
+                        svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+                    }
+                }
+            });
+        });
+        this.score.staves.forEach((stf) => {
+            this.renderModifiers(stf, vxSystem).forEach((modifier) => {
+                modifiersToBox.push(modifier);
+            });
+        });
+        if (this.measureMapper !== null) {
+            vxSystem.renderEndings(this.measureMapper.scroller);
+        }
+        this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
+        const timestamp = new Date().valueOf();
+        vxSystem.updateLyricOffsets();
+        layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
+    }
+    _renderNextSystemPromise(systemIx, keys, printing) {
+        return new Promise((resolve) => {
+            // const sleepDate = new Date().valueOf();
+            this._renderSystem(keys[systemIx], printing);
+            setTimeout(() => {
+                resolve();
+            }, 10);
+        });
+    }
+    _renderNextSystem(lineIx, keys, printing) {
+        var _a;
+        (0, htmlHelpers_1.createTopDomContainer)('#renderProgress', 'progress');
+        if (lineIx < keys.length) {
+            const progress = Math.round((100 * lineIx) / keys.length);
+            $('#renderProgress').attr('max', 100);
+            $('#renderProgress').val(progress);
+            this._renderNextSystemPromise(lineIx, keys, printing).then(() => {
+                lineIx++;
+                this._renderNextSystem(lineIx, keys, printing);
+            });
+        }
+        else {
+            this.renderScoreModifiers();
+            this.numberMeasures();
+            if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.artifactMap) {
+                (_a = this.measureMapper) === null || _a === void 0 ? void 0 : _a.artifactMap.debugBox(this.context.svg);
+            }
+            // We pro-rate the background render timer on how long it takes
+            // to actually render the score, so we are not thrashing on a large
+            // score.
+            if (this._autoAdjustRenderTime) {
+                this.renderTime = new Date().valueOf() - this.startRenderTime;
+            }
+            $('body').removeClass('show-render-progress');
+            // indicate the display is 'clean' and up-to-date with the score
+            $('body').removeClass('refresh-1');
+            if (this.measureMapper !== null) {
+                this.measureMapper.updateMap();
+            }
+            this.backgroundRender = false;
+        }
+    }
+    // ### unrenderMeasure
+    // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+    // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+    unrenderMeasure(measure) {
+        if (!measure) {
+            return;
+        }
+        if (measure.svg.element) {
+            measure.svg.element.remove();
+            measure.svg.element = null;
+        }
+        const renderPage = this.renderedPages[measure.svg.pageIndex];
+        if (renderPage) {
+            this.renderedPages[measure.svg.pageIndex] = null;
+        }
+        measure.setYTop(0, 'unrender');
     }
     // ### _renderModifiers
     // ### Description:
     // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
     // is on a different system due to wrapping.
-    _renderModifiers(staff, system) {
+    renderModifiers(staff, system) {
         let nextNote = null;
         let lastNote = null;
         let testNote = null;
         let vxStart = null;
         let vxEnd = null;
+        const modifiersToBox = [];
         const removedModifiers = [];
         if (this.score === null || this.measureMapper === null) {
-            return;
+            return [];
         }
         staff.modifiers.forEach((modifier) => {
             const startNote = selections_1.SmoSelection.noteSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
@@ -6491,13 +7190,15 @@ class SuiRenderState {
                 return;
             }
             system.renderModifier(this.measureMapper.scroller, modifier, vxStart, vxEnd, startNote, endNote);
+            modifiersToBox.push(modifier);
         });
         // Silently remove modifiers from the score if the endpoints no longer exist
         removedModifiers.forEach((mod) => {
             staff.removeStaffModifier(mod);
         });
+        return modifiersToBox;
     }
-    _drawPageLines() {
+    drawPageLines() {
         let i = 0;
         $(this.context.svg).find('.pageLine').remove();
         const printing = $('body').hasClass('print-render');
@@ -6508,366 +7209,39 @@ class SuiRenderState {
         for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
             const scaledPage = layoutMgr.getScaledPageLayout(i);
             const y = scaledPage.pageHeight * i;
-            svgHelpers_1.SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y, { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+            svgHelpers_1.SvgHelpers.line(this.context.svg, 0, y, scaledPage.pageWidth, y, { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
         }
     }
-    // ### _replaceMeasures
-    // Do a quick re-render of a measure that has changed.
-    _replaceMeasures() {
-        const staffMap = {};
+    replaceSelection(staffMap, change) {
         let system = null;
-        if (this.score === null || this.measureMapper === null) {
-            return;
+        if (this.renderedPages[change.measure.svg.pageIndex]) {
+            this.renderedPages[change.measure.svg.pageIndex] = null;
         }
-        this.replaceQ.forEach((change) => {
-            beamers_1.SmoBeamer.applyBeams(change.measure);
-            // Defer modifier update until all selected measures are drawn.
-            if (!staffMap[change.staff.staffId]) {
-                system = new vxSystem_1.VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
-                staffMap[change.staff.staffId] = { system, staff: change.staff };
-            }
-            else {
-                system = staffMap[change.staff.staffId].system;
-            }
-            const selections = selections_1.SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
-            selections.forEach((selection) => {
-                if (system !== null && this.measureMapper !== null) {
-                    system.renderMeasure(selection.measure, this.measureMapper, false);
-                }
-            });
-        });
-        Object.keys(staffMap).forEach((key) => {
-            const obj = staffMap[key];
-            this._renderModifiers(obj.staff, obj.system);
-            obj.system.renderEndings(this.measureMapper.scroller);
-            obj.system.updateLyricOffsets();
-        });
-        this.replaceQ = [];
-    }
-    // ### forceRender
-    // For unit test applictions that want to render right-away
-    forceRender() {
-        this.setRefresh();
-        this.render();
-    }
-    render() {
-        if (this._resetViewport) {
-            this.setViewport(true);
-            this._resetViewport = false;
-        }
-        try {
-            if (SuiRenderState.passStates.replace === this.passState) {
-                this._replaceMeasures();
-            }
-            else if (SuiRenderState.passStates.initial === this.passState) {
-                if (this.backgroundRender) {
-                    return;
-                }
-                this.layout();
-                this._drawPageLines();
-                this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
-            }
-        }
-        catch (excp) {
-            console.warn('exception in render: ' + excp);
-        }
-        this.dirty = false;
-    }
-}
-exports.SuiRenderState = SuiRenderState;
-
-
-/***/ }),
-
-/***/ "./src/render/sui/scoreRender.ts":
-/*!***************************************!*\
-  !*** ./src/render/sui/scoreRender.ts ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiScoreRender = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
-const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
-const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
-const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/formatter.ts");
-const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
-const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
-const VF = eval('Vex.Flow');
-/**
- * This module renders the entire score.  It calculates the layout first based on the
- * computed dimensions.
-  * @category SuiRender
-**/
-class SuiScoreRender extends renderState_1.SuiRenderState {
-    constructor(params) {
-        super(params.config);
-        this.startRenderTime = 0;
-        this.currentPage = 0;
-        this.elementId = params.elementId;
-        // this.score = params.score;
-        this.setViewport(true);
-    }
-    // ### createScoreRenderer
-    // ### Description;
-    // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
-    // svg element in the dom and interacting with the vex library.
-    static createScoreRenderer(config, renderElement, score) {
-        const ctorObj = {
-            config,
-            elementId: renderElement,
-            score
-        };
-        const renderer = new SuiScoreRender(ctorObj);
-        return renderer;
-    }
-    // ### unrenderAll
-    // ### Description:
-    // Delete all the svg elements associated with the score.
-    unrenderAll() {
-        if (!this.score) {
-            return;
-        }
-        this.score.staves.forEach((staff) => {
-            this.unrenderStaff(staff);
-        });
-        $(this.renderer.getContext().svg).find('g.lineBracket').remove();
-    }
-    // ### _measureToLeft
-    // measure to 'left' is on previous row if this is the first column in a system
-    // but we still use it to compute beginning symbols (key sig etc.)
-    _measureToLeft(measure) {
-        const j = measure.measureNumber.staffId;
-        const i = measure.measureNumber.measureIndex;
-        if (!this.score || this.score.staves.length <= j) {
-            console.log('no staff');
-        }
-        return (i > 0 ? this.score.staves[j].measures[i - 1] : null);
-    }
-    renderTextGroup(gg) {
-        let ix = 0;
-        let jj = 0;
-        if (gg.skipRender || this.score === null || this.measureMapper === null) {
-            return;
-        }
-        gg.logicalBox = common_1.SvgBox.default;
-        const group = this.context.openGroup();
-        group.id = gg.attrs.id;
-        const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
-        // If this is a per-page score text, get a text group copy for each page.
-        // else the array contains the original.
-        const groupAr = scoreModifiers_1.SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
-        groupAr.forEach((newGroup) => {
-            // If this text is attached to the measure, base the block location on the rendered measure location.
-            if (newGroup.attachToSelector) {
-                // If this text is attached to a staff that is not visible, don't draw it.
-                const mappedStaff = this.score.staves.find((staff) => staff.getMappedStaffId() === newGroup.selector.staff);
-                if (!mappedStaff) {
-                    return;
-                }
-                // Indicate the new map;
-                // newGroup.selector.staff = mappedStaff.staffId;        
-                const mmSel = selections_1.SmoSelection.measureSelection(this.score, mappedStaff.staffId, newGroup.selector.measure);
-                if (mmSel) {
-                    const mm = mmSel.measure;
-                    if (mm.svg.logicalBox.width > 0) {
-                        const xoff = mm.svg.logicalBox.x + newGroup.musicXOffset;
-                        const yoff = mm.svg.logicalBox.y + newGroup.musicYOffset;
-                        newGroup.textBlocks[0].text.x = xoff;
-                        newGroup.textBlocks[0].text.y = yoff;
-                    }
-                }
-            }
-            const block = textRender_1.SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext(), this.measureMapper.scroller);
-            block.render();
-            // For the first one we render, use that as the bounding box for all the text, for
-            // purposes of mapper/tracker
-            if (ix === 0) {
-                gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
-                // map all the child scoreText objects, too.
-                for (jj = 0; jj < gg.textBlocks.length; ++jj) {
-                    gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
-                }
-            }
-            ix += 1;
-        });
-        this.context.closeGroup();
-    }
-    renderScoreModifiers() {
-        $(this.renderer.getContext().svg).find('.all-score-text').remove();
-        const group = this.context.openGroup();
-        group.classList.add('all-score-text');
-        this.score.textGroups.forEach((tg) => {
-            this.renderTextGroup(tg);
-        });
-        this.context.closeGroup();
-    }
-    // ### calculateBeginningSymbols
-    // calculate which symbols like clef, key signature that we have to render in this measure.
-    calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
-        var _a, _b, _c;
-        // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
-        const xposeScore = ((_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.preferences) === null || _b === void 0 ? void 0 : _b.transposingScore) && (((_c = this.score) === null || _c === void 0 ? void 0 : _c.isPartExposed()) === false);
-        const xposeOffset = xposeScore ? measure.transposeIndex : 0;
-        const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
-        measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-        measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 ||
-            (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
-        if (measure.timeSignature.display === false) {
-            measure.svg.forceTimeSignature = false;
-        }
-        measure.svg.forceTempo = false;
-        const tempo = measure.getTempo();
-        if (tempo && measure.measureNumber.measureIndex === 0) {
-            measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
-        }
-        else if (tempo && tempoLast) {
-            if (!measureModifiers_1.SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
-                measure.svg.forceTempo = tempo.display;
-            }
-        }
-        else if (tempo) {
-            measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
-        }
-        if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
-            measure.canceledKeySignature = music_1.SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
-            measure.svg.forceKeySignature = true;
-        }
-        else if (systemIndex === 0 && measureKeySig !== 'C') {
-            measure.svg.forceKeySignature = true;
+        beamers_1.SmoBeamer.applyBeams(change.measure);
+        // Defer modifier update until all selected measures are drawn.
+        if (!staffMap[change.staff.staffId]) {
+            system = new vxSystem_1.VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
+            staffMap[change.staff.staffId] = { system, staff: change.staff };
         }
         else {
-            measure.svg.forceKeySignature = false;
+            system = staffMap[change.staff.staffId].system;
         }
-    }
-    _getMeasuresInColumn(ix) {
-        const rv = [];
-        if (!this.score) {
-            return [];
-        }
-        this.score.staves.forEach((staff) => {
-            const inst = staff.measures.find((ss) => ss.measureNumber.measureIndex === ix);
-            if (inst) {
-                rv.push(inst);
+        const selections = selections_1.SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
+        const measuresToMeasure = [];
+        selections.forEach((selection) => {
+            if (system !== null && this.measureMapper !== null) {
+                system.renderMeasure(selection.measure, false);
+                measuresToMeasure.push(selection.measure);
             }
         });
-        return rv;
+        this.measureRenderedElements(system, measuresToMeasure, [], false);
     }
-    _renderSystem(key, mscore, printing) {
-        const columns = {};
-        if (this.score === null) {
-            return;
-        }
-        const vxSystem = new vxSystem_1.VxSystem(this.context, 0, parseInt(key, 10), this.score);
-        mscore[key].forEach((measure) => {
-            if (!columns[measure.measureNumber.systemIndex]) {
-                columns[measure.measureNumber.systemIndex] = [];
-            }
-            columns[measure.measureNumber.systemIndex].push(measure);
-        });
-        const colKeys = Object.keys(columns);
-        colKeys.forEach((colKey) => {
-            columns[parseInt(colKey, 10)].forEach((measure) => {
-                if (this.measureMapper !== null) {
-                    vxSystem.renderMeasure(measure, this.measureMapper, printing);
-                    if (!printing && !measure.format.isDefault) {
-                        const at = [];
-                        at.push({ y: measure.svg.logicalBox.y - 5 });
-                        at.push({ x: measure.svg.logicalBox.x + 25 });
-                        at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
-                        at.push({ 'font-size': '12pt' });
-                        svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
-                    }
-                }
-            });
-        });
-        const timestamp = new Date().valueOf();
-        if (this.measureMapper !== null) {
-            vxSystem.renderEndings(this.measureMapper.scroller);
-        }
-        vxSystem.updateLyricOffsets();
-        this.score.staves.forEach((stf) => {
-            this._renderModifiers(stf, vxSystem);
-        });
-        layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
-    }
-    _renderNextSystemPromise(systemIx, mscore, keys, printing) {
-        return new Promise((resolve) => {
-            this._renderSystem(keys[systemIx], mscore, printing);
-            resolve();
-        });
-    }
-    _deferNextSystemPromise(systemIx, mscore, keys, printing) {
-        return new Promise((resolve) => {
-            this._renderNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
-                setTimeout(() => {
-                    resolve();
-                }, 10);
-            });
-        });
-    }
-    _renderNextSystem(systemIx, mscore, keys, printing) {
-        var _a;
-        (0, htmlHelpers_1.createTopDomContainer)('#renderProgress', 'progress');
-        if (systemIx < keys.length) {
-            const progress = Math.round((100 * systemIx) / keys.length);
-            $('#renderProgress').attr('max', 100);
-            $('#renderProgress').val(progress);
-            this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
-                systemIx++;
-                this._renderNextSystem(systemIx, mscore, keys, printing);
-            });
-        }
-        else {
-            this.renderScoreModifiers();
-            this.numberMeasures();
-            if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.artifactMap) {
-                (_a = this.measureMapper) === null || _a === void 0 ? void 0 : _a.artifactMap.debugBox(this.svg);
-            }
-            // We pro-rate the background render timer on how long it takes
-            // to actually render the score, so we are not thrashing on a large
-            // score.
-            if (this.autoAdjustRenderTime) {
-                this.renderTime = new Date().valueOf() - this.startRenderTime;
-            }
-            $('body').removeClass('show-render-progress');
-            // indicate the display is 'clean' and up-to-date with the score
-            $('body').removeClass('refresh-1');
-            if (this.measureMapper !== null) {
-                this.measureMapper.updateMap();
-            }
-            this.backgroundRender = false;
-        }
-    }
-    renderAllMeasures() {
-        const mscore = {};
+    renderAllMeasures(lines) {
         if (!this.score) {
             return;
         }
         const printing = $('body').hasClass('print-render');
         $('.measure-format').remove();
-        this.score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                if (!mscore[measure.svg.lineIndex]) {
-                    mscore[measure.svg.lineIndex] = [];
-                }
-                mscore[measure.svg.lineIndex].push(measure);
-            });
-        });
-        const keys = Object.keys(mscore);
         if (!printing) {
             $('body').addClass('show-render-progress');
             const isShowing = piano_1.SuiPiano.isShowing;
@@ -6882,257 +7256,54 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         }
         this.backgroundRender = true;
         this.startRenderTime = new Date().valueOf();
-        this._renderNextSystem(0, mscore, keys, printing);
+        this.renderingPage = -1;
+        this._renderNextSystem(0, lines, printing);
     }
-    // ### _justifyY
-    // when we have finished a line of music, adjust the measures in the system so the
-    // top of the staff lines up.
-    _justifyY(svg, scoreLayout, measureEstimate, currentLine, lastSystem) {
-        let i = 0;
-        // We estimate the staves at the same absolute y value.
-        // Now, move them down so the top of the staves align for all measures in a  row.
-        for (i = 0; i < measureEstimate.measures.length; ++i) {
-            let justifyX = 0;
-            const index = i;
-            const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
-            // lowest staff has greatest staffY value.
-            const lowestStaff = rowAdj.reduce((a, b) => a.staffY > b.staffY ? a : b);
-            const sh = svgHelpers_1.SvgHelpers;
-            rowAdj.forEach((measure) => {
-                const adj = lowestStaff.staffY - measure.staffY;
-                measure.setY(measure.staffY + adj, '_justifyY');
-                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_justifyY');
-            });
-            const rightStaff = rowAdj.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
-            if (!lastSystem) {
-                justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
-                    / rowAdj.length);
+    // Number the measures at the first measure in each system.
+    numberMeasures() {
+        const printing = $('body').hasClass('print-render');
+        const staff = this.score.staves[0];
+        const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
+        $('.measure-number').remove();
+        measures.forEach((measure) => {
+            if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
+                const numAr = [];
+                numAr.push({ y: measure.svg.logicalBox.y - 10 });
+                numAr.push({ x: measure.svg.logicalBox.x });
+                numAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
+                numAr.push({ 'font-size': '10pt' });
+                svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
+                // Show line-feed symbol
+                if (measure.format.systemBreak && !printing) {
+                    const starAr = [];
+                    const symbol = '\u21b0';
+                    starAr.push({ y: measure.svg.logicalBox.y - 5 });
+                    starAr.push({ x: measure.svg.logicalBox.x + 25 });
+                    starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
+                    starAr.push({ 'font-size': '12pt' });
+                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
+                }
             }
-            const ld = layoutDebug_1.layoutDebug;
-            rowAdj.forEach((measure) => {
-                measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
-                const offset = measure.measureNumber.systemIndex * justifyX;
-                measure.setX(measure.staffX + offset, '_justifyY');
-                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), '_justifyY');
-                ld.debugBox(svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.adjust);
-            });
-        }
+        });
     }
-    // ### _checkPageBreak
-    // See if this line breaks the page boundary
-    _checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
-        let pageAdj = 0;
-        const lm = this.score.layoutManager;
-        // See if this measure breaks a page.
-        const maxY = bottomMeasure.svg.logicalBox.y + bottomMeasure.svg.logicalBox.height;
-        if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-            // Advance to next page settings
-            this.currentPage += 1;
-            // If this is a new page, make sure there is a layout for it.
-            lm.addToPageLayouts(this.currentPage);
-            scoreLayout = lm.getScaledPageLayout(this.currentPage);
-            // When adjusting the page, make it so the top staff of the system
-            // clears the bottom of the page.
-            const topMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y < b.svg.logicalBox.y ? a : b);
-            const minMaxY = topMeasure.svg.logicalBox.y;
-            pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
-            pageAdj = pageAdj + scoreLayout.topMargin;
-            // For each measure on the current line, move it down past the page break;
-            currentLine.forEach((measure) => {
-                measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
-                measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
-            });
-        }
-        return scoreLayout;
-    }
+    /**
+     * This calculates the position of all the elements in the score, then renders the score
+     * @returns
+     */
     layout() {
-        var _a, _b;
         if (!this.score) {
             return;
         }
-        let measureIx = 0;
-        let systemIndex = 0;
-        if (!this.score.layoutManager) {
-            return;
-        }
-        let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
-        let y = 0;
-        let x = 0;
-        let lineIndex = 0;
-        let currentLine = []; // the system we are esimating
-        let measureEstimate = null;
+        const score = this.score;
         $('head title').text(this.score.scoreInfo.name);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.pre);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.post);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.adjust);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.system);
-        this.currentPage = 0;
-        const timestamp = new Date().valueOf();
-        const svg = this.context.svg;
+        const formatter = new formatter_1.SuiLayoutFormatter(score, this.context.svg, this.renderedPages);
         const startPageCount = this.score.layoutManager.pageLayouts.length;
-        y = scoreLayout.topMargin;
-        x = scoreLayout.leftMargin;
-        while (measureIx < this.score.staves[0].measures.length) {
-            if (this.score.isPartExposed()) {
-                if (this.score.staves[0].measures[measureIx].svg.hideMultimeasure) {
-                    measureIx += 1;
-                    continue;
-                }
-            }
-            measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
-            x = measureEstimate.x;
-            if (systemIndex > 0 &&
-                (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
-                this._justifyY(svg, scoreLayout, measureEstimate, currentLine, false);
-                // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
-                // start of staff.
-                const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
-                this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
-                const ld = layoutDebug_1.layoutDebug;
-                const sh = svgHelpers_1.SvgHelpers;
-                if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.system) {
-                    currentLine.forEach((measure) => {
-                        if (measure.svg.logicalBox) {
-                            ld.debugBox(svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.system);
-                            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug_1.layoutDebug.values.post);
-                        }
-                    });
-                }
-                // Now start rendering on the next system.
-                y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
-                currentLine = [];
-                systemIndex = 0;
-                x = scoreLayout.leftMargin;
-                lineIndex += 1;
-                measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
-                x = measureEstimate.x;
-            }
-            // ld declared for lint
-            const ld = layoutDebug_1.layoutDebug;
-            measureEstimate === null || measureEstimate === void 0 ? void 0 : measureEstimate.measures.forEach((measure) => {
-                ld.debugBox(svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
-            });
-            currentLine = currentLine.concat(measureEstimate.measures);
-            measureIx += 1;
-            systemIndex += 1;
-            // If this is the last measure but we have not filled the x extent,
-            // still justify the vertical staves and check for page break.
-            if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
-                this._justifyY(svg, scoreLayout, measureEstimate, currentLine, true);
-                const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
-                scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
-            }
+        this.formatter = formatter;
+        formatter.layout();
+        if (this.formatter.trimPages(startPageCount)) {
+            this.setViewport(true);
         }
-        const pl = (_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.layoutManager) === null || _b === void 0 ? void 0 : _b.pageLayouts;
-        if (pl) {
-            if (this.currentPage < pl.length - 1) {
-                this.score.layoutManager.trimPages(this.currentPage);
-            }
-            if (pl.length !== startPageCount) {
-                this.setViewport(true);
-            }
-        }
-        layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
-        this.renderAllMeasures();
-    }
-    // ### _estimateColumns
-    // the new logic to estimate the dimensions of a column of music, corresponding to
-    // a certain measure index.
-    // returns:
-    // {measures,y,x}  the x and y at the left/bottom of the render
-    _estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y) {
-        const s = {};
-        const measures = this._getMeasuresInColumn(measureIx);
-        let rowInSystem = 0;
-        let voiceCount = 0;
-        let unalignedCtxCount = 0;
-        let wsum = 0;
-        let dsum = 0;
-        let maxCfgWidth = 0;
-        let isPickup = false;
-        // Keep running tab of accidental widths for justification
-        const contextMap = {};
-        measures.forEach((measure) => {
-            beamers_1.SmoBeamer.applyBeams(measure);
-            voiceCount += measure.voices.length;
-            if (measure.isPickup()) {
-                isPickup = true;
-            }
-            measure.measureNumber.systemIndex = systemIndex;
-            measure.svg.rowInSystem = rowInSystem;
-            measure.svg.lineIndex = lineIndex;
-            measure.svg.pageIndex = this.currentPage;
-            // use measure to left to figure out whether I need to render key signature, etc.
-            // If I am the first measure, just use self and we always render them on the first measure.
-            let measureToLeft = this._measureToLeft(measure);
-            if (!measureToLeft) {
-                measureToLeft = measure;
-            }
-            s.measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
-            s.keySigLast = music_1.SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
-            s.tempoLast = measureToLeft.getTempo();
-            s.timeSigLast = measureToLeft.timeSignature;
-            s.clefLast = measureToLeft.clef;
-            this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
-            // calculate vertical offsets from the baseline
-            const offsets = formatter_1.suiLayoutFormatter.estimateMeasureHeight(measure);
-            measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
-            measure.setY(y - measure.yTop, '_estimateColumns height');
-            measure.setX(x, 'render:estimateColumn');
-            // Add custom width to measure:
-            measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-            formatter_1.suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
-            y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
-            maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
-            rowInSystem += 1;
-        });
-        // justify this column to the maximum width        
-        const startX = measures[0].staffX;
-        const adjX = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
-        const contexts = Object.keys(contextMap);
-        const widths = [];
-        const durations = [];
-        let minTotalWidth = 0;
-        contexts.forEach((strIx) => {
-            const ix = parseInt(strIx);
-            let tickWidth = 0;
-            const context = contextMap[ix];
-            if (context.tickCounts.length < voiceCount) {
-                unalignedCtxCount += 1;
-            }
-            context.widths.forEach((w, ix) => {
-                wsum += w;
-                dsum += context.tickCounts[ix];
-                widths.push(w);
-                durations.push(context.tickCounts[ix]);
-                tickWidth = Math.max(tickWidth, w);
-            });
-            minTotalWidth += tickWidth;
-        });
-        const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);
-        const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
-        const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
-        const wpads = Math.pow(wvar / widths.length, 0.5) / wavg;
-        const davg = dsum / durations.length;
-        const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
-        const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
-        const unalignedPadding = 5;
-        const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
-        const unalignedPad = unalignedPadding * unalignedCtxCount;
-        let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
-        if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
-            // Add 1 because there is some overhead in each measure, 
-            // so there can never be (width/max) measures in the system
-            const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
-            maxWidth = Math.max(maxWidth, defaultWidth);
-        }
-        const maxX = startX + maxWidth;
-        measures.forEach((measure) => {
-            measure.setWidth(maxWidth, 'render:estimateColumn');
-            measure.svg.adjX = adjX;
-        });
-        const rv = { measures, y, x: maxX };
-        return rv;
+        this.renderAllMeasures(formatter.lines);
     }
 }
 exports.SuiScoreRender = SuiScoreRender;
@@ -7157,8 +7328,8 @@ const copypaste_1 = __webpack_require__(/*! ../../smo/xform/copypaste */ "./src/
 const scroller_1 = __webpack_require__(/*! ./scroller */ "./src/render/sui/scroller.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker.ts");
-const layoutDemon_1 = __webpack_require__(/*! ./layoutDemon */ "./src/render/sui/layoutDemon.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
@@ -7168,9 +7339,15 @@ const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./sr
  * @category SuiRender
  */
 class SuiScoreView {
-    constructor(config, renderer, score, scrollSelector, undoBuffer) {
+    constructor(config, svgContainer, score, scrollSelector, undoBuffer) {
         this.score = score;
-        this.renderer = renderer;
+        const renderParams = {
+            elementId: svgContainer,
+            score,
+            config,
+            undoBuffer
+        };
+        this.renderer = new renderState_1.SuiRenderState(renderParams);
         this.config = config;
         const scoreJson = score.serialize();
         this.scroller = new scroller_1.SuiScroller(scrollSelector, this.renderer);
@@ -7180,7 +7357,6 @@ class SuiScoreView {
         this.renderer.setMeasureMapper(this.tracker);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(scoreJson));
         this.undoBuffer = undoBuffer;
-        this.layoutDemon = new layoutDemon_1.SuiRenderDemon(config, this.renderer, this.undoBuffer, this.tracker);
         this.storeUndo = new undo_1.UndoBuffer();
         this.staffMap = this.defaultStaffMap;
         SuiScoreView.Instance = this; // for debugging
@@ -7451,7 +7627,7 @@ class SuiScoreView {
             this.renderer.score = this.score;
             this.renderer.setViewport(true);
         }
-        this.layoutDemon.startDemon();
+        this.renderer.startDemon();
     }
     getView() {
         const rv = [];
@@ -7577,28 +7753,6 @@ class SuiScoreView {
             }
         }
     }
-    /**
-     * Fix a bug where the endpoint of slurs is incorrect in saved files
-     * @param score
-     */
-    static resetSlursHack(score) {
-        score.staves.forEach((staff) => {
-            staff.modifiers.forEach((mod) => {
-                if (mod instanceof staffModifiers_1.SmoSlur) {
-                    const slur = mod;
-                    const sel1 = selections_1.SmoSelection.noteFromSelector(score, slur.startSelector);
-                    const sel2 = selections_1.SmoSelection.noteFromSelector(score, slur.endSelector);
-                    if (sel1 && sel2) {
-                        const params = operations_1.SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
-                        slur.invert = params.invert;
-                        staffModifiers_1.SlurNumberParams.forEach((p) => {
-                            slur[p] = params[p];
-                        });
-                    }
-                }
-            });
-        });
-    }
     // ### changeScore
     // Update the view after loading or restoring a completely new score
     changeScore(score) {
@@ -7607,7 +7761,6 @@ class SuiScoreView {
         this.renderer.setViewport(true);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(score.serialize()));
         this.score = score;
-        SuiScoreView.resetSlursHack(score);
         // If the score is non-transposing, hide the instrument xpose settings
         this._setTransposing();
         this.staffMap = this.defaultStaffMap;
@@ -7663,7 +7816,6 @@ const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/
 const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 /**
@@ -8840,7 +8992,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this.score.scaleTextGroups(original / layout.svgScale);
         this.storeScore.layoutManager.updateGlobalLayout(layout);
         this.renderer.rerenderAll();
-        return this.renderer.updatePromise();
+        return this.renderer.preserveScroll();
     }
     /**
      * Set the layout of a single page
@@ -8876,13 +9028,9 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setEngravingFontFamily(family) {
-        const engrave = this.score.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
-        const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
-        if (engrave && altEngrave) {
-            engrave.family = family;
-            altEngrave.family = family;
-            renderState_1.SuiRenderState.setFont(engrave.family);
-        }
+        this.score.engravingFont = family;
+        this.storeScore.engravingFont = family;
+        this.renderer.notifyFontChange();
         this.renderer.setRefresh();
         return this.renderer.updatePromise();
     }
@@ -8936,6 +9084,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         selections.forEach((selection) => {
             // Unrender the deleted measure
             this.score.staves.forEach((staff) => {
+                this.tracker.clearMeasureMap(staff.measures[index]);
                 this.renderer.unrenderMeasure(staff.measures[index]);
                 this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
                 // A little hacky - delete the modifiers if they start or end on
@@ -8947,11 +9096,9 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 });
             });
             // Remove the SVG artifacts mapped to this measure.
-            this.tracker.deleteMeasure(selection);
             this.score.deleteMeasure(index);
             this.storeScore.deleteMeasure(index);
         });
-        this.tracker.loadScore();
         this.renderer.setRefresh();
         return this.renderer.updatePromise();
     }
@@ -9003,7 +9150,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         nmeasure.setActiveVoice(0);
         this.score.addMeasure(pos);
         this.storeScore.addMeasure(pos);
-        this.renderer.clearLine(measure);
+        // this.renderer.clearLine(measure);
         this.renderer.setRefresh();
         return this.renderer.updatePromise();
     }
@@ -12030,6 +12177,9 @@ class SuiTracker extends mapper_1.SuiMapper {
     get svg() {
         return this.renderer.svg;
     }
+    getIdleTime() {
+        return this.idleTimer;
+    }
     clearMusicCursor() {
         const ell = document.getElementById('vf-music-cursor');
         if (ell) {
@@ -12184,7 +12334,11 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (ix + offset < 0 || ix + offset >= left.length) {
             return;
         }
-        this.modifierSelections.push(left[ix + offset]);
+        const leftSel = left[ix + offset];
+        if (!leftSel) {
+            console.warn('bad selector in _growGraceNoteSelections');
+        }
+        this.modifierSelections.push(leftSel);
         this._highlightModifier();
     }
     get autoPlay() {
@@ -12544,7 +12698,11 @@ class SuiTracker extends mapper_1.SuiMapper {
                 this.suggestFadeTimer = null;
             }
             this.modifierIndex = -1;
-            this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
+            const selToAdd = this.modifierTabs[this.modifierSuggestion];
+            if (!selToAdd) {
+                console.warn('bad modifier selection in selectSuggestion');
+            }
+            this.modifierSelections = [selToAdd];
             this.modifierSuggestion = -1;
             // If we selected due to a mouse click, move the selection to the
             // selected modifier
@@ -12573,6 +12731,9 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         const preselected = this.selections[0] ?
             selections_1.SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
+        if (this.selections.length === 0) {
+            this.selections.push(this.suggestion);
+        }
         const note = this.selections[0].note;
         if (preselected && note.pitches.length > 1) {
             this.pitchIndex = (this.pitchIndex + 1) % note.pitches.length;
@@ -12584,7 +12745,11 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (preselected && this.modifierTabs.length) {
             const mods = this.modifierTabs.filter((mm) => mm.selection && selections_1.SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
             if (mods.length) {
-                this.modifierSelections[0] = mods[0];
+                const modToAdd = mods[0];
+                if (!modToAdd) {
+                    console.warn('bad modifier selection in selectSuggestion 2');
+                }
+                this.modifierSelections[0] = modToAdd;
                 this.modifierIndex = mods[0].index;
                 this._highlightModifier();
                 return;
@@ -13040,7 +13205,6 @@ exports.VxMeasure = void 0;
 // preformatted.
 const note_1 = __webpack_require__(/*! ../../smo/data/note */ "./src/smo/data/note.ts");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
@@ -13061,6 +13225,7 @@ class VxMeasure {
         this.voiceAr = [];
         this.formatter = null;
         this.allCues = false;
+        this.modifiersToBox = [];
         this.context = context;
         this.rendered = false;
         this.selection = selection;
@@ -13329,7 +13494,8 @@ class VxMeasure {
                 x += VF.TextDynamics.GLYPHS[ch].width;
             }
         });
-        textObj.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+        textObj.element = group;
+        this.modifiersToBox.push(textObj);
         this.context.closeGroup();
     }
     renderDynamics() {
@@ -13486,7 +13652,10 @@ class VxMeasure {
     // we can align across multiple staves
     preFormat() {
         var j = 0;
-        $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
+        if (this.smoMeasure.svg.element !== null) {
+            this.smoMeasure.svg.element.remove();
+            this.smoMeasure.svg.element = null;
+        }
         // Note: need to do this to get it into VEX KS format
         const key = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
         const canceledKey = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
@@ -13567,6 +13736,7 @@ class VxMeasure {
     }
     render() {
         var group = this.context.openGroup();
+        this.smoMeasure.svg.element = group;
         var mmClass = this.smoMeasure.getClassId();
         var j = 0;
         const timestamp = new Date().valueOf();
@@ -13591,9 +13761,7 @@ class VxMeasure {
             this.renderDynamics();
             // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
             this.context.closeGroup();
-            layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-            const lbox = group.getBBox();
-            this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
+            // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
             this.rendered = true;
         }
         catch (exc) {
@@ -13938,7 +14106,8 @@ class VxSystem {
             const slurBox = $('.' + artifactId)[0];
             svgHelpers_1.SvgHelpers.translateElement(slurBox, xoffset, 0);
         }
-        modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+        modifier.element = group;
+        // modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
     }
     renderEndings(scroller) {
         let j = 0;
@@ -14003,7 +14172,7 @@ class VxSystem {
     // ## Description:
     // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
     // groups
-    renderMeasure(smoMeasure, measureMapper, printing) {
+    renderMeasure(smoMeasure, printing) {
         var _a, _b;
         if (smoMeasure.svg.hideMultimeasure) {
             return;
@@ -14052,13 +14221,6 @@ class VxSystem {
             this.vxMeasures.forEach((vv) => {
                 if (!vv.rendered) {
                     vv.render();
-                    // unit test codes don't have tracker.
-                    if (measureMapper) {
-                        const tmpStaff = this.staves.find((ss) => ss.staffId === vv.smoMeasure.measureNumber.staffId);
-                        if (tmpStaff) {
-                            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure, printing);
-                        }
-                    }
                 }
             });
         }
@@ -14288,7 +14450,8 @@ class SmoMeasure {
             forceTimeSignature: false,
             forceTempo: false,
             hideMultimeasure: false,
-            multimeasureLength: 0
+            multimeasureLength: 0,
+            element: null
         };
         const defaults = SmoMeasure.defaults;
         exports.SmoMeasureNumberParams.forEach((param) => {
@@ -16302,7 +16465,7 @@ class SmoMusic {
         return VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line;
     }
     /**
-     * return flag state (up or down) based on pitch and clef if auto
+     * return flag state (up === 1 or down === 2) based on pitch and clef if auto
      * */
     static flagStateFromNote(clef, note) {
         let fs = note.flagState;
@@ -17278,6 +17441,9 @@ class SmoMusic {
     }
     static smoTicksToVexDots(ticks) {
         const vd = SmoMusic.ticksToDuration[ticks];
+        if (!vd) {
+            return 0;
+        }
         const dots = (vd.match(/d/g) || []).length;
         return dots;
     }
@@ -18179,6 +18345,7 @@ class SmoNoteModifierBase {
     constructor(ctor) {
         this.renderedBox = null;
         this.logicalBox = null;
+        this.element = null;
         this.attrs = {
             id: VF.Element.newID(),
             type: ctor
@@ -18391,13 +18558,13 @@ SmoOrnament.ornaments = {
     turn: 'turn',
     turnInverted: 'turn_inverted',
     trill: 'tr',
-    upprail: 'upprail',
-    prailup: 'prailup',
-    praildown: 'praildown',
+    upprall: 'upprall',
+    prallup: 'prallup',
+    pralldown: 'pralldown',
     upmordent: 'upmordent',
     downmordent: 'downmordent',
-    lineprail: 'linepraile',
-    prailprail: 'prailprail',
+    lineprall: 'lineprall',
+    prallprall: 'prallprall',
     scoop: 'scoop',
     fall_short: 'fall',
     dropLong: 'fallLong',
@@ -18405,6 +18572,25 @@ SmoOrnament.ornaments = {
     doitLong: 'doitLong',
     flip: 'flip',
     smear: 'smear'
+};
+SmoOrnament.xmlOrnaments = {
+    mordent: 'mordent',
+    mordent_inverted: 'inverted-mordent',
+    turn: 'turn',
+    turn_inverted: 'inverted-turn',
+    upmordent: 'mordent',
+    downmordent: 'mordent',
+    lineprall: 'schleifer',
+    prallprall: 'schleifer',
+    prallup: 'schleifer',
+    tr: 'trill-mark'
+};
+// jazz ornaments in vex are articulations in music xml
+SmoOrnament.xmlJazz = {
+    doit: 'doit',
+    scoop: 'scoop',
+    dropLong: 'falloff',
+    drop: 'plop'
 };
 /**
  * Articulations map to notes, can be placed above/below
@@ -18491,6 +18677,12 @@ class SmoArticulation extends SmoNoteModifierBase {
     }
 }
 exports.SmoArticulation = SmoArticulation;
+SmoArticulation.xmlArticulations = {
+    accent: 'accent',
+    staccato: 'staccato',
+    tenuto: 'tenuto',
+    marcato: 'strong-accent'
+};
 /**
  * SmoLyric covers both chords and lyrics.  The parser tells you which
  * one you get.
@@ -18848,6 +19040,13 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
             var _a;
             this[st] = (_a = params[st]) !== null && _a !== void 0 ? _a : false;
         });
+        this.midiDevice = params.midiDevice;
+        if (params.midiInstrument) {
+            this.midiInstrument = JSON.parse(JSON.stringify(params.midiInstrument));
+        }
+        else {
+            this.midiInstrument = null;
+        }
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
@@ -18860,6 +19059,8 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
             stavesAfter: 0,
             stavesBefore: 0,
             cueInScore: false,
+            midiDevice: null,
+            midiInstrument: null,
             expandMultimeasureRests: false
         }));
     }
@@ -18880,6 +19081,12 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
             rv.textGroups.push(tg.serialize());
         });
         rv.measureFormatting = {};
+        if (this.midiInstrument) {
+            rv.midiInstrument = JSON.parse(JSON.stringify(this.midiInstrument));
+        }
+        if (this.midiDevice) {
+            rv.midiDevice = this.midiDevice;
+        }
         Object.keys(this.measureFormatting).forEach((key) => {
             const numKey = parseInt(key, 10);
             rv.measureFormatting[numKey] = this.measureFormatting[numKey];
@@ -18900,7 +19107,7 @@ exports.SmoPartInfo = SmoPartInfo;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoScore = exports.SmoScorePreferences = exports.SmoScorePreferenceNumbers = exports.SmoScorePreferenceBools = exports.SmoScoreInfo = void 0;
+exports.SmoScore = exports.SmoScorePreferences = exports.SmoScorePreferenceNumbers = exports.SmoScorePreferenceBools = exports.SmoScoreInfo = exports.isEngravingFont = exports.engravingFontTypes = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -18913,6 +19120,11 @@ const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/
 const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+exports.engravingFontTypes = ['Bravura', 'Gonville', 'Petaluma', 'Leland'];
+function isEngravingFont(et) {
+    return exports.engravingFontTypes.indexOf(et) >= 0;
+}
+exports.isEngravingFont = isEngravingFont;
 /**
  * Information about the score itself, like composer etc.
  * @category SmoModifier
@@ -19190,6 +19402,22 @@ class SmoScore {
         this.preferences = pref;
         measure_1.SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
         measure_1.SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
+    }
+    get engravingFont() {
+        const efont = this.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
+        if (efont) {
+            const val = exports.engravingFontTypes.find((x) => x === efont.family);
+            if (val) {
+                return val;
+            }
+        }
+        return 'Bravura';
+    }
+    set engravingFont(value) {
+        const efont = this.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
+        if (efont && isEngravingFont(value)) {
+            efont.family = value;
+        }
     }
     static upConvertGlobalLayout(jsonObj) {
         // upconvert global layout, which used to be directly on layoutManager
@@ -19842,8 +20070,8 @@ class SmoPageLayout extends SmoScoreModifierBase {
         return JSON.parse(JSON.stringify({
             leftMargin: 30,
             rightMargin: 30,
-            topMargin: 40,
-            bottomMargin: 40,
+            topMargin: 144,
+            bottomMargin: 72,
             interGap: 30,
             intraGap: 10
         }));
@@ -20289,6 +20517,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
         this.attachToSelector = false;
         this.musicXOffset = 0;
         this.musicYOffset = 0;
+        this.element = null;
         this.textBlocks = [];
         this.edited = false; // indicates not edited this session
         this.skipRender = false; // don't render if it is being edited
@@ -20617,6 +20846,7 @@ class StaffModifierBase {
         this.endSelector = selections_1.SmoSelector.default;
         this.renderedBox = null;
         this.logicalBox = null;
+        this.element = null;
         this.ctor = ctor;
         this.attrs = {
             id: VF.Element.newID(),
@@ -20787,6 +21017,7 @@ class SmoSlur extends StaffModifierBase {
         this.yOffset = 10;
         this.position = SmoSlur.positions.TOP;
         this.position_end = SmoSlur.positions.TOP;
+        this.orientation = SmoSlur.orientations.AUTO;
         this.invert = false;
         this.cp1x = 0;
         this.cp1y = 15;
@@ -20798,12 +21029,7 @@ class SmoSlur extends StaffModifierBase {
         serializationHelpers_1.smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
-        // Fix some earlier serialization error.
-        if ((this.position !== SmoSlur.positions.TOP && this.position !== SmoSlur.positions.HEAD) ||
-            (this.position_end !== SmoSlur.positions.TOP && this.position_end !== SmoSlur.positions.HEAD)) {
-            this.position = SmoSlur.positions.HEAD;
-            this.position_end = SmoSlur.positions.HEAD;
-        }
+        // Fix some earlier serialization error.    
         if (!this.attrs) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -20819,6 +21045,7 @@ class SmoSlur extends StaffModifierBase {
             yOffset: 0,
             position: SmoSlur.positions.TOP,
             position_end: SmoSlur.positions.TOP,
+            orientation: SmoSlur.orientations.AUTO,
             invert: false,
             cp1x: 0,
             cp1y: 15,
@@ -20832,12 +21059,22 @@ class SmoSlur extends StaffModifierBase {
     static get positions() {
         return {
             HEAD: 1,
-            TOP: 2
+            TOP: 2,
+            ABOVE: 3,
+            BELOW: 4,
+            AUTO: 5
+        };
+    }
+    static get orientations() {
+        return {
+            AUTO: 0,
+            UP: 1,
+            DOWN: 2
         };
     }
     static get parameterArray() {
         return ['startSelector', 'endSelector', 'spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
+            'orientation', 'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
     }
     serialize() {
         const params = {};
@@ -22504,12 +22741,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoToXml = void 0;
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
+const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
 const measureModifiers_2 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ./xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 /**
  * Convert {@link SmoScore} object into a music XML serialization
  *
@@ -22526,17 +22766,18 @@ class SmoToXml {
         return JSON.parse(JSON.stringify({
             divisions: 0,
             measureNumber: 0,
+            measureIndex: 0,
             transposeOffset: 0,
             tickCount: 0,
             voiceIndex: 0,
             keySignature: 'C',
             voiceTickIndex: 0,
             slurs: [],
+            partStaves: [],
             lyricState: {},
             measureTicks: 0,
             beamState: 0,
-            beamTicks: 4096,
-            clef: 'treble'
+            beamTicks: 4096
         }));
     }
     /**
@@ -22545,6 +22786,8 @@ class SmoToXml {
      * @returns
      */
     static convert(score) {
+        let staffGroupIx = 0;
+        let staffIx = 0;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const dom = xmlHelpers_1.XmlHelpers.createRootElement();
         const root = dom.children[0];
@@ -22561,47 +22804,122 @@ class SmoToXml {
         nn(encoding, 'encoding-date', dateString, 'date');
         const defaults = nn(root, 'defaults', null, '');
         const scaling = nn(defaults, 'scaling', null, '');
-        // reverse this:
-        // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
-        const mm = xmlToSmo_1.XmlToSmo.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
+        const svgScale = score.layoutManager.getGlobalLayout().svgScale;
+        // music in vexflow is rendered at a font size of 38
+        const mm = xmlToSmo_1.XmlToSmo.mmPerPixel * 42 * svgScale;
         nn(scaling, 'millimeters', { mm }, 'mm');
         nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
         const pageLayout = nn(defaults, 'page-layout', null, '');
-        xmlToSmo_1.XmlToSmo.pageLayoutMap.forEach((map) => {
-            nn(pageLayout, map.xml, score.layoutManager.globalLayout, map.smo);
+        const musicFont = nn(defaults, 'music-font', null, '');
+        const engrave = score.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
+        xmlHelpers_1.XmlHelpers.createAttribute(musicFont, 'font-size', 38 * svgScale);
+        if (engrave) {
+            xmlHelpers_1.XmlHelpers.createAttribute(musicFont, 'font-family', engrave.family);
+        }
+        const tenthConversion = (25.2 / 96) * (40 / mm);
+        const pageDims = {
+            'page-height': score.layoutManager.globalLayout.pageHeight * tenthConversion,
+            'page-width': score.layoutManager.globalLayout.pageWidth * tenthConversion
+        };
+        Object.keys(pageDims).forEach((dim) => {
+            nn(pageLayout, dim, pageDims, dim);
         });
+        const margins = { 'left-margin': score.layoutManager.pageLayouts[0].leftMargin * tenthConversion,
+            'right-margin': score.layoutManager.pageLayouts[0].rightMargin * tenthConversion,
+            'top-margin': score.layoutManager.pageLayouts[0].topMargin * tenthConversion,
+            'bottom-margin': score.layoutManager.pageLayouts[0].bottomMargin * tenthConversion };
         const pageMargins = nn(pageLayout, 'page-margins', null, '');
-        xmlToSmo_1.XmlToSmo.pageMarginMap.forEach((map) => {
-            nn(pageMargins, map.xml, score.layoutManager.pageLayouts[0], map.smo);
+        Object.keys(margins).forEach((margin) => {
+            nn(pageMargins, margin, margins, margin);
         });
         const partList = nn(root, 'part-list', null, '');
         score.staves.forEach((staff) => {
-            const id = 'P' + staff.staffId;
-            const scorePart = nn(partList, 'score-part', null, '');
-            xmlHelpers_1.XmlHelpers.createAttributes(scorePart, { id });
-            nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
+            score.systemGroups.forEach((sg) => {
+                if (sg.startSelector.staff === staff.staffId && sg.startSelector.staff < sg.endSelector.staff) {
+                    const partGroup = nn(partList, 'part-group', null, '');
+                    xmlHelpers_1.XmlHelpers.createAttributes(partGroup, { number: staffGroupIx, type: 'start' });
+                    const groupSymbol = nn(partGroup, 'group-symbol', null, '');
+                    let symbolText = 'line';
+                    if (sg.leftConnector === scoreModifiers_1.SmoSystemGroup.connectorTypes['brace']) {
+                        symbolText = 'brace';
+                    }
+                    else if (sg.leftConnector === scoreModifiers_1.SmoSystemGroup.connectorTypes['bracket']) {
+                        symbolText = 'bracket';
+                    }
+                    else if (sg.leftConnector === scoreModifiers_1.SmoSystemGroup.connectorTypes['double']) {
+                        symbolText = 'square';
+                    }
+                    groupSymbol.textContent = symbolText;
+                }
+                else if (sg.endSelector.staff === staff.staffId && sg.startSelector.staff < sg.endSelector.staff) {
+                    const partGroup = nn(partList, 'part-group', null, '');
+                    xmlHelpers_1.XmlHelpers.createAttributes(partGroup, { number: staffGroupIx, type: 'stop' });
+                }
+            });
+            if (!staff.partInfo.stavesBefore) {
+                const id = 'P' + staff.staffId;
+                const scorePart = nn(partList, 'score-part', null, '');
+                xmlHelpers_1.XmlHelpers.createAttributes(scorePart, { id });
+                nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
+            }
         });
         const smoState = SmoToXml.defaultState;
-        score.staves.forEach((staff) => {
+        for (staffIx = 0; staffIx < score.staves.length; ++staffIx) {
+            smoState.partStaves = [];
+            // If this is the second staff in a part, we've already output the music with the
+            // first stave
+            if (score.staves[staffIx].partInfo.stavesBefore > 0) {
+                continue;
+            }
+            smoState.partStaves.push(score.staves[staffIx]);
+            if (smoState.partStaves[0].partInfo.stavesAfter > 0 && staffIx < score.staves.length + 1) {
+                smoState.partStaves.push(score.staves[staffIx + 1]);
+            }
             const part = nn(root, 'part', null, '');
-            const id = 'P' + staff.staffId;
+            const id = 'P' + smoState.partStaves[0].staffId;
             xmlHelpers_1.XmlHelpers.createAttributes(part, { id });
             smoState.measureNumber = 1;
             smoState.tickCount = 0;
             smoState.transposeOffset = 0;
-            smoState.staff = staff;
             smoState.slurs = [];
             smoState.lyricState = {};
-            staff.measures.forEach((measure) => {
-                smoState.measureTicks = 0;
-                smoState.measure = measure;
+            for (smoState.measureIndex = 0; smoState.measureIndex < smoState.partStaves[0].measures.length; ++smoState.measureIndex) {
                 const measureElement = nn(part, 'measure', null, '');
-                SmoToXml.measure(measureElement, smoState);
+                for (smoState.staffPartIx = 0; smoState.staffPartIx < smoState.partStaves.length; ++smoState.staffPartIx) {
+                    smoState.measureTicks = 0;
+                    // each staff in a part goes in the same measure element.  If this is a subsequent part, we've already 
+                    SmoToXml.measure(measureElement, smoState);
+                }
                 smoState.measureNumber += 1;
-            });
-        });
-        return dom;
+            }
+        }
+        return SmoToXml.prettifyXml(dom);
     }
+    /**
+     * MuseScore doesn't like minified xml, so we pretty-print it.
+     * @param xmlDoc
+     * @returns
+     */
+    static prettifyXml(xmlDoc) {
+        var xsltDoc = new DOMParser().parseFromString([
+            // describes how we want to modify the XML - indent everything
+            '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+            '  <xsl:strip-space elements="*"/>',
+            '  <xsl:template match="para[content-style][not(text())]">',
+            '    <xsl:value-of select="normalize-space(.)"/>',
+            '  </xsl:template>',
+            '  <xsl:template match="node()|@*">',
+            '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+            '  </xsl:template>',
+            '  <xsl:output indent="yes"/>',
+            '</xsl:stylesheet>',
+        ].join('\n'), 'application/xml');
+        var xsltProcessor = new XSLTProcessor();
+        xsltProcessor.importStylesheet(xsltDoc);
+        var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+        return resultDoc;
+    }
+    ;
     /**
      * /score-partwise/part/measure
      * @param measureElement
@@ -22610,19 +22928,16 @@ class SmoToXml {
      */
     static measure(measureElement, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
-        if (!smoState.measure) {
-            return;
-        }
-        const measure = smoState.measure;
+        const measure = smoState.partStaves[smoState.staffPartIx].measures[smoState.measureIndex];
         if (smoState.measureNumber === 1 && measure.isPickup()) {
             smoState.measureNumber = 0;
         }
-        if (smoState.measure.getForceSystemBreak()) {
+        if (measure.getForceSystemBreak()) {
             const printElement = nn(measureElement, 'print', null, '');
             xmlHelpers_1.XmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
         }
         xmlHelpers_1.XmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
-        SmoToXml.attributes(measureElement, smoState);
+        SmoToXml.attributes(measureElement, measure, smoState);
         smoState.voiceIndex = 1;
         smoState.beamState = SmoToXml.beamStates.none;
         smoState.beamTicks = 0;
@@ -22634,17 +22949,26 @@ class SmoToXml {
                 smoState.note = note;
                 // Start wedge before note starts
                 SmoToXml.direction(measureElement, smoState, true);
-                SmoToXml.note(measureElement, smoState);
+                SmoToXml.note(measureElement, measure, note, smoState);
                 // End wedge on next tick
                 SmoToXml.direction(measureElement, smoState, false);
             });
+            // If this is the end of a voice, back up the time to align the voices
             if (measure.voices.length > smoState.voiceIndex) {
                 smoState.voiceIndex += 1;
                 const backupElement = nn(measureElement, 'backup', null, '');
                 nn(backupElement, 'duration', { duration: smoState.measureTicks }, 'duration');
             }
             else {
-                smoState.tickCount += smoState.measureTicks;
+                if (smoState.partStaves.length > 1 && smoState.staffPartIx + 1 < smoState.partStaves.length) {
+                    // If this is the end of a measure, and this is the first part in the staff, back it up for the second staff
+                    const backupElement = nn(measureElement, 'backup', null, '');
+                    nn(backupElement, 'duration', { duration: smoState.measureTicks }, 'duration');
+                    smoState.tickCount += smoState.measureTicks;
+                }
+                else if (smoState.partStaves.length === 1) {
+                    smoState.tickCount += smoState.measureTicks;
+                }
             }
             smoState.measureTicks = 0;
         });
@@ -22659,27 +22983,29 @@ class SmoToXml {
     static barline(measureElement, smoState, start) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         let barlineElement = null;
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const measure = staff.measures[smoState.measureIndex];
         if (start) {
-            if (smoState.measure.getStartBarline().barline === measureModifiers_1.SmoBarline.barlines.startRepeat) {
+            if (measure.getStartBarline().barline === measureModifiers_1.SmoBarline.barlines.startRepeat) {
                 barlineElement = nn(measureElement, 'barline', null, '');
                 const repeatElement = nn(barlineElement, 'repeat', null, '');
                 xmlHelpers_1.XmlHelpers.createAttributes(repeatElement, { direction: 'forward' });
             }
         }
-        const voltas = smoState.staff.getVoltasForMeasure(smoState.measure.measureNumber.measureIndex);
+        const voltas = staff.getVoltasForMeasure(measure.measureNumber.measureIndex);
         const numArray = [];
         voltas.forEach((volta) => {
             var _a, _b;
-            if ((start && ((_a = volta === null || volta === void 0 ? void 0 : volta.startSelector) === null || _a === void 0 ? void 0 : _a.measure) === smoState.measure.measureNumber.measureIndex) ||
-                (!start && ((_b = volta === null || volta === void 0 ? void 0 : volta.endSelector) === null || _b === void 0 ? void 0 : _b.measure) === smoState.measure.measureNumber.measureIndex)) {
+            if ((start && ((_a = volta === null || volta === void 0 ? void 0 : volta.startSelector) === null || _a === void 0 ? void 0 : _a.measure) === measure.measureNumber.measureIndex) ||
+                (!start && ((_b = volta === null || volta === void 0 ? void 0 : volta.endSelector) === null || _b === void 0 ? void 0 : _b.measure) === measure.measureNumber.measureIndex)) {
                 numArray.push(volta.number);
             }
         });
-        if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endBar) {
+        if (!start && measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endBar) {
             barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
             nn(barlineElement, 'bar-style', { style: 'light-heavy' }, 'style');
         }
-        else if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.doubleBar) {
+        else if (!start && measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.doubleBar) {
             barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
             nn(barlineElement, 'bar-style', { style: 'light-light' }, 'style');
         }
@@ -22690,7 +23016,7 @@ class SmoToXml {
             const endString = start ? 'start' : 'stop';
             xmlHelpers_1.XmlHelpers.createAttributes(endElement, { type: endString, number: numstr });
         }
-        if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endRepeat) {
+        if (!start && measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endRepeat) {
             barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
             const repeatElement = nn(barlineElement, 'repeat', null, '');
             xmlHelpers_1.XmlHelpers.createAttributes(repeatElement, { direction: 'backward' });
@@ -22703,8 +23029,8 @@ class SmoToXml {
      */
     static slur(notationsElement, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
-        const staff = smoState.staff;
-        const measure = smoState.measure;
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const measure = staff.measures[smoState.measureIndex];
         const getNumberForSlur = ((slurs) => {
             let rv = 1;
             const hash = {};
@@ -22764,26 +23090,17 @@ class SmoToXml {
      * @param smoState
      * @returns
      */
-    static tuplet(noteElement, notationsElement, smoState) {
-        if (!smoState.measure) {
-            return;
-        }
-        if (!smoState.note) {
-            return;
-        }
+    static tupletTime(noteElement, tuplet, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
-        const measure = smoState.measure;
-        const note = smoState.note;
-        const tuplet = measure.getTupletForNote(note);
-        if (!tuplet) {
-            return;
-        }
         const obj = {
-            actualNotes: tuplet.numNotes, normalNotes: 4096 / tuplet.stemTicks
+            actualNotes: tuplet.numNotes, normalNotes: tuplet.notes_occupied
         };
         const timeModification = nn(noteElement, 'time-modification', null, '');
         nn(timeModification, 'actual-notes', obj, 'actualNotes');
         nn(timeModification, 'normal-notes', obj, 'normalNotes');
+    }
+    static tupletNotation(notationsElement, tuplet, note) {
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         if (tuplet.getIndexOfNote(note) === 0) {
             const tupletElement = nn(notationsElement, 'tuplet', null, '');
             xmlHelpers_1.XmlHelpers.createAttributes(tupletElement, {
@@ -22882,13 +23199,39 @@ class SmoToXml {
         let addDirection = false;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const directionElement = measureElement.ownerDocument.createElement('direction');
-        const dtype = nn(directionElement, 'direction-type', null, '');
-        const staff = smoState.staff;
-        const measure = smoState.measure;
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const measure = staff.measures[smoState.measureIndex];
+        const directionChildren = [];
         const tempo = measure.getTempo();
-        if (beforeNote === true && (tempo.display || measure.measureNumber.measureIndex === 0)) {
+        let displayTempo = false;
+        if (smoState.tempo) {
+            if (tempo.display && measure.measureNumber.measureIndex === 0 && smoState.measureTicks === 0) {
+                displayTempo = true;
+            }
+            else if (tempo.display && !measureModifiers_2.SmoTempoText.eq(smoState.tempo, tempo)) {
+                displayTempo = true;
+            }
+        }
+        else {
+            displayTempo = true;
+        }
+        smoState.tempo = new measureModifiers_2.SmoTempoText(tempo);
+        if (beforeNote === true && smoState.staffPartIx === 0 && smoState.measureTicks === 0 && smoState.partStaves[0].staffId === 0) {
+            const mark = measure.getRehearsalMark();
+            if (mark) {
+                const rmtype = nn(directionElement, 'direction-type', null, '');
+                const xmark = mark;
+                const rElement = nn(rmtype, 'rehearsal', { mark: xmark.symbol }, 'mark');
+                xmlHelpers_1.XmlHelpers.createAttribute(rElement, 'enclosure', 'square');
+                xmlHelpers_1.XmlHelpers.createAttribute(directionElement, 'placement', 'above');
+                addDirection = true;
+            }
+        }
+        if (beforeNote === true && displayTempo) {
+            addDirection = true;
             const tempoBpm = Math.round(tempo.bpm * tempo.beatDuration / 4096);
             const tempoElement = nn(directionElement, 'direction-type', null, '');
+            xmlHelpers_1.XmlHelpers.createAttribute(directionElement, 'placement', 'above');
             let tempoText = tempo.tempoText;
             if (tempo.tempoMode === measureModifiers_2.SmoTempoText.tempoModes.customMode) {
                 tempoText = tempo.customText;
@@ -22916,8 +23259,9 @@ class SmoToXml {
                 nn(metronomeElement, 'per-minute', { tempo }, 'bpm');
             }
             // Sound is supposed to come last under 'direction' element
-            const soundElement = nn(directionElement, 'sound', null, '');
+            const soundElement = measureElement.ownerDocument.createElement('sound');
             soundElement.setAttribute('tempo', tempoBpm.toString());
+            directionChildren.push(soundElement);
         }
         const selector = {
             staff: staff.staffId,
@@ -22934,19 +23278,24 @@ class SmoToXml {
         const endWedge = staff.modifiers.find((mod) => selections_1.SmoSelector.sameNote(mod.endSelector, selector) &&
             (mod.attrs.type === 'SmoStaffHairpin'));
         if (endWedge && !beforeNote) {
+            const wedgeDirection = nn(measureElement, 'direction', null, '');
+            const dtype = nn(wedgeDirection, 'direction-type', null, '');
             const wedgeElement = nn(dtype, 'wedge', null, '');
             xmlHelpers_1.XmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
-            addDirection = true;
         }
         if (startWedge && beforeNote) {
+            const wedgeDirection = nn(measureElement, 'direction', null, '');
+            const dtype = nn(wedgeDirection, 'direction-type', null, '');
             const wedgeElement = nn(dtype, 'wedge', null, '');
             const wedgeType = startWedge.hairpinType === staffModifiers_1.SmoStaffHairpin.types.CRESCENDO ?
                 'crescendo' : 'diminuendo';
             xmlHelpers_1.XmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
-            addDirection = true;
         }
         if (addDirection) {
             measureElement.appendChild(directionElement);
+            directionChildren.forEach((el) => {
+                directionElement.appendChild(el);
+            });
         }
     }
     /**
@@ -22988,8 +23337,7 @@ class SmoToXml {
      * @param measureElement
      * @param smoState
      */
-    static note(measureElement, smoState) {
-        const note = smoState.note;
+    static note(measureElement, measure, note, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         let i = 0;
         for (i = 0; i < note.pitches.length; ++i) {
@@ -23012,9 +23360,14 @@ class SmoToXml {
             }
             const duration = note.tickCount;
             smoState.measureTicks += duration;
+            const tuplet = measure.getTupletForNote(note);
             nn(noteElement, 'duration', { duration }, 'duration');
             nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
-            nn(noteElement, 'type', { type: xmlHelpers_1.XmlHelpers.closestStemType(note.tickCount) }, 'type');
+            let typeTickCount = note.tickCount;
+            if (tuplet) {
+                typeTickCount = tuplet.stemTicks;
+            }
+            nn(noteElement, 'type', { type: xmlHelpers_1.XmlHelpers.closestStemType(typeTickCount) }, 'type');
             const dots = music_1.SmoMusic.smoTicksToVexDots(note.tickCount);
             for (j = 0; j < dots; ++j) {
                 nn(noteElement, 'dot', null, '');
@@ -23026,13 +23379,55 @@ class SmoToXml {
                 nn(noteElement, 'stem', { direction: 'down' }, 'direction');
             }
             // stupid musicxml requires beam to be last.
+            const notationsElement = noteElement.ownerDocument.createElement('notations');
+            // time modification (tuplet) comes before notations which have tuplet beaming rules
+            if (tuplet) {
+                SmoToXml.tupletTime(noteElement, tuplet, smoState);
+            }
+            // If a multi-part staff, we need to include 'staff' element
+            if (smoState.partStaves.length > 1) {
+                nn(noteElement, 'staff', { staffIx: smoState.staffPartIx + 1 }, 'staffIx');
+            }
             if (!isChord) {
                 SmoToXml.beamNote(noteElement, smoState);
             }
-            const notationsElement = noteElement.ownerDocument.createElement('notations');
-            SmoToXml.tuplet(noteElement, notationsElement, smoState);
             if (!isChord) {
                 SmoToXml.slur(notationsElement, smoState);
+            }
+            if (tuplet) {
+                SmoToXml.tupletNotation(notationsElement, tuplet, note);
+            }
+            const ornaments = note.getOrnaments();
+            if (ornaments.length) {
+                const ornamentsElement = noteElement.ownerDocument.createElement('ornaments');
+                ornamentsElement.textContent = '\n';
+                ornaments.forEach((ornament) => {
+                    if (noteModifiers_1.SmoOrnament.xmlOrnaments[ornament.ornament]) {
+                        const sub = nn(ornamentsElement, noteModifiers_1.SmoOrnament.xmlOrnaments[ornament.ornament], null, '');
+                        xmlHelpers_1.XmlHelpers.createAttribute(sub, 'placement', 'above');
+                    }
+                });
+                if (ornamentsElement.children.length) {
+                    notationsElement.appendChild(ornamentsElement);
+                }
+            }
+            const jazzOrnaments = note.getJazzOrnaments();
+            const articulations = note.articulations;
+            if (jazzOrnaments.length || articulations.length) {
+                const articulationsElement = noteElement.ownerDocument.createElement('articulations');
+                jazzOrnaments.forEach((ornament) => {
+                    if (noteModifiers_1.SmoOrnament.xmlJazz[ornament.ornament]) {
+                        nn(articulationsElement, noteModifiers_1.SmoOrnament.xmlJazz[ornament.ornament], null, '');
+                    }
+                });
+                articulations.forEach((articulation) => {
+                    if (noteModifiers_1.SmoArticulation.xmlArticulations[articulation.articulation]) {
+                        nn(articulationsElement, noteModifiers_1.SmoArticulation.xmlArticulations[articulation.articulation], null, '');
+                    }
+                });
+                if (articulationsElement.children.length) {
+                    notationsElement.append(articulationsElement);
+                }
             }
             if (notationsElement.children.length) {
                 noteElement.appendChild(notationsElement);
@@ -23050,12 +23445,8 @@ class SmoToXml {
      * @param smoState
      * @returns
      */
-    static key(attributesElement, smoState) {
+    static key(attributesElement, measure, smoState) {
         let fifths = 0;
-        if (!smoState.measure) {
-            return;
-        }
-        const measure = smoState.measure;
         if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
             return; // no key change
         }
@@ -23081,7 +23472,8 @@ class SmoToXml {
     static time(attributesElement, smoState) {
         var _a;
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
-        const measure = smoState.measure;
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const measure = staff.measures[smoState.measureIndex];
         const currentTs = (_a = smoState.timeSignature) !== null && _a !== void 0 ? _a : null;
         if (currentTs !== null && measureModifiers_1.TimeSignature.equal(currentTs, measure.timeSignature)) {
             return;
@@ -23100,45 +23492,65 @@ class SmoToXml {
      * @returns
      */
     static clef(attributesElement, smoState) {
-        const measure = smoState.measure;
-        if (!measure) {
-            return;
-        }
-        if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
-            return; // no change
-        }
-        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
-        const xmlClef = music_1.SmoMusic.clefSigns[measure.clef];
-        const clefElement = nn(attributesElement, 'clef', null, '');
-        nn(clefElement, 'sign', xmlClef.sign, 'sign');
-        if (typeof (xmlClef.line) !== 'undefined') {
-            nn(clefElement, 'line', xmlClef, 'line');
-        }
-        if (typeof (xmlClef.octave) !== 'undefined') {
-            nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
-        }
-        smoState.clef = measure.clef;
+        smoState.partStaves.forEach((staff, staffIx) => {
+            const measure = staff.measures[smoState.measureIndex];
+            let prevMeasure = null;
+            let clefChange = null;
+            if (smoState.measureIndex > 0) {
+                prevMeasure = staff.measures[smoState.measureIndex - 1];
+            }
+            if (prevMeasure && prevMeasure.clef !== measure.clef) {
+                clefChange = measure.clef;
+            }
+            // both clefs are defined in the first measure one time.
+            if (smoState.measureIndex === 0 && smoState.staffPartIx === 0) {
+                clefChange = measure.clef;
+            }
+            if (clefChange) {
+                const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
+                const xmlClef = music_1.SmoMusic.clefSigns[clefChange];
+                const clefElement = nn(attributesElement, 'clef', null, '');
+                nn(clefElement, 'sign', xmlClef.sign, 'sign');
+                if (typeof (xmlClef.line) !== 'undefined') {
+                    nn(clefElement, 'line', xmlClef, 'line');
+                }
+                if (typeof (xmlClef.octave) !== 'undefined') {
+                    nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
+                }
+                xmlHelpers_1.XmlHelpers.createAttribute(clefElement, 'number', (staffIx + 1).toString());
+            }
+        });
     }
     /**
      * /score-partwise/part/measure/attributes
      * @param measureElement
      * @param smoState
      */
-    static attributes(measureElement, smoState) {
+    static attributes(measureElement, measure, smoState) {
         const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const attributesElement = measureElement.ownerDocument.createElement('attributes');
         if (smoState.divisions < 1) {
             nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
             smoState.divisions = 4096;
         }
-        SmoToXml.key(attributesElement, smoState);
+        SmoToXml.key(attributesElement, measure, smoState);
         SmoToXml.time(attributesElement, smoState);
+        // only call out number of staves in a part at the beginning of the part
+        if (smoState.measureIndex === 0 && smoState.staffPartIx === 0) {
+            SmoToXml.staves(attributesElement, smoState);
+        }
         SmoToXml.clef(attributesElement, smoState);
         SmoToXml.transpose(attributesElement, smoState);
         if (attributesElement.children.length > 0) {
             // don't add an empty attributes element
             measureElement.appendChild(attributesElement);
         }
+    }
+    static staves(attributesElement, smoState) {
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const staffCount = staff.partInfo.stavesAfter > 0 ? 2 : 1;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
+        nn(attributesElement, 'staves', { staffCount: staffCount.toString() }, 'staffCount');
     }
     /**
      * /score-partwise/part/measure/attributes/transpose
@@ -23147,10 +23559,8 @@ class SmoToXml {
      * @returns
      */
     static transpose(attributesElement, smoState) {
-        const measure = smoState.measure;
-        if (!measure) {
-            return;
-        }
+        const staff = smoState.partStaves[smoState.staffPartIx];
+        const measure = staff.measures[smoState.measureIndex];
         if (measure.transposeIndex !== smoState.transposeOffset) {
             smoState.transposeOffset = measure.transposeIndex;
             const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
@@ -23235,7 +23645,7 @@ class XmlHelpers {
             turn: { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.turn, offset: noteModifiers_1.SmoOrnament.offsets.on } },
             'inverted-turn': { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.turnInverted } },
             mordent: { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.mordent } },
-            'inveterd-mordent': { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.mordentInverted } },
+            'inverted-mordent': { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.mordentInverted } },
             shake: { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.mordentInverted } },
             'trill-mark': { ctor: 'SmoOrnament', params: { ornament: noteModifiers_1.SmoOrnament.ornaments.trill } },
         };
@@ -23246,8 +23656,8 @@ class XmlHelpers {
     static createRootElement() {
         const doc = document.implementation.createDocument('', '', null);
         const rootElem = doc.createElement('score-partwise');
-        const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF8"');
-        rootElem.setAttribute('version', '2.0');
+        const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
+        rootElem.setAttribute('version', '3.1');
         doc.appendChild(rootElem);
         doc.insertBefore(piElement, rootElem);
         return doc;
@@ -23282,6 +23692,21 @@ class XmlHelpers {
             return rv.toString();
         }
         return el[0].textContent;
+    }
+    static getNumberFromAttribute(node, attribute, defaults) {
+        const str = XmlHelpers.getTextFromAttribute(node, attribute, defaults.toString());
+        const rv = parseInt(str, 10);
+        if (isNaN(rv)) {
+            return defaults;
+        }
+        return rv;
+    }
+    static getTextFromAttribute(node, attribute, defaults) {
+        const rv = node.getAttribute(attribute);
+        if (rv) {
+            return rv;
+        }
+        return defaults;
     }
     // ### getChildrenFromPath
     // Like xpath, given ['foo', 'bar'] and parent element
@@ -23470,22 +23895,6 @@ class XmlHelpers {
         }
         return rv;
     }
-    // Get placement or orientation of a tie or slur.  Xml docs
-    // a little unclear on what to expect and what each mean.
-    static getCurveDirection(node) {
-        const orientation = node.getAttribute('orientation');
-        const placement = node.getAttribute('placement');
-        if (orientation) {
-            return orientation;
-        }
-        if (placement && placement === 'above') {
-            return 'over';
-        }
-        if (placement && placement === 'below') {
-            return 'under';
-        }
-        return 'auto';
-    }
     static getTieData(noteNode, selector, pitchIndex) {
         const rv = [];
         let number = 0;
@@ -23493,12 +23902,9 @@ class XmlHelpers {
         nNodes.forEach((nNode) => {
             const slurNodes = [...nNode.getElementsByTagName('tied')];
             slurNodes.forEach((slurNode) => {
-                const orientation = XmlHelpers.getCurveDirection(slurNode);
+                const orientation = XmlHelpers.getTextFromAttribute(slurNode, 'orientation', 'auto');
                 const type = slurNode.getAttribute('type');
-                number = parseInt(slurNode.getAttribute('number'), 10);
-                if (isNaN(number)) {
-                    number = 1;
-                }
+                number = XmlHelpers.getNumberFromAttribute(slurNode, 'number', 1);
                 rv.push({ number, type, orientation, selector, pitchIndex });
             });
         });
@@ -23512,8 +23918,12 @@ class XmlHelpers {
             slurNodes.forEach((slurNode) => {
                 const number = parseInt(slurNode.getAttribute('number'), 10);
                 const type = slurNode.getAttribute('type');
-                const orientation = XmlHelpers.getCurveDirection(slurNode);
-                const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
+                const orientation = XmlHelpers.getTextFromAttribute(slurNode, 'orienation', 'auto');
+                const placement = XmlHelpers.getTextFromAttribute(slurNode, 'placement', 'auto');
+                const controlX = XmlHelpers.getNumberFromAttribute(slurNode, 'bezier-x', 0);
+                // Y coordinates are reversed from music XML to SVG, hence the -1
+                const controlY = XmlHelpers.getNumberFromAttribute(slurNode, 'bezier-y', 15) * -1;
+                const slurInfo = { number, type, orientation, placement, controlX, controlY, selector, invert: false, yOffset: 0 };
                 rv.push(slurInfo);
             });
         });
@@ -23548,7 +23958,7 @@ class XmlHelpers {
                 const articulations = [...nNode.getElementsByTagName(typ)];
                 articulations.forEach((articulation) => {
                     Object.keys(XmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
-                        if ([...articulation.getElementsByTagName(key)].length) {
+                        if (articulation.getElementsByTagName(key).length) {
                             const ctor = eval('globalThis.Smo.' + XmlHelpers.ornamentXmlToSmoMap[key].ctor);
                             rv.push(new ctor(XmlHelpers.ornamentXmlToSmoMap[key].params));
                         }
@@ -23634,14 +24044,14 @@ exports.XmlState = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
-const measureModifiers_2 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 /**
  * Keep state of musical objects while parsing music xml
  * @category SmoToXml
@@ -23653,7 +24063,6 @@ class XmlState {
         this.staffGroups = [];
         this.smoStaves = [];
         this.slurs = {};
-        this.ties = {};
         this.wedges = {};
         this.hairpins = [];
         this.instrument = staffModifiers_1.SmoInstrument.defaults;
@@ -23663,8 +24072,8 @@ class XmlState {
         this.endingMap = {};
         this.startRepeatMap = {};
         this.endRepeatMap = {};
-        this.startBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
-        this.endBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
+        this.startBarline = measureModifiers_1.SmoBarline.barlines.singleBar;
+        this.endBarline = measureModifiers_1.SmoBarline.barlines.singleBar;
         this.measureIndex = -1;
         this.completedSlurs = [];
         this.completedTies = [];
@@ -23688,7 +24097,12 @@ class XmlState {
         this.timeSignature = '4/4';
         this.voiceIndex = 0;
         this.pixelsPerTenth = 0.4;
-        this.musicFontSize = 14;
+        this.musicFontSize = 16;
+        this.partId = '';
+        this.rehearsalMark = '';
+        this.rehearsalMarks = {};
+        this.parts = {};
+        this.openPartGroup = null;
     }
     static get defaults() {
         return {
@@ -23700,17 +24114,17 @@ class XmlState {
     // likc hairpins and slurs
     initializeForPart() {
         this.slurs = {};
-        this.ties = {};
         this.wedges = {};
         this.hairpins = [];
         this.globalCursor = 0;
         this.staffVoiceHash = {};
         this.measureIndex = -1;
         this.completedSlurs = [];
-        this.completedTies = [];
         this.verseMap = {};
         this.instrument.keyOffset = 0;
         this.instrumentMap = {};
+        this.partId = '';
+        this.clefInfo = [];
         this.formattingManager = new scoreModifiers_1.SmoFormattingManager(scoreModifiers_1.SmoFormattingManager.defaults);
     }
     // ### initializeForMeasure
@@ -23733,10 +24147,11 @@ class XmlState {
         this.beamGroups = {};
         this.completedTuplets = [];
         this.dynamics = [];
-        this.startBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
-        this.endBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
+        this.startBarline = measureModifiers_1.SmoBarline.barlines.singleBar;
+        this.endBarline = measureModifiers_1.SmoBarline.barlines.singleBar;
         this.previousNote = new note_1.SmoNote(note_1.SmoNote.defaults);
         this.measureIndex += 1;
+        this.rehearsalMark = '';
     }
     // ### initializeStaff
     // voices are not sequential, seem to have artitrary numbers and
@@ -23794,7 +24209,10 @@ class XmlState {
         const lyric = new noteModifiers_1.SmoLyric(params);
         note.addLyric(lyric);
     }
-    // ### processWedge (hairpin)
+    /**
+     * process a wedge aka hairpin dynamic
+     * @param wedgeInfo
+     */
     processWedge(wedgeInfo) {
         if (wedgeInfo.type) {
             // If we already know about this wedge, it must have been
@@ -23911,17 +24329,7 @@ class XmlState {
         tieInfos.forEach((tieInfo) => {
             // tieInfo = { number, type, orientation, selector, pitchIndex }
             if (tieInfo.type === 'start') {
-                this.ties[tieInfo.number] = JSON.parse(JSON.stringify(tieInfo));
-            }
-            else if (tieInfo.type === 'stop') {
-                if (this.ties[tieInfo.number]) {
-                    this.completedTies.push({
-                        startSelector: JSON.parse(JSON.stringify(this.ties[tieInfo.number].selector)),
-                        endSelector: JSON.parse(JSON.stringify(tieInfo.selector)),
-                        fromPitch: this.ties[tieInfo.number].pitchIndex,
-                        toPitch: tieInfo.pitchIndex
-                    });
-                }
+                this.completedTies.push(tieInfo);
             }
         });
     }
@@ -23982,7 +24390,7 @@ class XmlState {
             }
         }
         const barline = xmlHelpers_1.XmlHelpers.getBarline(barlineNode);
-        if (barline === measureModifiers_2.SmoBarline.barlines.startRepeat) {
+        if (barline === measureModifiers_1.SmoBarline.barlines.startRepeat) {
             this.startBarline = barline;
         }
         else {
@@ -23998,14 +24406,41 @@ class XmlState {
     updateSlurStates(slurInfos) {
         const clef = this.staffArray[this.staffIndex].clefInfo.clef;
         const note = this.previousNote;
+        const getForcedSlurDirection = (smoParams, xmlStart, xmlEnd) => {
+            // If the slur direction is specified, otherwise use autor.
+            if (xmlStart.placement === 'above' || (xmlEnd === null || xmlEnd === void 0 ? void 0 : xmlEnd.placement) === 'above') {
+                smoParams.position_end = staffModifiers_1.SmoSlur.positions.ABOVE;
+                smoParams.position = staffModifiers_1.SmoSlur.positions.ABOVE;
+                if (xmlStart.orientation === 'over') {
+                    smoParams.orientation = staffModifiers_1.SmoSlur.orientations.DOWN;
+                }
+                else if (xmlStart.orientation === 'under') {
+                    smoParams.orientation = staffModifiers_1.SmoSlur.orientations.UP;
+                }
+            }
+            else if (xmlStart.placement === 'below' || (xmlEnd === null || xmlEnd === void 0 ? void 0 : xmlEnd.placement) === 'below') {
+                smoParams.position_end = staffModifiers_1.SmoSlur.positions.BELOW;
+                smoParams.position = staffModifiers_1.SmoSlur.positions.BELOW;
+                if (xmlStart.orientation === 'over') {
+                    smoParams.orientation = staffModifiers_1.SmoSlur.orientations.DOWN;
+                }
+                else if (xmlStart.orientation === 'under') {
+                    smoParams.orientation = staffModifiers_1.SmoSlur.orientations.UP;
+                }
+            }
+        };
         slurInfos.forEach((slurInfo) => {
             // slurInfo = { number, type, selector }
             if (slurInfo.type === 'start') {
+                const slurParams = staffModifiers_1.SmoSlur.defaults;
+                // if start and stop come out of order
                 if (this.slurs[slurInfo.number] && this.slurs[slurInfo.number].type === 'stop') {
-                    // if start and stop come out of order
-                    const slurParams = staffModifiers_1.SmoSlur.defaults;
                     slurParams.endSelector = JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector));
                     slurParams.startSelector = slurInfo.selector;
+                    slurParams.cp1x = slurInfo.controlX;
+                    slurParams.cp1y = slurInfo.controlY;
+                    const slurType = this.slurs[slurInfo.number];
+                    getForcedSlurDirection(slurParams, slurInfo, slurType);
                     this.completedSlurs.push(slurParams);
                     this.slurs[slurInfo.number] = null;
                 }
@@ -24020,8 +24455,11 @@ class XmlState {
                     const slurParams = staffModifiers_1.SmoSlur.defaults;
                     slurParams.startSelector = JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector));
                     slurParams.endSelector = slurInfo.selector;
+                    slurParams.cp2x = slurInfo.controlX;
+                    slurParams.cp2y = slurInfo.controlY;
                     slurParams.yOffset = slurData.yOffset;
-                    slurParams.invert = slurData.invert;
+                    const slurType = this.slurs[slurInfo.number];
+                    getForcedSlurDirection(slurParams, slurInfo, slurType);
                     // console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
                     this.completedSlurs.push(slurParams);
                     this.slurs[slurInfo.number] = null;
@@ -24032,17 +24470,13 @@ class XmlState {
             }
         });
     }
-    // ### completeTies
-    completeTies() {
-        this.completedTies.forEach((tie) => {
-            const params = staffModifiers_1.SmoTie.defaults;
-            params.startSelector = tie.startSelector;
-            params.endSelector = tie.endSelector;
-            const smoTie = new staffModifiers_1.SmoTie(params);
-            smoTie.lines = [{
-                    from: tie.fromPitch, to: tie.toPitch
-                }];
-            this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
+    assignRehearsalMarks() {
+        Object.keys(this.rehearsalMarks).forEach((rm) => {
+            const measureIx = parseInt(rm, 10);
+            this.smoStaves.forEach((staff) => {
+                const mark = new measureModifiers_1.SmoRehearsalMark(measureModifiers_1.SmoRehearsalMark.defaults);
+                staff.addRehearsalMark(measureIx, mark);
+            });
         });
     }
     /**
@@ -24053,13 +24487,41 @@ class XmlState {
      */
     completeSlurs() {
         this.completedSlurs.forEach((slur) => {
-            const params = staffModifiers_1.SmoSlur.defaults;
-            params.startSelector = slur.startSelector;
-            params.endSelector = slur.endSelector;
-            params.yOffset = slur.yOffset;
-            params.invert = slur.invert;
-            const smoSlur = new staffModifiers_1.SmoSlur(params);
+            const smoSlur = new staffModifiers_1.SmoSlur(slur);
             this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
+        });
+    }
+    /**
+     * Go through saved start ties, try to find the endpoint of the tie.  Ties in music xml
+     * are a little ambiguous, we assume we are tying to the same pitch
+     * @param score
+     */
+    completeTies(score) {
+        this.completedTies.forEach((tieInfo) => {
+            const startSelection = selections_1.SmoSelection.noteFromSelector(score, tieInfo.selector);
+            if (startSelection && startSelection.note) {
+                const startNote = startSelection.note;
+                const endSelection = selections_1.SmoSelection.nextNoteSelectionFromSelector(score, startSelection.selector);
+                const endNote = endSelection === null || endSelection === void 0 ? void 0 : endSelection.note;
+                const pitches = [];
+                if (endSelection && endNote) {
+                    startNote.pitches.forEach((spitch, ix) => {
+                        endNote.pitches.forEach((epitch, jx) => {
+                            if (music_1.SmoMusic.smoPitchToInt(spitch) === music_1.SmoMusic.smoPitchToInt(epitch)) {
+                                pitches.push({ from: ix, to: jx });
+                            }
+                        });
+                    });
+                }
+                if (pitches.length && endSelection) {
+                    const params = staffModifiers_1.SmoTie.defaults;
+                    params.startSelector = startSelection.selector;
+                    params.endSelector = endSelection.selector;
+                    params.lines = pitches;
+                    const smoTie = new staffModifiers_1.SmoTie(params);
+                    score.staves[smoTie.startSelector.staff].addStaffModifier(smoTie);
+                }
+            }
         });
     }
     // ### backtrackTuplets
@@ -24164,9 +24626,9 @@ const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.t
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
-const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const operations_1 = __webpack_require__(/*! ../xform/operations */ "./src/smo/xform/operations.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const partInfo_1 = __webpack_require__(/*! ../data/partInfo */ "./src/smo/data/partInfo.ts");
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
  * @category SmoToXml
@@ -24262,6 +24724,9 @@ class XmlToSmo {
                     xmlState.initializeForPart();
                     XmlToSmo.part(scoreElement, xmlState);
                 }
+                else if (scoreElement.tagName === 'part-list') {
+                    XmlToSmo.partList(scoreElement, rv, xmlState);
+                }
             });
             // The entire score is parsed and xmlState now contains the staves.
             rv.formattingManager = xmlState.formattingManager;
@@ -24290,8 +24755,11 @@ class XmlToSmo {
                 rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
             }
             XmlToSmo.setSlurDefaults(rv);
+            xmlState.completeTies(rv);
             rv.preferences.showPiano = false;
             XmlToSmo.setVoltas(rv, xmlState);
+            rv.staves.forEach((staff) => {
+            });
             return rv;
         }
         catch (exc) {
@@ -24309,18 +24777,18 @@ class XmlToSmo {
             const slurs = staff.modifiers.filter((mm) => mm.ctor === 'SmoSlur');
             slurs.forEach((ss) => {
                 const slur = ss;
-                const sel1 = selections_1.SmoSelection.noteFromSelector(score, ss.startSelector);
-                const sel2 = selections_1.SmoSelection.noteFromSelector(score, ss.endSelector);
-                if (sel1 && sel2) {
-                    const slurParams = operations_1.SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
-                    slur.position = slurParams.position;
-                    slur.position_end = slurParams.position_end;
-                    slur.invert = slurParams.invert;
-                    slur.yOffset = slurParams.yOffset;
-                    slur.cp1y = slurParams.cp1y;
-                    slur.cp2y = slurParams.cp2y;
-                    slur.xOffset = slurParams.xOffset;
+                let slurPosition = staffModifiers_1.SmoSlur.positions.AUTO;
+                if (slur.position === slur.position_end) {
+                    slurPosition = slur.position;
                 }
+                const slurParams = operations_1.SmoOperation.getDefaultSlurDirection(score, ss.startSelector, ss.endSelector, slurPosition, slur.orientation);
+                slur.position = slurParams.position;
+                slur.position_end = slurParams.position_end;
+                slur.invert = slurParams.invert;
+                slur.yOffset = slurParams.yOffset;
+                slur.cp1y = slurParams.cp1y;
+                slur.cp2y = slurParams.cp2y;
+                slur.xOffset = slurParams.xOffset;
             });
         });
     }
@@ -24342,6 +24810,99 @@ class XmlToSmo {
                 operations_1.SmoOperation.addEnding(score, volta);
             });
         });
+    }
+    static partList(partList, score, state) {
+        const children = partList.children;
+        let partIndex = 0;
+        var i = 0;
+        for (i = 0; i < children.length; ++i) {
+            const child = children[i];
+            if (child.tagName === 'score-part') {
+                const partElement = child;
+                const partData = new partInfo_1.SmoPartInfo(partInfo_1.SmoPartInfo.defaults);
+                partData.partName = xmlHelpers_1.XmlHelpers.getTextFromElement(partElement, 'part-name', 'part ' + i);
+                const partId = xmlHelpers_1.XmlHelpers.getTextFromAttribute(partElement, 'id', i.toString());
+                if (state.openPartGroup) {
+                    state.openPartGroup.parts.push(partIndex);
+                }
+                partIndex += 1;
+                state.parts[partId] = partData;
+                partData.partAbbreviation = xmlHelpers_1.XmlHelpers.getTextFromElement(partElement, 'part-abbreviation', 'p.');
+                partData.midiDevice = xmlHelpers_1.XmlHelpers.getTextFromElement(partElement, 'part-abbreviation', null);
+                // it seems like musicxml doesn't allow for different music font size in parts vs. score
+                // partData.layoutManager.globalLayout.svgScale = 0.55;
+                partData.layoutManager.globalLayout.svgScale = state.musicFontSize / XmlToSmo.vexFontSize;
+                const midiElements = partElement.getElementsByTagName('midi-instrument');
+                if (midiElements.length) {
+                    const midiElement = midiElements[0];
+                    partData.midiInstrument = {
+                        channel: xmlHelpers_1.XmlHelpers.getNumberFromElement(midiElement, 'midi-channel', 1),
+                        program: xmlHelpers_1.XmlHelpers.getNumberFromElement(midiElement, 'midi-program', 1),
+                        volume: xmlHelpers_1.XmlHelpers.getNumberFromElement(midiElement, 'volume', 80),
+                        pan: xmlHelpers_1.XmlHelpers.getNumberFromElement(midiElement, 'pan', 0)
+                    };
+                }
+            }
+            else if (child.tagName === 'part-group') {
+                const groupElement = child;
+                if (state.openPartGroup) {
+                    const staffGroup = state.openPartGroup.group;
+                    state.openPartGroup.parts.forEach((part) => {
+                        if (staffGroup.startSelector.staff === 0 || staffGroup.startSelector.staff > part) {
+                            staffGroup.startSelector.staff = part;
+                        }
+                        if (staffGroup.endSelector.staff < part) {
+                            staffGroup.endSelector.staff = part;
+                        }
+                    });
+                    score.systemGroups.push(staffGroup);
+                    state.openPartGroup = null;
+                }
+                else {
+                    const staffGroup = new scoreModifiers_1.SmoSystemGroup(scoreModifiers_1.SmoSystemGroup.defaults);
+                    const groupNum = xmlHelpers_1.XmlHelpers.getNumberFromAttribute(groupElement, 'number', 1);
+                    const xmlSymbol = xmlHelpers_1.XmlHelpers.getTextFromElement(groupElement, 'group-symbol', 'single');
+                    if (xmlSymbol === 'single') {
+                        staffGroup.leftConnector = scoreModifiers_1.SmoSystemGroup.connectorTypes['single'];
+                    }
+                    else if (xmlSymbol === 'brace') {
+                        staffGroup.leftConnector = scoreModifiers_1.SmoSystemGroup.connectorTypes['brace'];
+                    }
+                    if (xmlSymbol === 'bracket') {
+                        staffGroup.leftConnector = scoreModifiers_1.SmoSystemGroup.connectorTypes['bracket'];
+                    }
+                    if (xmlSymbol === 'square') {
+                        staffGroup.leftConnector = scoreModifiers_1.SmoSystemGroup.connectorTypes['double'];
+                    }
+                    state.openPartGroup = {
+                        partNum: groupNum,
+                        parts: [],
+                        group: staffGroup
+                    };
+                }
+            }
+        }
+    }
+    /**
+     * page-layout element occurs in a couple of places
+     * @param defaultsElement
+     * @param layoutDefaults
+     * @param xmlState
+     */
+    static pageSizeFromLayout(defaultsElement, layoutDefaults, xmlState) {
+        const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
+        if (pageLayoutNode.length) {
+            xmlHelpers_1.XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
+            layoutDefaults.globalLayout.pageHeight *= xmlState.pixelsPerTenth;
+            layoutDefaults.globalLayout.pageWidth *= xmlState.pixelsPerTenth;
+        }
+        const pageMarginNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
+        if (pageMarginNode.length) {
+            xmlHelpers_1.XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
+            scoreModifiers_1.SmoPageLayout.attributes.forEach((attr) => {
+                layoutDefaults.pageLayouts[0][attr] *= xmlState.pixelsPerTenth;
+            });
+        }
     }
     /**
      * /score-partwise/defaults
@@ -24370,30 +24931,27 @@ class XmlToSmo {
             if (fontString) {
                 xmlState.musicFontSize = parseInt(fontString, 10);
             }
+            const fontFamily = fontNode[0].getAttribute('font-family');
+            if (fontFamily && (0, score_1.isEngravingFont)(fontFamily)) {
+                score.engravingFont = fontFamily;
+            }
         }
-        const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
-        if (pageLayoutNode.length) {
-            xmlHelpers_1.XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
-            layoutDefaults.globalLayout.pageHeight *= xmlState.pixelsPerTenth;
-            layoutDefaults.globalLayout.pageWidth *= xmlState.pixelsPerTenth;
-        }
-        const pageMarginNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
-        if (pageMarginNode.length) {
-            xmlHelpers_1.XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
-            scoreModifiers_1.SmoPageLayout.attributes.forEach((attr) => {
-                layoutDefaults.pageLayouts[0][attr] *= xmlState.pixelsPerTenth;
-            });
-        }
+        XmlToSmo.pageSizeFromLayout(defaultsElement, layoutDefaults, xmlState);
         // svgScale is the ratio of music font size to the default Vex font size (39).
         layoutDefaults.globalLayout.svgScale = xmlState.musicFontSize / XmlToSmo.vexFontSize;
         score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
     }
-    // ### part
-    // /score-partwise/part
+    /**
+     * /score-partwise/part
+     * @param partElement
+     * @param xmlState
+     */
     static part(partElement, xmlState) {
         let staffId = xmlState.smoStaves.length;
-        console.log('part ' + partElement.getAttribute('id'));
+        const partId = xmlHelpers_1.XmlHelpers.getTextFromAttribute(partElement, 'id', '');
+        console.log('part ' + partId);
         xmlState.initializeForPart();
+        xmlState.partId = partId;
         const stavesForPart = [];
         const measureElements = [...partElement.getElementsByTagName('measure')];
         measureElements.forEach((measureElement) => {
@@ -24410,7 +24968,13 @@ class XmlToSmo {
                     const params = systemStaff_1.SmoSystemStaff.defaults;
                     params.staffId = staffId;
                     params.measureInstrumentMap = xmlState.instrumentMap;
-                    stavesForPart.push(new systemStaff_1.SmoSystemStaff(params));
+                    const newStaff = new systemStaff_1.SmoSystemStaff(params);
+                    if (xmlState.parts[partId]) {
+                        console.log('putting part ' + partId + ' in staff ' + newStaff.staffId);
+                        newStaff.partInfo = new partInfo_1.SmoPartInfo(xmlState.parts[partId]);
+                    }
+                    console.log('createing stave ' + newStaff.staffId);
+                    stavesForPart.push(newStaff);
                     staffId += 1;
                 }
                 const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
@@ -24419,12 +24983,23 @@ class XmlToSmo {
             const oldStaffId = staffId - stavesForPart.length;
             xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
         });
+        if (stavesForPart.length > 1) {
+            stavesForPart[0].partInfo.stavesAfter = 1;
+            stavesForPart[0].partInfo.stavesBefore = 0;
+            console.log('part has stave after ' + stavesForPart[0].staffId);
+            stavesForPart[1].partInfo.stavesAfter = 0;
+            stavesForPart[1].partInfo.stavesBefore = 1;
+            console.log('part has stave before ' + stavesForPart[1].staffId);
+        }
         xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
         xmlState.completeSlurs();
-        xmlState.completeTies();
+        xmlState.assignRehearsalMarks();
     }
-    // ### tempo
-    // /score-partwise/measure/direction/sound:tempo
+    /**
+     * /score-partwise/measure/direction/sound:tempo
+     * @param element
+     * @returns
+     */
     static tempo(element) {
         let tempoText = '';
         let customText = tempoText;
@@ -24460,14 +25035,24 @@ class XmlToSmo {
         });
         return rv;
     }
-    // ### dynamics
-    // /score-partwise/part/measure/direction/dynamics
+    /**
+     * /score-partwise/measure/direction/dynamics
+     * @param element
+     * @returns
+     */
     static dynamics(directionElement, xmlState) {
         let offset = 1;
         const dynamicNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'dynamics']);
+        const rehearsalNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'rehearsal']);
         const offsetNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['offset']);
         if (offsetNodes.length) {
             offset = parseInt(offsetNodes[0].textContent, 10);
+        }
+        if (rehearsalNodes.length) {
+            const rm = rehearsalNodes[0].textContent;
+            if (rm) {
+                xmlState.rehearsalMark = rm;
+            }
         }
         dynamicNodes.forEach((dynamic) => {
             xmlState.dynamics.push({
@@ -24691,23 +25276,26 @@ class XmlToSmo {
                 // If this note starts later than the cursor due to forward, pad with rests
                 if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
                     const pads = music_1.SmoMusic.splitIntoValidDurations(xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
+                    console.log(`padding ${pads.length} before ${xmlState.staffIndex}-${xmlState.measureIndex}-${xmlState.voiceIndex}-${tickIndex}`);
                     pads.forEach((pad) => {
                         const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
                         const padNote = measure_1.SmoMeasure.createRestNoteWithDuration(pad, clefString);
                         padNote.makeHidden(true);
                         voice.notes.push(padNote);
                     });
-                    // Offset any partially-completed ties or slurs with the padding
-                    slurInfos.forEach((slurInfo) => {
-                        slurInfo.selector.tick += pads.length;
-                    });
-                    tieInfos.forEach((tieInfo) => {
-                        tieInfo.selector.tick += pads.length;
-                    });
+                    // slurs and ties use selector, so this affects them, also
                     selector.tick += pads.length;
                     // then reset the cursor since we are now in sync
                     xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
                 }
+                /* slurInfos.forEach((slurInfo) => {
+                  console.log(`xml slur: ${slurInfo.selector.staff}-${slurInfo.selector.measure}-${slurInfo.selector.voice}-${slurInfo.selector.tick} ${slurInfo.type} ${slurInfo.number}`);
+                  console.log(`  ${slurInfo.placement}`);
+                });*/
+                /* tieInfos.forEach((tieInfo) => {
+                  console.log(`xml tie: ${tieInfo.selector.staff}-${tieInfo.selector.measure}-${tieInfo.selector.voice}-${tieInfo.selector.tick} ${tieInfo.type} `);
+                  console.log(`  pitch ${tieInfo.pitchIndex} orient ${tieInfo.orientation} num ${tieInfo.number}`);
+                });*/
                 xmlState.updateSlurStates(slurInfos);
                 xmlState.updateTieStates(tieInfos);
                 voice.notes.push(xmlState.previousNote);
@@ -24731,10 +25319,18 @@ class XmlToSmo {
             }
         }
     }
-    // ### parseMeasureElement
-    // /score-partwise/part/measure
-    // A measure in music xml might represent several measures in SMO at the same
-    // column in the score
+    static print(printElement, xmlState) {
+        if (xmlState.parts[xmlState.partId]) {
+            XmlToSmo.pageSizeFromLayout(printElement, xmlState.parts[xmlState.partId].layoutManager, xmlState);
+        }
+    }
+    /**
+     * /score-partwise/part/measure
+     * A measure in music xml might represent several measures in SMO at the same
+     * column in the score
+     * @param measureElement
+     * @param xmlState
+     */
     static measure(measureElement, xmlState) {
         xmlState.initializeForMeasure(measureElement);
         const elements = [...measureElement.children];
@@ -24761,12 +25357,18 @@ class XmlToSmo {
             else if (element.tagName === 'barline') {
                 xmlState.updateEndings(element);
             }
+            else if (element.tagName === 'print') {
+                XmlToSmo.print(element, xmlState);
+            }
         });
         // If a measure has no notes, just make one with the defaults
         if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
             xmlState.clefInfo.forEach((clefInfo) => {
                 xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
             });
+        }
+        if (xmlState.rehearsalMark.length) {
+            xmlState.rehearsalMarks[xmlState.measureIndex] = xmlState.rehearsalMark;
         }
         xmlState.staffArray.forEach((staffData) => {
             const clef = staffData.clefInfo.clef;
@@ -26782,11 +27384,15 @@ class SmoOperation {
      * @param toSelection
      * @returns
      */
-    static getDefaultSlurDirection(score, fromSelection, toSelection) {
+    static getDefaultSlurDirection(score, fromSelector, toSelector, forcePosition, forceOrientation) {
         const params = staffModifiers_1.SmoSlur.defaults;
-        const sels = selections_1.SmoSelector.order(fromSelection.selector, toSelection.selector);
+        const sels = selections_1.SmoSelector.order(fromSelector, toSelector);
         params.startSelector = JSON.parse(JSON.stringify(sels[0]));
         params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+        const fromSelection = selections_1.SmoSelection.noteFromSelector(score, fromSelector);
+        if (!fromSelection) {
+            return params;
+        }
         // Get all selections within the slur
         const selections = selections_1.SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
         const dirs = {};
@@ -26836,34 +27442,50 @@ class SmoOperation {
         if (Object.keys(beamGroups).length < 2) {
             mixed = false;
         }
-        if (mixed) {
-            // special case: slur 2 notes, note heads close, connect the note heads
-            // to keep a flat arc
-            if (selections.length === 2 && firstGap < 3) {
+        if (forcePosition === staffModifiers_1.SmoSlur.positions.ABOVE) {
+            params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+            params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+            if (startDir === note_1.SmoNote.flagStates.up && forceOrientation !== staffModifiers_1.SmoSlur.orientations.DOWN) {
+                params.invert = true;
+            }
+        }
+        else if (forcePosition === staffModifiers_1.SmoSlur.positions.BELOW) {
+            params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.HEAD : staffModifiers_1.SmoSlur.positions.TOP;
+            params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.HEAD : staffModifiers_1.SmoSlur.positions.TOP;
+            if (startDir === note_1.SmoNote.flagStates.down && forceOrientation !== staffModifiers_1.SmoSlur.orientations.UP) {
+                params.invert = true;
+            }
+        }
+        else {
+            if (mixed) {
+                // special case: slur 2 notes, note heads close, connect the note heads
+                // to keep a flat arc
+                if (selections.length === 2 && firstGap < 3) {
+                    params.position = staffModifiers_1.SmoSlur.positions.HEAD;
+                    params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
+                    params.xOffset = 5;
+                }
+                else {
+                    params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+                    params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+                    if (firstGap >= 3 || lastGap >= 3) {
+                        params.cp1y = 45;
+                        params.cp2y = 45;
+                    }
+                }
+                params.invert = endDir === note_1.SmoNote.flagStates.up;
+            }
+            if (!mixed) {
                 params.position = staffModifiers_1.SmoSlur.positions.HEAD;
                 params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
-                params.xOffset = 5;
-            }
-            else {
-                params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
-                params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
-                if (firstGap >= 3 || lastGap >= 3) {
+                if (firstGap >= 2 || lastGap >= 2) {
                     params.cp1y = 45;
                     params.cp2y = 45;
+                    params.yOffset += 10;
                 }
-            }
-            params.invert = endDir === note_1.SmoNote.flagStates.up;
-        }
-        if (!mixed) {
-            params.position = staffModifiers_1.SmoSlur.positions.HEAD;
-            params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
-            if (firstGap >= 2 || lastGap >= 2) {
-                params.cp1y = 45;
-                params.cp2y = 45;
-                params.yOffset += 10;
-            }
-            else {
-                params.yOffset += 10;
+                else {
+                    params.yOffset += 10;
+                }
             }
         }
         if (selections.length === 2) {
@@ -26872,7 +27494,7 @@ class SmoOperation {
         return params;
     }
     static slur(score, fromSelection, toSelection) {
-        const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection);
+        const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, staffModifiers_1.SmoSlur.positions.AUTO, staffModifiers_1.SmoSlur.orientations.AUTO);
         const modifier = new staffModifiers_1.SmoSlur(params);
         fromSelection.staff.addStaffModifier(modifier);
         return modifier;
@@ -39056,7 +39678,7 @@ class SuiXmlSaveAdapter extends adapter_1.SuiComponentAdapter {
         const ser = new XMLSerializer();
         const xmlText = ser.serializeToString(dom);
         if (!this.fileName.endsWith('.xml') && !this.fileName.endsWith('.mxml')) {
-            this.fileName = this.fileName + '.mxml';
+            this.fileName = this.fileName + '.xml';
         }
         (0, htmlHelpers_1.addFileLink)(this.fileName, xmlText, $('.saveLink'));
         $('.saveLink a')[0].click();
@@ -39277,7 +39899,9 @@ class SuiScoreFontAdapter extends adapter_1.SuiComponentAdapter {
         const current = this.getInfo(score_1.SmoScore.fontPurposes.ENGRAVING);
         current.family = value;
         const fp = this.changeFont(score_1.SmoScore.fontPurposes.ENGRAVING, 'engraving', current);
-        this.view.setEngravingFontFamily(fp.family);
+        if ((0, score_1.isEngravingFont)(fp.family)) {
+            this.view.setEngravingFontFamily(fp.family);
+        }
     }
     set chordFont(fontInfo) {
         const fp = this.changeFont(score_1.SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);
@@ -39372,6 +39996,9 @@ class SuiGlobalLayoutAdapter extends adapter_1.SuiComponentAdapter {
         this.view = view;
     }
     writeValue(attr, value) {
+        if (this.scoreLayout[attr] === value) {
+            return;
+        }
         this.scoreLayout[attr] = value;
         this.view.setGlobalLayout(this.scoreLayout);
         this.changed = true;
@@ -41119,10 +41746,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiSlurAttributesDialog = exports.SuiSlurAdapter = void 0;
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view, slur) {
         super(view);
         this.changed = false;
+        this.updating = false;
         this.slur = slur;
         this.view = view;
         this.backup = new staffModifiers_1.SmoSlur(this.slur);
@@ -41149,6 +41778,58 @@ class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
         this.view.addOrUpdateStaffModifier(this.slur, this.backup);
     }
     commit() {
+    }
+    get resetAll() {
+        return false;
+    }
+    set resetAll(value) {
+        this.resetDefaults = value;
+        const slurs = [];
+        const self = this;
+        this.updating = true;
+        const updateSlur = (score, slur) => {
+            const params = operations_1.SmoOperation.getDefaultSlurDirection(score, slur.startSelector, slur.endSelector, staffModifiers_1.SmoSlur.positions.AUTO, staffModifiers_1.SmoSlur.orientations.AUTO);
+            const original = new staffModifiers_1.SmoSlur(slur);
+            staffModifiers_1.SlurNumberParams.forEach((key) => {
+                slur[key] = params[key];
+            });
+            return self.view.addOrUpdateStaffModifier(original, slur);
+        };
+        new Promise((resolve) => {
+            const nextSlur = () => {
+                setTimeout(() => {
+                    if (slurs.length) {
+                        const slur = slurs.pop();
+                        updateSlur(self.view.score, slur).then(() => {
+                            nextSlur();
+                        });
+                    }
+                    else {
+                        self.updating = false;
+                        resolve();
+                    }
+                }, 1);
+            };
+            nextSlur();
+        });
+        this.view.score.staves.forEach((staff) => {
+            staff.modifiers.filter((x) => x.ctor === 'SmoSlur').forEach((smoObj) => {
+                const slur = smoObj;
+                slurs.push(slur);
+            });
+        });
+        this.changed = true;
+    }
+    get resetDefaults() {
+        return false;
+    }
+    set resetDefaults(value) {
+        const params = operations_1.SmoOperation.getDefaultSlurDirection(this.view.score, this.slur.startSelector, this.slur.endSelector, staffModifiers_1.SmoSlur.positions.AUTO, staffModifiers_1.SmoSlur.orientations.AUTO);
+        staffModifiers_1.SlurNumberParams.forEach((key) => {
+            this.slur[key] = params[key];
+        });
+        this.view.addOrUpdateStaffModifier(this.backup, this.slur);
+        this.changed = true;
     }
     get cp2y() {
         return this.slur.cp2y;
@@ -41227,6 +41908,42 @@ class SuiSlurAttributesDialog extends adapter_1.SuiDialogAdapterBase {
         super(SuiSlurAttributesDialog.dialogElements, Object.assign({ adapter }, parameters));
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
     }
+    disableClose() {
+        $(this.dgDom.element).find('.ok-button').prop('disabled', true);
+        $(this.dgDom.element).find('.cancel-button').prop('disabled', true);
+        $(this.dgDom.element).find('.remove-button').prop('disabled', true);
+    }
+    enableClose() {
+        $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+        $(this.dgDom.element).find('.cancel-button').prop('disabled', false);
+        $(this.dgDom.element).find('.remove-button').prop('disabled', false);
+    }
+    modalPromise() {
+        const self = this;
+        return new Promise((resolve) => {
+            const checkComplete = () => {
+                setTimeout(() => {
+                    if (self.adapter.updating === false) {
+                        resolve();
+                    }
+                    else {
+                        checkComplete();
+                    }
+                }, 200);
+            };
+            checkComplete();
+        });
+    }
+    changed() {
+        super.changed();
+        if (this.adapter.updating) {
+            const self = this;
+            this.disableClose();
+            this.modalPromise().then(() => {
+                self.enableClose();
+            });
+        }
+    }
 }
 exports.SuiSlurAttributesDialog = SuiSlurAttributesDialog;
 SuiSlurAttributesDialog.dialogElements = {
@@ -41280,6 +41997,14 @@ SuiSlurAttributesDialog.dialogElements = {
             smoName: 'invert',
             control: 'SuiToggleComponent',
             label: 'Invert'
+        }, {
+            smoName: 'resetDefaults',
+            control: 'SuiToggleComponent',
+            label: 'Defaults'
+        }, {
+            smoName: 'resetAll',
+            control: 'SuiToggleComponent',
+            label: 'Reset All Slurs'
         }, {
             smoName: 'cp1x',
             defaultValue: 0,
@@ -49789,6 +50514,10 @@ class SuiMenuManager {
     }
     slashMenuMode(completeNotifier) {
         var self = this;
+        if (this.closeMenuPromise) {
+            console.log('menu already open, skipping');
+            return;
+        }
         this.bindEvents();
         layoutDebug_1.layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
         // A menu asserts this event when it is done.
@@ -49797,6 +50526,7 @@ class SuiMenuManager {
                 layoutDebug_1.layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
                 self.unattach();
                 $('body').removeClass('slash-menu');
+                self.closeMenuPromise = null;
                 resolve();
             });
         });
@@ -50556,7 +51286,6 @@ SuiStaffMenu.defaults = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiStaffModifierMenu = void 0;
 const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
-const scoreView_1 = __webpack_require__(/*! ../../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
 class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -50583,8 +51312,6 @@ class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
         }
         else if (op === 'resetSlurs') {
             const self = this;
-            scoreView_1.SuiScoreView.resetSlursHack(this.view.score);
-            scoreView_1.SuiScoreView.resetSlursHack(this.view.storeScore);
             this.view.refreshViewport().then(() => {
                 self.complete();
             });
@@ -52630,7 +53357,6 @@ __exportStar(__webpack_require__(/*! ./src/render/audio/player */ "./src/render/
 __exportStar(__webpack_require__(/*! ./src/render/sui/configuration */ "./src/render/sui/configuration.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/formatter */ "./src/render/sui/formatter.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts"), exports);
-__exportStar(__webpack_require__(/*! ./src/render/sui/layoutDemon */ "./src/render/sui/layoutDemon.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/mapper */ "./src/render/sui/mapper.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/piano */ "./src/render/sui/piano.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/renderState */ "./src/render/sui/renderState.ts"), exports);
