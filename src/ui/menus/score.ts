@@ -56,7 +56,7 @@ export class SuiScoreMenu extends SuiMenuBase {
       if (['fonts','cancel','identification','preferences'].findIndex((x) => x === item.value) >= 0) {
         defs.push(item);
       } else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
-        if (this.view.score.isPartExposed() === false || this.view.storeScore.staves.length === 1) {
+        if (this.view.isPartExposed() === false) {
           // only show the page layout in score menu if we are in score mode
           defs.push(item);
         } 
@@ -159,7 +159,6 @@ export class SuiScoreMenu extends SuiMenuBase {
   }
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
-    const partMode = this.view.score.isPartExposed() && this.view.score.staves.length !== this.view.storeScore.staves.length;
     if (text === 'pageLayout') {
       this.execPageLayout();
     } else if (text === 'staffGroups') {

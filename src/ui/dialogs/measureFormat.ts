@@ -11,18 +11,22 @@ declare var $: any;
 export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   format: SmoMeasureFormat;
   backup: SmoMeasureFormat;
+  measure: SmoMeasure;
   edited: boolean = false;
   constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
     super(view);
     this.format = measure.format;
     this.backup = new SmoMeasureFormat(this.format);
+    this.measure = measure;
   }
   writeNumber(param: SmoMeasureFormatNumberAttributes, value: number) {
+    this.format.measureIndex = this.measure.measureNumber.measureIndex;
     this.format[param] = value;
     this.view.setMeasureFormat(this.format);
     this.edited = true;
   }
   writeBoolean(param: SmoMeasueFormatBooleanAttributes, value: boolean) {
+    this.format.measureIndex = this.measure.measureNumber.measureIndex;
     this.format[param] = value;
     this.view.setMeasureFormat(this.format);
     this.edited = true;

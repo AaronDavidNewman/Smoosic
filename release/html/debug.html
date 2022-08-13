@@ -18,18 +18,25 @@
 		<script type="text/javascript" src="../smoosic.js" ></script>
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
-               var config = { smoPath: '..', mode: 'translate', language: 'de', scoreDomContainer: 'smoo' };
-               Smo.SuiApplication.configure(config);
+            Smo.SuiDom.createUiDom(document.getElementById('smoo'));
+               var config = { mode: 'application', leftControls: 'controls-left', topControls: 'controls-top'
+                , scoreDomContainer: 'smo-scroll-region'  };
+              Smo.SuiApplication.configure(config).then((app) => {
+              Smo.layoutDebug.mask = 63;
+              app.view.refreshViewport();
+             });
            });
        </script>
 </head>
 <body>
-  <sub id="link-hdr"><a href="https://github.com/AaronDavidNewman/smoosic">Github site</a> | 
-    <a href="https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html">source documentation</a> | 
-    <a href="https://aarondavidnewman.github.io/Smoosic/changes.html">change notes</a> |
-     <a href="https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html">application</a><button class="close-header"><span class="icon icon-cross"></span></button></sub>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-<div id="smoo"> 
+<div id="smoo">
+  <div>
+   <audio crossOrigin="anonymous" id="samplecn4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" >
+   </div>
+   <div>
+   <audio crossOrigin="anonymous" id="samplebb4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_A_sharp.mp3" > </audio>
+</div>
 </div>
 </body>
 </html>

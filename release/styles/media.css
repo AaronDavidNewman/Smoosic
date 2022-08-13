@@ -72,9 +72,27 @@
     font-style: normal;
 }
 
+#link-hdr {
+  position: relative;
+  background: #aaa;
+  display: block;
+  width: 100%;
+  padding-left: 8px;
+}
+#link-hdr.hide {
+  display: none;
+}
+#link-hdr button {
+  position: absolute;
+  right: 8px;
+  border: 0;
+  background: #aaa;
+  color: #990808;
+  cursor: pointer;
+}
 body {
 	margin:0;
-	overflow:hidden;
+	overflow:hidden;  
 }
 
 /* @font-face {

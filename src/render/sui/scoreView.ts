@@ -17,6 +17,7 @@ import { SmoRenderConfiguration } from './configuration';
 import { SuiRenderState } from './renderState';
 import { ScoreRenderParams } from './scoreRender';
 import { SmoOperation } from '../../smo/xform/operations';
+import { SuiAudioPlayer } from '../audio/player';
 
 
 declare var $: any;
@@ -396,7 +397,7 @@ export abstract class SuiScoreView {
     return this.staffMap.findIndex((x) => x === staffId) >= 0;
   }
   isPartExposed(): boolean {
-    return this.score.isPartExposed();
+    return this.score.isPartExposed() && this.score.staves.length !== this.storeScore.staves.length;
   }
   _mapPartFormatting() {
     this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
@@ -470,7 +471,7 @@ export abstract class SuiScoreView {
     this.renderer.setViewport(true);
   }
   _setTransposing() {
-    if (!this.score.isPartExposed()) {
+    if (!this.isPartExposed()) {
       const xpose = this.score.preferences?.transposingScore;
       if (xpose) {
         this.score.setTransposing();
@@ -482,6 +483,7 @@ export abstract class SuiScoreView {
   // Update the view after loading or restoring a completely new score
   changeScore(score: SmoScore) {
     this._undoScore('load new score');
+    SuiAudioPlayer.stopPlayer();
     this.renderer.score = score;
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));

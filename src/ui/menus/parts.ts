@@ -119,11 +119,11 @@ export class SuiPartMenu extends SuiMenuBase {
         }
       } else if (item.value === 'pageLayout') {
         // only show the page layout in part menu if we are in part mode
-        if (this.view.score.isPartExposed() && fullScore === false) {
+        if (this.view.isPartExposed()) {
           defs.push(item);
         }
       } else if (item.value === 'view') {
-        if (this.view.score.isPartExposed() === false) {
+        if (this.view.isPartExposed() === false) {
           // don't let the user restrict the view if we are already viewing a part.
           defs.push(item);
         }

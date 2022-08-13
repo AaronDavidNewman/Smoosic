@@ -81,7 +81,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): void {
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
-    const isPartExposed = this.score.isPartExposed();
+    const isPartExposed = this.isPartExposed();
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
     // If this is part text, don't store it in the score text, except for the displayed score
@@ -439,47 +439,62 @@ export class SuiScoreViewOperations extends SuiScoreView {
 
   /**
    * UPdate tempo for all or part of the score
-   * @param tempo tempo
+   * @param measure the measure with the tempo.  Tempo is measure-wide parameter
    * @param scoreMode if true, update whole score.  Else selections
    * @returns 
    */
-  updateTempoScore(tempo: SmoTempoText, scoreMode: boolean): Promise<void> {
-    let measureIndex = 0;
-    let startSelection = this.tracker.getExtremeSelection(-1);
-    this._undoScore('update score tempo');
-    const measureCount = this.score.staves[0].measures.length;
-    let endSelection = SmoSelection.measureSelection(this.score,
-      startSelection.selector.staff, measureCount - 1);
-    if (!scoreMode) {
-      endSelection = this.tracker.getExtremeSelection(1);
-    }
-    if (endSelection !== null) {
-      measureIndex = startSelection.selector.measure;
-      while (measureIndex <= endSelection.selector.measure) {
-        const mi = measureIndex;
-        this.score.staves.forEach((staff) => {
-          const msel = SmoSelection.measureSelection(this.score,
-            staff.staffId, mi);
-          if (msel) {
-            SmoOperation.addTempo(this.score, msel, tempo);
-          }
-        });
-        measureIndex++;
-      }
-      measureIndex = startSelection.selector.measure;
-      while (measureIndex <= endSelection.selector.measure) {
-        const mi = measureIndex;
-        this.storeScore.staves.forEach((staff) => {
-          const msel = SmoSelection.measureSelection(this.storeScore,
-            staff.staffId, mi);
-          if (msel !== null) {
-            SmoOperation.addTempo(this.storeScore, msel, tempo);
-          }
-        });
-        measureIndex++;
+  updateTempoScore(measure: SmoMeasure, tempo: SmoTempoText, scoreMode: boolean, selectionMode: boolean): Promise<void> {
+    let measureIndex = 0;    
+    const originalTempo = new SmoTempoText(measure.tempo);
+    this._undoColumn('update tempo', measure.measureNumber.measureIndex);
+    let startMeasure = measure.measureNumber.measureIndex;
+    let endMeasure = this.score.staves[0].measures.length;
+    let displayed = false;
+    if (selectionMode) {
+      const endSel = this.tracker.getExtremeSelection(1);
+      if (endSel.selector.measure > startMeasure) {
+        endMeasure = endSel.selector.measure;
       }
     }
-    this.renderer.setRefresh();
+    // If we are only changing the position of the text, it only affects the tempo measure.
+    if (SmoTempoText.eq(originalTempo, tempo) && tempo.yOffset !== originalTempo.yOffset && endMeasure > startMeasure) {
+      endMeasure = startMeasure + 1;          
+    }
+    for (measureIndex = startMeasure; measureIndex < endMeasure; ++measureIndex) {
+      if (!scoreMode && !selectionMode) {
+        // If not whole score or selections, change until the tempo doesn't match previous measure's tempo (next tempo change)
+        const compMeasure = this.score.staves[0].measures[measureIndex];
+        if (SmoTempoText.eq(originalTempo, compMeasure.tempo) || displayed === false) {
+          const sel = SmoSelection.measureSelection(this.score, 0, measureIndex);
+          const altSel = SmoSelection.measureSelection(this.storeScore, 0, measureIndex);
+          if (sel && sel.measure.tempo.display && !displayed) {
+            this.renderer.addToReplaceQueue(sel);
+            displayed = true;
+          }
+          if (sel) {
+            SmoOperation.addTempo(this.score, sel, tempo);
+          }
+          if (altSel) {
+            SmoOperation.addTempo(this.storeScore, altSel, tempo);
+          }
+        } else {
+          break;
+        }
+      } else {
+        const sel = SmoSelection.measureSelection(this.score, 0, measureIndex);
+        const altSel = SmoSelection.measureSelection(this.storeScore, 0, measureIndex);
+        if (sel) {
+          SmoOperation.addTempo(this.score, sel, tempo);
+          if (!displayed) {
+            this.renderer.addToReplaceQueue(sel);
+            displayed = true;
+          }
+        }
+        if (altSel) {
+          SmoOperation.addTempo(this.storeScore, altSel, tempo);
+        }
+      }
+    }
     return this.renderer.updatePromise();
   }
   /**
@@ -487,7 +502,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * default tempo, or the previously-set tempo.
    * @param scoreMode whether to reset entire score
    */
-  removeTempo(scoreMode: boolean): Promise<void> {
+  removeTempo(measure: SmoMeasure, tempo: SmoTempoText, scoreMode: boolean, selectionMode: boolean): Promise<void> {
     const startSelection = this.tracker.selections[0];
     if (startSelection.selector.measure > 0) {
       const measureIx = startSelection.selector.measure - 1;
@@ -495,9 +510,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const tempo = target.getTempo();
       const newTempo = new SmoTempoText(tempo);
       newTempo.display = false;
-      this.updateTempoScore(newTempo, scoreMode);
+      this.updateTempoScore(measure, newTempo, scoreMode, selectionMode);
     } else {
-      this.updateTempoScore(new SmoTempoText(SmoTempoText.defaults), scoreMode);
+      this.updateTempoScore(measure, new SmoTempoText(SmoTempoText.defaults), scoreMode, selectionMode);
     }
     return this.renderer.updatePromise();
   }
@@ -1241,7 +1256,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.layoutManager!.updatePage(layout, pageIndex);
     // If we are in part mode, save the page layout in the part so it is there next time
     // the part is exposed.
-    if (this.score.isPartExposed()) {
+    if (this.isPartExposed()) {
       this.score.staves.forEach((staff, staffIx) => {
         staff.partInfo.layoutManager.updatePage(layout, pageIndex);
         const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
@@ -1533,6 +1548,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
     var mm = this.tracker.getExtremeSelection(-1);
     if (SuiAudioPlayer.playingInstance && SuiAudioPlayer.playingInstance.paused) {
       SuiAudioPlayer.playingInstance.play();
+      return;
+    }
+    if (SuiAudioPlayer.playing) {
       return;
     }
     new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: true }).play();

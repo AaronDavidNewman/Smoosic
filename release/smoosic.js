@@ -44,7 +44,6 @@ const eventSource_1 = __webpack_require__(/*! ../ui/eventSource */ "./src/ui/eve
 const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts");
 const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
 const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
-const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
 const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
@@ -136,6 +135,10 @@ class SuiApplication {
         const samplePromise = oscillator_1.SuiOscillator.sampleFiles.length > 0 ?
             oscillator_1.SuiOscillator.samplePromise() : promiseHelpers_1.PromiseHelpers.emptyPromise();
         const self = this;
+        // Hide header at the top of some applications
+        $('#link-hdr button').off('click').on('click', () => {
+            $('#link-hdr').addClass('hide');
+        });
         const createScore = () => {
             return self.createScore();
         };
@@ -271,8 +274,8 @@ class SuiApplication {
         });
         const ribbon = new ribbon_1.RibbonButtons({
             config: this.config,
-            ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
-            ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
+            ribbons: this.config.ribbonLayout,
+            ribbonButtons: this.config.buttonDefinition,
             menus: menus,
             completeNotifier,
             view: view,
@@ -526,6 +529,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoConfiguration = exports.ConfigurationNumberOptions = exports.ConfigurationStringOptions = void 0;
 const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
 const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
+const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
 exports.ConfigurationStringOptions = ['language', 'libraryUrl', 'remoteScore'];
 exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
 /**
@@ -567,6 +571,14 @@ class SmoConfiguration {
             this.leftControls = params.leftControls;
             this.topControls = params.topControls;
         }
+        this.ribbonLayout = params.ribbonLayout ? params.ribbonLayout : defaultRibbon_1.defaultRibbonLayout.ribbons;
+        this.buttonDefinition = params.buttonDefinition ? params.buttonDefinition : defaultRibbon_1.defaultRibbonLayout.ribbonButtons;
+        if (!params.ribbonLayout) {
+            this.ribbonLayout = defaultRibbon_1.defaultRibbonLayout.ribbons;
+        }
+        if (!params.buttonDefinition) {
+            this.buttonDefinition = defaultRibbon_1.defaultRibbonLayout.ribbonButtons;
+        }
     }
     static get defaults() {
         return {
@@ -575,7 +587,9 @@ class SmoConfiguration {
             scoreDomContainer: 'boo',
             libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
             demonPollTime: 50,
-            idleRedrawTime: 1000, // maximum time between score modification and render
+            idleRedrawTime: 1000,
+            ribbonLayout: defaultRibbon_1.defaultRibbonLayout.ribbons,
+            buttonDefinition: defaultRibbon_1.defaultRibbonLayout.ribbonButtons
         };
     }
     static get keyBindingDefaults() {
@@ -958,6 +972,7 @@ const voice_1 = __webpack_require__(/*! ../ui/buttons/voice */ "./src/ui/buttons
 const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts");
 const configuration_1 = __webpack_require__(/*! ./configuration */ "./src/application/configuration.ts");
 const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
+const tabletRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/tabletRibbon */ "./src/ui/ribbonLayout/default/tabletRibbon.ts");
 const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
 // Language strings
 const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
@@ -1064,6 +1079,7 @@ exports.Smo = {
     SuiDom: dom_1.SuiDom, SuiEventHandler: eventHandler_1.SuiEventHandler, SuiExceptionHandler: exceptions_1.SuiExceptionHandler,
     Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp, SmoTranslationEditor: translationEditor_1.SmoTranslationEditor, SimpleEventHandler: common_1.SimpleEventHandler, ModalEventHandler: common_1.ModalEventHandler,
     // Ribbon buttons
+    simpleRibbonLayout: tabletRibbon_1.simpleRibbonLayout,
     RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: note_1.NoteButtons, TextButtons: text_1.TextButtons, ChordButtons: chord_1.ChordButtons, MicrotoneButtons: microtone_1.MicrotoneButtons,
     StaveButtons: stave_1.StaveButtons, BeamButtons: beam_1.BeamButtons, MeasureButtons: measure_1.MeasureButtons, DurationButtons: duration_1.DurationButtons,
     VoiceButtons: voice_1.VoiceButtons, PlayerButtons: player_1.PlayerButtons, ArticulationButtons: articulation_1.ArticulationButtons, NavigationButtons: navigation_1.NavigationButtons,
@@ -4218,7 +4234,6 @@ class SuiAudioPlayer {
         this.audioDefaults = oscillator_1.SuiOscillator.defaults;
         this.openTies = {};
         this.instanceId = SuiAudioPlayer.incrementInstanceId();
-        SuiAudioPlayer.playing = false;
         this.paused = false;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
@@ -4504,6 +4519,7 @@ class SuiAudioPlayer {
             const a = SuiAudioPlayer._playingInstance;
             a.tracker.clearMusicCursor();
             a.paused = false;
+            a.cuedSounds.reset();
         }
         SuiAudioPlayer.playing = false;
     }
@@ -5952,16 +5968,16 @@ class SuiMapper {
         const note = artifact.note;
         const noteKey = selections_1.SmoSelector.getNoteKey(artifact.selector);
         const activeVoice = artifact.measure.getActiveVoice();
-        if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
-            const vvv = artifact.selector.voice;
-            const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
-            const g = 128 / vvv;
-            const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
-            const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-            $('#' + note.renderId).find('.vf-notehead path').each((ix, el) => {
-                el.setAttributeNS('', 'fill', fill);
-            });
-        }
+        /* if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
+          const vvv = artifact.selector.voice;
+          const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
+          const g = 128 / vvv;
+          const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
+          const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
+          $('#' + note.renderId).find('.vf-notehead path').each((ix: number, el: Element) => {
+            el.setAttributeNS('', 'fill', fill);
+          });
+        }  */
         // not has not been drawn yet.
         if ((!artifact.box) || (!artifact.measure.svg.logicalBox)) {
             return;
@@ -7331,6 +7347,7 @@ const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
+const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/player.ts");
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -7671,7 +7688,7 @@ class SuiScoreView {
         return this.staffMap.findIndex((x) => x === staffId) >= 0;
     }
     isPartExposed() {
-        return this.score.isPartExposed();
+        return this.score.isPartExposed() && this.score.staves.length !== this.storeScore.staves.length;
     }
     _mapPartFormatting() {
         this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
@@ -7746,7 +7763,7 @@ class SuiScoreView {
     }
     _setTransposing() {
         var _a;
-        if (!this.score.isPartExposed()) {
+        if (!this.isPartExposed()) {
             const xpose = (_a = this.score.preferences) === null || _a === void 0 ? void 0 : _a.transposingScore;
             if (xpose) {
                 this.score.setTransposing();
@@ -7757,6 +7774,7 @@ class SuiScoreView {
     // Update the view after loading or restoring a completely new score
     changeScore(score) {
         this._undoScore('load new score');
+        player_1.SuiAudioPlayer.stopPlayer();
         this.renderer.score = score;
         this.renderer.setViewport(true);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(score.serialize()));
@@ -7865,7 +7883,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     updateTextGroup(oldVersion, newVersion) {
         const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
-        const isPartExposed = this.score.isPartExposed();
+        const isPartExposed = this.isPartExposed();
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
         // If this is part text, don't store it in the score text, except for the displayed score
         if (!isPartExposed) {
@@ -8216,44 +8234,64 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     /**
      * UPdate tempo for all or part of the score
-     * @param tempo tempo
+     * @param measure the measure with the tempo.  Tempo is measure-wide parameter
      * @param scoreMode if true, update whole score.  Else selections
      * @returns
      */
-    updateTempoScore(tempo, scoreMode) {
+    updateTempoScore(measure, tempo, scoreMode, selectionMode) {
         let measureIndex = 0;
-        let startSelection = this.tracker.getExtremeSelection(-1);
-        this._undoScore('update score tempo');
-        const measureCount = this.score.staves[0].measures.length;
-        let endSelection = selections_1.SmoSelection.measureSelection(this.score, startSelection.selector.staff, measureCount - 1);
-        if (!scoreMode) {
-            endSelection = this.tracker.getExtremeSelection(1);
-        }
-        if (endSelection !== null) {
-            measureIndex = startSelection.selector.measure;
-            while (measureIndex <= endSelection.selector.measure) {
-                const mi = measureIndex;
-                this.score.staves.forEach((staff) => {
-                    const msel = selections_1.SmoSelection.measureSelection(this.score, staff.staffId, mi);
-                    if (msel) {
-                        operations_1.SmoOperation.addTempo(this.score, msel, tempo);
-                    }
-                });
-                measureIndex++;
-            }
-            measureIndex = startSelection.selector.measure;
-            while (measureIndex <= endSelection.selector.measure) {
-                const mi = measureIndex;
-                this.storeScore.staves.forEach((staff) => {
-                    const msel = selections_1.SmoSelection.measureSelection(this.storeScore, staff.staffId, mi);
-                    if (msel !== null) {
-                        operations_1.SmoOperation.addTempo(this.storeScore, msel, tempo);
-                    }
-                });
-                measureIndex++;
+        const originalTempo = new measureModifiers_1.SmoTempoText(measure.tempo);
+        this._undoColumn('update tempo', measure.measureNumber.measureIndex);
+        let startMeasure = measure.measureNumber.measureIndex;
+        let endMeasure = this.score.staves[0].measures.length;
+        let displayed = false;
+        if (selectionMode) {
+            const endSel = this.tracker.getExtremeSelection(1);
+            if (endSel.selector.measure > startMeasure) {
+                endMeasure = endSel.selector.measure;
             }
         }
-        this.renderer.setRefresh();
+        // If we are only changing the position of the text, it only affects the tempo measure.
+        if (measureModifiers_1.SmoTempoText.eq(originalTempo, tempo) && tempo.yOffset !== originalTempo.yOffset && endMeasure > startMeasure) {
+            endMeasure = startMeasure + 1;
+        }
+        for (measureIndex = startMeasure; measureIndex < endMeasure; ++measureIndex) {
+            if (!scoreMode && !selectionMode) {
+                // If not whole score or selections, change until the tempo doesn't match previous measure's tempo (next tempo change)
+                const compMeasure = this.score.staves[0].measures[measureIndex];
+                if (measureModifiers_1.SmoTempoText.eq(originalTempo, compMeasure.tempo) || displayed === false) {
+                    const sel = selections_1.SmoSelection.measureSelection(this.score, 0, measureIndex);
+                    const altSel = selections_1.SmoSelection.measureSelection(this.storeScore, 0, measureIndex);
+                    if (sel && sel.measure.tempo.display && !displayed) {
+                        this.renderer.addToReplaceQueue(sel);
+                        displayed = true;
+                    }
+                    if (sel) {
+                        operations_1.SmoOperation.addTempo(this.score, sel, tempo);
+                    }
+                    if (altSel) {
+                        operations_1.SmoOperation.addTempo(this.storeScore, altSel, tempo);
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                const sel = selections_1.SmoSelection.measureSelection(this.score, 0, measureIndex);
+                const altSel = selections_1.SmoSelection.measureSelection(this.storeScore, 0, measureIndex);
+                if (sel) {
+                    operations_1.SmoOperation.addTempo(this.score, sel, tempo);
+                    if (!displayed) {
+                        this.renderer.addToReplaceQueue(sel);
+                        displayed = true;
+                    }
+                }
+                if (altSel) {
+                    operations_1.SmoOperation.addTempo(this.storeScore, altSel, tempo);
+                }
+            }
+        }
         return this.renderer.updatePromise();
     }
     /**
@@ -8261,7 +8299,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * default tempo, or the previously-set tempo.
      * @param scoreMode whether to reset entire score
      */
-    removeTempo(scoreMode) {
+    removeTempo(measure, tempo, scoreMode, selectionMode) {
         const startSelection = this.tracker.selections[0];
         if (startSelection.selector.measure > 0) {
             const measureIx = startSelection.selector.measure - 1;
@@ -8269,10 +8307,10 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             const tempo = target.getTempo();
             const newTempo = new measureModifiers_1.SmoTempoText(tempo);
             newTempo.display = false;
-            this.updateTempoScore(newTempo, scoreMode);
+            this.updateTempoScore(measure, newTempo, scoreMode, selectionMode);
         }
         else {
-            this.updateTempoScore(new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), scoreMode);
+            this.updateTempoScore(measure, new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), scoreMode, selectionMode);
         }
         return this.renderer.updatePromise();
     }
@@ -9005,7 +9043,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this.storeScore.layoutManager.updatePage(layout, pageIndex);
         // If we are in part mode, save the page layout in the part so it is there next time
         // the part is exposed.
-        if (this.score.isPartExposed()) {
+        if (this.isPartExposed()) {
             this.score.staves.forEach((staff, staffIx) => {
                 staff.partInfo.layoutManager.updatePage(layout, pageIndex);
                 const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
@@ -9296,6 +9334,9 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         var mm = this.tracker.getExtremeSelection(-1);
         if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
             player_1.SuiAudioPlayer.playingInstance.play();
+            return;
+        }
+        if (player_1.SuiAudioPlayer.playing) {
             return;
         }
         new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: true }).play();
@@ -13441,9 +13482,9 @@ class VxMeasure {
                 noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
             }
             vexNote = new VF.StaveNote(noteParams);
-            if (voiceIx > 0) {
-                vexNote.setXShift(-10);
-            }
+            /* if (voiceIx > 0) {
+              vexNote.setXShift(-10);
+            }*/
             if (this.smoMeasure.voices.length === 1 &&
                 this.smoMeasure.voices[0].notes.length === 1) {
                 const sn = this.smoMeasure.voices[0].notes[0];
@@ -13456,7 +13497,9 @@ class VxMeasure {
             if (smoNote.fillStyle) {
                 vexNote.setStyle({ fillStyle: smoNote.fillStyle });
             }
-            vexNote.attrs.classes = 'voice-' + voiceIx;
+            else if (voiceIx > 0) {
+                vexNote.setStyle({ fillStyle: "#115511" });
+            }
             smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
         }
         this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
@@ -40786,13 +40829,16 @@ class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
         this.edited = false;
         this.format = measure.format;
         this.backup = new measureModifiers_1.SmoMeasureFormat(this.format);
+        this.measure = measure;
     }
     writeNumber(param, value) {
+        this.format.measureIndex = this.measure.measureNumber.measureIndex;
         this.format[param] = value;
         this.view.setMeasureFormat(this.format);
         this.edited = true;
     }
     writeBoolean(param, value) {
+        this.format.measureIndex = this.measure.measureNumber.measureIndex;
         this.format[param] = value;
         this.view.setMeasureFormat(this.format);
         this.edited = true;
@@ -42144,40 +42190,42 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifie
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
 class SuiTempoAdapter extends adapter_1.SuiComponentAdapter {
-    constructor(view, tempoText) {
+    constructor(view, measure) {
         super(view);
         this.applyToAllVal = false;
+        this.applyToSelection = false;
         this.edited = false;
-        this.smoTempoText = tempoText;
+        this.measure = measure;
+        this.smoTempoText = new measureModifiers_1.SmoTempoText(measure.tempo);
         this.backup = new measureModifiers_1.SmoTempoText(this.smoTempoText);
     }
     writeNumber(param, value) {
         this.smoTempoText[param] = value;
-        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
         this.edited = true;
     }
     writeBoolean(param, value) {
         this.smoTempoText[param] = value;
-        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
         this.edited = true;
     }
     writeString(param, value) {
         this.smoTempoText[param] = value;
-        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
         this.edited = true;
     }
     remove() {
-        this.view.removeTempo(this.applyToAll);
+        this.view.removeTempo(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     }
     cancel() {
-        this.view.updateTempoScore(this.backup, false);
+        this.view.updateTempoScore(this.measure, this.backup, this.applyToAll, this.applyToSelection);
     }
     get applyToAll() {
         return this.applyToAllVal;
     }
     set applyToAll(val) {
         this.applyToAllVal = val;
-        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
         this.edited = true;
     }
     commit() { }
@@ -42232,7 +42280,7 @@ class SuiTempoDialog extends adapter_1.SuiDialogAdapterBase {
         const measures = selections_1.SmoSelection.getMeasureList(parameters.view.tracker.selections)
             .map((sel) => sel.measure);
         const measure = measures[0];
-        const adapter = new SuiTempoAdapter(parameters.view, measure.tempo);
+        const adapter = new SuiTempoAdapter(parameters.view, measure);
         super(SuiTempoDialog.dialogElements, Object.assign({ adapter }, parameters));
     }
     showHideCustom() {
@@ -42367,6 +42415,10 @@ SuiTempoDialog.dialogElements = {
             smoName: 'applyToAll',
             control: 'SuiToggleComponent',
             label: 'Apply to all future measures?'
+        }, {
+            smoName: 'applyToSelection',
+            control: 'SuiToggleComponent',
+            label: 'Apply to selection?'
         }, {
             smoName: 'display',
             control: 'SuiToggleComponent',
@@ -50876,12 +50928,12 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
             }
             else if (item.value === 'pageLayout') {
                 // only show the page layout in part menu if we are in part mode
-                if (this.view.score.isPartExposed() && fullScore === false) {
+                if (this.view.isPartExposed()) {
                     defs.push(item);
                 }
             }
             else if (item.value === 'view') {
-                if (this.view.score.isPartExposed() === false) {
+                if (this.view.isPartExposed() === false) {
                     // don't let the user restrict the view if we are already viewing a part.
                     defs.push(item);
                 }
@@ -50987,7 +51039,7 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
                 defs.push(item);
             }
             else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
-                if (this.view.score.isPartExposed() === false || this.view.storeScore.staves.length === 1) {
+                if (this.view.isPartExposed() === false) {
                     // only show the page layout in score menu if we are in score mode
                     defs.push(item);
                 }
@@ -51081,7 +51133,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
     }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
-        const partMode = this.view.score.isPartExposed() && this.view.score.staves.length !== this.view.storeScore.staves.length;
         if (text === 'pageLayout') {
             this.execPageLayout();
         }
@@ -53241,6 +53292,615 @@ class defaultRibbonLayout {
     }
 }
 exports.defaultRibbonLayout = defaultRibbonLayout;
+
+
+/***/ }),
+
+/***/ "./src/ui/ribbonLayout/default/tabletRibbon.ts":
+/*!*****************************************************!*\
+  !*** ./src/ui/ribbonLayout/default/tabletRibbon.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.simpleRibbonLayout = void 0;
+class simpleRibbonLayout {
+    static get ribbons() {
+        var left = simpleRibbonLayout.leftRibbonIds;
+        var top = simpleRibbonLayout.displayIds.concat(simpleRibbonLayout.noteButtonIds).concat(simpleRibbonLayout.navigateButtonIds)
+            .concat(simpleRibbonLayout.durationIds);
+        return {
+            left: left,
+            top: top
+        };
+    }
+    static get simpleRibbonLayout() {
+        return simpleRibbonLayout.leftRibbonButtons.concat(simpleRibbonLayout.navigationButtons).concat(simpleRibbonLayout.noteRibbonButtons).concat(simpleRibbonLayout.durationRibbonButtons);
+    }
+    static get leftRibbonIds() {
+        return ['libraryMenu',
+            'layoutMenu',
+            'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
+            'pianoModal'];
+    }
+    static get noteButtonIds() {
+        return ['NoteButtons',
+            'UpNoteButton', 'DownNoteButton',
+            'UpOctaveButton', 'DownOctaveButton', 'ToggleRestButton', 'ToggleSlashButton', 'ToggleAccidental', 'ToggleCourtesy'];
+    }
+    static get navigateButtonIds() {
+        return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons', 'navFastForward', 'navRewind',
+            'navGrowLeft', 'navGrowRight'];
+    }
+    static get intervalIds() {
+        return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
+            'FifthUpButton', 'FifthDownButton', 'SixthUpButton', 'SixthDownButton',
+            'SeventhUpButton', 'SeventhDownButton', 'OctaveUpButton', 'OctaveDownButton', 'CollapseChordButton'];
+    }
+    static get durationIds() {
+        return ['DurationButtons', 'GrowDuration', 'LessDuration', 'GrowDurationDot', 'LessDurationDot', 'TripletButton', 'QuintupletButton', 'SeptupletButton', 'NoTupletButton'];
+    }
+    static get playerIds() {
+        return ['playerButtons', 'playButton', 'pauseButton', 'stopButton'];
+    }
+    static get displayIds() {
+        return ['quickButtons', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
+    }
+    static get displayButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  hide',
+                icon: 'icon-zoomplus',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'quickButtons',
+                id: 'quickButtons'
+            }, {
+                leftText: '',
+                rightText: '',
+                classes: 'icon   refresh',
+                icon: 'icon-refresh',
+                action: 'collapseChild',
+                ctor: 'DisplaySettings',
+                group: 'quickButtons',
+                id: 'refresh'
+            }, {
+                leftText: '',
+                rightText: '',
+                classes: 'icon   refresh',
+                icon: 'icon-zoomplus',
+                action: 'collapseChild',
+                ctor: 'DisplaySettings',
+                group: 'quickButtons',
+                id: 'zoomout'
+            }, {
+                leftText: '',
+                rightText: '',
+                classes: 'icon   refresh',
+                icon: 'icon-zoomminus',
+                action: 'collapseChild',
+                ctor: 'DisplaySettings',
+                group: 'quickButtons',
+                id: 'zoomin'
+            }, {
+                leftText: '',
+                rightText: '',
+                classes: 'icon   play',
+                icon: 'icon-play3',
+                action: 'collapseChild',
+                ctor: 'DisplaySettings',
+                group: 'quickButtons',
+                id: 'playButton2'
+            }, {
+                leftText: '',
+                rightText: '',
+                classes: 'icon   stop2',
+                icon: 'icon-stop2',
+                action: 'collapseChild',
+                ctor: 'DisplaySettings',
+                group: 'quickButtons',
+                id: 'stopButton2'
+            }
+        ];
+    }
+    static get durationRibbonButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  collapseParent duration',
+                icon: 'icon-duration',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'duration',
+                id: 'DurationButtons'
+            }, {
+                leftText: '',
+                rightText: '.',
+                icon: 'icon-duration_grow',
+                classes: 'collapsed duration',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'GrowDuration'
+            }, {
+                leftText: '',
+                rightText: ',',
+                icon: 'icon-duration_less',
+                classes: 'collapsed duration',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'LessDuration'
+            }, {
+                leftText: '',
+                rightText: '>',
+                icon: 'icon-duration_grow_dot',
+                classes: 'collapsed duration',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'GrowDurationDot'
+            }, {
+                leftText: '',
+                rightText: '<',
+                icon: 'icon-duration_less_dot',
+                classes: 'collapsed duration',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'LessDurationDot'
+            }, {
+                leftText: '',
+                rightText: 'Ctrl-3',
+                icon: 'icon-triplet',
+                classes: 'collapsed duration tuplet',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'TripletButton'
+            }, {
+                leftText: '',
+                rightText: 'Ctrl-5',
+                icon: 'icon-quint',
+                classes: 'collapsed duration tuplet',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'QuintupletButton'
+            }, {
+                leftText: '',
+                rightText: 'Ctrl-7',
+                icon: 'icon-septuplet',
+                classes: 'collapsed duration tuplet',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'SeptupletButton'
+            },
+            {
+                leftText: '',
+                rightText: 'Ctrl-0',
+                icon: 'icon-no_tuplet',
+                classes: 'collapsed duration tuplet',
+                action: 'collapseChild',
+                ctor: 'DurationButtons',
+                group: 'duration',
+                id: 'NoTupletButton'
+            }
+        ];
+    }
+    static get noteRibbonButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  collapseParent',
+                icon: 'icon-note',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'notes',
+                id: 'NoteButtons'
+            }, {
+                leftText: 'A',
+                rightText: 'a',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ANoteButton'
+            }, {
+                leftText: 'B',
+                rightText: 'b',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'BNoteButton'
+            }, {
+                leftText: 'C',
+                rightText: 'c',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'CNoteButton'
+            }, {
+                leftText: 'D',
+                rightText: 'd',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'DNoteButton'
+            }, {
+                leftText: 'E',
+                rightText: 'e',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ENoteButton'
+            }, {
+                leftText: 'F',
+                rightText: 'f',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'FNoteButton'
+            }, {
+                leftText: 'G',
+                rightText: 'g',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'GNoteButton'
+            }, {
+                leftText: '',
+                rightText: '-',
+                icon: 'icon-sharp',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'UpNoteButton'
+            }, {
+                leftText: '',
+                rightText: '=',
+                icon: 'icon-flat',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'DownNoteButton'
+            }, {
+                leftText: '',
+                rightText: 'r',
+                icon: 'icon-rest',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ToggleRestButton'
+            }, {
+                leftText: '',
+                rightText: 'r',
+                icon: 'icon-slash',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ToggleSlashButton'
+            }, {
+                leftText: '...',
+                rightText: '',
+                icon: 'icon-circle-left',
+                classes: 'collapsed expander',
+                action: 'collapseMore',
+                ctor: 'ExtendedCollapseParent',
+                group: 'notes',
+                id: 'moreNoteButtons'
+            }, {
+                leftText: '',
+                rightText: 'G',
+                icon: 'icon-grace_note',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'AddGraceNote'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-grace_slash',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'SlashGraceNote'
+            }, {
+                leftText: '',
+                rightText: 'alt-g',
+                icon: 'icon-grace_remove',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'RemoveGraceNote'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-notex',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'XNoteHead'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-notehead-triangleup',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'TriUpNoteHead'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-notehead-circlex',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'CircleXNoteHead'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-notehead-diamondblack',
+                classes: 'collapsed graceIcon',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'DiamondNoteHead'
+            }, {
+                leftText: '8va',
+                rightText: 'Shift=',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'UpOctaveButton'
+            }, {
+                leftText: '8vb',
+                rightText: 'Shift-',
+                icon: '',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'DownOctaveButton'
+            }, {
+                leftText: '',
+                rightText: 'ShiftE',
+                icon: 'icon-accident',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ToggleAccidental'
+            }, {
+                leftText: '',
+                rightText: 'ShiftF',
+                icon: 'icon-courtesy',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NoteButtons',
+                group: 'notes',
+                id: 'ToggleCourtesy'
+            }
+        ];
+    }
+    static get playerButtons() {
+        // .icon-play3
+        return [{
+                leftText: '',
+                rightText: '',
+                icon: 'icon-equalizer2',
+                classes: 'icon collapseParent player',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'playerButtons',
+                id: 'playerButtons'
+            }, {
+                leftText: '',
+                rightText: 'p',
+                icon: 'icon-play3',
+                classes: 'icon collapsed player',
+                action: 'collapseChild',
+                ctor: 'PlayerButtons',
+                group: 'playerButtons',
+                id: 'playButton'
+            },
+            {
+                leftText: '',
+                rightText: 's',
+                icon: 'icon-stop2',
+                classes: 'icon collapsed player',
+                action: 'collapseChild',
+                ctor: 'PlayerButtons',
+                group: 'playerButtons',
+                id: 'stopButton'
+            },
+            {
+                leftText: '',
+                rightText: 'P',
+                icon: 'icon-pause2',
+                classes: 'icon collapsed player',
+                action: 'collapseChild',
+                ctor: 'PlayerButtons',
+                group: 'playerButtons',
+                id: 'pauseButton'
+            }];
+    }
+    static get navigationButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  collapseParent',
+                icon: 'icon-navigate',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'navigation',
+                id: 'NavigationButtons'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-arrow-left',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navLeftButton'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-arrow-right',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navRightButton'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-arrow-up',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navUpButton'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-arrow-down',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navDownButton'
+            }, {
+                leftText: '...',
+                rightText: '',
+                icon: '',
+                classes: 'collapsed expander',
+                action: 'collapseMore',
+                ctor: 'ExtendedCollapseParent',
+                group: 'navigation',
+                id: 'moreNavButtons'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-fforward',
+                classes: 'collapsed',
+                action: 'collapseGrandchild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navFastForward'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-rewind',
+                classes: 'collapsed',
+                action: 'collapseGrandchild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navRewind'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-note_select_left',
+                classes: 'collapsed selection-icon',
+                action: 'collapseGrandchild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navGrowLeft'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-note_select_right',
+                classes: 'collapsed selection-icon',
+                action: 'collapseGrandchild',
+                ctor: 'NavigationButtons',
+                group: 'navigation',
+                id: 'navGrowRight'
+            }
+        ];
+    }
+    static get leftRibbonButtons() {
+        return [{
+                leftText: 'Library',
+                rightText: '/L',
+                icon: '',
+                classes: 'file-modify menu-select',
+                action: 'modal',
+                ctor: 'SuiLibraryDialog',
+                group: 'scoreEdit',
+                id: 'libraryMenu'
+            }, {
+                leftText: 'Score',
+                rightText: '',
+                icon: '',
+                classes: 'icon ',
+                action: 'menu',
+                ctor: 'SuiScoreMenu',
+                group: 'scoreEdit',
+                id: 'layoutMenu'
+            }, {
+                leftText: 'Tempo',
+                rightText: 't',
+                icon: '',
+                classes: 'icon ',
+                action: 'modal',
+                ctor: 'SuiTempoDialog',
+                group: 'scoreEdit',
+                id: 'tempoModal'
+            }, {
+                leftText: 'Time Signature',
+                rightText: '/m',
+                icon: '',
+                classes: 'staff-modify menu-select',
+                action: 'menu',
+                ctor: 'SuiTimeSignatureMenu',
+                group: 'scoreEdit',
+                id: 'timeSignatureMenu'
+            },
+            {
+                leftText: 'Key',
+                rightText: '/k',
+                icon: '',
+                classes: 'note-modify menu-select',
+                action: 'menu',
+                ctor: 'SuiKeySignatureMenu',
+                group: 'scoreEdit',
+                id: 'keyMenu'
+            },
+        ];
+    }
+}
+exports.simpleRibbonLayout = simpleRibbonLayout;
 
 
 /***/ }),

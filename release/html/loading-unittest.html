@@ -3,14 +3,15 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Smoosic Editor</title>
+  <title>Smoosic Unit Tests</title>
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
-  <link href="../styles/media.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/media.css" rel="stylesheet">
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
   <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
+  <link href="../qunit.css" rel="stylesheet">
   <script type="text/javascript"
     src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"
@@ -18,29 +19,18 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script  -->
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
+  <script type="text/javascript" src="../midi-parser.js"></script>
+  <script type="text/javascript" src="../qunit.js"></script>
   <script type="text/javascript" src="../smoosic.js"></script>
   <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function (event) {
-
-      // A simple music program using Smoosic in library mode.  
-      // Load a Music XML file (Finale) and render it
-      const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml';
-      Smo.SuiApplication.configure({
-                   mode: 'library',
-                   scoreDomContainer: 'outer-container',
-                   remoteScore: path
-      }).then((application) => {
-        console.log('done!');
-      });
+      Smo.createLoadTests();
     });
   </script>
 </head>
 
 <body>
-  <sub id="link-hdr"><a href="https://github.com/AaronDavidNewman/smoosic">Github site</a> | 
-    <a href="https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html">source documentation</a> | 
-    <a href="https://aarondavidnewman.github.io/Smoosic/changes.html">change notes</a> |
-     <a href="https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html">application</a><button class="close-header"><span class="icon icon-cross"></span></button></sub>
+  <div id="qunit"></div>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
   <div id="outer-container" style="overflow:auto">
     <div id="container1">

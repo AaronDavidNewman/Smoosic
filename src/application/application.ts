@@ -26,7 +26,6 @@ import { BrowserEventSource } from '../ui/eventSource';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
 import { RibbonButtons } from '../ui/buttons/ribbon';
-import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 import { PromiseHelpers } from '../common/promiseHelpers';
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
@@ -151,7 +150,12 @@ export class SuiApplication {
     const samplePromise: Promise<any> = SuiOscillator.sampleFiles.length > 0 ?
       SuiOscillator.samplePromise() : PromiseHelpers.emptyPromise();
 
-    const self = this;
+    const self = this;    
+    // Hide header at the top of some applications
+    $('#link-hdr button').off('click').on('click', () => {
+      $('#link-hdr').addClass('hide');
+    });
+
     const createScore = (): Promise<any> => {
       return self.createScore();
     }
@@ -280,8 +284,8 @@ export class SuiApplication {
     });
     const ribbon = new RibbonButtons({
       config: this.config,
-      ribbons: defaultRibbonLayout.ribbons,
-      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      ribbons: this.config.ribbonLayout,
+      ribbonButtons: this.config.buttonDefinition,
       menus: menus,
       completeNotifier,
       view: view,

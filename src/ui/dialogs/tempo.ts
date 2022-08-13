@@ -5,6 +5,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { SmoMeasure } from '../../smo/data/measure';
 
 declare var $: any;
 
@@ -13,40 +14,43 @@ declare var $: any;
 export class SuiTempoAdapter extends SuiComponentAdapter {
   smoTempoText: SmoTempoText;
   backup: SmoTempoText;
-  applyToAllVal: boolean = false;
+  applyToAllVal: boolean = false;  
+  applyToSelection: boolean = false;
   edited: boolean = false;
-  constructor(view: SuiScoreViewOperations, tempoText: SmoTempoText) {
+  measure: SmoMeasure;
+  constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
     super(view);
-    this.smoTempoText = tempoText;
+    this.measure = measure;
+    this.smoTempoText = new SmoTempoText(measure.tempo);
     this.backup = new SmoTempoText(this.smoTempoText);
   }
   writeNumber(param: SmoTempoNumberAttribute, value: number) {
     this.smoTempoText[param] = value;
-    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
   writeBoolean(param: SmoTempoBooleanAttribute, value: boolean) {
     this.smoTempoText[param] = value;
-    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
   writeString(param: SmoTempoStringAttribute, value: string) {
     (this.smoTempoText as any)[param] = value;
-    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
   remove() {
-    this.view.removeTempo(this.applyToAll);
+    this.view.removeTempo(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
   }
   cancel() {
-    this.view.updateTempoScore(this.backup, false);
+    this.view.updateTempoScore(this.measure, this.backup, this.applyToAll, this.applyToSelection);
   }
   get applyToAll() {
     return this.applyToAllVal;
   }
   set applyToAll(val: boolean) {
     this.applyToAllVal = val;
-    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
   commit(){}
@@ -212,6 +216,10 @@ export class SuiTempoDialog extends SuiDialogAdapterBase<SuiTempoAdapter> {
             control: 'SuiToggleComponent',
             label: 'Apply to all future measures?'
           }, {
+            smoName: 'applyToSelection',
+            control: 'SuiToggleComponent',
+            label: 'Apply to selection?'
+          }, {
             smoName: 'display',
             control: 'SuiToggleComponent',
             label: 'Display Tempo'
@@ -244,7 +252,7 @@ export class SuiTempoDialog extends SuiDialogAdapterBase<SuiTempoAdapter> {
     const measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     const measure = measures[0];
-    const adapter = new SuiTempoAdapter(parameters.view, measure.tempo);
+    const adapter = new SuiTempoAdapter(parameters.view, measure);
     super(SuiTempoDialog.dialogElements, { adapter, ...parameters });
   }
 }

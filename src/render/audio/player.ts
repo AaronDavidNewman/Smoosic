@@ -130,7 +130,6 @@ export class SuiAudioPlayer {
   useReverb: boolean;
   constructor(parameters: SuiAudioPlayerParams) {
     this.instanceId = SuiAudioPlayer.incrementInstanceId();
-    SuiAudioPlayer.playing = false;
     this.paused = false;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
@@ -387,6 +386,7 @@ export class SuiAudioPlayer {
       const a = SuiAudioPlayer._playingInstance;
       a.tracker.clearMusicCursor();
       a.paused = false;
+      a.cuedSounds.reset();
     }
     SuiAudioPlayer.playing = false;
   }

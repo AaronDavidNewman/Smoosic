@@ -6,10 +6,12 @@
 import { SmoRenderConfiguration } from "../render/sui/configuration";
 import { SmoScore } from "../smo/data/score";
 import { ModalEventHandler } from "./common";
-import { KeyBindingConfiguration } from "../ui/configuration";
+import { KeyBindingConfiguration, SmoUiConfiguration } from "../ui/configuration";
 import { defaultEditorKeys } from "../ui/keyBindings/default/editorKeys";
 import { defaultTrackerKeys } from "../ui/keyBindings/default/trackerKeys";
-import { SmoUiConfiguration } from "../ui/configuration";
+import { RibbonLayout } from "../ui/common";
+import { ButtonDefinition } from "../ui/buttons/button";
+import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 
 export type SmoMode = 'library' | 'application' | 'translate';
 export type ConfigurationStringOption = 'language' | 'libraryUrl' | 'remoteScore';
@@ -36,6 +38,8 @@ export interface SmoConfigurationParams {
   libraryUrl?: string;
   demonPollTime: number; // how often we poll the score to see if it changed
   idleRedrawTime: number;
+  ribbonLayout?: RibbonLayout;
+  buttonDefinition?: ButtonDefinition[];
 }
 
 /**
@@ -67,6 +71,8 @@ export interface SmoConfigurationParams {
   idleRedrawTime: number = 0;
   keys?: KeyBindingConfiguration;
   eventHandler?: ModalEventHandler;
+  ribbonLayout: RibbonLayout;
+  buttonDefinition: ButtonDefinition[];
 
   static get defaults(): SmoConfiguration {
     return {
@@ -76,6 +82,8 @@ export interface SmoConfigurationParams {
       libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
+      ribbonLayout: defaultRibbonLayout.ribbons,
+      buttonDefinition: defaultRibbonLayout.ribbonButtons
     };
   }
   static get keyBindingDefaults(): KeyBindingConfiguration {
@@ -104,6 +112,14 @@ export interface SmoConfigurationParams {
     if (this.mode === 'application') {
       this.leftControls = params.leftControls;
       this.topControls = params.topControls;
+    }
+    this.ribbonLayout = params.ribbonLayout ? params.ribbonLayout: defaultRibbonLayout.ribbons;
+    this.buttonDefinition = params.buttonDefinition ? params.buttonDefinition : defaultRibbonLayout.ribbonButtons;
+    if (!params.ribbonLayout) {
+      this.ribbonLayout = defaultRibbonLayout.ribbons;
+    }
+    if (!params.buttonDefinition) {
+      this.buttonDefinition = defaultRibbonLayout.ribbonButtons;
     }
   }
 }

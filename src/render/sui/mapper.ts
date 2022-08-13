@@ -572,7 +572,7 @@ export abstract class SuiMapper {
     const note = artifact.note as SmoNote;
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
+    /* if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
       const vvv = artifact.selector.voice;
       const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
       const g = 128 / vvv;
@@ -581,7 +581,7 @@ export abstract class SuiMapper {
       $('#' + note.renderId).find('.vf-notehead path').each((ix: number, el: Element) => {
         el.setAttributeNS('', 'fill', fill);
       });
-    }
+    }  */
     // not has not been drawn yet.
     if ((!artifact.box) || (!artifact.measure.svg.logicalBox)) {
       return;
