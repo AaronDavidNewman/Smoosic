@@ -1046,6 +1046,9 @@ const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./sr
 const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
+// audio library
+const player_2 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
+const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -1114,6 +1117,8 @@ exports.Smo = {
     // Rendering components
     SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SvgHelpers: svgHelpers_1.SvgHelpers, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations,
+    // Audio components
+    SuiAudioPlayer: player_2.SuiAudioPlayer, SuiOscillator: oscillator_1.SuiOscillator, SuiSampler: oscillator_1.SuiSampler, SuiReverb: oscillator_1.SuiReverb,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
     XmlToSmo: xmlToSmo_1.XmlToSmo,
@@ -3806,6 +3811,7 @@ class SuiReverb {
     }
     disconnect() {
         this.output.disconnect();
+        this.input.disconnect();
     }
     // credit: https://github.com/nick-thompson
     _buildImpulse() {
@@ -3848,7 +3854,13 @@ class SuiOscillator {
         this.releaseLevel = 0;
         this.frequency = -1;
         serializationHelpers_1.smoSerialize.serializedMerge(SuiOscillator.attributes, parameters, this);
-        this.reverb = new SuiReverb(SuiOscillator.audio);
+        if (parameters.useReverb) {
+            this.reverb = new SuiReverb(SuiOscillator.audio);
+        }
+        else {
+            this.reverb = null;
+        }
+        // this.reverb = null;
         this.attack = this.attackEnv * SuiOscillator.attackTime;
         this.decay = this.decayEnv * SuiOscillator.decayTime;
         this.sustain = this.sustainEnv * this.duration;
@@ -3865,22 +3877,23 @@ class SuiOscillator {
     }
     static get defaults() {
         const wavetable = {
-            real: [0,
-                0.3, 0.3, 0, 0, 0,
-                0.1, 0, 0, 0, 0,
-                0.05, 0, 0, 0, 0,
-                0.01, 0, 0, 0, 0,
-                0.01, 0, 0, 0, 0,
-                0, 0, 0, 0, 0,
-                0, 0],
+            /* real: [0,
+              0.3, 0.3, 0, 0, 0,
+              0.1, 0, 0, 0, 0,
+              0.05, 0, 0, 0, 0,
+              0.01, 0, 0, 0, 0,
+              0.01, 0, 0, 0, 0,
+              0, 0, 0, 0, 0,
+              0, 0],
             imaginary: [0,
-                0, 0.05, 0, 0, 0,
-                0, 0.01, 0, 0, 0,
-                0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0,
-                0, 0]
+              0, 0.05, 0, 0, 0,
+              0, 0.01, 0, 0, 0,
+              0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0,
+              0, 0] */
+            real: [], imaginary: []
         };
         const obj = {
             duration: 1000,
@@ -4019,17 +4032,20 @@ class SuiOscillator {
         }
         return rv;
     }
-    _playPromise(osc, duration, gain) {
+    _playPromise(duration, gain) {
         const audio = SuiOscillator.audio;
         const promise = new Promise((resolve) => {
-            osc.start(0);
+            if (this.osc) {
+                this.osc.start(0);
+            }
             setTimeout(() => {
                 resolve();
             }, duration);
             setTimeout(() => {
-                osc.stop(0);
-                osc.disconnect(gain);
-                gain.disconnect(audio.destination);
+                if (this.osc) {
+                    this.osc.stop(0);
+                }
+                this.disconnect();
             }, duration + 500);
         });
         return promise;
@@ -4042,15 +4058,30 @@ class SuiOscillator {
         }
         return rv;
     }
+    disconnect() {
+        if (this.osc) {
+            this.osc.disconnect();
+        }
+        if (this.gainNode) {
+            this.gainNode.disconnect();
+        }
+        if (this.delayNode) {
+            this.delayNode.disconnect();
+        }
+        if (this.reverb) {
+            this.reverb.disconnect();
+        }
+    }
     // ### play
     // play the audio oscillator for the specified duration.  Return a promise that
     // resolves after the duration.  Also dispose of the audio resources after the play is complete.
     play() {
         const audio = SuiOscillator.audio;
         const gain = audio.createGain();
-        const osc = audio.createOscillator();
-        gain.connect(this.reverb.input);
-        this.reverb.connect(audio.destination);
+        this.osc = audio.createOscillator();
+        gain.connect(audio.destination);
+        // gain.connect(this.reverb.input);
+        // this.reverb.connect(audio.destination);
         const attack = this.attack / 1000;
         const decay = this.decay / 1000;
         const sustain = this.sustain / 1000;
@@ -4059,17 +4090,20 @@ class SuiOscillator {
         gain.gain.exponentialRampToValueAtTime(this.sustainLevel * this.gain, audio.currentTime + attack + decay);
         gain.gain.exponentialRampToValueAtTime(this.releaseLevel * this.gain, audio.currentTime + attack + decay + sustain);
         gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-        if (this.waveform !== 'custom') {
-            osc.type = this.waveform;
+        if (this.waveform !== 'custom' && this.osc) {
+            this.osc.type = this.waveform;
         }
         else {
             const wave = audio.createPeriodicWave(SuiOscillator.toFloatArray(this.wavetable.real), SuiOscillator.toFloatArray(this.wavetable.imaginary), { disableNormalization: false });
-            osc.setPeriodicWave(wave);
+            if (this.osc) { }
+            this.osc.setPeriodicWave(wave);
         }
-        osc.frequency.value = this.frequency;
-        osc.connect(gain);
-        gain.connect(audio.destination);
-        return this._playPromise(osc, this.duration, gain);
+        if (this.osc) {
+            this.osc.frequency.value = this.frequency;
+            this.osc.connect(gain);
+            gain.connect(audio.destination);
+        }
+        return this._playPromise(this.duration, gain);
     }
 }
 exports.SuiOscillator = SuiOscillator;
@@ -4105,51 +4139,58 @@ class SuiSampler extends SuiOscillator {
         const decay = this.decay / 1000;
         const sustain = this.sustain / 1000;
         const release = this.release / 1000;
-        const gain1 = audio.createGain();
+        this.gainNode = audio.createGain();
         const gp1 = this.gain;
         // const gain2 = audio.createGain();
-        let delay = null;
-        if (this.useReverb) {
-            delay = audio.createDelay(this.reverb.length);
+        // let delay: DelayNode | null = null;
+        if (this.useReverb && this.reverb) {
+            this.delayNode = audio.createDelay(this.reverb.length);
         }
-        gain1.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
-        gain1.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
-        gain1.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
-        gain1.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
+        this.gainNode.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
+        this.gainNode.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
+        this.gainNode.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
+        this.gainNode.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
         // gain2.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
         // gain2.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-        const osc = audio.createBufferSource();
+        this.osc = audio.createBufferSource();
         const sample = SuiOscillator.sampleForFrequency(this.frequency);
         if (!sample) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
         }
-        osc.buffer = sample.sample;
         const cents = 1200 * (Math.log(this.frequency / sample.frequency))
             / Math.log(2);
-        osc.detune.value = cents;
-        // osc.connect(gain1);
-        if (this.useReverb) {
-            osc.connect(this.reverb.input);
+        if (this.osc) {
+            this.osc.buffer = sample.sample;
+            this.osc.detune.value = cents;
         }
-        osc.connect(gain1);
-        if (delay) {
-            this.reverb.connect(delay);
-            delay.connect(audio.destination);
+        // osc.connect(gain1);
+        if (this.useReverb && this.reverb) {
+            this.osc.connect(this.reverb.input);
+        }
+        this.osc.connect(this.gainNode);
+        if (this.delayNode && this.reverb) {
+            this.reverb.connect(this.delayNode);
+            this.delayNode.connect(audio.destination);
         }
         // osc.connect(gain);
         // delay.connect(gain2);
-        gain1.connect(audio.destination);
+        this.gainNode.connect(audio.destination);
         // gain2.connect(audio.destination);
-        return this._playPromise(osc, this.duration);
+        return this._playPromise(this.duration);
     }
-    _playPromise(osc, duration) {
+    _playPromise(duration) {
         const promise = new Promise((resolve) => {
-            osc.start(0);
+            if (this.osc) {
+                this.osc.start(0);
+            }
             setTimeout(() => {
                 resolve();
             }, duration);
             setTimeout(() => {
-                osc.stop(0);
+                if (this.osc) {
+                    this.osc.stop(0);
+                }
+                this.disconnect();
             }, Math.round(duration * 1.05));
         });
         return promise;
@@ -4216,9 +4257,15 @@ class CuedAudioContexts {
         return this.soundListLength;
     }
     reset() {
-        this.soundHead = null;
+        while (this.soundHead !== null) {
+            this.soundHead.sound.oscs.forEach((osc) => {
+                osc.disconnect();
+            });
+            this.soundHead = this.soundHead.next;
+        }
         this.soundTail = null;
         this.paramLinkHead = null;
+        this.paramLinkTail = null;
         this.soundListLength = 0;
         this.playWaitTimer = 0;
         this.playMeasureIndex = 0;
@@ -4300,7 +4347,7 @@ class SuiAudioPlayer {
                             }
                         });
                         const duration = smoNote.tickCount;
-                        const volume = audioTrack_1.SmoAudioScore.volumeFromNote(smoNote, audioTrack_1.SmoAudioScore.dynamicVolumeMap.p);
+                        const volume = audioTrack_1.SmoAudioScore.volumeFromNote(smoNote, audioTrack_1.SmoAudioScore.dynamicVolumeMap.mf);
                         if (!measureNotes[curTick]) {
                             measureNotes[curTick] = [];
                         }
@@ -9339,7 +9386,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         if (player_1.SuiAudioPlayer.playing) {
             return;
         }
-        new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: true }).play();
+        new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: false }).play();
     }
     stopPlayer() {
         player_1.SuiAudioPlayer.stopPlayer();

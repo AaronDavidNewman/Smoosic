@@ -77,9 +77,15 @@ export class CuedAudioContexts {
     return this.soundListLength;
   }
   reset() {
-    this.soundHead = null;
+    while (this.soundHead !== null) {
+      this.soundHead.sound.oscs.forEach((osc) => {
+        osc.disconnect();
+      });
+      this.soundHead = this.soundHead.next;
+    }
     this.soundTail = null;
     this.paramLinkHead = null;
+    this.paramLinkTail = null;
     this.soundListLength = 0;
     this.playWaitTimer = 0;
     this.playMeasureIndex = 0;
@@ -171,7 +177,7 @@ export class SuiAudioPlayer {
               }
             });
             const duration = smoNote.tickCount;
-            const volume = SmoAudioScore.volumeFromNote(smoNote, SmoAudioScore.dynamicVolumeMap.p);
+            const volume = SmoAudioScore.volumeFromNote(smoNote, SmoAudioScore.dynamicVolumeMap.mf);
             if (!measureNotes[curTick]) {
               measureNotes[curTick] = [];
             }

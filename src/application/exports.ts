@@ -107,6 +107,11 @@ import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
 import { SvgHelpers } from '../render/sui/svgHelpers';
+
+// audio library
+import { SuiAudioPlayer } from '../render/audio/player';
+import { SuiOscillator, SuiSampler, SuiReverb } from '../render/audio/oscillator';
+
 // SMO object model
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
@@ -179,6 +184,10 @@ export const Smo = {
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,
     SuiScoreViewOperations,
+
+    // Audio components
+    SuiAudioPlayer, SuiOscillator, SuiSampler, SuiReverb,
+
     // Smo Music Objects
     SmoScore,
     XmlToSmo,
