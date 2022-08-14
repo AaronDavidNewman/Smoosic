@@ -1132,7 +1132,9 @@ exports.Smo = {
     SmoNote: note_2.SmoNote,
     // staff modifier
     SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
-    SmoInstrument: staffModifiers_1.SmoInstrument, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
+    SmoInstrument: staffModifiers_1.SmoInstrument, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie,
+    // score modifiers
+    SmoSystemGroup: scoreModifiers_1.SmoSystemGroup, SmoAudioPlayerSettings: scoreModifiers_1.SmoAudioPlayerSettings,
     // measure modifiers
     SmoRehearsalMark: measureModifiers_1.SmoRehearsalMark, SmoMeasureFormat: measureModifiers_1.SmoMeasureFormat, SmoBarline: measureModifiers_1.SmoBarline, SmoRepeatSymbol: measureModifiers_1.SmoRepeatSymbol,
     SmoVolta: measureModifiers_1.SmoVolta, SmoMeasureText: measureModifiers_1.SmoMeasureText, SmoTempoText: measureModifiers_1.SmoTempoText,
@@ -19628,7 +19630,7 @@ class SmoScore {
             params.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(scoreModifiers_1.SmoAudioPlayerSettings.defaults);
         }
         else {
-            params.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(jsonObj.audioSettings);
+            params.audioSettings = scoreModifiers_1.SmoScoreModifierBase.deserialize(jsonObj.audioSettings);
         }
         params.preferences.transposingScore = (_a = params.preferences.transposingScore) !== null && _a !== void 0 ? _a : false;
         jsonObj.staves.forEach((staffObj, staffIx) => {
@@ -20186,11 +20188,13 @@ exports.IsOscillatorType = IsOscillatorType;
 class SmoAudioPlayerSettings extends SmoScoreModifierBase {
     constructor(params) {
         super('SmoAudioPlayerSettings');
-        this.playerType = params.playerType;
-        this.waveform = params.waveform;
-        this.reverbEnable = params.reverbEnable;
-        this.reverbDelay = params.reverbDelay;
-        this.reverbDecay = params.reverbDecay;
+        this.playerType = 'sampler';
+        this.waveform = 'sine';
+        this.reverbEnable = true;
+        this.reverbDelay = 0.2;
+        this.reverbDecay = 0.5;
+        serializationHelpers_1.smoSerialize.serializedMerge(SmoAudioPlayerSettings.attributes, SmoAudioPlayerSettings.defaults, this);
+        serializationHelpers_1.smoSerialize.serializedMerge(SmoAudioPlayerSettings.attributes, params, this);
     }
     static get defaults() {
         return {
@@ -36758,7 +36762,6 @@ exports.SuiAudioSettingsDialog = exports.SuiAudioSettingsAdapter = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
-const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 class SuiAudioSettingsAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {
         super(view);

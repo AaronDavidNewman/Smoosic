@@ -125,7 +125,7 @@ import { SmoAudioPitch } from '../smo/data/music';
 import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
-import { SmoSystemGroup } from '../smo/data/scoreModifiers';
+import { SmoSystemGroup, SmoAudioPlayerSettings } from '../smo/data/scoreModifiers';
 import { SmoOperation } from '../smo/xform/operations';
 import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
@@ -201,7 +201,9 @@ export const Smo = {
     SmoNote,
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
-    SmoInstrument, SmoSlur, SmoTie, SmoSystemGroup,
+    SmoInstrument, SmoSlur, SmoTie, 
+    // score modifiers
+    SmoSystemGroup, SmoAudioPlayerSettings,
     // measure modifiers
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText,

@@ -7,8 +7,6 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 
 declare var $: any;
 
-const deepCopy = (x: any) => JSON.parse(JSON.stringify(x));
-
 export class SuiAudioSettingsAdapter extends SuiComponentAdapter {
   settings: SmoAudioPlayerSettings;
   backup: SmoAudioPlayerSettings;

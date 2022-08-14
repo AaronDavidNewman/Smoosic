@@ -468,7 +468,7 @@ export class SmoScore {
     if (!jsonObj.audioSettings) {
       params.audioSettings = new SmoAudioPlayerSettings(SmoAudioPlayerSettings.defaults);
     } else {
-      params.audioSettings = new SmoAudioPlayerSettings(jsonObj.audioSettings);
+      params.audioSettings = SmoScoreModifierBase.deserialize(jsonObj.audioSettings);
     }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
 

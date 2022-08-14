@@ -145,20 +145,17 @@ export class SmoAudioPlayerSettings extends SmoScoreModifierBase {
   }
   static get attributes() {
     return ['playerType', 'waveform', 'reverbEnable', 'reverbDelay', 'reverbDecay'];
-  } 
+  }
 
-  playerType: SmoAudioPlayerType;
-  waveform: OscillatorType;
-  reverbEnable: boolean;
-  reverbDelay: number;
-  reverbDecay: number;
+  playerType: SmoAudioPlayerType = 'sampler';
+  waveform: OscillatorType = 'sine';
+  reverbEnable: boolean = true;
+  reverbDelay: number = 0.2;
+  reverbDecay: number = 0.5;
   constructor(params: SmoAudioPlayerParameters) {
     super('SmoAudioPlayerSettings');
-    this.playerType = params.playerType;
-    this.waveform = params.waveform;
-    this.reverbEnable = params.reverbEnable;
-    this.reverbDelay = params.reverbDelay;
-    this.reverbDecay = params.reverbDecay;
+    smoSerialize.serializedMerge(SmoAudioPlayerSettings.attributes, SmoAudioPlayerSettings.defaults, this);
+    smoSerialize.serializedMerge(SmoAudioPlayerSettings.attributes, params, this);
   }
   serialize(): any {
     const params: any = {};
