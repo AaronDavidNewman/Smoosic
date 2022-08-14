@@ -10,8 +10,9 @@ import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
-import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
+import { SmoSystemGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
   SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters } from './scoreModifiers';
+import { SmoTextGroup }   from './scoreText';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';

@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../../smo/data/score';
-import { GlobalLayoutAttributes, SmoLayoutManager, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { GlobalLayoutAttributes, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoPartInfo, SmoPartInfoStringType } from '../../smo/data/partInfo';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';

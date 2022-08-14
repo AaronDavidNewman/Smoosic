@@ -11,7 +11,7 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { VxSystem } from '../vex/vxSystem';
 import { SmoScore } from '../../smo/data/score';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiScoreRender, ScoreRenderParams } from './scoreRender';

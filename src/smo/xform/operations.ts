@@ -14,8 +14,8 @@ import {
 } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
   SmoSlurParams, SmoInstrumentMeasure } from '../data/staffModifiers';
-import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
-
+import { SmoSystemGroup } from '../data/scoreModifiers';
+import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import {
   SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,

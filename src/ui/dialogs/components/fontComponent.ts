@@ -4,7 +4,7 @@ import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseC
 import { SuiDropdownComposite } from './dropdown';
 import { SuiRockerComposite } from './rocker';
 import { SuiToggleComposite } from './toggle';
-import { SmoScoreText } from '../../../smo/data/scoreModifiers';
+import { SmoScoreText } from '../../../smo/data/scoreText';
 import { buildDom } from '../../../common/htmlHelpers';
 import { SourceSerifProFont } from '../../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../../styles/font_metrics/ssp-sans-metrics';

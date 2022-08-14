@@ -7,7 +7,7 @@ import { SmoOperation } from './operations';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoTextGroup } from '../data/scoreModifiers';
+import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelector } from './selections';
 
 export interface UndoEntry {

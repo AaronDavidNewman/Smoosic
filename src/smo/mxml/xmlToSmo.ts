@@ -6,7 +6,8 @@
  */
 import { XmlHelpers } from './xmlHelpers';
 import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
-import { SmoLayoutManager, SmoTextGroup, SmoPageLayout, SmoSystemGroup } from '../data/scoreModifiers';
+import { SmoLayoutManager, SmoPageLayout, SmoSystemGroup } from '../data/scoreModifiers';
+import { SmoTextGroup } from '../data/scoreText';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, SmoVolta, SmoBarline } from '../data/measureModifiers';
 import { SmoScore, isEngravingFont } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';

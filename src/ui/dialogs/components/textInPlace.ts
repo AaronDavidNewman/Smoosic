@@ -1,4 +1,4 @@
-import { SmoScoreText, SmoTextGroup } from '../../../smo/data/scoreModifiers';
+import { SmoScoreText, SmoTextGroup } from '../../../smo/data/scoreText';
 import { KeyEvent } from '../../../smo/data/common';
 import { SuiTextSession } from '../../../render/sui/textEdit';
 import { SuiScroller } from '../../../render/sui/scroller';

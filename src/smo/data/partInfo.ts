@@ -6,7 +6,8 @@
  * @module /smo/data/partInfo
  */
 import { SmoMeasureFormat } from './measureModifiers';
-import { SmoLayoutManager, SmoTextGroup } from './scoreModifiers';
+import { SmoLayoutManager } from './scoreModifiers';
+import { SmoTextGroup } from './scoreText';
 import { StaffModifierBase } from './staffModifiers';
 
 const VF = eval('Vex.Flow');

@@ -6,7 +6,7 @@ import { SuiScroller } from './scroller';
 import { layoutDebug } from './layoutDebug';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { OutlineInfo, StrokeInfo, SvgHelpers } from './svgHelpers';
-import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SvgBox, KeyEvent } from '../../smo/data/common';

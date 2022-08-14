@@ -3,7 +3,7 @@
 import { SvgBox } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';

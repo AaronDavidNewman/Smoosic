@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreText';
 
 import { closeDialogPromise } from '../../common/htmlHelpers';
 

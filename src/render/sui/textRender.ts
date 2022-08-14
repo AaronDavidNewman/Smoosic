@@ -1,11 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers, OutlineInfo } from './svgHelpers';
-import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreText';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox } from '../../smo/data/common';
-import { layoutDebug } from './layoutDebug';
 
 declare var $: any;
 const VF = eval('Vex.Flow');

@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoModifierBase } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';

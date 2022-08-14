@@ -8,7 +8,6 @@ import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie } from '../../smo/d
 import { SmoScore } from '../../smo/data/score';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
-import { SuiMapper } from '../sui/mapper';
 import { SuiScroller } from '../sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
