@@ -7,7 +7,6 @@
 // preformatted.
 import { SmoNote } from '../../smo/data/note';
 import { SmoMusic } from '../../smo/data/music';
-import { SvgHelpers } from '../sui/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
@@ -15,10 +14,14 @@ import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
-
+import { Clef, IsClef } from '../../smo/data/common';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
+/**
+ * This is the interface for VexFlow library that actually does the engraving.
+ * @category SuiRender
+ */
 export class VxMeasure {
   context: any;
   static readonly musicFontScaleNote: number = 38;
@@ -42,6 +45,7 @@ export class VxMeasure {
   formatter: any = null;
   allCues: boolean = false;
   modifiersToBox: SmoNoteModifierBase[] = [];
+  collisionMap: Record<number, SmoNote[]> = {};
 
   constructor(context: any, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
@@ -62,11 +66,13 @@ export class VxMeasure {
     return '#000';
   }
 
-  // ## Description:
-  // decide whether to force stem direction for multi-voice, or use the default.
-  // ## TODO:
-  // use x position of ticks in other voices, pitch of note, and consider
-  // stem direction modifier.
+  /**
+   * decide whether to force stem direction for multi-voice, or use the default.
+   * @param vxParams - params that go do the VX stem constructor
+   * @param voiceIx 
+   * @param flagState 
+   * @todo use x position of ticks in other voices, pitch of note, to avoid collisions
+   */
   applyStemDirection(vxParams: any, voiceIx: number, flagState: number) {
     if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
       vxParams.auto_stem = true;
@@ -87,6 +93,14 @@ export class VxMeasure {
       vexNote.addModifier(acc, tone.pitchIndex);
     });
   }
+  /**
+   * Create accidentals based on the active key and previous accidentals in this voice
+   * @param smoNote 
+   * @param vexNote 
+   * @param tickIndex 
+   * @param voiceIx 
+   * @returns 
+   */
   _createAccidentals(smoNote: SmoNote, vexNote: any, tickIndex: number, voiceIx: number) {
     let i = 0;
     if (smoNote.noteType === '/') {
@@ -232,8 +246,58 @@ export class VxMeasure {
     }
   }
 
-  // ## Description:
-  // convert a smoNote into a vxNote so it can be rasterized
+  createCollisionTickmap() {
+    let i = 0;
+    let j = 0;
+    if (!this.tickmapObject) {
+      return;
+    }
+    for (i = 0; i < this.smoMeasure.voices.length; ++i) {
+      const tm = this.tickmapObject.tickmaps[i];
+      for (j = 0; j < tm.durationMap.length; ++j) {
+        if (typeof(this.collisionMap[tm.durationMap[j]]) === 'undefined') {
+          this.collisionMap[tm.durationMap[j]] = [];
+        }
+        this.collisionMap[tm.durationMap[j]].push(this.smoMeasure.voices[i].notes[j]);
+      }
+    }
+  }
+  isCollision(voiceIx: number, tickIx: number): boolean {
+    let i = 0;
+    let j = 0;
+    let k = 0;
+    let staffLines: number[] = [];
+    if (!this.tickmapObject) {
+      return false;
+    }
+    const tick = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIx];
+    // Just one note, no collision
+    if (this.collisionMap[tick].length < 2) {
+      return false;
+    }
+    for (i = 0; i < this.collisionMap[tick].length; ++i) {
+      const note = this.collisionMap[tick][i];
+      for (j = 0; j < note.pitches.length; ++j) {
+        const clef: Clef = IsClef(note.clef) ? note.clef : 'treble';
+        const pitch = note.pitches[j];
+        const curLine = SmoMusic.pitchToStaffLine(clef, pitch);
+        for (k = 0;k < staffLines.length; ++k) {
+          if (Math.abs(curLine - staffLines[k]) < 1) {
+            return true;
+          }
+        }
+        staffLines.push(curLine);
+      }
+    }
+    return false;
+  }
+  /**
+   * convert a smoNote into a vxNote so it can be rasterized
+   * @param smoNote 
+   * @param tickIndex - used to calculate accidental
+   * @param voiceIx 
+   * @returns 
+   */
   _createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: any = {};
     let timestamp = new Date().valueOf();
@@ -269,9 +333,9 @@ export class VxMeasure {
         noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
       }
       vexNote = new VF.StaveNote(noteParams);
-      /* if (voiceIx > 0) {
+      if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
         vexNote.setXShift(-10);
-      }*/
+      }
       if (this.smoMeasure.voices.length === 1 &&
         this.smoMeasure.voices[0].notes.length === 1) {
         const sn = this.smoMeasure.voices[0].notes[0];
@@ -281,9 +345,9 @@ export class VxMeasure {
       }
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
-      if (smoNote.fillStyle) {
+      if (smoNote.fillStyle && !this.printing) {
         vexNote.setStyle({ fillStyle: smoNote.fillStyle });
-      } else if (voiceIx > 0) {
+      } else if (voiceIx > 0 && !this.printing) {
         vexNote.setStyle({ fillStyle: "#115511" });
       }
       smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
@@ -346,8 +410,10 @@ export class VxMeasure {
     });
   }
 
-  // ## Description:
-  // create an a array of VF.StaveNote objects to render the active voice.
+  /**
+   * create an a array of VF.StaveNote objects to render the active voice.
+   * @param voiceIx 
+   */
   createVexNotes(voiceIx: number) {
     let i = 0;
     this.voiceNotes = [];
@@ -367,9 +433,11 @@ export class VxMeasure {
     this._renderArticulations(voiceIx);
   }
 
-  // ### createVexBeamGroups
-  // create the VX beam groups. VexFlow has auto-beaming logic, but we use
-  // our own because the user can specify stem directions, breaks etc.
+  /**
+   * Group the notes for beaming and create Vex beam objects
+   * @param vix - voice index
+   * @returns 
+   */
   createVexBeamGroups(vix: number) {
     let keyNoteIx = -1;
     let i = 0;
@@ -408,9 +476,11 @@ export class VxMeasure {
     }
   }
 
-  // ### createVexTuplets
-  // Create the VF tuplet objects based on the smo tuplet objects
-  // that have been defined.
+  /**
+   * Create the VF tuplet objects based on the smo tuplet objects
+   * @param vix 
+   */
+  // 
   createVexTuplets(vix: number) {
     var j = 0;
     var i = 0;
@@ -439,11 +509,11 @@ export class VxMeasure {
       this.vexTuplets.push(vexTuplet);
     }
   }
-  unrender() {
-    $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
-  }
 
-  handleMeasureModifiers() {
+  /**
+   * create the modifiers for the stave itself, bar lines etc.
+   */
+  createMeasureModifiers() {
     const sb = this.smoMeasure.getStartBarline();
     const eb = this.smoMeasure.getEndBarline();
     const sym = this.smoMeasure.getRepeatSymbol();
@@ -493,9 +563,10 @@ export class VxMeasure {
     }
   }
 
-  // ## Description:
-  // Create all Vex notes and modifiers.  We defer the format and rendering so
-  // we can align across multiple staves
+  /**
+   * Create all Vex notes and modifiers.  We defer the format and rendering so
+   * we can align across multiple staves
+   */
   preFormat() {
     var j = 0;
     if (this.smoMeasure.svg.element !== null) {
@@ -544,9 +615,10 @@ export class VxMeasure {
     // Connect it to the rendering context and draw!
     this.stave.setContext(this.context);
 
-    this.handleMeasureModifiers();
+    this.createMeasureModifiers();
 
     this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
+    this.createCollisionTickmap();
 
     this.voiceAr = [];
     this.vexNotes = [];
@@ -576,6 +648,13 @@ export class VxMeasure {
       this.formatter.joinVoices([voice]);
     });
   }
+  /**
+   * Create the Vex formatter that calculates the X and Y positions of the notes.  A formatter
+   * may actually span multiple staves for justified staves.  The notes are drawn in their
+   * individual vxMeasure objects but formatting is done once for all justified staves
+   * @param voices Voice objects from VexFlow
+   * @returns 
+   */
   format(voices: any[]) {
     if (this.smoMeasure.svg.multimeasureLength > 0) {
       this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
@@ -589,6 +668,9 @@ export class VxMeasure {
       (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
+  /**
+   * render is called after format.  Actually draw the things.
+   */
   render() {
     var group = this.context.openGroup() as SVGSVGElement;
     this.smoMeasure.svg.element = group;
@@ -596,6 +678,7 @@ export class VxMeasure {
     var j = 0;
     const timestamp = new Date().valueOf();
     try {
+      // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
       group.classList.add(this.smoMeasure.attrs.id);
       group.classList.add(mmClass);
       group.id = this.smoMeasure.attrs.id;

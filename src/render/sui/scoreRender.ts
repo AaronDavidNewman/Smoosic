@@ -35,8 +35,6 @@ const VF = eval('Vex.Flow');
   undoBuffer: UndoBuffer
 }
 
-
-
 /**
  * This module renders the entire score.  It calculates the layout first based on the
  * computed dimensions.
@@ -58,7 +56,7 @@ export class SuiScoreRender {
   renderTime: number = 0;
   backgroundRender: boolean = false;
   renderedPages: Record<number, RenderedPage | null> = {};
-  _autoAdjustRenderTime: boolean = false;
+  _autoAdjustRenderTime: boolean = true;
   allScoreText: SVGSVGElement | null = null;
   renderingPage: number = -1;
 

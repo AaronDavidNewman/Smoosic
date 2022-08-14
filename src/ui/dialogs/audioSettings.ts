@@ -46,11 +46,11 @@ export class SuiAudioSettingsAdapter extends SuiComponentAdapter {
     return this.settings.reverbDelay;
   }
   set reverbDelay(value: number) {
-    this.settings.reverbDecay = value;
+    this.settings.reverbDelay = value;
     this.view.updateAudioSettings(this.settings);
   }
   get reverbDecay(): number {
-    return this.settings.reverbDelay;
+    return this.settings.reverbDecay;
   }  
   set reverbDecay(value: number) {
     this.settings.reverbDecay = value;

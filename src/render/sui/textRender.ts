@@ -62,10 +62,13 @@ export interface SuiInlineArtifact {
 }
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
-// ## SuiInlineText
-// Inline text is a block of SVG text with the same font.  Each block can
-// contain either text or an svg (vex) glyph.  Each block in the text has its own
-// metrics so we can support inline svg text editors (cursor).
+
+/**
+ * Inline text is a block of SVG text with the same font.  Each block can
+ * contain either text or an svg (vex) glyph.  Each block in the text has its own
+ * metrics so we can support inline svg text editors (cursor).
+ * @category SuiRender
+ */
 export class SuiInlineText {
   static get textTypes() {
     return { normal: 0, superScript: 1, subScript: 2 };
@@ -260,9 +263,10 @@ export class SuiInlineText {
     return block.metrics.yOffset / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
   }
 
-  // ### _calculateBlockIndex
-  // Based on the font metrics, compute the width of the strings and glyph that make up
-  // this block.
+  /**
+   * Based on the font metrics, compute the width of the strings and glyph that make up
+   * this block
+   */
   _calculateBlockIndex() {
     var curX = this.startX;
     var maxH = 0;

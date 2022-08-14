@@ -6853,7 +6853,7 @@ exports.SuiScoreRender = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
@@ -6881,7 +6881,7 @@ class SuiScoreRender {
         this.renderTime = 0;
         this.backgroundRender = false;
         this.renderedPages = {};
-        this._autoAdjustRenderTime = false;
+        this._autoAdjustRenderTime = true;
         this.allScoreText = null;
         this.renderingPage = -1;
         this.elementId = params.elementId;
@@ -6914,7 +6914,7 @@ class SuiScoreRender {
         const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
         // If this is a per-page score text, get a text group copy for each page.
         // else the array contains the original.
-        const groupAr = scoreModifiers_1.SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
+        const groupAr = scoreText_1.SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
         groupAr.forEach((newGroup) => {
             // If this text is attached to the measure, base the block location on the rendered measure location.
             if (newGroup.attachToSelector) {
@@ -7898,6 +7898,7 @@ const partInfo_1 = __webpack_require__(/*! ../../smo/data/partInfo */ "./src/smo
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -7931,7 +7932,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addTextGroup(textGroup) {
-        const altNew = scoreModifiers_1.SmoTextGroup.deserialize(textGroup.serialize());
+        const altNew = scoreText_1.SmoTextGroup.deserialize(textGroup.serialize());
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.ADD);
         undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, undo_1.UndoBuffer.bufferSubtypes.ADD);
         this.renderer.renderScoreModifiers();
@@ -7964,7 +7965,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         // If this is part text, don't store it in the score text, except for the displayed score
         if (!isPartExposed) {
             undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], undo_1.UndoBuffer.bufferSubtypes.UPDATE);
-            const altNew = scoreModifiers_1.SmoTextGroup.deserialize(newVersion.serialize());
+            const altNew = scoreText_1.SmoTextGroup.deserialize(newVersion.serialize());
             this.storeScore.textGroups[index] = altNew;
         }
         else {
@@ -7974,7 +7975,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             }
             const tgs = [];
             partInfo.textGroups.forEach((tg) => {
-                tgs.push(scoreModifiers_1.SmoTextGroup.deserialize(tg.serialize()));
+                tgs.push(scoreText_1.SmoTextGroup.deserialize(tg.serialize()));
             });
             this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
         }
@@ -10267,7 +10268,7 @@ const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const VF = eval('Vex.Flow');
@@ -11111,7 +11112,7 @@ class SuiTextSession {
         this.renderer = params.renderer;
         // Create a text group if one was not a startup parameter
         if (!this.textGroup) {
-            this.textGroup = new scoreModifiers_1.SmoTextGroup(scoreModifiers_1.SmoTextGroup.defaults);
+            this.textGroup = new scoreText_1.SmoTextGroup(scoreText_1.SmoTextGroup.defaults);
         }
         // Create a scoreText if one was not a startup parameter, or
         // get it from the text group
@@ -11120,11 +11121,11 @@ class SuiTextSession {
                 this.scoreText = this.textGroup.textBlocks[0].text;
             }
             else {
-                const stDef = scoreModifiers_1.SmoScoreText.defaults;
+                const stDef = scoreText_1.SmoScoreText.defaults;
                 stDef.x = this.x;
                 stDef.y = this.y;
-                this.scoreText = new scoreModifiers_1.SmoScoreText(stDef);
-                this.textGroup.addScoreText(this.scoreText, scoreModifiers_1.SmoTextGroup.relativePositions.RIGHT);
+                this.scoreText = new scoreText_1.SmoScoreText(stDef);
+                this.textGroup.addScoreText(this.scoreText, scoreText_1.SmoTextGroup.relativePositions.RIGHT);
             }
         }
         this.fontFamily = this.scoreText.fontInfo.family;
@@ -11509,16 +11510,18 @@ exports.SuiTextBlock = exports.SuiInlineText = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const textEdit_1 = __webpack_require__(/*! ./textEdit */ "./src/render/sui/textEdit.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const VF = eval('Vex.Flow');
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
-// ## SuiInlineText
-// Inline text is a block of SVG text with the same font.  Each block can
-// contain either text or an svg (vex) glyph.  Each block in the text has its own
-// metrics so we can support inline svg text editors (cursor).
+/**
+ * Inline text is a block of SVG text with the same font.  Each block can
+ * contain either text or an svg (vex) glyph.  Each block in the text has its own
+ * metrics so we can support inline svg text editors (cursor).
+ * @category SuiRender
+ */
 class SuiInlineText {
     // ### constructor just creates an empty svg
     constructor(params) {
@@ -11688,9 +11691,10 @@ class SuiInlineText {
     _glyphOffset(block) {
         return block.metrics.yOffset / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
     }
-    // ### _calculateBlockIndex
-    // Based on the font metrics, compute the width of the strings and glyph that make up
-    // this block.
+    /**
+     * Based on the font metrics, compute the width of the strings and glyph that make up
+     * this block
+     */
     _calculateBlockIndex() {
         var curX = this.startX;
         var maxH = 0;
@@ -11998,7 +12002,7 @@ class SuiTextBlock {
             inlineParams.scroller = this.scroller;
             inlineParams.context = this.context;
             const inst = new SuiInlineText(inlineParams);
-            params.blocks = [{ text: inst, position: scoreModifiers_1.SmoTextGroup.relativePositions.RIGHT, activeText: true }];
+            params.blocks = [{ text: inst, position: scoreText_1.SmoTextGroup.relativePositions.RIGHT, activeText: true }];
         }
         params.blocks.forEach((block) => {
             if (!this.currentBlock) {
@@ -12008,14 +12012,14 @@ class SuiTextBlock {
             this.inlineBlocks.push(block);
         });
         this.justification = params.justification ? params.justification :
-            scoreModifiers_1.SmoTextGroup.justifications.LEFT;
+            scoreText_1.SmoTextGroup.justifications.LEFT;
     }
     static get relativePosition() {
         return {
-            ABOVE: scoreModifiers_1.SmoTextGroup.relativePositions.ABOVE,
-            BELOW: scoreModifiers_1.SmoTextGroup.relativePositions.BELOW,
-            LEFT: scoreModifiers_1.SmoTextGroup.relativePositions.LEFT,
-            RIGHT: scoreModifiers_1.SmoTextGroup.relativePositions.RIGHT
+            ABOVE: scoreText_1.SmoTextGroup.relativePositions.ABOVE,
+            BELOW: scoreText_1.SmoTextGroup.relativePositions.BELOW,
+            LEFT: scoreText_1.SmoTextGroup.relativePositions.LEFT,
+            RIGHT: scoreText_1.SmoTextGroup.relativePositions.RIGHT
         };
     }
     render() {
@@ -12156,28 +12160,28 @@ class SuiTextBlock {
             }
             minx = block.startX < minx ? block.startX : minx;
             maxx = (block.startX + blockBox.width) > maxx ? block.startX + blockBox.width : maxx;
-            lvl = inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.ABOVE ? lvl + 1 : lvl;
-            lvl = inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.BELOW ? lvl - 1 : lvl;
-            if (inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.RIGHT) {
+            lvl = inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.ABOVE ? lvl + 1 : lvl;
+            lvl = inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.BELOW ? lvl - 1 : lvl;
+            if (inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.RIGHT) {
                 block.startX += runningWidth;
                 if (hIx > 0) {
                     block.startX += this.spacing;
                 }
             }
-            if (inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.LEFT) {
+            if (inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.LEFT) {
                 if (hIx > 0) {
                     block.startX = minx - blockBox.width;
                     minx = block.startX;
                     block.startX -= this.spacing;
                 }
             }
-            if (inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.BELOW) {
+            if (inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.BELOW) {
                 block.startY += runningHeight;
                 if (hIx > 0) {
                     block.startY += this.spacing;
                 }
             }
-            if (inlineBlock.position === scoreModifiers_1.SmoTextGroup.relativePositions.ABOVE) {
+            if (inlineBlock.position === scoreText_1.SmoTextGroup.relativePositions.ABOVE) {
                 block.startY -= runningHeight;
                 if (hIx > 0) {
                     block.startY -= this.spacing;
@@ -12211,10 +12215,10 @@ class SuiTextBlock {
         // Horizontal justify the vertical blocks
         levels.forEach((level) => {
             const vobj = vert[level];
-            if (this.justification === scoreModifiers_1.SmoTextGroup.justifications.LEFT) {
+            if (this.justification === scoreText_1.SmoTextGroup.justifications.LEFT) {
                 left = minx - vobj.minx;
             }
-            else if (this.justification === scoreModifiers_1.SmoTextGroup.justifications.RIGHT) {
+            else if (this.justification === scoreText_1.SmoTextGroup.justifications.RIGHT) {
                 left = maxx - vobj.maxx;
             }
             else {
@@ -13334,7 +13338,12 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifie
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const VF = eval('Vex.Flow');
+/**
+ * This is the interface for VexFlow library that actually does the engraving.
+ * @category SuiRender
+ */
 class VxMeasure {
     constructor(context, selection, printing, softmax) {
         this.rendered = false;
@@ -13350,6 +13359,7 @@ class VxMeasure {
         this.formatter = null;
         this.allCues = false;
         this.modifiersToBox = [];
+        this.collisionMap = {};
         this.context = context;
         this.rendered = false;
         this.selection = selection;
@@ -13366,11 +13376,13 @@ class VxMeasure {
     static get fillStyle() {
         return '#000';
     }
-    // ## Description:
-    // decide whether to force stem direction for multi-voice, or use the default.
-    // ## TODO:
-    // use x position of ticks in other voices, pitch of note, and consider
-    // stem direction modifier.
+    /**
+     * decide whether to force stem direction for multi-voice, or use the default.
+     * @param vxParams - params that go do the VX stem constructor
+     * @param voiceIx
+     * @param flagState
+     * @todo use x position of ticks in other voices, pitch of note, to avoid collisions
+     */
     applyStemDirection(vxParams, voiceIx, flagState) {
         if (this.smoMeasure.voices.length === 1 && flagState === note_1.SmoNote.flagStates.auto) {
             vxParams.auto_stem = true;
@@ -13393,6 +13405,14 @@ class VxMeasure {
             vexNote.addModifier(acc, tone.pitchIndex);
         });
     }
+    /**
+     * Create accidentals based on the active key and previous accidentals in this voice
+     * @param smoNote
+     * @param vexNote
+     * @param tickIndex
+     * @param voiceIx
+     * @returns
+     */
     _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
         let i = 0;
         if (smoNote.noteType === '/') {
@@ -13530,8 +13550,58 @@ class VxMeasure {
             vexNote.addModifier(grace, 0);
         }
     }
-    // ## Description:
-    // convert a smoNote into a vxNote so it can be rasterized
+    createCollisionTickmap() {
+        let i = 0;
+        let j = 0;
+        if (!this.tickmapObject) {
+            return;
+        }
+        for (i = 0; i < this.smoMeasure.voices.length; ++i) {
+            const tm = this.tickmapObject.tickmaps[i];
+            for (j = 0; j < tm.durationMap.length; ++j) {
+                if (typeof (this.collisionMap[tm.durationMap[j]]) === 'undefined') {
+                    this.collisionMap[tm.durationMap[j]] = [];
+                }
+                this.collisionMap[tm.durationMap[j]].push(this.smoMeasure.voices[i].notes[j]);
+            }
+        }
+    }
+    isCollision(voiceIx, tickIx) {
+        let i = 0;
+        let j = 0;
+        let k = 0;
+        let staffLines = [];
+        if (!this.tickmapObject) {
+            return false;
+        }
+        const tick = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIx];
+        // Just one note, no collision
+        if (this.collisionMap[tick].length < 2) {
+            return false;
+        }
+        for (i = 0; i < this.collisionMap[tick].length; ++i) {
+            const note = this.collisionMap[tick][i];
+            for (j = 0; j < note.pitches.length; ++j) {
+                const clef = (0, common_1.IsClef)(note.clef) ? note.clef : 'treble';
+                const pitch = note.pitches[j];
+                const curLine = music_1.SmoMusic.pitchToStaffLine(clef, pitch);
+                for (k = 0; k < staffLines.length; ++k) {
+                    if (Math.abs(curLine - staffLines[k]) < 1) {
+                        return true;
+                    }
+                }
+                staffLines.push(curLine);
+            }
+        }
+        return false;
+    }
+    /**
+     * convert a smoNote into a vxNote so it can be rasterized
+     * @param smoNote
+     * @param tickIndex - used to calculate accidental
+     * @param voiceIx
+     * @returns
+     */
     _createVexNote(smoNote, tickIndex, voiceIx) {
         let vexNote = {};
         let timestamp = new Date().valueOf();
@@ -13565,9 +13635,9 @@ class VxMeasure {
                 noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
             }
             vexNote = new VF.StaveNote(noteParams);
-            /* if (voiceIx > 0) {
-              vexNote.setXShift(-10);
-            }*/
+            if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
+                vexNote.setXShift(-10);
+            }
             if (this.smoMeasure.voices.length === 1 &&
                 this.smoMeasure.voices[0].notes.length === 1) {
                 const sn = this.smoMeasure.voices[0].notes[0];
@@ -13577,10 +13647,10 @@ class VxMeasure {
             }
             layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
             timestamp = new Date().valueOf();
-            if (smoNote.fillStyle) {
+            if (smoNote.fillStyle && !this.printing) {
                 vexNote.setStyle({ fillStyle: smoNote.fillStyle });
             }
-            else if (voiceIx > 0) {
+            else if (voiceIx > 0 && !this.printing) {
                 vexNote.setStyle({ fillStyle: "#115511" });
             }
             smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
@@ -13635,8 +13705,10 @@ class VxMeasure {
             });
         });
     }
-    // ## Description:
-    // create an a array of VF.StaveNote objects to render the active voice.
+    /**
+     * create an a array of VF.StaveNote objects to render the active voice.
+     * @param voiceIx
+     */
     createVexNotes(voiceIx) {
         let i = 0;
         this.voiceNotes = [];
@@ -13654,9 +13726,11 @@ class VxMeasure {
         }
         this._renderArticulations(voiceIx);
     }
-    // ### createVexBeamGroups
-    // create the VX beam groups. VexFlow has auto-beaming logic, but we use
-    // our own because the user can specify stem directions, breaks etc.
+    /**
+     * Group the notes for beaming and create Vex beam objects
+     * @param vix - voice index
+     * @returns
+     */
     createVexBeamGroups(vix) {
         let keyNoteIx = -1;
         let i = 0;
@@ -13693,9 +13767,11 @@ class VxMeasure {
             this.vexBeamGroups.push(vexBeam);
         }
     }
-    // ### createVexTuplets
-    // Create the VF tuplet objects based on the smo tuplet objects
-    // that have been defined.
+    /**
+     * Create the VF tuplet objects based on the smo tuplet objects
+     * @param vix
+     */
+    // 
     createVexTuplets(vix) {
         var j = 0;
         var i = 0;
@@ -13724,10 +13800,10 @@ class VxMeasure {
             this.vexTuplets.push(vexTuplet);
         }
     }
-    unrender() {
-        $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
-    }
-    handleMeasureModifiers() {
+    /**
+     * create the modifiers for the stave itself, bar lines etc.
+     */
+    createMeasureModifiers() {
         const sb = this.smoMeasure.getStartBarline();
         const eb = this.smoMeasure.getEndBarline();
         const sym = this.smoMeasure.getRepeatSymbol();
@@ -13773,9 +13849,10 @@ class VxMeasure {
             vexTempo.font = { family: ssp_serif_metrics_1.SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
         }
     }
-    // ## Description:
-    // Create all Vex notes and modifiers.  We defer the format and rendering so
-    // we can align across multiple staves
+    /**
+     * Create all Vex notes and modifiers.  We defer the format and rendering so
+     * we can align across multiple staves
+     */
     preFormat() {
         var j = 0;
         if (this.smoMeasure.svg.element !== null) {
@@ -13821,8 +13898,9 @@ class VxMeasure {
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context);
-        this.handleMeasureModifiers();
+        this.createMeasureModifiers();
         this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
+        this.createCollisionTickmap();
         this.voiceAr = [];
         this.vexNotes = [];
         this.noteToVexMap = {};
@@ -13848,6 +13926,13 @@ class VxMeasure {
             this.formatter.joinVoices([voice]);
         });
     }
+    /**
+     * Create the Vex formatter that calculates the X and Y positions of the notes.  A formatter
+     * may actually span multiple staves for justified staves.  The notes are drawn in their
+     * individual vxMeasure objects but formatting is done once for all justified staves
+     * @param voices Voice objects from VexFlow
+     * @returns
+     */
     format(voices) {
         if (this.smoMeasure.svg.multimeasureLength > 0) {
             this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
@@ -13860,6 +13945,9 @@ class VxMeasure {
             (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
     }
+    /**
+     * render is called after format.  Actually draw the things.
+     */
     render() {
         var group = this.context.openGroup();
         this.smoMeasure.svg.element = group;
@@ -13867,6 +13955,7 @@ class VxMeasure {
         var j = 0;
         const timestamp = new Date().valueOf();
         try {
+            // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
             group.classList.add(this.smoMeasure.attrs.id);
             group.classList.add(mmClass);
             group.id = this.smoMeasure.attrs.id;
@@ -19244,6 +19333,7 @@ const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ./scoreText */ "./src/smo/data/scoreText.ts");
 const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 exports.engravingFontTypes = ['Bravura', 'Gonville', 'Petaluma', 'Leland'];
@@ -19640,7 +19730,7 @@ class SmoScore {
         });
         const textGroups = [];
         jsonObj.textGroups.forEach((tg) => {
-            textGroups.push(scoreModifiers_1.SmoTextGroup.deserialize(tg));
+            textGroups.push(scoreText_1.SmoTextGroup.deserialize(tg));
         });
         const systemGroups = [];
         if (jsonObj.systemGroups) {
@@ -20073,7 +20163,7 @@ exports.SmoScore = SmoScore;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTextGroup = exports.SmoScoreText = exports.SmoSystemGroup = exports.SmoLayoutManager = exports.GlobalLayoutAttributesArray = exports.SmoPageLayout = exports.SmoAudioPlayerSettings = exports.IsOscillatorType = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
+exports.SmoSystemGroup = exports.SmoLayoutManager = exports.GlobalLayoutAttributesArray = exports.SmoPageLayout = exports.SmoAudioPlayerSettings = exports.IsOscillatorType = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -20181,10 +20271,19 @@ class SmoFormattingManager extends SmoScoreModifierBase {
     }
 }
 exports.SmoFormattingManager = SmoFormattingManager;
+/**
+ * web audio API defines this
+ * @param otype
+ * @returns
+ */
 function IsOscillatorType(otype) {
     return ['sine', 'square', 'sawtooth', 'triangle', 'custom'].findIndex((x) => x === otype) >= 0;
 }
 exports.IsOscillatorType = IsOscillatorType;
+/**
+ * Audio playback parameters.  Just fun stuff.
+ * @category SmoModifier
+ */
 class SmoAudioPlayerSettings extends SmoScoreModifierBase {
     constructor(params) {
         super('SmoAudioPlayerSettings');
@@ -20497,6 +20596,30 @@ class SmoSystemGroup extends SmoScoreModifierBase {
     }
 }
 exports.SmoSystemGroup = SmoSystemGroup;
+
+
+/***/ }),
+
+/***/ "./src/smo/data/scoreText.ts":
+/*!***********************************!*\
+  !*** ./src/smo/data/scoreText.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SmoTextGroup = exports.SmoScoreText = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * A score modifier is anything that isn't mapped specifically to a musical object.
+ * This includes score text, layout information
+ * @module /smo/data/scoreModifier
+ */
+const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
+const VF = eval('Vex.Flow');
 /**
  * Identify some text in the score, not associated with any musical element, like page
  * decorations, titles etc.
@@ -20505,7 +20628,7 @@ exports.SmoSystemGroup = SmoSystemGroup;
  * @category SmoModifier
  * @internal
  */
-class SmoScoreText extends SmoScoreModifierBase {
+class SmoScoreText extends scoreModifiers_1.SmoScoreModifierBase {
     constructor(parameters) {
         super('SmoScoreText');
         this.x = 15;
@@ -20674,7 +20797,7 @@ exports.SmoScoreText = SmoScoreText;
  * justification, alignment etc.
  * @category SmoModifier
  */
-class SmoTextGroup extends SmoScoreModifierBase {
+class SmoTextGroup extends scoreModifiers_1.SmoScoreModifierBase {
     /* _isScoreText(st: ) {
       return st.ctor && st.ctor === 'SmoScoreText';
     } */
@@ -21369,7 +21492,7 @@ const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.t
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const partInfo_1 = __webpack_require__(/*! ./partInfo */ "./src/smo/data/partInfo.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ./scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const beamers_1 = __webpack_require__(/*! ../xform/beamers */ "./src/smo/xform/beamers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -21512,7 +21635,7 @@ class SmoSystemStaff {
             // Deserialize the text groups first
             const tgs = [];
             jsonObj.partInfo.textGroups.forEach((tgSer) => {
-                tgs.push(scoreModifiers_1.SmoTextGroup.deserialize(tgSer));
+                tgs.push(scoreText_1.SmoTextGroup.deserialize(tgSer));
             });
             jsonObj.partInfo.textGroups = tgs;
             params.partInfo = new partInfo_1.SmoPartInfo(jsonObj.partInfo);
@@ -24790,6 +24913,7 @@ exports.XmlToSmo = void 0;
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
 const xmlState_1 = __webpack_require__(/*! ./xmlState */ "./src/smo/mxml/xmlState.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../data/scoreText */ "./src/smo/data/scoreText.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
@@ -24917,13 +25041,13 @@ class XmlToSmo {
             });
             const lm = rv.layoutManager;
             if (rv.scoreInfo.title) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, lm.getScaledPageLayout(0)));
+                rv.addTextGroup(scoreText_1.SmoTextGroup.createTextForLayout(scoreText_1.SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, lm.getScaledPageLayout(0)));
             }
             if (rv.scoreInfo.subTitle) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, lm.getScaledPageLayout(0)));
+                rv.addTextGroup(scoreText_1.SmoTextGroup.createTextForLayout(scoreText_1.SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, lm.getScaledPageLayout(0)));
             }
             if (rv.scoreInfo.composer) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
+                rv.addTextGroup(scoreText_1.SmoTextGroup.createTextForLayout(scoreText_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
             }
             XmlToSmo.setSlurDefaults(rv);
             xmlState.completeTies(rv);
@@ -29056,7 +29180,7 @@ const operations_1 = __webpack_require__(/*! ./operations */ "./src/smo/xform/op
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../data/scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
 /**
  * manage a set of undo or redo operations on a score.  The objects passed into
@@ -29273,7 +29397,7 @@ class UndoBuffer {
             else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
                 // Currently only one type like this: SmoTextGroup
                 if (buf.json.ctor === 'SmoTextGroup') {
-                    const obj = scoreModifiers_1.SmoTextGroup.deserialize(buf.json);
+                    const obj = scoreText_1.SmoTextGroup.deserialize(buf.json);
                     obj.attrs.id = buf.json.attrs.id;
                     // undo of add is remove, undo of remove is add
                     if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
@@ -36800,11 +36924,11 @@ class SuiAudioSettingsAdapter extends adapter_1.SuiComponentAdapter {
         return this.settings.reverbDelay;
     }
     set reverbDelay(value) {
-        this.settings.reverbDecay = value;
+        this.settings.reverbDelay = value;
         this.view.updateAudioSettings(this.settings);
     }
     get reverbDecay() {
-        return this.settings.reverbDelay;
+        return this.settings.reverbDecay;
     }
     set reverbDecay(value) {
         this.settings.reverbDecay = value;
@@ -37596,7 +37720,7 @@ const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dia
 const dropdown_1 = __webpack_require__(/*! ./dropdown */ "./src/ui/dialogs/components/dropdown.ts");
 const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
 const toggle_1 = __webpack_require__(/*! ./toggle */ "./src/ui/dialogs/components/toggle.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
@@ -37686,12 +37810,12 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
         let italics = false;
         // upconvert font size, all font sizes now in points.
         if (typeof (value.size) !== 'number') {
-            value.size = scoreModifiers_1.SmoScoreText.fontPointSize(value.size);
+            value.size = scoreText_1.SmoScoreText.fontPointSize(value.size);
         }
         if (value.style && value.style === 'italic') {
             italics = true;
         }
-        const boldString = scoreModifiers_1.SmoScoreText.weightString(value.weight);
+        const boldString = scoreText_1.SmoScoreText.weightString(value.weight);
         const bold = boldString === 'bold';
         this.boldCtrl.setValue(bold);
         this.italicsCtrl.setValue(italics);
@@ -38394,7 +38518,7 @@ exports.TextCheckComponent = TextCheckComponent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiTextBlockComponent = exports.SuiTextInPlace = void 0;
-const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const button_1 = __webpack_require__(/*! ./button */ "./src/ui/dialogs/components/button.ts");
@@ -38408,10 +38532,10 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
         this.editMode = false;
         this.session = null;
         this.scroller = dialog.getView().scroller;
-        this.value = new scoreModifiers_1.SmoTextGroup(scoreModifiers_1.SmoTextGroup.defaults);
+        this.value = new scoreText_1.SmoTextGroup(scoreText_1.SmoTextGroup.defaults);
         this.view = this.dialog.getView();
         const modifier = this.dialog.getModifier();
-        if (modifier && scoreModifiers_1.SmoTextGroup.isTextGroup(modifier)) {
+        if (modifier && scoreText_1.SmoTextGroup.isTextGroup(modifier)) {
             this.value = modifier;
         }
         this.staticText = this.dialog.getStaticText();
@@ -38563,16 +38687,16 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
             control: 'SuiDropdownComponent',
             label: 'Block Positions',
             options: [{
-                    value: scoreModifiers_1.SmoTextGroup.relativePositions.ABOVE,
+                    value: scoreText_1.SmoTextGroup.relativePositions.ABOVE,
                     label: 'Above'
                 }, {
-                    value: scoreModifiers_1.SmoTextGroup.relativePositions.BELOW,
+                    value: scoreText_1.SmoTextGroup.relativePositions.BELOW,
                     label: 'Below'
                 }, {
-                    value: scoreModifiers_1.SmoTextGroup.relativePositions.LEFT,
+                    value: scoreText_1.SmoTextGroup.relativePositions.LEFT,
                     label: 'Left'
                 }, {
-                    value: scoreModifiers_1.SmoTextGroup.relativePositions.RIGHT,
+                    value: scoreText_1.SmoTextGroup.relativePositions.RIGHT,
                     label: 'Right'
                 }]
         });
@@ -38584,13 +38708,13 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
             control: 'SuiDropdownComponent',
             label: 'Justification',
             options: [{
-                    value: scoreModifiers_1.SmoTextGroup.justifications.LEFT,
+                    value: scoreText_1.SmoTextGroup.justifications.LEFT,
                     label: 'Left'
                 }, {
-                    value: scoreModifiers_1.SmoTextGroup.justifications.RIGHT,
+                    value: scoreText_1.SmoTextGroup.justifications.RIGHT,
                     label: 'Right'
                 }, {
-                    value: scoreModifiers_1.SmoTextGroup.justifications.CENTER,
+                    value: scoreText_1.SmoTextGroup.justifications.CENTER,
                     label: 'Center'
                 }]
         });
@@ -38606,17 +38730,17 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
             increment: 0.1
         });
         const mod = this.dialog.getModifier();
-        if (mod && scoreModifiers_1.SmoTextGroup.isTextGroup(mod)) {
+        if (mod && scoreText_1.SmoTextGroup.isTextGroup(mod)) {
             this.modifier = mod;
         }
         else {
-            this.modifier = new scoreModifiers_1.SmoTextGroup(scoreModifiers_1.SmoTextGroup.defaults);
+            this.modifier = new scoreText_1.SmoTextGroup(scoreText_1.SmoTextGroup.defaults);
         }
         this.activeScoreText = this.modifier.textBlocks[0].text;
     }
     changed() {
         if (this.addBlockCtrl.changeFlag && this.modifier) {
-            const nt = new scoreModifiers_1.SmoScoreText(this.activeScoreText);
+            const nt = new scoreText_1.SmoScoreText(this.activeScoreText);
             this.modifier.addScoreText(nt);
             this.activeScoreText = nt;
             this.modifier.setActiveBlock(nt);
@@ -41404,6 +41528,7 @@ exports.SuiPartInfoDialog = exports.SuiPartInfoAdapter = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const partInfo_1 = __webpack_require__(/*! ../../smo/data/partInfo */ "./src/smo/data/partInfo.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
@@ -41560,7 +41685,7 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
     set preserveTextGroups(value) {
         if (value === true && this.partInfo.textGroups.length === 0) {
             this.view.score.textGroups.forEach((tg) => {
-                const ngrp = scoreModifiers_1.SmoTextGroup.deserialize(tg.serialize());
+                const ngrp = scoreText_1.SmoTextGroup.deserialize(tg.serialize());
                 this.partInfo.textGroups.push(ngrp);
             });
         }
@@ -41843,7 +41968,7 @@ SuiScorePreferencesDialog.dialogElements = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreIdentificationDialog = exports.SuiScoreIdentificationAdapter = void 0;
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
 class SuiScoreIdentificationAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {
@@ -41851,8 +41976,8 @@ class SuiScoreIdentificationAdapter extends adapter_1.SuiComponentAdapter {
         this.current = {};
         this.scoreInfo = this.view.score.scoreInfo;
         this.backup = JSON.parse(JSON.stringify(this.scoreInfo));
-        Object.keys(scoreModifiers_1.SmoTextGroup.purposes).forEach((purpose) => {
-            const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes[purpose]);
+        Object.keys(scoreText_1.SmoTextGroup.purposes).forEach((purpose) => {
+            const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreText_1.SmoTextGroup.purposes[purpose]);
             if (grp) {
                 this.current[purpose] = { checked: true, text: grp.textBlocks[0].text.text };
             }
@@ -41862,7 +41987,7 @@ class SuiScoreIdentificationAdapter extends adapter_1.SuiComponentAdapter {
         });
     }
     updateValues(purpose, infoKey, value) {
-        const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes[purpose]);
+        const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreText_1.SmoTextGroup.purposes[purpose]);
         if (grp) {
             if (value.checked) {
                 grp.textBlocks[0].text.text = value.text;
@@ -41874,7 +41999,7 @@ class SuiScoreIdentificationAdapter extends adapter_1.SuiComponentAdapter {
         }
         else {
             if (value.checked) {
-                const tg = scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager.getScaledPageLayout(0));
+                const tg = scoreText_1.SmoTextGroup.createTextForLayout(scoreText_1.SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager.getScaledPageLayout(0));
                 this.view.addTextGroup(tg);
             }
         }
@@ -42697,7 +42822,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.helpModal = exports.SuiTextBlockDialog = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
@@ -42711,9 +42836,9 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         const layout = parameters.view.score.layoutManager.getGlobalLayout();
         // Create a new text modifier, if this is new text.   Else use selection
         if (!parameters.modifier) {
-            const textParams = scoreModifiers_1.SmoScoreText.defaults;
-            textParams.position = scoreModifiers_1.SmoScoreText.positions.custom;
-            const newText = new scoreModifiers_1.SmoScoreText(textParams);
+            const textParams = scoreText_1.SmoScoreText.defaults;
+            textParams.position = scoreText_1.SmoScoreText.positions.custom;
+            const newText = new scoreText_1.SmoScoreText(textParams);
             newText.y += tracker.scroller.scrollState.y;
             if (tracker.selections.length > 0) {
                 const sel = tracker.selections[0].measure.svg;
@@ -42724,9 +42849,9 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
                     }
                 }
             }
-            const grpParams = scoreModifiers_1.SmoTextGroup.defaults;
-            grpParams.blocks = [{ text: newText, position: scoreModifiers_1.SmoTextGroup.relativePositions.LEFT }];
-            const newGroup = new scoreModifiers_1.SmoTextGroup(grpParams);
+            const grpParams = scoreText_1.SmoTextGroup.defaults;
+            grpParams.blocks = [{ text: newText, position: scoreText_1.SmoTextGroup.relativePositions.LEFT }];
+            const newGroup = new scoreText_1.SmoTextGroup(grpParams);
             parameters.modifier = newGroup;
             parameters.modifier.setActiveBlock(newText);
             parameters.view.addTextGroup(parameters.modifier);
@@ -42818,9 +42943,9 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     }
     _resetAttachToSelector() {
         this.modifier.attachToSelector = false;
-        this.modifier.selector = scoreModifiers_1.SmoTextGroup.defaults.selector;
-        this.modifier.musicXOffset = scoreModifiers_1.SmoTextGroup.defaults.musicXOffset;
-        this.modifier.musicYOffset = scoreModifiers_1.SmoTextGroup.defaults.musicYOffset;
+        this.modifier.selector = scoreText_1.SmoTextGroup.defaults.selector;
+        this.modifier.musicXOffset = scoreText_1.SmoTextGroup.defaults.musicXOffset;
+        this.modifier.musicYOffset = scoreText_1.SmoTextGroup.defaults.musicYOffset;
     }
     _activateAttachToSelector() {
         this.modifier.attachToSelector = true;
@@ -42851,8 +42976,8 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
             const toSet = this.attachToSelectorCtrl.getValue();
             if (toSet) {
                 this._activateAttachToSelector();
-                this.paginationCtrl.setValue(scoreModifiers_1.SmoTextGroup.paginations.ONCE);
-                this.modifier.pagination = scoreModifiers_1.SmoTextGroup.paginations.ONCE;
+                this.paginationCtrl.setValue(scoreText_1.SmoTextGroup.paginations.ONCE);
+                this.modifier.pagination = scoreText_1.SmoTextGroup.paginations.ONCE;
             }
             else {
                 this._resetAttachToSelector();
@@ -43034,7 +43159,7 @@ SuiTextBlockDialog.dialogElements = {
         }, {
             smoName: 'font',
             classes: 'hide-when-editing hide-when-moving',
-            defaultValue: scoreModifiers_1.SmoScoreText.fontFamilies.times,
+            defaultValue: scoreText_1.SmoScoreText.fontFamilies.times,
             control: 'SuiFontComponent',
             label: 'Font Information'
         },
@@ -43047,15 +43172,15 @@ SuiTextBlockDialog.dialogElements = {
         },
         {
             smoName: 'pagination',
-            defaultValue: scoreModifiers_1.SmoScoreText.paginations.every,
+            defaultValue: scoreText_1.SmoScoreText.paginations.every,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Page Behavior',
             startRow: true,
-            options: [{ value: scoreModifiers_1.SmoTextGroup.paginations.ONCE, label: 'Once' },
-                { value: scoreModifiers_1.SmoTextGroup.paginations.EVERY, label: 'Every' },
-                { value: scoreModifiers_1.SmoTextGroup.paginations.ODD, label: 'Odd' },
-                { value: scoreModifiers_1.SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
+            options: [{ value: scoreText_1.SmoTextGroup.paginations.ONCE, label: 'Once' },
+                { value: scoreText_1.SmoTextGroup.paginations.EVERY, label: 'Every' },
+                { value: scoreText_1.SmoTextGroup.paginations.ODD, label: 'Odd' },
+                { value: scoreText_1.SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
             ]
         }, {
             smoName: 'attachToSelector',
