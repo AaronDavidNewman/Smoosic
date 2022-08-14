@@ -138,9 +138,6 @@
     "no-unused-vars": [
       0
     ],
-    "no-undef-init": [
-      0
-    ],
     "no-use-before-define": [
       0
     ],

@@ -10,7 +10,8 @@ import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
-import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
+import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
+  SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -126,6 +127,7 @@ export interface SmoScoreParams {
   activeStaff: number,
   textGroups: SmoTextGroup[],
   systemGroups: SmoSystemGroup[],
+  audioSettings: SmoAudioPlayerParameters,
   layoutManager?: SmoLayoutManager,
   formattingManager?: SmoFormattingManager
 }
@@ -150,6 +152,7 @@ export class SmoScore {
   activeStaff: number = 0;
   textGroups: SmoTextGroup[] = [];
   systemGroups: SmoSystemGroup[] = [];
+  audioSettings: SmoAudioPlayerSettings;
   layoutManager?: SmoLayoutManager;
   formattingManager?: SmoFormattingManager
   constructor(params: SmoScoreParams) {
@@ -167,7 +170,7 @@ export class SmoScore {
     if (typeof (this.preferences.showPiano) === 'undefined') {
       this.preferences.showPiano = true;
     }
-
+    this.audioSettings = new SmoAudioPlayerSettings(params.audioSettings);
     this.updateMeasureFormats();
   }
   static get engravingFonts(): Record<string, string> {
@@ -193,6 +196,7 @@ export class SmoScore {
         copyright: '',
         version: 1,
       },
+      audioSettings: SmoAudioPlayerSettings.defaults,
       preferences: {
         autoPlay: true,
         autoAdvance: true,
@@ -232,7 +236,7 @@ export class SmoScore {
       'preferences', 'scoreInfo'];
   }
   static get preferences() {
-    return ['preferences', 'fonts', 'scoreInfo'];
+    return ['preferences', 'fonts', 'scoreInfo', 'audioSettings'];
   }
   serializeColumnMapped() {
     const keySignature: Record<number, string> = {};
@@ -327,6 +331,7 @@ export class SmoScore {
     let obj: any = {
       score: params,
       layoutManager: {},
+      audioSettings: {},
       measureFormats: {},
       staves: [],
       textGroups: [],
@@ -339,6 +344,7 @@ export class SmoScore {
       obj.measureFormats = this.formattingManager.serialize();
     }
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
+    obj.audioSettings = this.audioSettings.serialize();
     this.staves.forEach((staff: SmoSystemStaff) => {
       obj.staves.push(staff.serialize());
     });
@@ -458,6 +464,11 @@ export class SmoScore {
       jsonObj.score, params);
     if (!params.preferences) {
       params.preferences = SmoScore.defaults.preferences;
+    }
+    if (!jsonObj.audioSettings) {
+      params.audioSettings = new SmoAudioPlayerSettings(SmoAudioPlayerSettings.defaults);
+    } else {
+      params.audioSettings = new SmoAudioPlayerSettings(jsonObj.audioSettings);
     }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
 

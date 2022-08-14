@@ -273,8 +273,8 @@ export class SuiTracker extends SuiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping && this.autoPlay && skipPlay === false) {
-      SuiOscillator.playSelectionNow(artifact, 1);
+    if (!this.mapping && this.autoPlay && skipPlay === false && this.score) {
+      SuiOscillator.playSelectionNow(artifact, this.score, 1);
     }
     this.selections.push(artifact);
     this.deferHighlight();
@@ -393,8 +393,8 @@ export class SuiTracker extends SuiMapper {
       return 0;
     }
     this.selections.push(artifact);
-    if (this.autoPlay) {
-      SuiOscillator.playSelectionNow(artifact, 1);
+    if (this.autoPlay && this.score) {
+      SuiOscillator.playSelectionNow(artifact, this.score, 1);
     }
     this.deferHighlight();
     this._createLocalModifiersList();
@@ -524,7 +524,7 @@ export class SuiTracker extends SuiMapper {
       artifact = SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
     }
     if (!skipPlay && this.autoPlay && artifact) {
-      SuiOscillator.playSelectionNow(artifact, 1);
+      SuiOscillator.playSelectionNow(artifact, this.score, 1);
     }
     if (!artifact) {
       return;
@@ -581,8 +581,8 @@ export class SuiTracker extends SuiMapper {
     const ar: SmoSelection[] = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
     );
-    if (this.autoPlay) {
-      SuiOscillator.playSelectionNow(selection, 1);
+    if (this.autoPlay && this.score) {
+      SuiOscillator.playSelectionNow(selection, this.score, 1);
     }
     ar.push(selection);
     this.selections = ar;
@@ -656,7 +656,7 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     if (this.autoPlay) {
-      SuiOscillator.playSelectionNow(this.suggestion,1);
+      SuiOscillator.playSelectionNow(this.suggestion, this.score, 1);
     }
 
     const preselected = this.selections[0] ?

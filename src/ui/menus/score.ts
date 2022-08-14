@@ -6,6 +6,7 @@ import { SuiScoreFontDialog } from '../dialogs/fonts';
 import { SuiGlobalLayoutDialog } from '../dialogs/globalLayout';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
+import { SuiAudioSettingsDialog } from '../dialogs/audioSettings';
 
 declare var $: any;
 export class SuiScoreMenu extends SuiMenuBase {
@@ -28,6 +29,10 @@ export class SuiScoreMenu extends SuiMenuBase {
       text: 'Page Layout',
       value: 'pageLayout'
     }, {
+      icon: '',
+      text: 'Audio Settings',
+      value: 'audioSettings'
+    },  {
       icon: '',
       text: 'System Groups',
       value: 'staffGroups'
@@ -53,7 +58,7 @@ export class SuiScoreMenu extends SuiMenuBase {
     const defs: MenuChoiceDefinition[] = [];
     this.menuItems.forEach((item) => {
       // show these options no matter what
-      if (['fonts','cancel','identification','preferences'].findIndex((x) => x === item.value) >= 0) {
+      if (['fonts', 'cancel', 'identification', 'preferences', 'audioSettings'].findIndex((x) => x === item.value) >= 0) {
         defs.push(item);
       } else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
         if (this.view.isPartExposed() === false) {
@@ -157,6 +162,20 @@ export class SuiScoreMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
   }
+  execAudioSettings() {
+    createAndDisplayDialog(SuiAudioSettingsDialog, 
+      {
+        completeNotifier: this.completeNotifier!,
+        view: this.view,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'audioSettings',
+        ctor: 'SuiAudioSettingsDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
+      });
+  }
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'pageLayout') {
@@ -173,6 +192,8 @@ export class SuiScoreMenu extends SuiMenuBase {
       this.execScoreId();
     } else if (text === 'viewAll') {
       this.view.viewAll();
+    } else if (text === 'audioSettings') {
+      this.execAudioSettings();
     }
     this.complete();
   }

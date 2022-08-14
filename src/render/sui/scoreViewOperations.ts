@@ -8,7 +8,7 @@ import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { KeyEvent, SvgBox, Pitch, PitchLetter, FontInfo } from '../../smo/data/common';
 import { SmoRenderConfiguration } from './configuration';
-import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAudioPlayerSettings } from '../../smo/data/scoreModifiers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
@@ -147,6 +147,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     } else {
       return this.loadRemoteJson(url);
     }
+  }
+  updateAudioSettings(pref: SmoAudioPlayerSettings) {
+    this._undoScorePreferences('Update preferences');
+    this.score.audioSettings = pref;
+    this.storeScore.audioSettings = new SmoAudioPlayerSettings(pref);
+    // No rendering to be done
+    return this.renderer.updatePromise();
   }
   /**
    * Global settings that control how the score editor  behaves
@@ -611,7 +618,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         SmoOperation.transpose(altSel!, offset);
       });
       if (selections.length === 1 && this.score.preferences.autoPlay) {
-        SuiOscillator.playSelectionNow(selections[0], 1);
+        SuiOscillator.playSelectionNow(selections[0], this.score, 1);
       }
     }
     this._renderChangedMeasures(measureSelections);
@@ -976,7 +983,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     if (selections.length === 1 && this.score.preferences.autoPlay) {
-      SuiOscillator.playSelectionNow(selections[0], 1);
+      SuiOscillator.playSelectionNow(selections[0], this.score, 1);
     }
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
@@ -1553,7 +1560,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     if (SuiAudioPlayer.playing) {
       return;
     }
-    new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: false }).play();
+    new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker }).play();
   }
   stopPlayer() {
     SuiAudioPlayer.stopPlayer();

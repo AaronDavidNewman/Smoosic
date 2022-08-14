@@ -3782,11 +3782,20 @@ exports.smoSerialize = smoSerialize;
 /*!****************************************!*\
   !*** ./src/render/audio/oscillator.ts ***!
   \****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiSampler = exports.SuiOscillator = exports.SuiReverb = void 0;
+exports.SuiSampler = exports.SuiWavetable = exports.SuiOscillator = exports.SynthWavetable = exports.SuiReverb = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -3804,7 +3813,7 @@ class SuiReverb {
         this._buildImpulse();
     }
     static get defaults() {
-        return { length: 0.05, decay: 2 };
+        return { length: 0.2, decay: 2 };
     }
     connect(destination) {
         this.output.connect(destination);
@@ -3837,6 +3846,24 @@ class SuiReverb {
     }
 }
 exports.SuiReverb = SuiReverb;
+exports.SynthWavetable = {
+    real: [0,
+        0.3, 0.3, 0, 0, 0,
+        0.1, 0, 0, 0, 0,
+        0.05, 0, 0, 0, 0,
+        0.01, 0, 0, 0, 0,
+        0.01, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0],
+    imaginary: [0,
+        0, 0.05, 0, 0, 0,
+        0, 0.01, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0]
+};
 // ## SuiOscillator
 // Simple waveform synthesizer thing that plays notes.  Oscillator works in either
 // analog synthisizer or sampler mode.  I've found the HTML synth performance to be not
@@ -3853,26 +3880,22 @@ class SuiOscillator {
         this.sustainLevel = 0;
         this.releaseLevel = 0;
         this.frequency = -1;
+        this.wavetable = null;
         serializationHelpers_1.smoSerialize.serializedMerge(SuiOscillator.attributes, parameters, this);
-        if (parameters.useReverb) {
-            this.reverb = new SuiReverb(SuiOscillator.audio);
-        }
-        else {
-            this.reverb = null;
-        }
+        this.reverb = null;
         // this.reverb = null;
         this.attack = this.attackEnv * SuiOscillator.attackTime;
         this.decay = this.decayEnv * SuiOscillator.decayTime;
         this.sustain = this.sustainEnv * this.duration;
         this.release = this.releaseEnv * this.duration;
-        this.wavetable = parameters.wavetable;
+        if (parameters.wavetable) {
+            this.wavetable = parameters.wavetable;
+        }
         this.useReverb = parameters.useReverb;
         // this.frequency = this.frequency / 2;  // Overtones below partial
-        if (parameters.waveform && parameters.waveform !== 'custom') {
-            this.waveform = parameters.waveform;
-        }
-        else {
-            this.waveform = 'custom';
+        this.waveform = parameters.waveform;
+        if (!parameters.wavetable && this.waveform === 'custom') {
+            this.waveform = 'sine';
         }
     }
     static get defaults() {
@@ -3911,7 +3934,7 @@ class SuiOscillator {
         };
         return JSON.parse(JSON.stringify(obj));
     }
-    static playSelectionNow(selection, gain) {
+    static playSelectionNow(selection, score, gain) {
         // In the midst of re-rendering...
         if (!selection.note) {
             return;
@@ -3920,7 +3943,7 @@ class SuiOscillator {
             return;
         }
         setTimeout(() => {
-            const ar = SuiOscillator.fromNote(selection.measure, selection.note, true, gain);
+            const ar = SuiOscillator.fromNote(selection.measure, selection.note, score, true, gain);
             ar.forEach((osc) => {
                 osc.play();
             });
@@ -3934,7 +3957,7 @@ class SuiOscillator {
     }
     // ### fromNote
     // Create an areray of oscillators for each pitch in a note
-    static fromNote(measure, note, isSample, gain) {
+    static fromNote(measure, note, score, isSample, gain) {
         let frequency = 0;
         let duration = 0;
         const tempo = measure.getTempo();
@@ -3960,8 +3983,18 @@ class SuiOscillator {
             def.frequency = frequency;
             def.duration = duration;
             def.gain = gain;
-            const osc = new SuiSampler(def);
-            ar.push(osc);
+            if (score.audioSettings.playerType !== 'sampler') {
+                def.waveform = score.audioSettings.waveform;
+                if (def.waveform === 'custom') {
+                    def.wavetable = exports.SynthWavetable;
+                }
+                const osc = new SuiWavetable(def);
+                ar.push(osc);
+            }
+            else {
+                const osc = new SuiSampler(def);
+                ar.push(osc);
+            }
         });
         return ar;
     }
@@ -4032,6 +4065,16 @@ class SuiOscillator {
         }
         return rv;
     }
+    static resolveAfter(time) {
+        return new Promise((resolve) => {
+            const timerFunc = () => {
+                resolve();
+            };
+            setTimeout(() => {
+                timerFunc();
+            }, time);
+        });
+    }
     _playPromise(duration, gain) {
         const audio = SuiOscillator.audio;
         const promise = new Promise((resolve) => {
@@ -4071,114 +4114,46 @@ class SuiOscillator {
         if (this.reverb) {
             this.reverb.disconnect();
         }
+        SuiOscillator.created -= 1;
     }
-    // ### play
-    // play the audio oscillator for the specified duration.  Return a promise that
-    // resolves after the duration.  Also dispose of the audio resources after the play is complete.
-    play() {
-        const audio = SuiOscillator.audio;
-        const gain = audio.createGain();
-        this.osc = audio.createOscillator();
-        gain.connect(audio.destination);
-        // gain.connect(this.reverb.input);
-        // this.reverb.connect(audio.destination);
-        const attack = this.attack / 1000;
-        const decay = this.decay / 1000;
-        const sustain = this.sustain / 1000;
-        const release = this.release / 1000;
-        gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
-        gain.gain.exponentialRampToValueAtTime(this.sustainLevel * this.gain, audio.currentTime + attack + decay);
-        gain.gain.exponentialRampToValueAtTime(this.releaseLevel * this.gain, audio.currentTime + attack + decay + sustain);
-        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-        if (this.waveform !== 'custom' && this.osc) {
-            this.osc.type = this.waveform;
-        }
-        else {
-            const wave = audio.createPeriodicWave(SuiOscillator.toFloatArray(this.wavetable.real), SuiOscillator.toFloatArray(this.wavetable.imaginary), { disableNormalization: false });
-            if (this.osc) { }
-            this.osc.setPeriodicWave(wave);
-        }
-        if (this.osc) {
-            this.osc.frequency.value = this.frequency;
-            this.osc.connect(gain);
-            gain.connect(audio.destination);
-        }
-        return this._playPromise(this.duration, gain);
-    }
-}
-exports.SuiOscillator = SuiOscillator;
-SuiOscillator.audio = new AudioContext();
-SuiOscillator.sampleFiles = ['bb4', 'cn4'];
-SuiOscillator.samples = [];
-// ## SuiSampler
-// Class that replaces oscillator with a sampler.
-class SuiSampler extends SuiOscillator {
-    static resolveAfter(time) {
-        return new Promise((resolve) => {
-            const timerFunc = () => {
-                resolve();
-            };
-            setTimeout(() => {
-                timerFunc();
-            }, time);
+    createAudioGraph() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.frequency === 0) {
+                return SuiSampler.resolveAfter(this.duration);
+            }
+            const audio = SuiOscillator.audio;
+            const attack = this.attack / 1000;
+            const decay = this.decay / 1000;
+            const sustain = this.sustain / 1000;
+            const release = this.release / 1000;
+            this.gainNode = audio.createGain();
+            const gp1 = this.gain;
+            if (this.useReverb) {
+                this.reverb = new SuiReverb(SuiOscillator.audio);
+            }
+            if (this.useReverb && this.reverb) {
+                this.delayNode = audio.createDelay(this.reverb.length);
+            }
+            this.gainNode.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
+            this.gainNode.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
+            this.gainNode.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
+            this.osc = this.createAudioNode();
+            // osc.connect(gain1);
+            if (this.useReverb && this.reverb && this.osc) {
+                this.osc.connect(this.reverb.input);
+            }
+            this.osc.connect(this.gainNode);
+            if (this.delayNode && this.reverb) {
+                this.reverb.connect(this.delayNode);
+                this.delayNode.connect(audio.destination);
+            }
+            this.gainNode.connect(audio.destination);
+            SuiOscillator.created += 1;
+            return this.playPromise(this.duration);
         });
     }
-    // Note: samplePromise must be complete before you call this
-    play() {
-        const self = this;
-        return SuiOscillator.samplePromise().then(() => {
-            self._play();
-        });
-    }
-    _play() {
-        if (this.frequency === 0) {
-            return SuiSampler.resolveAfter(this.duration);
-        }
-        const audio = SuiOscillator.audio;
-        const attack = this.attack / 1000;
-        const decay = this.decay / 1000;
-        const sustain = this.sustain / 1000;
-        const release = this.release / 1000;
-        this.gainNode = audio.createGain();
-        const gp1 = this.gain;
-        // const gain2 = audio.createGain();
-        // let delay: DelayNode | null = null;
-        if (this.useReverb && this.reverb) {
-            this.delayNode = audio.createDelay(this.reverb.length);
-        }
-        this.gainNode.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
-        this.gainNode.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
-        this.gainNode.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
-        this.gainNode.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-        // gain2.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
-        // gain2.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-        this.osc = audio.createBufferSource();
-        const sample = SuiOscillator.sampleForFrequency(this.frequency);
-        if (!sample) {
-            return promiseHelpers_1.PromiseHelpers.emptyPromise();
-        }
-        const cents = 1200 * (Math.log(this.frequency / sample.frequency))
-            / Math.log(2);
-        if (this.osc) {
-            this.osc.buffer = sample.sample;
-            this.osc.detune.value = cents;
-        }
-        // osc.connect(gain1);
-        if (this.useReverb && this.reverb) {
-            this.osc.connect(this.reverb.input);
-        }
-        this.osc.connect(this.gainNode);
-        if (this.delayNode && this.reverb) {
-            this.reverb.connect(this.delayNode);
-            this.delayNode.connect(audio.destination);
-        }
-        // osc.connect(gain);
-        // delay.connect(gain2);
-        this.gainNode.connect(audio.destination);
-        // gain2.connect(audio.destination);
-        return this._playPromise(this.duration);
-    }
-    _playPromise(duration) {
+    playPromise(duration) {
         const promise = new Promise((resolve) => {
             if (this.osc) {
                 this.osc.start(0);
@@ -4194,6 +4169,58 @@ class SuiSampler extends SuiOscillator {
             }, Math.round(duration * 1.05));
         });
         return promise;
+    }
+}
+exports.SuiOscillator = SuiOscillator;
+SuiOscillator.audio = new AudioContext();
+SuiOscillator.created = 0;
+SuiOscillator.sampleFiles = ['bb4', 'cn4'];
+SuiOscillator.samples = [];
+class SuiWavetable extends SuiOscillator {
+    createAudioNode() {
+        const node = SuiOscillator.audio.createOscillator();
+        if (this.wavetable && this.wavetable.imaginary.length > 0 && this.wavetable.real.length > 0 && this.waveform === 'custom') {
+            const wave = SuiOscillator.audio.createPeriodicWave(SuiOscillator.toFloatArray(this.wavetable.real), SuiOscillator.toFloatArray(this.wavetable.imaginary), { disableNormalization: false });
+            node.setPeriodicWave(wave);
+        }
+        else {
+            node.type = this.waveform;
+        }
+        node.frequency.value = this.frequency;
+        return node;
+    }
+    // play the audio oscillator for the specified duration.  Return a promise that
+    // resolves after the duration.  Also dispose of the audio resources after the play is complete.
+    play() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.createAudioGraph();
+        });
+    }
+}
+exports.SuiWavetable = SuiWavetable;
+// ## SuiSampler
+// Class that replaces oscillator with a sampler.
+class SuiSampler extends SuiOscillator {
+    // Note: samplePromise must be complete before you call this
+    createAudioNode() {
+        const node = SuiOscillator.audio.createBufferSource();
+        const sample = SuiOscillator.sampleForFrequency(this.frequency);
+        if (!sample) {
+            return node;
+        }
+        const cents = 1200 * (Math.log(this.frequency / sample.frequency))
+            / Math.log(2);
+        node.buffer = sample.sample;
+        node.detune.value = cents;
+        return node;
+    }
+    play() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const self = this;
+            return SuiOscillator.samplePromise().then(() => {
+                self.createAudioGraph();
+            });
+        });
     }
 }
 exports.SuiSampler = SuiSampler;
@@ -4257,12 +4284,7 @@ class CuedAudioContexts {
         return this.soundListLength;
     }
     reset() {
-        while (this.soundHead !== null) {
-            this.soundHead.sound.oscs.forEach((osc) => {
-                osc.disconnect();
-            });
-            this.soundHead = this.soundHead.next;
-        }
+        this.soundHead = null;
         this.soundTail = null;
         this.paramLinkHead = null;
         this.paramLinkTail = null;
@@ -4284,7 +4306,6 @@ class SuiAudioPlayer {
         this.paused = false;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
-        this.useReverb = parameters.useReverb;
         // Assume tempo is same for all measures
         this.cuedSounds = new CuedAudioContexts();
     }
@@ -4442,9 +4463,15 @@ class SuiAudioPlayer {
                     params.frequency = freq;
                     params.duration = adjDuration;
                     params.gain = sound.volume;
-                    params.useReverb = this.useReverb;
-                    const osc = new oscillator_1.SuiSampler(params);
-                    cuedSound.oscs.push(osc);
+                    params.useReverb = this.score.audioSettings.reverbEnable;
+                    if (this.score.audioSettings.playerType === 'synthesizer') {
+                        params.wavetable = oscillator_1.SynthWavetable;
+                        params.waveform = this.score.audioSettings.waveform;
+                        cuedSound.oscs.push(new oscillator_1.SuiWavetable(params));
+                    }
+                    else {
+                        cuedSound.oscs.push(new oscillator_1.SuiSampler(params));
+                    }
                 }
             });
             if (j + 1 < keys.length) {
@@ -7998,6 +8025,13 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             return this.loadRemoteJson(url);
         }
     }
+    updateAudioSettings(pref) {
+        this._undoScorePreferences('Update preferences');
+        this.score.audioSettings = pref;
+        this.storeScore.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(pref);
+        // No rendering to be done
+        return this.renderer.updatePromise();
+    }
     /**
      * Global settings that control how the score editor  behaves
      * @param pref
@@ -8451,7 +8485,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 operations_1.SmoOperation.transpose(altSel, offset);
             });
             if (selections.length === 1 && this.score.preferences.autoPlay) {
-                oscillator_1.SuiOscillator.playSelectionNow(selections[0], 1);
+                oscillator_1.SuiOscillator.playSelectionNow(selections[0], this.score, 1);
             }
         }
         this._renderChangedMeasures(measureSelections);
@@ -8812,7 +8846,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             }
         });
         if (selections.length === 1 && this.score.preferences.autoPlay) {
-            oscillator_1.SuiOscillator.playSelectionNow(selections[0], 1);
+            oscillator_1.SuiOscillator.playSelectionNow(selections[0], this.score, 1);
         }
         this._renderChangedMeasures(measureSelections);
         return this.renderer.updatePromise();
@@ -9386,7 +9420,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         if (player_1.SuiAudioPlayer.playing) {
             return;
         }
-        new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker, useReverb: false }).play();
+        new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker }).play();
     }
     stopPlayer() {
         player_1.SuiAudioPlayer.stopPlayer();
@@ -12450,8 +12484,8 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.selections.find((sel) => selections_1.SmoSelector.sameNote(sel.selector, artifact.selector))) {
             return 0;
         }
-        if (!this.mapping && this.autoPlay && skipPlay === false) {
-            oscillator_1.SuiOscillator.playSelectionNow(artifact, 1);
+        if (!this.mapping && this.autoPlay && skipPlay === false && this.score) {
+            oscillator_1.SuiOscillator.playSelectionNow(artifact, this.score, 1);
         }
         this.selections.push(artifact);
         this.deferHighlight();
@@ -12574,8 +12608,8 @@ class SuiTracker extends mapper_1.SuiMapper {
             return 0;
         }
         this.selections.push(artifact);
-        if (this.autoPlay) {
-            oscillator_1.SuiOscillator.playSelectionNow(artifact, 1);
+        if (this.autoPlay && this.score) {
+            oscillator_1.SuiOscillator.playSelectionNow(artifact, this.score, 1);
         }
         this.deferHighlight();
         this._createLocalModifiersList();
@@ -12697,7 +12731,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             artifact = selections_1.SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
         }
         if (!skipPlay && this.autoPlay && artifact) {
-            oscillator_1.SuiOscillator.playSelectionNow(artifact, 1);
+            oscillator_1.SuiOscillator.playSelectionNow(artifact, this.score, 1);
         }
         if (!artifact) {
             return;
@@ -12746,8 +12780,8 @@ class SuiTracker extends mapper_1.SuiMapper {
     }
     _addSelection(selection) {
         const ar = this.selections.filter((sel) => selections_1.SmoSelector.neq(sel.selector, selection.selector));
-        if (this.autoPlay) {
-            oscillator_1.SuiOscillator.playSelectionNow(selection, 1);
+        if (this.autoPlay && this.score) {
+            oscillator_1.SuiOscillator.playSelectionNow(selection, this.score, 1);
         }
         ar.push(selection);
         this.selections = ar;
@@ -12815,7 +12849,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         if (this.autoPlay) {
-            oscillator_1.SuiOscillator.playSelectionNow(this.suggestion, 1);
+            oscillator_1.SuiOscillator.playSelectionNow(this.suggestion, this.score, 1);
         }
         const preselected = this.selections[0] ?
             selections_1.SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
@@ -19301,6 +19335,7 @@ class SmoScore {
         if (typeof (this.preferences.showPiano) === 'undefined') {
             this.preferences.showPiano = true;
         }
+        this.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(params.audioSettings);
         this.updateMeasureFormats();
     }
     static get engravingFonts() {
@@ -19326,6 +19361,7 @@ class SmoScore {
                 copyright: '',
                 version: 1,
             },
+            audioSettings: scoreModifiers_1.SmoAudioPlayerSettings.defaults,
             preferences: {
                 autoPlay: true,
                 autoAdvance: true,
@@ -19363,7 +19399,7 @@ class SmoScore {
             'preferences', 'scoreInfo'];
     }
     static get preferences() {
-        return ['preferences', 'fonts', 'scoreInfo'];
+        return ['preferences', 'fonts', 'scoreInfo', 'audioSettings'];
     }
     serializeColumnMapped() {
         const keySignature = {};
@@ -19458,6 +19494,7 @@ class SmoScore {
         let obj = {
             score: params,
             layoutManager: {},
+            audioSettings: {},
             measureFormats: {},
             staves: [],
             textGroups: [],
@@ -19470,6 +19507,7 @@ class SmoScore {
             obj.measureFormats = this.formattingManager.serialize();
         }
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
+        obj.audioSettings = this.audioSettings.serialize();
         this.staves.forEach((staff) => {
             obj.staves.push(staff.serialize());
         });
@@ -19585,6 +19623,12 @@ class SmoScore {
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, jsonObj.score, params);
         if (!params.preferences) {
             params.preferences = SmoScore.defaults.preferences;
+        }
+        if (!jsonObj.audioSettings) {
+            params.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(scoreModifiers_1.SmoAudioPlayerSettings.defaults);
+        }
+        else {
+            params.audioSettings = new scoreModifiers_1.SmoAudioPlayerSettings(jsonObj.audioSettings);
         }
         params.preferences.transposingScore = (_a = params.preferences.transposingScore) !== null && _a !== void 0 ? _a : false;
         jsonObj.staves.forEach((staffObj, staffIx) => {
@@ -20027,7 +20071,7 @@ exports.SmoScore = SmoScore;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTextGroup = exports.SmoScoreText = exports.SmoSystemGroup = exports.SmoLayoutManager = exports.GlobalLayoutAttributesArray = exports.SmoPageLayout = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
+exports.SmoTextGroup = exports.SmoScoreText = exports.SmoSystemGroup = exports.SmoLayoutManager = exports.GlobalLayoutAttributesArray = exports.SmoPageLayout = exports.SmoAudioPlayerSettings = exports.IsOscillatorType = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -20135,6 +20179,39 @@ class SmoFormattingManager extends SmoScoreModifierBase {
     }
 }
 exports.SmoFormattingManager = SmoFormattingManager;
+function IsOscillatorType(otype) {
+    return ['sine', 'square', 'sawtooth', 'triangle', 'custom'].findIndex((x) => x === otype) >= 0;
+}
+exports.IsOscillatorType = IsOscillatorType;
+class SmoAudioPlayerSettings extends SmoScoreModifierBase {
+    constructor(params) {
+        super('SmoAudioPlayerSettings');
+        this.playerType = params.playerType;
+        this.waveform = params.waveform;
+        this.reverbEnable = params.reverbEnable;
+        this.reverbDelay = params.reverbDelay;
+        this.reverbDecay = params.reverbDecay;
+    }
+    static get defaults() {
+        return {
+            playerType: 'sampler',
+            waveform: 'sine',
+            reverbEnable: true,
+            reverbDelay: 0.5,
+            reverbDecay: 2
+        };
+    }
+    static get attributes() {
+        return ['playerType', 'waveform', 'reverbEnable', 'reverbDelay', 'reverbDecay'];
+    }
+    serialize() {
+        const params = {};
+        serializationHelpers_1.smoSerialize.serializedMergeNonDefault(SmoAudioPlayerSettings.defaults, SmoAudioPlayerSettings.attributes, this, params);
+        params.ctor = 'SmoAudioPlayerSettings';
+        return params;
+    }
+}
+exports.SmoAudioPlayerSettings = SmoAudioPlayerSettings;
 /**
  * Define margins and other layout information associated with a specific page, and may
  * be different on different pages.
@@ -35880,7 +35957,7 @@ class MicrotoneButtons extends button_1.SuiButton {
         defs.tone = el.id;
         const tn = new noteModifiers_1.SmoMicrotone(defs);
         this.view.addRemoveMicrotone(tn);
-        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
+        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0], this.view.score, 1);
     }
     bind() {
         $(this.buttonElement).off('click').on('click', () => {
@@ -36661,6 +36738,129 @@ SuiInsertMeasures.dialogElements = {
             smoName: 'append',
             control: 'SuiToggleComponent',
             label: 'Append to Selection'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/audioSettings.ts":
+/*!*****************************************!*\
+  !*** ./src/ui/dialogs/audioSettings.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiAudioSettingsDialog = exports.SuiAudioSettingsAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const deepCopy = (x) => JSON.parse(JSON.stringify(x));
+class SuiAudioSettingsAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.settings = new scoreModifiers_1.SmoAudioPlayerSettings(view.score.audioSettings);
+        this.backup = new scoreModifiers_1.SmoAudioPlayerSettings(view.score.audioSettings);
+    }
+    get enableReverb() {
+        return this.settings.reverbEnable;
+    }
+    set enableReverb(value) {
+        this.settings.reverbEnable = value;
+        this.view.updateAudioSettings(this.settings);
+    }
+    get playerType() {
+        return this.settings.playerType;
+    }
+    set playerType(value) {
+        if (value !== 'sampler') {
+            this.settings.playerType = 'synthesizer';
+        }
+        else {
+            this.settings.playerType = 'sampler';
+        }
+        this.view.updateAudioSettings(this.settings);
+    }
+    get waveform() {
+        return this.settings.waveform;
+    }
+    set waveform(value) {
+        if ((0, scoreModifiers_1.IsOscillatorType)(value)) {
+            this.settings.waveform = value;
+        }
+        this.view.updateAudioSettings(this.settings);
+    }
+    get reverbDelay() {
+        return this.settings.reverbDelay;
+    }
+    set reverbDelay(value) {
+        this.settings.reverbDecay = value;
+        this.view.updateAudioSettings(this.settings);
+    }
+    get reverbDecay() {
+        return this.settings.reverbDelay;
+    }
+    set reverbDecay(value) {
+        this.settings.reverbDecay = value;
+        this.view.updateAudioSettings(this.settings);
+    }
+    cancel() {
+        this.view.updateAudioSettings(this.backup);
+    }
+    commit() {
+    }
+}
+exports.SuiAudioSettingsAdapter = SuiAudioSettingsAdapter;
+class SuiAudioSettingsDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiAudioSettingsAdapter(params.view);
+        super(SuiAudioSettingsDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+}
+exports.SuiAudioSettingsDialog = SuiAudioSettingsDialog;
+SuiAudioSettingsDialog.dialogElements = {
+    label: 'Audio Settings',
+    elements: [{
+            smoName: 'enableReverb',
+            control: 'SuiToggleComponent',
+            label: 'Enable Reverb'
+        }, {
+            smoName: 'playerType',
+            control: 'SuiDropdownComponent',
+            label: 'Audio Playback Engine',
+            options: [{
+                    value: 'sampler', label: 'Sampler'
+                }, {
+                    value: 'synthesizer', label: 'Analog SoftSynth'
+                }]
+        }, {
+            smoName: 'waveform',
+            control: 'SuiDropdownComponent',
+            label: 'Waveform (Synth only)',
+            options: [{
+                    value: 'sine', label: 'Sine'
+                }, {
+                    value: 'sawtooth', label: 'sawtooth'
+                }, {
+                    value: 'square', label: 'square'
+                }, {
+                    value: 'triangle', label: 'triangle'
+                }, {
+                    value: 'custom', label: 'custom'
+                }]
+        }, {
+            smoName: 'reverbDelay',
+            control: 'SuiRockerComponent',
+            label: 'Delay Time (if reverb) in seconds',
+            dataType: 'float'
+        }, {
+            smoName: 'reverbDecay',
+            control: 'SuiRockerComponent',
+            label: 'Decay Time (if reverb) in seconds',
+            dataType: 'float'
         }],
     staticText: []
 };
@@ -51071,6 +51271,7 @@ const fonts_1 = __webpack_require__(/*! ../dialogs/fonts */ "./src/ui/dialogs/fo
 const globalLayout_1 = __webpack_require__(/*! ../dialogs/globalLayout */ "./src/ui/dialogs/globalLayout.ts");
 const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
 const staffGroup_1 = __webpack_require__(/*! ../dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts");
+const audioSettings_1 = __webpack_require__(/*! ../dialogs/audioSettings */ "./src/ui/dialogs/audioSettings.ts");
 class SuiScoreMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -51082,7 +51283,7 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         const defs = [];
         this.menuItems.forEach((item) => {
             // show these options no matter what
-            if (['fonts', 'cancel', 'identification', 'preferences'].findIndex((x) => x === item.value) >= 0) {
+            if (['fonts', 'cancel', 'identification', 'preferences', 'audioSettings'].findIndex((x) => x === item.value) >= 0) {
                 defs.push(item);
             }
             else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
@@ -51178,6 +51379,19 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
             startPromise: this.closePromise
         });
     }
+    execAudioSettings() {
+        (0, dialog_1.createAndDisplayDialog)(audioSettings_1.SuiAudioSettingsDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'audioSettings',
+            ctor: 'SuiAudioSettingsDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
         if (text === 'pageLayout') {
@@ -51200,6 +51414,9 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         }
         else if (text === 'viewAll') {
             this.view.viewAll();
+        }
+        else if (text === 'audioSettings') {
+            this.execAudioSettings();
         }
         this.complete();
     }
@@ -51224,6 +51441,10 @@ SuiScoreMenu.defaults = {
             icon: '',
             text: 'Page Layout',
             value: 'pageLayout'
+        }, {
+            icon: '',
+            text: 'Audio Settings',
+            value: 'audioSettings'
         }, {
             icon: '',
             text: 'System Groups',

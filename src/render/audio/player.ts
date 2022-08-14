@@ -1,18 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiOscillator, SuiSampler } from './oscillator';
+import { SuiOscillator, SuiSampler, SuiWavetable, SynthWavetable } from './oscillator';
 import { SmoAudioScore } from '../../smo/xform/audioTrack';
 import { SuiTracker } from '../sui/tracker';
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SmoTie } from '../../smo/data/staffModifiers';
-import { SmoMusic, SmoAudioPitch } from '../../smo/data/music';
+import { SmoAudioPitch } from '../../smo/data/music';
 
 export interface SuiAudioPlayerParams {
   startIndex: number,
   tracker: SuiTracker,
-  score: SmoScore,
-  useReverb: boolean
+  score: SmoScore
 }
 export interface SoundParams {
   frequencies: number[],
@@ -77,12 +76,7 @@ export class CuedAudioContexts {
     return this.soundListLength;
   }
   reset() {
-    while (this.soundHead !== null) {
-      this.soundHead.sound.oscs.forEach((osc) => {
-        osc.disconnect();
-      });
-      this.soundHead = this.soundHead.next;
-    }
+    this.soundHead = null;
     this.soundTail = null;
     this.paramLinkHead = null;
     this.paramLinkTail = null;
@@ -133,13 +127,11 @@ export class SuiAudioPlayer {
   cuedSounds: CuedAudioContexts;
   audioDefaults = SuiOscillator.defaults;
   openTies: Record<string, SoundParams | null> = {};
-  useReverb: boolean;
   constructor(parameters: SuiAudioPlayerParams) {
     this.instanceId = SuiAudioPlayer.incrementInstanceId();
     this.paused = false;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
-    this.useReverb = parameters.useReverb;
     // Assume tempo is same for all measures
     this.cuedSounds = new CuedAudioContexts();
   }
@@ -271,9 +263,14 @@ export class SuiAudioPlayer {
             params.frequency = freq;
             params.duration = adjDuration;
             params.gain = sound.volume;
-            params.useReverb = this.useReverb;
-            const osc = new SuiSampler(params);
-            cuedSound.oscs.push(osc);            
+            params.useReverb = this.score.audioSettings.reverbEnable;
+            if (this.score.audioSettings.playerType === 'synthesizer') {
+              params.wavetable = SynthWavetable;
+              params.waveform = this.score.audioSettings.waveform;
+              cuedSound.oscs.push(new SuiWavetable(params));
+            } else {
+              cuedSound.oscs.push(new SuiSampler(params));
+            }
           }
         });
         if (j + 1 < keys.length) {

@@ -12,7 +12,7 @@ export class MicrotoneButtons extends SuiButton {
     defs.tone = el.id;
     const tn = new SmoMicrotone(defs);
     this.view.addRemoveMicrotone(tn);
-    SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
+    SuiOscillator.playSelectionNow(this.view.tracker.selections[0], this.view.score, 1);
   }
   bind() {
     $(this.buttonElement).off('click').on('click', () => {

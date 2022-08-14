@@ -120,6 +120,53 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
     return rv;
   }
 }
+
+export type SmoAudioPlayerType = 'sampler' | 'synthesizer';
+export interface SmoAudioPlayerParameters {
+  playerType: SmoAudioPlayerType,
+  waveform: OscillatorType,
+  reverbEnable: boolean,
+  reverbDelay: number,
+  reverbDecay: number
+}
+
+export function IsOscillatorType(otype: OscillatorType | string): otype is OscillatorType {
+  return ['sine', 'square', 'sawtooth', 'triangle', 'custom'].findIndex((x) => x === otype) >= 0;
+}
+export class SmoAudioPlayerSettings extends SmoScoreModifierBase {
+  static get defaults(): SmoAudioPlayerParameters {
+    return {
+      playerType: 'sampler',
+      waveform: 'sine',
+      reverbEnable: true,
+      reverbDelay: 0.5,
+      reverbDecay: 2
+    };
+  }
+  static get attributes() {
+    return ['playerType', 'waveform', 'reverbEnable', 'reverbDelay', 'reverbDecay'];
+  } 
+
+  playerType: SmoAudioPlayerType;
+  waveform: OscillatorType;
+  reverbEnable: boolean;
+  reverbDelay: number;
+  reverbDecay: number;
+  constructor(params: SmoAudioPlayerParameters) {
+    super('SmoAudioPlayerSettings');
+    this.playerType = params.playerType;
+    this.waveform = params.waveform;
+    this.reverbEnable = params.reverbEnable;
+    this.reverbDelay = params.reverbDelay;
+    this.reverbDecay = params.reverbDecay;
+  }
+  serialize(): any {
+    const params: any = {};
+    smoSerialize.serializedMergeNonDefault(SmoAudioPlayerSettings.defaults, SmoAudioPlayerSettings.attributes, this, params);
+    params.ctor = 'SmoAudioPlayerSettings';
+    return params;
+  }
+}
 export type ScaledPageAttributes = 'leftMargin' | 'rightMargin' | 'topMargin' | 'bottomMargin' | 'interGap' | 'intraGap';
 /**
  * Constructor parameters for {@link SmoPageLayout}, part of {@link SmoLayoutManager}
