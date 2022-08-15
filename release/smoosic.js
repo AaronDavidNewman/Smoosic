@@ -13423,10 +13423,11 @@ class VxMeasure {
             const pitch = smoNote.pitches[i];
             const keyAccidental = music_1.SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
             const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
-            const accidentals = this.tickmapObject.accidentalArray.filter((ar) => ar.duration < duration && ar.pitches[pitch.letter]);
+            const pitchOctave = pitch.letter + '-' + pitch.octave;
+            const accidentals = this.tickmapObject.accidentalArray.filter((ar) => ar.duration < duration && ar.pitches[pitchOctave]);
             const acLen = accidentals.length;
             const declared = acLen > 0 ?
-                accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
+                accidentals[acLen - 1].pitches[pitchOctave].pitch.accidental : keyAccidental;
             if ((declared !== pitch.accidental
                 || pitch.cautionary) && smoNote.noteType === 'n') {
                 const acc = new VF.Accidental(pitch.accidental);
@@ -29028,18 +29029,19 @@ class TickMap {
                 continue;
             }
             const pitch = note.pitches[i];
-            const letter = pitch.letter.toLowerCase();
-            const sigLetter = letter + pitch.accidental;
-            const sigKey = music_1.SmoMusic.getKeySignatureKey(letter, this.keySignature);
-            if (sigObj && sigObj[letter]) {
-                const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
+            const pitchOctave = pitch.letter.toLowerCase() + '-' + pitch.octave;
+            const sigLetter = pitchOctave + pitch.accidental;
+            const sigKey = music_1.SmoMusic.getKeySignatureKey(pitch.letter, this.keySignature);
+            if (sigObj && sigObj[pitchOctave]) {
+                const curObj = sigObj[pitchOctave];
+                const currentVal = curObj.pitch.letter.toLowerCase() + '-' + curObj.pitch.octave + curObj.pitch.accidental;
                 if (sigLetter !== currentVal) {
-                    newObj[letter] = { pitch, duration: this.duration };
+                    newObj[pitchOctave] = { pitch, duration: this.duration };
                 }
             }
             else {
                 if (sigLetter !== sigKey) {
-                    newObj[letter] = { pitch, duration: this.duration };
+                    newObj[pitchOctave] = { pitch, duration: this.duration };
                 }
             }
         }

@@ -111,11 +111,12 @@ export class VxMeasure {
       const pitch = smoNote.pitches[i];
       const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
+      const pitchOctave = pitch.letter + '-' + pitch.octave;
       const accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
-        ar.duration < duration && ar.pitches[pitch.letter]);
+        ar.duration < duration && ar.pitches[pitchOctave]);
       const acLen = accidentals.length;
       const declared = acLen > 0 ?
-        accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
+        accidentals[acLen - 1].pitches[pitchOctave].pitch.accidental : keyAccidental;
       if ((declared !== pitch.accidental
         || pitch.cautionary) && smoNote.noteType === 'n') {
         const acc = new VF.Accidental(pitch.accidental);

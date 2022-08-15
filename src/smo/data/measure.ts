@@ -88,7 +88,7 @@ export interface MeasureSvg {
  */
 export interface MeasureTickmaps {
   tickmaps: TickMap[],
-  accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>>,
+  accidentalMap: Record<string | number, Record<string, TickAccidental>>,
   accidentalArray: AccidentalArray[]
 }
 /**
@@ -150,7 +150,7 @@ export interface SmoMeasureParams {
  */
 export interface AccidentalArray {
   duration: string | number,
-  pitches: Record<PitchLetter, TickAccidental>
+  pitches: Record<string, TickAccidental>
 }
 
 /**
@@ -886,7 +886,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   createMeasureTickmaps(): MeasureTickmaps {
     let i = 0;
     const tickmapArray: TickMap[] = [];
-    const accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>> =
+    const accidentalMap: Record<string | number, Record<string, TickAccidental>> =
       {} as Record<string | number, Record<PitchLetter, TickAccidental>>;
     for (i = 0; i < this.voices.length; ++i) {
       tickmapArray.push(this.tickmapForVoice(i));

@@ -37,9 +37,9 @@ export class TickMap {
   // the relative duration if each tick slot
   deltaMap: number[] = [];
   // An array of active accidentals for each tick index
-  accidentalMap: Record<PitchLetter, TickAccidental>[] = [];
+  accidentalMap: Record<string, TickAccidental>[] = [];
   // a map of active accidentals, indexed by duration index
-  durationAccidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>> = {};
+  durationAccidentalMap: Record<string | number, Record<string, TickAccidental>> = {};
   constructor(measure: TickMappable, voiceIndex: number) {
     this.keySignature = measure.keySignature;
     this.voice = voiceIndex;
@@ -91,17 +91,18 @@ export class TickMap {
         continue;
       }
       const pitch: Pitch = note.pitches[i];
-      const letter: string = pitch.letter.toLowerCase();
-      const sigLetter: string = letter + pitch.accidental;
-      const sigKey = SmoMusic.getKeySignatureKey(letter as PitchLetter, this.keySignature);
-      if (sigObj && sigObj[letter]) {
-        const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
+      const pitchOctave = pitch.letter.toLowerCase() + '-' + pitch.octave;
+      const sigLetter: string = pitchOctave + pitch.accidental;
+      const sigKey = SmoMusic.getKeySignatureKey(pitch.letter, this.keySignature);
+      if (sigObj && sigObj[pitchOctave]) {
+        const curObj = sigObj[pitchOctave];
+        const currentVal = curObj.pitch.letter.toLowerCase() + '-' + curObj.pitch.octave + curObj.pitch.accidental;
         if (sigLetter !== currentVal) {
-          newObj[letter] = { pitch, duration: this.duration };
+          newObj[pitchOctave] = { pitch, duration: this.duration };
         }
       } else {
         if (sigLetter !== sigKey) {
-          newObj[letter] = { pitch, duration: this.duration };
+          newObj[pitchOctave] = { pitch, duration: this.duration };
         }
       }
     }
