@@ -217,9 +217,6 @@ export abstract class SuiMapper {
       });
     }
   }
-  updateMap() {
-    this._updateMap();
-  }
   _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoNoteModifierBase, ix: number) {
     if (!modMap[modifier.attrs.id]) {
       this.modifierTabs.push({
@@ -349,13 +346,44 @@ export abstract class SuiMapper {
     });
   }
 
+  /**
+   * returns true of the selections are adjacent
+   * @param s1 a selections
+   * @param s2 another election
+   * @returns 
+   */
+  isAdjacentSelection(s1: SmoSelection, s2: SmoSelection) {
+    if (!this.renderer.score) {
+      return false;
+    }
+    const nextSel = SmoSelection.advanceTicks(this.renderer.score, s1, 1);
+    if (!nextSel) {
+      return false;
+    }
+    return SmoSelector.eq(nextSel.selector, s2.selector);
+  }
+  areSelectionsAdjacent() {
+    let selectionIx = 0;
+    for (selectionIx = 0; this.selections.length > 1 && selectionIx < this.selections.length - 1; ++selectionIx) {
+      if (!this.isAdjacentSelection(this.selections[selectionIx], this.selections[selectionIx + 1])) {
+        return false;
+      }
+    }
+    return true;    
+  }
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
   mapMeasure(staff: SmoSystemStaff, measure: SmoMeasure, printing: boolean) {
     let voiceIx = 0;
     let selectedTicks = 0;
+
+    // We try to restore block selections. If all the selections in this block are not adjacent, only restore individual selections
+    // if possible
+    let adjacentSels = this.areSelectionsAdjacent();
+    const lastResortSelection: SmoSelection[] = [];
     let selectionChanged = false;
     let vix = 0;
+    let replacedSelectors = 0;
     if (!measure.svg.logicalBox) {
       return;
     }
@@ -396,12 +424,12 @@ export abstract class SuiMapper {
         this._updateMeasureNoteMap(selection, printing);
 
         // If this note is the same location as something that was selected, reselect it
-        if (sels.selectors.length && selection.selector.tick === sels.selectors[0].tick &&
+        if (replacedSelectors < sels.selectors.length && selection.selector.tick === sels.selectors[replacedSelectors].tick &&
           selection.selector.voice === vix) {
           this.selections.push(selection);
           // Reselect any pitches.
-          if (sels.selectors[0].pitches.length > 0) {
-            sels.selectors[0].pitches.forEach((pitchIx) => {
+          if (sels.selectors[replacedSelectors].pitches.length > 0) {
+            sels.selectors[replacedSelectors].pitches.forEach((pitchIx) => {
               if (selection.note && selection.note.pitches.length > pitchIx) {
                 selection.selector.pitches.push(pitchIx);
               }
@@ -409,20 +437,26 @@ export abstract class SuiMapper {
           }
           const note = selection.note as SmoNote;
           selectedTicks += note.tickCount;
+          replacedSelectors += 1;
           selectionChanged = true;
-        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
+        } else if (adjacentSels && selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
           // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
           // are selected
+          replacedSelectors += 1;
           this.selections.push(selection);
           selectedTicks += note.tickCount;
-        } else if (this.selections.length === 0 && sels.selectors.length === 0) {
-          this.selections = [selection];
-          selectionChanged = true;
+        } else if (this.selections.length === 0 && sels.selectors.length === 0 && lastResortSelection.length === 0) {
+          lastResortSelection.push(selection);
         }
         tick += 1;
       });
       voiceIx += 1;
     });
+    // We deleted all the notes that were selected, select something else
+    if (this.selections.length === 0) {
+      selectionChanged = true;
+      this.selections = lastResortSelection;
+    }
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
       this.deferHighlight();
@@ -480,7 +514,7 @@ export abstract class SuiMapper {
   // ### updateMap
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
-  _updateMap() {
+  updateMap() {
     const ts = new Date().valueOf();
     this.mapping = true;
     let tickSelected = 0;
@@ -488,19 +522,21 @@ export abstract class SuiMapper {
     const ticksSelectedCopy = this._getTicksFromSelections();
     const firstSelection = this.getExtremeSelection(-1);
     this._updateModifiers();
-    this.selections = [];
 
     // Try to restore selection.  If there were none, just select the fist
     // thing in the score
-    const keys = Object.keys(this.measureNoteMap);
-    if (keys.length && !selCopy.length) {
+    const firstKey = SmoSelector.getNoteKey(SmoSelector.default);
+    if (!selCopy.length && this.renderer.score) {
     // If there is nothing rendered, don't update tracker
-      this.selections = [this.measureNoteMap[keys[0]]];
-    }  else {
+    if (typeof(this.measureNoteMap[firstKey]) !== 'undefined' && !firstSelection)
+      this.selections = [this.measureNoteMap[firstKey]];
+    }  else if (this.areSelectionsAdjacent() && this.selections.length > 1) {
+      // If there are adjacent selections, restore selections to the ticks that are in the score now
       if (!firstSelection) {
         layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
         return;
       }
+      this.selections = [];
       this._selectClosest(firstSelection.selector);
       const first = this.selections[0];
       tickSelected = (first.note as SmoNote).tickCount ??  0;

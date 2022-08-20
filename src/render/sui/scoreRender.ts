@@ -327,9 +327,7 @@ export class SuiScoreRender {
     return new Promise((resolve: any) => {
       // const sleepDate = new Date().valueOf();
       this._renderSystem(keys[systemIx], printing);
-      setTimeout(() => {
-        resolve();
-      }, 10);
+      requestAnimationFrame(() => resolve());
     });
   }
 
