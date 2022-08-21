@@ -4857,12 +4857,10 @@ class SuiLayoutFormatter {
     // {measures,y,x}  the x and y at the left/bottom of the render
     /**
      * Estimate the dimensions of a column when it's rendered.
-     * @param formatter
      * @param scoreLayout
      * @param measureIx
      * @param systemIndex
      * @param lineIndex
-     * @param pageIndex
      * @param x
      * @param y
      * @returns { MeasureEstimate } - the measures in the column and the x, y location
@@ -4961,6 +4959,10 @@ class SuiLayoutFormatter {
         const rv = { measures, y, x: maxX };
         return rv;
     }
+    /**
+     * Calculate the geometry for the entire score, based on estimated measure width and height.
+     * @returns
+     */
     layout() {
         let measureIx = 0;
         let systemIndex = 0;
@@ -4995,7 +4997,7 @@ class SuiLayoutFormatter {
             x = measureEstimate.x;
             if (systemIndex > 0 &&
                 (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
-                this.justifyY(scoreLayout, measureEstimate, currentLine, false);
+                this.justifyY(scoreLayout, measureEstimate.measures.length, currentLine, false);
                 // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
                 // start of staff.
                 const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
@@ -5050,7 +5052,7 @@ class SuiLayoutFormatter {
             // If this is the last measure but we have not filled the x extent,
             // still justify the vertical staves and check for page break.
             if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
-                this.justifyY(scoreLayout, measureEstimate, currentLine, true);
+                this.justifyY(scoreLayout, measureEstimate.measures.length, currentLine, true);
                 const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
                 scoreLayout = this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
             }
@@ -5183,7 +5185,7 @@ class SuiLayoutFormatter {
         let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
         measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
         measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
-        measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
+        measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;
         const y = measure.svg.logicalBox.y;
         measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
         // Calculate the space for left/right text which displaces the measure.
@@ -5204,31 +5206,42 @@ class SuiLayoutFormatter {
         });
         return rv;
     }
-    // ### _justifyY
-    // when we have finished a line of music, adjust the measures in the system so the
-    // top of the staff lines up.
-    justifyY(scoreLayout, measureEstimate, currentLine, lastSystem) {
+    /**
+     * A system has gone beyond the page width.  Lop the last measure off the end and move it to the first measure of the
+     * next system.  Then seal the last system by justifying the measures vertically and horinzontally
+     * @param scoreLayout
+     * @param measureEstimate
+     * @param currentLine
+     * @param columnCount
+     * @param lastSystem
+     */
+    justifyY(scoreLayout, rowCount, currentLine, lastSystem) {
         let i = 0;
+        const sh = svgHelpers_1.SvgHelpers;
+        // If there are fewer measures in the system than the max, don't justify.
         // We estimate the staves at the same absolute y value.
         // Now, move them down so the top of the staves align for all measures in a  row.
-        for (i = 0; i < measureEstimate.measures.length; ++i) {
-            let justifyX = 0;
-            const index = i;
-            const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
+        for (i = 0; i < rowCount; ++i) {
             // lowest staff has greatest staffY value.
+            const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
             const lowestStaff = rowAdj.reduce((a, b) => a.staffY > b.staffY ? a : b);
-            const sh = svgHelpers_1.SvgHelpers;
             rowAdj.forEach((measure) => {
                 const adj = lowestStaff.staffY - measure.staffY;
                 measure.setY(measure.staffY + adj, 'justifyY');
                 measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
             });
             const rightStaff = rowAdj.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
-            if (!lastSystem) {
-                justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
-                    / rowAdj.length);
-            }
             const ld = layoutDebug_1.layoutDebug;
+            let justifyX = 0;
+            let columnCount = rowAdj.length;
+            let missingOffset = 0;
+            if (scoreLayout.maxMeasureSystem > 1 &&
+                columnCount < scoreLayout.maxMeasureSystem) {
+                missingOffset = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1)) * (scoreLayout.maxMeasureSystem - columnCount);
+                columnCount = scoreLayout.maxMeasureSystem;
+            }
+            justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth + missingOffset))
+                / columnCount);
             rowAdj.forEach((measure) => {
                 measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
                 const offset = measure.measureNumber.systemIndex * justifyX;
@@ -5699,9 +5712,6 @@ class SuiMapper {
             });
         }
     }
-    updateMap() {
-        this._updateMap();
-    }
     _updateNoteModifier(selection, modMap, modifier, ix) {
         if (!modMap[modifier.attrs.id]) {
             this.modifierTabs.push({
@@ -5825,13 +5835,43 @@ class SuiMapper {
             });
         });
     }
+    /**
+     * returns true of the selections are adjacent
+     * @param s1 a selections
+     * @param s2 another election
+     * @returns
+     */
+    isAdjacentSelection(s1, s2) {
+        if (!this.renderer.score) {
+            return false;
+        }
+        const nextSel = selections_1.SmoSelection.advanceTicks(this.renderer.score, s1, 1);
+        if (!nextSel) {
+            return false;
+        }
+        return selections_1.SmoSelector.eq(nextSel.selector, s2.selector);
+    }
+    areSelectionsAdjacent() {
+        let selectionIx = 0;
+        for (selectionIx = 0; this.selections.length > 1 && selectionIx < this.selections.length - 1; ++selectionIx) {
+            if (!this.isAdjacentSelection(this.selections[selectionIx], this.selections[selectionIx + 1])) {
+                return false;
+            }
+        }
+        return true;
+    }
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
     mapMeasure(staff, measure, printing) {
         let voiceIx = 0;
         let selectedTicks = 0;
+        // We try to restore block selections. If all the selections in this block are not adjacent, only restore individual selections
+        // if possible
+        let adjacentSels = this.areSelectionsAdjacent();
+        const lastResortSelection = [];
         let selectionChanged = false;
         let vix = 0;
+        let replacedSelectors = 0;
         if (!measure.svg.logicalBox) {
             return;
         }
@@ -5870,12 +5910,12 @@ class SuiMapper {
                 // and add it to the map
                 this._updateMeasureNoteMap(selection, printing);
                 // If this note is the same location as something that was selected, reselect it
-                if (sels.selectors.length && selection.selector.tick === sels.selectors[0].tick &&
+                if (replacedSelectors < sels.selectors.length && selection.selector.tick === sels.selectors[replacedSelectors].tick &&
                     selection.selector.voice === vix) {
                     this.selections.push(selection);
                     // Reselect any pitches.
-                    if (sels.selectors[0].pitches.length > 0) {
-                        sels.selectors[0].pitches.forEach((pitchIx) => {
+                    if (sels.selectors[replacedSelectors].pitches.length > 0) {
+                        sels.selectors[replacedSelectors].pitches.forEach((pitchIx) => {
                             if (selection.note && selection.note.pitches.length > pitchIx) {
                                 selection.selector.pitches.push(pitchIx);
                             }
@@ -5883,22 +5923,28 @@ class SuiMapper {
                     }
                     const note = selection.note;
                     selectedTicks += note.tickCount;
+                    replacedSelectors += 1;
                     selectionChanged = true;
                 }
-                else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
+                else if (adjacentSels && selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
                     // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
                     // are selected
+                    replacedSelectors += 1;
                     this.selections.push(selection);
                     selectedTicks += note.tickCount;
                 }
-                else if (this.selections.length === 0 && sels.selectors.length === 0) {
-                    this.selections = [selection];
-                    selectionChanged = true;
+                else if (this.selections.length === 0 && sels.selectors.length === 0 && lastResortSelection.length === 0) {
+                    lastResortSelection.push(selection);
                 }
                 tick += 1;
             });
             voiceIx += 1;
         });
+        // We deleted all the notes that were selected, select something else
+        if (this.selections.length === 0) {
+            selectionChanged = true;
+            this.selections = lastResortSelection;
+        }
         // If there were selections on this measure, highlight them.
         if (selectionChanged) {
             this.deferHighlight();
@@ -5956,7 +6002,7 @@ class SuiMapper {
     // ### updateMap
     // This should be called after rendering the score.  It updates the score to
     // graphics map and selects the first object.
-    _updateMap() {
+    updateMap() {
         var _a;
         const ts = new Date().valueOf();
         this.mapping = true;
@@ -5965,19 +6011,21 @@ class SuiMapper {
         const ticksSelectedCopy = this._getTicksFromSelections();
         const firstSelection = this.getExtremeSelection(-1);
         this._updateModifiers();
-        this.selections = [];
         // Try to restore selection.  If there were none, just select the fist
         // thing in the score
-        const keys = Object.keys(this.measureNoteMap);
-        if (keys.length && !selCopy.length) {
+        const firstKey = selections_1.SmoSelector.getNoteKey(selections_1.SmoSelector.default);
+        if (!selCopy.length && this.renderer.score) {
             // If there is nothing rendered, don't update tracker
-            this.selections = [this.measureNoteMap[keys[0]]];
+            if (typeof (this.measureNoteMap[firstKey]) !== 'undefined' && !firstSelection)
+                this.selections = [this.measureNoteMap[firstKey]];
         }
-        else {
+        else if (this.areSelectionsAdjacent() && this.selections.length > 1) {
+            // If there are adjacent selections, restore selections to the ticks that are in the score now
             if (!firstSelection) {
                 layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
                 return;
             }
+            this.selections = [];
             this._selectClosest(firstSelection.selector);
             const first = this.selections[0];
             tickSelected = (_a = first.note.tickCount) !== null && _a !== void 0 ? _a : 0;
@@ -7150,9 +7198,7 @@ class SuiScoreRender {
         return new Promise((resolve) => {
             // const sleepDate = new Date().valueOf();
             this._renderSystem(keys[systemIx], printing);
-            setTimeout(() => {
-                resolve();
-            }, 10);
+            requestAnimationFrame(() => resolve());
         });
     }
     _renderNextSystem(lineIx, keys, printing) {
