@@ -6,7 +6,7 @@ import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
-import { SmoMeasure } from '../../smo/data/measure';
+import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
 import { SuiScroller } from '../sui/scroller';
 import { SmoNote } from '../../smo/data/note';
@@ -20,6 +20,10 @@ const VF = eval('Vex.Flow');
 export interface VoltaInfo {
   smoMeasure: SmoMeasure,
   ending: SmoVolta
+}
+export interface SuiSystemGroup {
+  firstMeasure: VxMeasure,
+  voices: SmoVoice[]
 }
 /**
  * Create a system of staves and draw music on it.  This calls the Vex measure
@@ -446,12 +450,21 @@ export class VxSystem {
     this.vxMeasures.push(vxMeasure);
 
     const lastStaff = (staffId === this.score.staves.length - 1);
-    const smoGroupMap: Record<string, any> = {};
-
+    const smoGroupMap: Record<string, SuiSystemGroup> = {};
+    const adjXMap: Record<number, number> = {};
     // If this is the last staff in the column, render the column with justification
     if (lastStaff) {
+      this.vxMeasures.forEach((mm) => {
+        if (typeof(adjXMap[mm.smoMeasure.measureNumber.systemIndex]) === 'undefined') {
+          adjXMap[mm.smoMeasure.measureNumber.systemIndex] = mm.smoMeasure.svg.adjX;
+        }
+        adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
+      });
       this.vxMeasures.forEach((vv: VxMeasure) => {
         if (!vv.rendered) {
+          vv.vexNotes.forEach((vnote) => {
+            vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
+          });
           const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
           const justifyGroup: string = (systemGroup && vv.smoMeasure.format.autoJustify) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
           if (!smoGroupMap[justifyGroup]) {

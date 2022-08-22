@@ -191,13 +191,13 @@ export class SuiLayoutFormatter {
 
       // Add custom width to measure:
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-      SuiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
+      this.estimateMeasureWidth(measure, scoreLayout, contextMap);
       y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
 
-    // justify this column to the maximum width        
+    // justify this column to the maximum width.
     const startX = measures[0].staffX;
     const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
     const contexts = Object.keys(contextMap);
@@ -220,6 +220,12 @@ export class SuiLayoutFormatter {
       });
       minTotalWidth += tickWidth;
     });
+    // Vex formatter adjusts location of ticks based to keep the justified music aligned.  It does this
+    // by moving notes to the right.  We try to add padding to each tick context based on the 'entropy' of the 
+    // music.   4 quarter notes with no accidentals in all voices will have 0 entropy.  All the notes need the same
+    // amount of space, so they don't need additional space to align.
+    // wvar - the std deviation in the widths or 'width entropy'
+    // dvar - the std deviation in the duration between voices or 'duration entropy'
     const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
     const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
     const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
@@ -236,13 +242,13 @@ export class SuiLayoutFormatter {
     if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
       // Add 1 because there is some overhead in each measure, 
       // so there can never be (width/max) measures in the system
-      const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
+      const defaultWidth = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1));
       maxWidth = Math.max(maxWidth, defaultWidth);
     }
     const maxX = startX + maxWidth;
     measures.forEach((measure) => {
       measure.setWidth(maxWidth, 'render:estimateColumn');
-      measure.svg.adjX = adjX;
+      // measure.svg.adjX = adjX;
     });
     const rv = { measures, y, x: maxX };
     return rv;
@@ -366,15 +372,9 @@ export class SuiLayoutFormatter {
   
   static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>): number {
     const widths: number[] = [];
-    // The below line was commented out b/c voiceIX was defined but never used
-    // let voiceIx = 0;
-    // Accidental map:
-    // If we accidentals on different notes in a justified column, need to increase width
-    // for both.
-    //     |          |
-    //    #o  x   x   o
-    //     |  x   x   |
-    //     o  x   x  #o
+
+    // Add up the widths of the music glyphs for each voice, including accidentals etc.  We save the widths in a hash by duration
+    // and later consider overlapping/colliding ticks in each voice
     const tmObj = smoMeasure.createMeasureTickmaps();
     smoMeasure.voices.forEach((voice) => {
       let width = 0;
@@ -482,13 +482,15 @@ export class SuiLayoutFormatter {
     return width;
   }
 
-  static estimateMeasureWidth(measure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>) {
+  estimateMeasureWidth(measure: SmoMeasure, scoreLayout: ScaledPageLayout, tickContexts: Record<number, SuiTickContext>) {
+    const noteSpacing = scoreLayout.noteSpacing;
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
     measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
     measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;
     const y = measure.svg.logicalBox.y;
+    // For systems that start with padding, add width for the padding
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
@@ -542,20 +544,24 @@ export class SuiLayoutFormatter {
       const ld = layoutDebug;
       let justifyX = 0;
       let columnCount = rowAdj.length;
+      // missing offset is for systems that have fewer measures than the default (due to section break or score ending)
       let missingOffset = 0;
       if (scoreLayout.maxMeasureSystem > 1 && 
         columnCount < scoreLayout.maxMeasureSystem) {
           missingOffset = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1)) * (scoreLayout.maxMeasureSystem - columnCount);
           columnCount = scoreLayout.maxMeasureSystem;
       }
-      justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth + missingOffset))
-        / columnCount);    
+      if (scoreLayout.maxMeasureSystem > 1 || !lastSystem) {
+        justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth + missingOffset))
+          / columnCount);
+      }
+      let justOffset = 0;
       rowAdj.forEach((measure) => {
         measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
-        const offset = measure.measureNumber.systemIndex * justifyX;
-        measure.setX(measure.staffX + offset, 'justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+        measure.setX(measure.staffX + justOffset, 'justifyY');
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
         ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        justOffset += justifyX;
       });
     }
   }
