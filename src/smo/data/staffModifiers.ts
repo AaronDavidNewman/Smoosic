@@ -46,6 +46,23 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
+
+export type SoundSustain = 'percussive' | 'sustained';
+export type oscillatorType = 'sample' | 'sine' | 'sawtooth' | 'square' | 'triangle' | 'custom';
+export type oscillatorOptions = 'plucked' | 'bowed' | 'muted' | 'accented' | 'frequency-sweep' | 'na';
+export interface SmoOscillatorInfo {
+  waveform: oscillatorType,
+  sustain: SoundSustain,
+  realOvertones: number[],
+  imaginaryOvertones: number[],
+  sample: string | null,
+  family: string,
+  subFamily: string,
+  nativeFrequency: number,
+  dynamic: number,
+  options: oscillatorOptions[]
+}
+
 /**
  * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
  * and thus contain multiple instruments at different points in the score.
@@ -57,6 +74,8 @@ export interface SmoInstrumentParams {
   startSelector: SmoSelector,
   endSelector: SmoSelector,
   instrumentName: string,
+  family: string,
+  subFamily: string,
   abbreviation: string,
   keyOffset: number,
   midichannel: number,
@@ -66,8 +85,8 @@ export interface SmoInstrumentParams {
 
 export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport';
 export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
-export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation';
-export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation'];
+export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation' | 'family' | 'subFamily';
+export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation', 'family', 'subFamily'];
 /**
  * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
  * and thus contain multiple instruments at different points in the score.
@@ -77,7 +96,7 @@ export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instr
  */
 export class SmoInstrument extends StaffModifierBase {
   static get attributes() {
-    return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
+    return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation', 'subFamily', 'family'];
   }
   startSelector: SmoSelector;
   endSelector: SmoSelector;
@@ -87,12 +106,17 @@ export class SmoInstrument extends StaffModifierBase {
   clef: Clef = 'treble';
   midichannel: number;
   midiport: number;
+  family: string;
+  subFamily: string;
+  oscillators: SmoOscillatorInfo[] = [];
   static get defaults(): SmoInstrumentParams {
     return JSON.parse(JSON.stringify({
       clef: 'treble',
       keyOffset: 0,
       instrumentName: '',
       abbreviation: '',
+      family: 'keyboard',
+      subFamily: 'piano',
       midichannel: 0,
       midiport: 0,
       startSelector: SmoSelector.default,
@@ -108,6 +132,8 @@ export class SmoInstrument extends StaffModifierBase {
       name = (params as any).instrument;
     }
     this.instrumentName = name;
+    this.family = params.family;
+    this.subFamily = params.subFamily;
     this.keyOffset = params.keyOffset;
     this.clef = params.clef;
     this.midiport = params.midiport;

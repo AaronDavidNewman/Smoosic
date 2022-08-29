@@ -19,7 +19,8 @@ export interface SoundParams {
   offsetPct: number,
   durationPct: number,
   volume: number,
-  noteType: string
+  noteType: string,
+  instrument: string
 }
 export interface SoundParamMeasureLink {
   soundParams: Record<number, SoundParams[]>,
@@ -144,6 +145,7 @@ export class SuiAudioPlayer {
       const measure = staff.measures[measureIndex];
       measure.voices.forEach((voice, voiceIx) => {
         let curTick = 0;
+        const instrument = staff.getStaffInstrument(measure.measureNumber.measureIndex);
         voice.notes.forEach((smoNote, tickIx) => {
           const frequencies: number[] = [];
           const xpose = -1 * measure.transposeIndex;
@@ -179,7 +181,8 @@ export class SuiAudioPlayer {
               offsetPct: curTick / measureTicks,
               durationPct: duration / measureTicks,
               noteType: smoNote.noteType,
-              duration
+              duration,
+              instrument: instrument.subFamily
             };
             // If this is continuation of tied note, just change duration
             if (this.openTies[tieIx]) {
@@ -263,6 +266,7 @@ export class SuiAudioPlayer {
             params.frequency = freq;
             params.duration = adjDuration;
             params.gain = sound.volume;
+            params.instrument = sound.instrument;
             params.useReverb = this.score.audioSettings.reverbEnable;
             if (this.score.audioSettings.playerType === 'synthesizer') {
               params.wavetable = SynthWavetable;

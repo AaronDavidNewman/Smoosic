@@ -239,6 +239,11 @@ export class SmoScore {
   static get preferences() {
     return ['preferences', 'fonts', 'scoreInfo', 'audioSettings'];
   }
+  /**
+   * serialize the keySignature, tempo and time signature, which are mapped
+   * to a column at a measure index
+   * @returns 
+   */
   serializeColumnMapped() {
     const keySignature: Record<number, string> = {};
     const tempo: Record<number, SmoTempoText> = {};
@@ -272,10 +277,13 @@ export class SmoScore {
     return { keySignature, tempo, timeSignature };
   }
 
-  // ### deserializeColumnMapped
-  // Column-mapped attributes stay the same in each measure until
-  // changed, like key-signatures.  We don't store each measure value to
-  // make the files smaller
+  /**
+   * Column-mapped attributes stay the same in each measure until
+   * changed, like key-signatures.  We don't store each measure value to
+   * make the files smaller
+   * @param scoreObj - the json blob that contains the score data
+   * @returns 
+   */
   static deserializeColumnMapped(scoreObj: any) {
     let curValue: any;
     let mapIx: number = 0;
@@ -400,8 +408,10 @@ export class SmoScore {
       }
     }
   }
-  // ### upConvertLayout
-  // Convert legacy score layout to layoutManager object parameters
+  /**
+   * Convert legacy score layout to layoutManager object parameters
+   * @param jsonObj 
+   */
   static upConvertLayout(jsonObj: any) {
     let i = 0;
     jsonObj.layoutManager = {};
@@ -424,7 +434,7 @@ export class SmoScore {
   /**
    * Deserialize an entire score
    * @param jsonString 
-   * @returns 
+   * @returns SmoScore
    */
   static deserialize(jsonString: any): SmoScore {
     let jsonObj = JSON.parse(jsonString);
@@ -569,6 +579,11 @@ export class SmoScore {
     }
   }
 
+  /**
+   * determine if the measure at this index could be a multi-measure rest
+   * @param measureIndex 
+   * @returns 
+   */
   isMultimeasureRest(measureIndex: number) {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
@@ -595,6 +610,9 @@ export class SmoScore {
     return true;
   }
 
+  /**
+   * Restore measure formats stored when a score is serialized
+   */
   updateMeasureFormats() {
     this.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
@@ -628,6 +646,13 @@ export class SmoScore {
       }
     });
   }
+  /**
+   * get a measure 'compatible' with the measure at the given index, in terms
+   * of key, time signature etc.
+   * @param measureIndex 
+   * @param staffIndex 
+   * @returns 
+   */
   getPrototypeMeasure(measureIndex: number, staffIndex: number) {
     const staff = this.staves[staffIndex];
     let protomeasure: SmoMeasureParams = {} as SmoMeasureParams;
@@ -644,9 +669,11 @@ export class SmoScore {
     return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
   }
 
-  // ### addMeasure
-  // Give a measure prototype, create a new measure and add it to each staff, with the
-  // correct settings for current time signature/clef.
+  /**
+   * Give a measure prototype, create a new measure and add it to each staff, with the
+   * correct settings for current time signature/clef.
+   * @param measureIndex 
+   */
   addMeasure(measureIndex: number) {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
@@ -669,8 +696,11 @@ export class SmoScore {
     this.numberStaves();
   }
 
-  // ### replaceMeasure
-  // Replace the measure at the given location.  Probably due to an undo operation or paste.
+  /**
+   * Replace the measure at the given location.  Probably due to an undo operation or paste.
+   * @param selector 
+   * @param measure 
+   */
   replaceMeasure(selector: SmoSelector, measure: SmoMeasure) {
     var staff = this.staves[selector.staff];
     staff.measures[selector.measure] = measure;
@@ -713,8 +743,11 @@ export class SmoScore {
       && staff.partInfo.stavesBefore === 0;
   }
 
-  // ### replace staff
-  // Probably due to an undo operation, replace the staff at the given index.
+  /**
+   * Probably due to an undo operation, replace the staff at the given index.
+   * @param index 
+   * @param staff 
+   */
   replaceStaff(index: number, staff: SmoSystemStaff) {
     const staves = [];
     let i = 0;
@@ -727,8 +760,11 @@ export class SmoScore {
     }
     this.staves = staves;
   }
-  // ### addKeySignature
-  // Add a key signature at the specified index in all staves.
+  /**
+   * 
+   * @param measureIndex 
+   * @param key 
+   */
   addKeySignature(measureIndex: number, key: string) {
     this.staves.forEach((staff) => {
       // Consider transpose for key of instrument

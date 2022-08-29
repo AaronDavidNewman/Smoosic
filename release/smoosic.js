@@ -31,6 +31,7 @@ const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/und
 const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
+const samples_1 = __webpack_require__(/*! ../render/audio/samples */ "./src/render/audio/samples.ts");
 const arial_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/arial_metrics */ "./src/styles/font_metrics/arial_metrics.js");
 const times_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/times_metrics */ "./src/styles/font_metrics/times_metrics.js");
 const Commissioner_Medium_Metrics_1 = __webpack_require__(/*! ../styles/font_metrics/Commissioner-Medium-Metrics */ "./src/styles/font_metrics/Commissioner-Medium-Metrics.js");
@@ -132,8 +133,7 @@ class SuiApplication {
      * @returns
      */
     initialize() {
-        const samplePromise = oscillator_1.SuiOscillator.sampleFiles.length > 0 ?
-            oscillator_1.SuiOscillator.samplePromise() : promiseHelpers_1.PromiseHelpers.emptyPromise();
+        const samplePromise = samples_1.SuiSampleMedia.samplePromise(oscillator_1.SuiOscillator.audio);
         const self = this;
         // Hide header at the top of some applications
         $('#link-hdr button').off('click').on('click', () => {
@@ -3802,8 +3802,7 @@ exports.SuiSampler = exports.SuiWavetable = exports.SuiOscillator = exports.Synt
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
-const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
-const music_2 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+const samples_1 = __webpack_require__(/*! ./samples */ "./src/render/audio/samples.ts");
 class SuiReverb {
     constructor(context) {
         this.damp = 1.0;
@@ -3866,11 +3865,10 @@ exports.SynthWavetable = {
         0, 0, 0, 0, 0,
         0, 0]
 };
-// ## SuiOscillator
-// Simple waveform synthesizer thing that plays notes.  Oscillator works in either
-// analog synthisizer or sampler mode.  I've found the HTML synth performance to be not
-// so great, and using actual MP3 samples both performs and sounds better.  Still, 
-// synths are so cool that I am keeping it to tinker with later
+/**
+ * Simple waveform synthesizer thing that plays notes.  Oscillator works in either
+ * analog synthisizer or sampler mode.
+ */
 class SuiOscillator {
     constructor(parameters) {
         this.attackEnv = -1;
@@ -3890,6 +3888,7 @@ class SuiOscillator {
         this.decay = this.decayEnv * SuiOscillator.decayTime;
         this.sustain = this.sustainEnv * this.duration;
         this.release = this.releaseEnv * this.duration;
+        this.instrument = parameters.instrument;
         if (parameters.wavetable) {
             this.wavetable = parameters.wavetable;
         }
@@ -3902,22 +3901,6 @@ class SuiOscillator {
     }
     static get defaults() {
         const wavetable = {
-            /* real: [0,
-              0.3, 0.3, 0, 0, 0,
-              0.1, 0, 0, 0, 0,
-              0.05, 0, 0, 0, 0,
-              0.01, 0, 0, 0, 0,
-              0.01, 0, 0, 0, 0,
-              0, 0, 0, 0, 0,
-              0, 0],
-            imaginary: [0,
-              0, 0.05, 0, 0, 0,
-              0, 0.01, 0, 0, 0,
-              0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0,
-              0, 0] */
             real: [], imaginary: []
         };
         const obj = {
@@ -3932,7 +3915,8 @@ class SuiOscillator {
             waveform: 'custom',
             gain: 0.2,
             wavetable,
-            useReverb: false
+            useReverb: false,
+            instrument: 'piano'
         };
         return JSON.parse(JSON.stringify(obj));
     }
@@ -3944,8 +3928,10 @@ class SuiOscillator {
         if (selection.note.isRest() || selection.note.isSlash()) {
             return;
         }
+        const soundInfo = selection.staff.getStaffInstrument(selection.selector.measure);
+        const oscInfo = samples_1.SuiSampleMedia.getSmoOscillatorInfo(soundInfo.subFamily);
         setTimeout(() => {
-            const ar = SuiOscillator.fromNote(selection.measure, selection.note, score, true, gain);
+            const ar = SuiOscillator.fromNote(selection.measure, selection.note, score, oscInfo[0], gain);
             ar.forEach((osc) => {
                 osc.play();
             });
@@ -3959,7 +3945,7 @@ class SuiOscillator {
     }
     // ### fromNote
     // Create an areray of oscillators for each pitch in a note
-    static fromNote(measure, note, score, isSample, gain) {
+    static fromNote(measure, note, score, soundInfo, gain) {
         let frequency = 0;
         let duration = 0;
         const tempo = measure.getTempo();
@@ -3968,7 +3954,7 @@ class SuiOscillator {
         duration = (beats / bpm) * 60000;
         // adjust if bpm is over something other than 1/4 note
         duration = duration * (4096 / tempo.beatDuration);
-        if (isSample) {
+        if (soundInfo.waveform === 'sample') {
             duration = 250;
         }
         const ar = [];
@@ -3982,11 +3968,12 @@ class SuiOscillator {
             const mtone = (_a = note.getMicrotone(pitchIx)) !== null && _a !== void 0 ? _a : null;
             frequency = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, -1 * measure.transposeIndex, mtone);
             const def = SuiOscillator.defaults;
+            def.instrument = soundInfo.subFamily;
             def.frequency = frequency;
             def.duration = duration;
             def.gain = gain;
-            if (score.audioSettings.playerType !== 'sampler') {
-                def.waveform = score.audioSettings.waveform;
+            if (soundInfo.waveform !== 'sample') {
+                def.waveform = soundInfo.waveform;
                 if (def.waveform === 'custom') {
                     def.wavetable = exports.SynthWavetable;
                 }
@@ -4003,69 +3990,6 @@ class SuiOscillator {
     static get attributes() {
         return ['duration', 'frequency', 'pitch', 'attackEnv', 'sustainEnv', 'decayEnv',
             'releaseEnv', 'sustainLevel', 'releaseLevel', 'waveform', 'wavetable', 'gain'];
-    }
-    /**
-     * Load samples so we can play the music
-     * @returns - promise, resolved when loaded
-     */
-    static samplePromise() {
-        const mediaElements = [];
-        if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
-            SuiOscillator.sampleFiles.forEach((file) => {
-                const audio = SuiOscillator.audio;
-                const audioElement = document.getElementById('sample' + file);
-                if (audioElement) {
-                    const media = audio.createMediaElementSource(audioElement);
-                    const patch = audioElement.getAttribute('data-patch');
-                    const pitchString = audioElement.getAttribute('data-pitch');
-                    if (pitchString !== null && patch !== null) {
-                        mediaElements.push(audioElement);
-                        const pitch = music_2.SmoMusic.vexToSmoPitch(pitchString);
-                        const frequency = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, 0, null);
-                        const req = new XMLHttpRequest();
-                        req.open('GET', media.mediaElement.src, true);
-                        req.responseType = 'arraybuffer';
-                        req.send();
-                        req.onload = () => {
-                            const audioData = req.response;
-                            audio.decodeAudioData(audioData, (decoded) => {
-                                SuiOscillator.samples.push({ sample: decoded, frequency, patch });
-                            });
-                        };
-                    }
-                }
-            });
-        }
-        if (mediaElements.length < 1) {
-            return promiseHelpers_1.PromiseHelpers.emptyPromise();
-        }
-        const rv = new Promise((resolve) => {
-            const checkSample = () => {
-                setTimeout(() => {
-                    if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
-                        checkSample();
-                    }
-                    else {
-                        resolve();
-                    }
-                }, 100);
-            };
-            checkSample();
-        });
-        return rv;
-    }
-    static sampleForFrequency(f) {
-        let min = 9999;
-        let rv = null;
-        let i = 0;
-        for (i = 0; i < SuiOscillator.samples.length; ++i) {
-            const sample = SuiOscillator.samples[i];
-            if (Math.abs(f - sample.frequency) < min) {
-                min = Math.abs(f - sample.frequency);
-                rv = sample;
-            }
-        }
-        return rv;
     }
     static resolveAfter(time) {
         return new Promise((resolve) => {
@@ -4118,6 +4042,12 @@ class SuiOscillator {
         }
         SuiOscillator.created -= 1;
     }
+    /**
+     * Connect the audio sound source to the output, combining other
+     * nodes in the mix such as convolver (reverb), delay, and gain.
+     * Also set up the envelope
+     * @returns - a promise that tis resolved when `duration` time has expired
+     */
     createAudioGraph() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.frequency === 0) {
@@ -4178,6 +4108,9 @@ SuiOscillator.audio = new AudioContext();
 SuiOscillator.created = 0;
 SuiOscillator.sampleFiles = ['bb4', 'cn4'];
 SuiOscillator.samples = [];
+/**
+ * An audio output that uses browser audio api OscillatorNode as a sound source
+ */
 class SuiWavetable extends SuiOscillator {
     createAudioNode() {
         const node = SuiOscillator.audio.createOscillator();
@@ -4200,13 +4133,14 @@ class SuiWavetable extends SuiOscillator {
     }
 }
 exports.SuiWavetable = SuiWavetable;
-// ## SuiSampler
-// Class that replaces oscillator with a sampler.
+/**
+ * An audio output primitive that uses frequency-adjusted sampled sounds
+ */
 class SuiSampler extends SuiOscillator {
-    // Note: samplePromise must be complete before you call this
+    // Note: samplePromise must be complete before you call this  
     createAudioNode() {
         const node = SuiOscillator.audio.createBufferSource();
-        const sample = SuiOscillator.sampleForFrequency(this.frequency);
+        const sample = samples_1.SuiSampleMedia.matchedSample(this.instrument, this.frequency);
         if (!sample) {
             return node;
         }
@@ -4219,7 +4153,7 @@ class SuiSampler extends SuiOscillator {
     play() {
         return __awaiter(this, void 0, void 0, function* () {
             const self = this;
-            return SuiOscillator.samplePromise().then(() => {
+            return samples_1.SuiSampleMedia.samplePromise(SuiOscillator.audio).then(() => {
                 self.createAudioGraph();
             });
         });
@@ -4344,6 +4278,7 @@ class SuiAudioPlayer {
             const measure = staff.measures[measureIndex];
             measure.voices.forEach((voice, voiceIx) => {
                 let curTick = 0;
+                const instrument = staff.getStaffInstrument(measure.measureNumber.measureIndex);
                 voice.notes.forEach((smoNote, tickIx) => {
                     const frequencies = [];
                     const xpose = -1 * measure.transposeIndex;
@@ -4380,7 +4315,8 @@ class SuiAudioPlayer {
                             offsetPct: curTick / measureTicks,
                             durationPct: duration / measureTicks,
                             noteType: smoNote.noteType,
-                            duration
+                            duration,
+                            instrument: instrument.subFamily
                         };
                         // If this is continuation of tied note, just change duration
                         if (this.openTies[tieIx]) {
@@ -4465,6 +4401,7 @@ class SuiAudioPlayer {
                     params.frequency = freq;
                     params.duration = adjDuration;
                     params.gain = sound.volume;
+                    params.instrument = sound.instrument;
                     params.useReverb = this.score.audioSettings.reverbEnable;
                     if (this.score.audioSettings.playerType === 'synthesizer') {
                         params.wavetable = oscillator_1.SynthWavetable;
@@ -4637,6 +4574,251 @@ exports.SuiAudioPlayer = SuiAudioPlayer;
 SuiAudioPlayer._playing = false;
 SuiAudioPlayer.instanceId = 0;
 SuiAudioPlayer._playingInstance = null;
+
+
+/***/ }),
+
+/***/ "./src/render/audio/samples.ts":
+/*!*************************************!*\
+  !*** ./src/render/audio/samples.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiSampleMedia = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
+class SuiSampleMedia {
+    static insertIntoMap(sample) {
+        if (!this.sampleOscMap[sample.subFamily]) {
+            this.sampleOscMap[sample.subFamily] = [];
+        }
+        this.sampleOscMap[sample.subFamily].push(sample);
+        SuiSampleMedia.sampleFiles.push(sample);
+    }
+    static populateSampleMap() {
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'percussive',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'samplecn4',
+            family: 'keyboard',
+            subFamily: 'piano',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'percussive',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'samplebb4',
+            family: 'keyboard',
+            subFamily: 'piano',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-cello-bb3',
+            family: 'strings',
+            subFamily: 'cello',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'n', octave: 3 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-cello-c4',
+            family: 'strings',
+            subFamily: 'cello',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-trumpet-c4',
+            family: 'brass',
+            subFamily: 'trumpet',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-trumpet-c5',
+            family: 'brass',
+            subFamily: 'trumpet',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-tuba-c2',
+            family: 'brass',
+            subFamily: 'tuba',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 2 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-tuba-c3',
+            family: 'brass',
+            subFamily: 'tuba',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-clarinet-c4',
+            family: 'woodwind',
+            subFamily: 'clarinet',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-clarinet-c5',
+            family: 'woodwind',
+            subFamily: 'clarinet',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+    }
+    static getSmoOscillatorInfo(instrument) {
+        if (!SuiSampleMedia.sampleOscMap[instrument]) {
+            return SuiSampleMedia.sampleOscMap['piano'];
+        }
+        return SuiSampleMedia.sampleOscMap[instrument];
+    }
+    /**
+    * Load samples so we can play the music
+    * @returns - promise, resolved when loaded
+    */
+    static samplePromise(audio) {
+        const mediaElements = [];
+        let i = 0;
+        if (SuiSampleMedia.receivedBuffer) {
+            return promiseHelpers_1.PromiseHelpers.emptyPromise();
+        }
+        SuiSampleMedia.populateSampleMap();
+        for (i = 0; i < SuiSampleMedia.sampleFiles.length; ++i) {
+            const file = SuiSampleMedia.sampleFiles[i];
+            if (!file.sample) {
+                continue;
+            }
+            const sampleName = file.sample;
+            const audioElement = document.getElementById(file.sample);
+            if (audioElement) {
+                const media = audio.createMediaElementSource(audioElement);
+                mediaElements.push(audioElement);
+                const req = new XMLHttpRequest();
+                req.open('GET', media.mediaElement.src, true);
+                req.responseType = 'arraybuffer';
+                req.send();
+                req.onload = () => {
+                    const audioData = req.response;
+                    audio.decodeAudioData(audioData, (decoded) => {
+                        SuiSampleMedia.sampleBufferMap[sampleName] = decoded;
+                        SuiSampleMedia.receivedBuffer = true;
+                    });
+                };
+            }
+            if (mediaElements.length < 1) {
+                return promiseHelpers_1.PromiseHelpers.emptyPromise();
+            }
+        }
+        const rv = new Promise((resolve) => {
+            const checkSample = () => {
+                setTimeout(() => {
+                    if (!SuiSampleMedia.receivedBuffer) {
+                        checkSample();
+                    }
+                    else {
+                        resolve();
+                    }
+                }, 100);
+            };
+            checkSample();
+        });
+        return rv;
+    }
+    static sampleForFrequency(f, oscs) {
+        let min = 9999;
+        let rv = null;
+        let i = 0;
+        for (i = 0; i < oscs.length; ++i) {
+            const oscInfo = oscs[i];
+            if (!oscInfo.sample || !SuiSampleMedia.sampleBufferMap[oscInfo.sample]) {
+                continue;
+            }
+            const buffer = SuiSampleMedia.sampleBufferMap[oscInfo.sample];
+            if (Math.abs(f - oscInfo.nativeFrequency) < min) {
+                min = Math.abs(f - oscInfo.nativeFrequency);
+                rv = {
+                    sample: buffer,
+                    frequency: oscInfo.nativeFrequency,
+                    patch: oscInfo.sample
+                };
+            }
+        }
+        return rv;
+    }
+    static matchedSample(instrument, frequency) {
+        if (!SuiSampleMedia.sampleOscMap[instrument]) {
+            instrument = 'piano';
+        }
+        if (!SuiSampleMedia.sampleOscMap[instrument]) {
+            const keys = Object.keys(SuiSampleMedia.sampleOscMap);
+            if (keys.length === 0) {
+                return null;
+            }
+            instrument = keys[0];
+        }
+        return SuiSampleMedia.sampleForFrequency(frequency, SuiSampleMedia.sampleOscMap[instrument]);
+    }
+}
+exports.SuiSampleMedia = SuiSampleMedia;
+SuiSampleMedia.sampleFiles = [];
+SuiSampleMedia.sampleBufferMap = {};
+SuiSampleMedia.sampleOscMap = {};
+SuiSampleMedia.receivedBuffer = false;
 
 
 /***/ }),
@@ -4906,12 +5088,12 @@ class SuiLayoutFormatter {
             measure.setX(x, 'render:estimateColumn');
             // Add custom width to measure:
             measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
-            SuiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, contextMap);
+            this.estimateMeasureWidth(measure, scoreLayout, contextMap);
             y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
             maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
             rowInSystem += 1;
         });
-        // justify this column to the maximum width        
+        // justify this column to the maximum width.
         const startX = measures[0].staffX;
         const adjX = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
         const contexts = Object.keys(contextMap);
@@ -4934,6 +5116,12 @@ class SuiLayoutFormatter {
             });
             minTotalWidth += tickWidth;
         });
+        // Vex formatter adjusts location of ticks based to keep the justified music aligned.  It does this
+        // by moving notes to the right.  We try to add padding to each tick context based on the 'entropy' of the 
+        // music.   4 quarter notes with no accidentals in all voices will have 0 entropy.  All the notes need the same
+        // amount of space, so they don't need additional space to align.
+        // wvar - the std deviation in the widths or 'width entropy'
+        // dvar - the std deviation in the duration between voices or 'duration entropy'
         const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);
         const wavg = wsum > 0 ? wsum / widths.length : 1 / widths.length;
         const wvar = sumArray(widths.map((ll) => Math.pow(ll - wavg, 2)));
@@ -4948,13 +5136,13 @@ class SuiLayoutFormatter {
         if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
             // Add 1 because there is some overhead in each measure, 
             // so there can never be (width/max) measures in the system
-            const defaultWidth = scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1);
+            const defaultWidth = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1));
             maxWidth = Math.max(maxWidth, defaultWidth);
         }
         const maxX = startX + maxWidth;
         measures.forEach((measure) => {
             measure.setWidth(maxWidth, 'render:estimateColumn');
-            measure.svg.adjX = adjX;
+            // measure.svg.adjX = adjX;
         });
         const rv = { measures, y, x: maxX };
         return rv;
@@ -5068,15 +5256,8 @@ class SuiLayoutFormatter {
     }
     static estimateMusicWidth(smoMeasure, noteSpacing, tickContexts) {
         const widths = [];
-        // The below line was commented out b/c voiceIX was defined but never used
-        // let voiceIx = 0;
-        // Accidental map:
-        // If we accidentals on different notes in a justified column, need to increase width
-        // for both.
-        //     |          |
-        //    #o  x   x   o
-        //     |  x   x   |
-        //     o  x   x  #o
+        // Add up the widths of the music glyphs for each voice, including accidentals etc.  We save the widths in a hash by duration
+        // and later consider overlapping/colliding ticks in each voice
         const tmObj = smoMeasure.createMeasureTickmaps();
         smoMeasure.voices.forEach((voice) => {
             let width = 0;
@@ -5180,13 +5361,15 @@ class SuiLayoutFormatter {
         }
         return width;
     }
-    static estimateMeasureWidth(measure, noteSpacing, tickContexts) {
+    estimateMeasureWidth(measure, scoreLayout, tickContexts) {
+        const noteSpacing = scoreLayout.noteSpacing;
         // Calculate the existing staff width, based on the notes and what we expect to be rendered.
         let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
         measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
         measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
         measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;
         const y = measure.svg.logicalBox.y;
+        // For systems that start with padding, add width for the padding
         measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
         // Calculate the space for left/right text which displaces the measure.
         // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
@@ -5234,20 +5417,24 @@ class SuiLayoutFormatter {
             const ld = layoutDebug_1.layoutDebug;
             let justifyX = 0;
             let columnCount = rowAdj.length;
+            // missing offset is for systems that have fewer measures than the default (due to section break or score ending)
             let missingOffset = 0;
             if (scoreLayout.maxMeasureSystem > 1 &&
                 columnCount < scoreLayout.maxMeasureSystem) {
                 missingOffset = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1)) * (scoreLayout.maxMeasureSystem - columnCount);
                 columnCount = scoreLayout.maxMeasureSystem;
             }
-            justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth + missingOffset))
-                / columnCount);
+            if (scoreLayout.maxMeasureSystem > 1 || !lastSystem) {
+                justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth + missingOffset))
+                    / columnCount);
+            }
+            let justOffset = 0;
             rowAdj.forEach((measure) => {
                 measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
-                const offset = measure.measureNumber.systemIndex * justifyX;
-                measure.setX(measure.staffX + offset, 'justifyY');
-                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+                measure.setX(measure.staffX + justOffset, 'justifyY');
+                measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
                 ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.adjust);
+                justOffset += justifyX;
             });
         }
     }
@@ -14461,10 +14648,20 @@ class VxSystem {
         this.vxMeasures.push(vxMeasure);
         const lastStaff = (staffId === this.score.staves.length - 1);
         const smoGroupMap = {};
+        const adjXMap = {};
         // If this is the last staff in the column, render the column with justification
         if (lastStaff) {
+            this.vxMeasures.forEach((mm) => {
+                if (typeof (adjXMap[mm.smoMeasure.measureNumber.systemIndex]) === 'undefined') {
+                    adjXMap[mm.smoMeasure.measureNumber.systemIndex] = mm.smoMeasure.svg.adjX;
+                }
+                adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
+            });
             this.vxMeasures.forEach((vv) => {
                 if (!vv.rendered) {
+                    vv.vexNotes.forEach((vnote) => {
+                        vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
+                    });
                     const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
                     const justifyGroup = (systemGroup && vv.smoMeasure.format.autoJustify) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
                     if (!smoGroupMap[justifyGroup]) {
@@ -19540,6 +19737,11 @@ class SmoScore {
     static get preferences() {
         return ['preferences', 'fonts', 'scoreInfo', 'audioSettings'];
     }
+    /**
+     * serialize the keySignature, tempo and time signature, which are mapped
+     * to a column at a measure index
+     * @returns
+     */
     serializeColumnMapped() {
         const keySignature = {};
         const tempo = {};
@@ -19573,10 +19775,13 @@ class SmoScore {
         });
         return { keySignature, tempo, timeSignature };
     }
-    // ### deserializeColumnMapped
-    // Column-mapped attributes stay the same in each measure until
-    // changed, like key-signatures.  We don't store each measure value to
-    // make the files smaller
+    /**
+     * Column-mapped attributes stay the same in each measure until
+     * changed, like key-signatures.  We don't store each measure value to
+     * make the files smaller
+     * @param scoreObj - the json blob that contains the score data
+     * @returns
+     */
     static deserializeColumnMapped(scoreObj) {
         let curValue;
         let mapIx = 0;
@@ -19701,8 +19906,10 @@ class SmoScore {
             }
         }
     }
-    // ### upConvertLayout
-    // Convert legacy score layout to layoutManager object parameters
+    /**
+     * Convert legacy score layout to layoutManager object parameters
+     * @param jsonObj
+     */
     static upConvertLayout(jsonObj) {
         let i = 0;
         jsonObj.layoutManager = {};
@@ -19724,7 +19931,7 @@ class SmoScore {
     /**
      * Deserialize an entire score
      * @param jsonString
-     * @returns
+     * @returns SmoScore
      */
     static deserialize(jsonString) {
         var _a;
@@ -19861,6 +20068,11 @@ class SmoScore {
             stave.numberMeasures();
         }
     }
+    /**
+     * determine if the measure at this index could be a multi-measure rest
+     * @param measureIndex
+     * @returns
+     */
     isMultimeasureRest(measureIndex) {
         let i = 0;
         for (i = 0; i < this.staves.length; ++i) {
@@ -19886,6 +20098,9 @@ class SmoScore {
         const measure = this.staves[0].measures[measureIndex];
         return true;
     }
+    /**
+     * Restore measure formats stored when a score is serialized
+     */
     updateMeasureFormats() {
         this.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
@@ -19917,6 +20132,13 @@ class SmoScore {
             }
         });
     }
+    /**
+     * get a measure 'compatible' with the measure at the given index, in terms
+     * of key, time signature etc.
+     * @param measureIndex
+     * @param staffIndex
+     * @returns
+     */
     getPrototypeMeasure(measureIndex, staffIndex) {
         const staff = this.staves[staffIndex];
         let protomeasure = {};
@@ -19933,9 +20155,11 @@ class SmoScore {
         }
         return measure_1.SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
     }
-    // ### addMeasure
-    // Give a measure prototype, create a new measure and add it to each staff, with the
-    // correct settings for current time signature/clef.
+    /**
+     * Give a measure prototype, create a new measure and add it to each staff, with the
+     * correct settings for current time signature/clef.
+     * @param measureIndex
+     */
     addMeasure(measureIndex) {
         let i = 0;
         for (i = 0; i < this.staves.length; ++i) {
@@ -19957,8 +20181,11 @@ class SmoScore {
         });
         this.numberStaves();
     }
-    // ### replaceMeasure
-    // Replace the measure at the given location.  Probably due to an undo operation or paste.
+    /**
+     * Replace the measure at the given location.  Probably due to an undo operation or paste.
+     * @param selector
+     * @param measure
+     */
     replaceMeasure(selector, measure) {
         var staff = this.staves[selector.staff];
         staff.measures[selector.measure] = measure;
@@ -19994,8 +20221,11 @@ class SmoScore {
         return staveCount === this.staves.length
             && staff.partInfo.stavesBefore === 0;
     }
-    // ### replace staff
-    // Probably due to an undo operation, replace the staff at the given index.
+    /**
+     * Probably due to an undo operation, replace the staff at the given index.
+     * @param index
+     * @param staff
+     */
     replaceStaff(index, staff) {
         const staves = [];
         let i = 0;
@@ -20009,8 +20239,11 @@ class SmoScore {
         }
         this.staves = staves;
     }
-    // ### addKeySignature
-    // Add a key signature at the specified index in all staves.
+    /**
+     *
+     * @param measureIndex
+     * @param key
+     */
     addKeySignature(measureIndex, key) {
         this.staves.forEach((staff) => {
             // Consider transpose for key of instrument
@@ -21202,7 +21435,7 @@ class StaffModifierBase {
 }
 exports.StaffModifierBase = StaffModifierBase;
 exports.SmoInstrumentNumParams = ['keyOffset', 'midichannel', 'midiport'];
-exports.SmoInstrumentStringParams = ['instrumentName', 'abbreviation'];
+exports.SmoInstrumentStringParams = ['instrumentName', 'abbreviation', 'family', 'subFamily'];
 /**
  * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
  * and thus contain multiple instruments at different points in the score.
@@ -21217,6 +21450,7 @@ class SmoInstrument extends StaffModifierBase {
         this.abbreviation = '';
         this.keyOffset = 0;
         this.clef = 'treble';
+        this.oscillators = [];
         let name = '';
         if (typeof (params.instrument) === 'undefined') {
             name = params.instrumentName;
@@ -21225,6 +21459,8 @@ class SmoInstrument extends StaffModifierBase {
             name = params.instrument;
         }
         this.instrumentName = name;
+        this.family = params.family;
+        this.subFamily = params.subFamily;
         this.keyOffset = params.keyOffset;
         this.clef = params.clef;
         this.midiport = params.midiport;
@@ -21233,7 +21469,7 @@ class SmoInstrument extends StaffModifierBase {
         this.endSelector = params.endSelector;
     }
     static get attributes() {
-        return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
+        return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation', 'subFamily', 'family'];
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
@@ -21241,6 +21477,8 @@ class SmoInstrument extends StaffModifierBase {
             keyOffset: 0,
             instrumentName: '',
             abbreviation: '',
+            family: 'keyboard',
+            subFamily: 'piano',
             midichannel: 0,
             midiport: 0,
             startSelector: selections_1.SmoSelector.default,
@@ -29160,7 +29398,12 @@ const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.t
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
 class SmoToVex {
-    static convert(smoScore) {
+    static convert(smoScore, options) {
+        let useId = false;
+        options = options !== null && options !== void 0 ? options : {};
+        if (typeof (options['id']) === 'boolean') {
+            useId = options.id;
+        }
         smoScore.staves.forEach((smoStaff, staffIx) => {
             smoStaff.measures.forEach((smoMeasure, measureIx) => {
                 const voiceStrings = [];
@@ -29189,7 +29432,10 @@ class SmoToVex {
                         if (smoNote.pitches.length > 1) {
                             keyString += ')';
                         }
-                        keyString += '/' + duration + "[id='" + noteId + "'],";
+                        keyString += '/' + duration;
+                        if (useId) {
+                            keyString += "[id='" + noteId + "'],";
+                        }
                         smoNote.getTrueLyrics().forEach((lyric) => {
                             if (typeof lyricsHash[noteId] === 'undefined') {
                                 lyricsHash[noteId] = [];
@@ -40759,6 +41005,12 @@ class SuiInstrumentAdapter extends adapter_1.SuiComponentAdapter {
     get instrumentName() {
         return this.instrument.instrumentName;
     }
+    get subFamily() {
+        return this.instrument.subFamily;
+    }
+    set subFamily(value) {
+        this.writeStringParam('subFamily', value);
+    }
     set instrumentName(value) {
         this.writeStringParam('instrumentName', value);
     }
@@ -40819,6 +41071,26 @@ SuiInstrumentDialog.dialogElements = {
             smoName: 'instrumentName',
             control: 'SuiTextInputComponent',
             label: 'Name'
+        }, {
+            smoName: 'subFamily',
+            control: 'SuiDropdownComponent',
+            label: 'Sample Sound',
+            options: [{
+                    value: 'piano',
+                    label: 'Grand Piano'
+                }, {
+                    value: 'cello',
+                    label: 'Cello'
+                }, {
+                    value: 'trumpet',
+                    label: 'Bb Trumpet'
+                }, {
+                    value: 'tuba',
+                    label: 'Tuba'
+                }, {
+                    value: 'clarinet',
+                    label: 'Bb Clarinet'
+                }]
         }, {
             smoName: 'clef',
             control: 'SuiDropdownComponent',
@@ -51664,6 +51936,8 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 instrumentName: 'Treble Clef Staff',
                 keyOffset: 0,
                 abbreviation: 'treble',
+                family: 'keyboard',
+                subFamily: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'treble',
@@ -51674,6 +51948,8 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 instrumentName: 'Bass Clef Staff',
                 keyOffset: 0,
                 abbreviation: 'treble',
+                family: 'keyboard',
+                subFamily: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'bass',
@@ -51683,6 +51959,8 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
             'altoInstrument': {
                 instrumentName: 'Alto Clef Staff',
                 keyOffset: 0,
+                family: 'keyboard',
+                subFamily: 'piano',
                 abbreviation: 'treble',
                 midichannel: 0,
                 midiport: 0,
@@ -51694,6 +51972,8 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 instrumentName: 'Tenor Clef Staff',
                 keyOffset: 0,
                 abbreviation: 'treble',
+                family: 'keyboard',
+                subFamily: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'tenor',
@@ -51704,6 +51984,8 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 instrumentName: 'Percussion Clef Staff',
                 keyOffset: 0,
                 abbreviation: 'treble',
+                family: 'keyboard',
+                subFamily: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'percussion',

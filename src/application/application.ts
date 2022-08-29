@@ -10,6 +10,7 @@ import { XmlToSmo } from '../smo/mxml/xmlToSmo';
 import { SuiRenderState } from '../render/sui/renderState';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
+import { SuiSampleMedia } from '../render/audio/samples';
 import { SuiTracker } from '../render/sui/tracker';
 
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
@@ -147,8 +148,7 @@ export class SuiApplication {
    * @returns 
    */
   initialize(): Promise<SuiApplication> {
-    const samplePromise: Promise<any> = SuiOscillator.sampleFiles.length > 0 ?
-      SuiOscillator.samplePromise() : PromiseHelpers.emptyPromise();
+    const samplePromise: Promise<any> = SuiSampleMedia.samplePromise(SuiOscillator.audio);
 
     const self = this;    
     // Hide header at the top of some applications

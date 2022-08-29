@@ -7,7 +7,12 @@ import { SmoScore } from '../data/score';
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
 export class SmoToVex {
-  static convert(smoScore: SmoScore) {
+  static convert(smoScore: SmoScore, options: any) {
+    let useId = false;
+    options = options ?? {};
+    if (typeof(options['id']) === 'boolean') {
+      useId = options.id
+    }
     smoScore.staves.forEach((smoStaff, staffIx) => {
       smoStaff.measures.forEach((smoMeasure, measureIx) => {
         const voiceStrings: any[] = [];
@@ -36,7 +41,10 @@ export class SmoToVex {
             if (smoNote.pitches.length > 1) {
               keyString += ')';
             }
-            keyString += '/' + duration + "[id='" + noteId + "'],";
+            keyString += '/' + duration;
+            if (useId) {
+              keyString += "[id='" + noteId + "'],";
+            }
             smoNote.getTrueLyrics().forEach((lyric) => {
               if (typeof lyricsHash[noteId] === 'undefined') {
                 lyricsHash[noteId] = [];

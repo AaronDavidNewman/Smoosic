@@ -24,6 +24,7 @@
         "grunt-eslint": "^23.0.0",
         "midi-parser-js": "^4.0.4",
         "midi-writer-js": "^1.7.5",
-        "typedoc-custom-theme-demo": "^1.0.0"
+        "typedoc-custom-theme-demo": "^1.0.0",
+        "xmldom": "^0.6.0"
     }
 }

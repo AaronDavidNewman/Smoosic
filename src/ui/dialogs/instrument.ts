@@ -43,6 +43,12 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   get instrumentName() {
     return this.instrument.instrumentName;
   }
+  get subFamily() {
+    return this.instrument.subFamily;
+  }
+  set subFamily(value: string) {
+    this.writeStringParam('subFamily', value);
+  }
   set instrumentName(value: string) {
     this.writeStringParam('instrumentName', value);
   }
@@ -96,6 +102,26 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
             smoName: 'instrumentName',
             control: 'SuiTextInputComponent',
             label: 'Name'
+          }, {
+            smoName: 'subFamily',
+            control: 'SuiDropdownComponent',
+            label: 'Sample Sound',
+            options: [{
+              value: 'piano',
+              label:'Grand Piano'
+            }, {
+              value: 'cello',
+              label: 'Cello'
+            }, {
+              value: 'trumpet',
+              label: 'Bb Trumpet'
+            }, {
+              value: 'tuba',
+              label: 'Tuba'
+            }, {
+              value: 'clarinet',
+              label: 'Bb Clarinet'
+            }]
           }, {
             smoName: 'clef',
             control: 'SuiDropdownComponent',
