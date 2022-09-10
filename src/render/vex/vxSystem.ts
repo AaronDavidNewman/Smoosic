@@ -346,11 +346,18 @@ export class VxSystem {
         tie.setContext(this.context).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {
-      const smoBracket = (modifier as SmoStaffTextBracket);
-      const bracket = new VF.TextBracket({
-        start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
-      });
-      bracket.setContext(this.context).draw();
+      if (vxStart && !vxEnd) {
+        vxEnd = vxStart;
+      } else if (vxEnd && !vxStart) {
+        vxStart = vxEnd;
+      }
+      if (vxStart  && vxEnd) {
+        const smoBracket = (modifier as SmoStaffTextBracket);
+        const bracket = new VF.TextBracket({
+          start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
+        });
+        bracket.setLine(smoBracket.line).setContext(this.context).draw();
+      }
     }
 
     this.context.closeGroup();

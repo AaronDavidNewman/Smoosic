@@ -190,6 +190,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     params.staffId = jsonObj.staffId ?? 0;
     params.measures = [];
     params.modifiers = [];
+    params.textBrackets = [];
     if (jsonObj.partInfo) {
       // Deserialize the text groups first
       const tgs: SmoTextGroup[] = [];
@@ -256,6 +257,9 @@ export class SmoSystemStaff implements SmoObjectParams {
       jsonObj.modifiers.forEach((modParams: any) => {
         const mod = StaffModifierBase.deserialize(modParams);
         mod.associatedStaff = jsonObj.staffId;
+        if (mod.ctor === 'SmoStaffTextBracket') {
+          params.textBrackets!.push(mod as SmoStaffTextBracket);
+        }
         params.modifiers.push(mod);
       });
     }
@@ -336,13 +340,19 @@ export class SmoSystemStaff implements SmoObjectParams {
   // Remove a modifier of given type and location
   removeStaffModifier(modifier: StaffModifierBase) {
     const mods: StaffModifierBase[] = [];
-    this.modifiers.forEach((mod: StaffModifierBase) => {
+    const tbs: SmoStaffTextBracket[] = [];
+    this.renderableModifiers.forEach((mod: StaffModifierBase) => {
       if (mod.attrs.type !== modifier.attrs.type ||
         SmoSelector.neq(mod.startSelector, modifier.startSelector) ||
         SmoSelector.neq(mod.endSelector, modifier.endSelector)) {
-        mods.push(mod);
+          if (mod.ctor === 'SmoStaffTextBracket') {
+            tbs.push(mod as SmoStaffTextBracket);
+          } else {
+            mods.push(mod);
+          }
       }
     });
+    this.textBrackets = tbs;
     this.modifiers = mods;
   }
   // ### getVoltaMap

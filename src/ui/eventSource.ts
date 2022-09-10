@@ -48,10 +48,12 @@ export class BrowserEventSource {
     window.addEventListener("keydown", this.handleKeydown as any, true);
   }
 
-  evKey(event: KeyEvent) {
-    this.keydownHandlers.forEach((handler) => {
-      handler.sink[handler.method](event);
-    });
+  async evKey(event: KeyEvent) {
+    let i = 0;
+    for (i = 0; i < this.keydownHandlers.length; ++i) {
+      const handler = this.keydownHandlers[i]
+      await handler.sink[handler.method](event);
+    }
   }
 
   mouseMove(event: any) {

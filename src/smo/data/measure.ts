@@ -101,9 +101,9 @@ export interface ColumnMappedParams {
   tempo: any
 }
 // @internal
-export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'activeVoice';
+export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'activeVoice' | 'lines';
 // @internal
-export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'activeVoice'];
+export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'activeVoice', 'lines'];
 // @internal
 export type SmoMeasureStringParam = 'timeSignatureString' | 'keySignature';
 // @internal
@@ -118,7 +118,8 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureSt
  * @param padRight configured offset from previous measure
  * @param tuplets
  * @param transposeIndex calculated from {@link SmoPartInfo} for non-concert-key instruments
- * @param starting Y coordinate (UL corner) of the measure stave
+ * @param lines number of lines in the stave
+ * @param staffY Y coordinate (UL corner) of the measure stave
  * @param measureNumber combination configured/calculated measure number
  * @param clef
  * @param voices
@@ -135,6 +136,7 @@ export interface SmoMeasureParams {
   padRight: number,
   tuplets: SmoTuplet[],
   transposeIndex: number,
+  lines: number,
   staffY: number,
   // bars: [1, 1], // follows enumeration in VF.Barline
   measureNumber: MeasureNumber,
@@ -190,6 +192,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       staffId: 0
     },
     clef: 'treble',
+    lines: 5,
     voices: [],
     format: new SmoMeasureFormat(SmoMeasureFormat.defaults),
     activeVoice: 0,
@@ -253,6 +256,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   activeVoice: number = 0;
   tempo: SmoTempoText;
   beamGroups: ISmoBeamGroup[] = [];
+  lines: number = 5;
   /**
    * Runtime information about rendering
    */
@@ -346,7 +350,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       'keySignature', 'timeSignatureString',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'format', 'rightMargin'
+      'format', 'rightMargin', 'lines'
     ];
   }
 

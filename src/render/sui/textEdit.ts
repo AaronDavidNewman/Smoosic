@@ -438,7 +438,7 @@ export class SuiTextEditor {
   }
   // ### evKey
   // Handle key events that filter down to the editor
-  evKey(evdata: KeyEvent): boolean {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     if (evdata.code === 'ArrowRight') {
       if (evdata.shiftKey) {
         this.growSelectionRight();
@@ -484,11 +484,16 @@ export class SuiTextEditor {
       return true;
     }
     if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
+      const isPaste = evdata.ctrlKey && evdata.key === 'v';
+      let text = evdata.key;
+      if (isPaste) {
+        text = await navigator.clipboard.readText();
+      }
       if (this.empty) {
         this.svgText?.removeBlockAt(0);
         this.empty = false;
         const def = SuiInlineText.blockDefaults;
-        def.text = evdata.key;
+        def.text = text;
         this.svgText?.addTextBlockAt(0, def);
         this.setTextPos(1);
       } else {
@@ -496,7 +501,7 @@ export class SuiTextEditor {
           this.deleteSelections();
         }
         const def = SuiInlineText.blockDefaults;
-        def.text = evdata.key;
+        def.text = text;
         def.textType = this.textType;
         this.svgText?.addTextBlockAt(this.textPos, def);
         this.setTextPos(this.textPos + 1);
@@ -538,7 +543,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
     return '';
   }
 
-  evKey(evdata: KeyEvent): boolean {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     if (evdata.key.charCodeAt(0) === 32) {
       if (this.empty) {
         this.svgText?.removeBlockAt(0);
@@ -763,7 +768,7 @@ export class SuiChordEditor extends SuiTextEditor {
     this.textPos += 1;
   }
 
-  evKey(evdata: KeyEvent): boolean {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     let edited = false;
     if (this._setSymbolModifier(evdata.key)) {
       return true;
@@ -780,7 +785,7 @@ export class SuiChordEditor extends SuiTextEditor {
       edited = true;
     } else {
       // some ordinary key
-      edited = super.evKey(evdata);
+      edited = await super.evKey(evdata);
     }
     if (this.svgText !== null && this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
       this.textType = this.svgText.blocks[this.textPos].textType;
@@ -1011,11 +1016,11 @@ export class SuiTextSession {
 
   // ### evKey
   // Key handler (pass to editor)
-  evKey(evdata: KeyEvent): boolean {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     if (this.state !== SuiTextEditor.States.RUNNING || this.editor === null) {
       return false;
     }
-    const rv = this.editor.evKey(evdata);
+    const rv = await this.editor.evKey(evdata);
     if (rv) {
       this._removeScoreText();
     }
@@ -1230,22 +1235,23 @@ export class SuiLyricSession {
   }
   // ### evKey
   // Key handler (pass to editor)
-  evKey(evdata: KeyEvent) {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     if (this.state !== SuiTextEditor.States.RUNNING) {
-      return;
+      return false;
     }
     if (evdata.key === '-' || evdata.key === ' ') {
       // skip
       const back = evdata.shiftKey && evdata.key === ' ';
       if (evdata.key === '-' && this.editor !== null) {
-        this.editor.evKey(evdata);
+        await this.editor.evKey(evdata);
       }
       this._updateLyricFromEditor();
       this._advanceSelection(back);
     } else if (this.editor !== null) {
-      this.editor.evKey(evdata);
+      await this.editor.evKey(evdata);
       this._hideLyric();
     }
+    return true;
   }
   get textType(): number {
     if (this.isRunning && this.editor !== null) {
@@ -1278,7 +1284,7 @@ export class SuiChordSession extends SuiLyricSession {
 
   // ### evKey
   // Key handler (pass to editor)
-  evKey(evdata: KeyEvent): boolean {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     let edited = false;
     if (this.state !== SuiTextEditor.States.RUNNING) {
       return false;
@@ -1288,7 +1294,7 @@ export class SuiChordSession extends SuiLyricSession {
       this._advanceSelection(evdata.shiftKey);
       edited = true;
     } else if (this.editor !== null) {
-      edited = this.editor.evKey(evdata);
+      edited = await this.editor.evKey(evdata);
     }
     this._hideLyric();
     return edited;

@@ -11,6 +11,7 @@ import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
 import { SmoBeamer } from '../../smo/xform/beamers';
 import { SmoScore } from '../../smo/data/score';
+import { SmoStaffHairpin, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { layoutDebug } from './layoutDebug';
 import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
@@ -184,7 +185,7 @@ export class SuiLayoutFormatter {
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
 
       // calculate vertical offsets from the baseline
-      const offsets = SuiLayoutFormatter.estimateMeasureHeight(measure);
+      const offsets = this.estimateMeasureHeight(measure);
       measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
       measure.setY(y - measure.yTop, 'estimateColumns height');
       measure.setX(x, 'render:estimateColumn');
@@ -627,25 +628,52 @@ export class SuiLayoutFormatter {
     }
   }
 
-  // ### estimateMeasureHeight
-  // The baseline is the top line of the staff.  aboveBaseline is a negative number
-  // that indicates how high above the baseline the measure goes.  belowBaseline
-  // is a positive number that indicates how far below the baseline the measure goes.
-  // the height of the measure is below-above.  Vex always renders a staff such that
-  // the y coordinate passed in for the stave is on the baseline.
-  // Note to past self: this was a really useful comment.  Thank you.
-  static estimateMeasureHeight(measure: SmoMeasure): { aboveBaseline: number, belowBaseline: number } {
-    let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
-    let yOffset = 0;
+  /**
+   * The baseline is the top line of the staff.  aboveBaseline is a negative number
+   * that indicates how high above the baseline the measure goes.  belowBaseline
+   * is a positive number that indicates how far below the baseline the measure goes.
+   * the height of the measure is below-above.  Vex always renders a staff such that
+   * the y coordinate passed in for the stave is on the baseline.
+   * 
+   * Note to past self: this was a really useful comment.  Thank you.
+   * **/
+  estimateMeasureHeight(measure: SmoMeasure): { aboveBaseline: number, belowBaseline: number } {
+    let yTop = 0; // highest point, smallest Y value
+    let yBottom = measure.lines * 10;  // lowest point, largest Y value.
     let flag: number = -1;
     let lyricOffset = 0;
+    const measureIndex = measure.measureNumber.measureIndex;
+    const staffIndex = measure.measureNumber.staffId;
+    const stave = this.score.staves[staffIndex];
+    stave.renderableModifiers.forEach((mm) => {
+      if (mm.startSelector.staff === staffIndex && (mm.startSelector.measure <= measureIndex &&  mm.endSelector.measure >= measureIndex) ||
+          mm.endSelector.staff === staffIndex && 
+            (mm.endSelector.measure <= measureIndex &&  mm.endSelector.measure >= measureIndex && mm.endSelector.measure !== mm.startSelector.measure)) {
+        if (mm.ctor === 'SmoHairpin') {
+          const hp = mm as SmoStaffHairpin;
+          if (hp.position === SmoStaffHairpin.positions.ABOVE) {
+            yTop = yTop - hp.height;
+          } else {
+            yBottom = yBottom + hp.height;
+          }
+        } else if (mm.ctor === 'SmoStaffTextBracket') {
+          const tb = mm as SmoStaffTextBracket;
+          const tbHeight = 14; // default font size
+          if (tb.position === SmoStaffTextBracket.positions.TOP) {
+            yTop = yTop - tbHeight;
+          } else {
+            yBottom = yBottom + tbHeight;
+          }  
+        }
+      }
+    });
     if (measure.svg.forceClef) {
-      heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
-      yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
+      yBottom += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
+      yTop = yTop - vexGlyph.clef(measure.clef).yTop;
     }
 
     if (measure.svg.forceTempo) {
-      yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
+      yTop = Math.min(-1 * vexGlyph.tempo.yTop, yTop);
     }
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
@@ -670,11 +698,11 @@ export class SuiLayoutFormatter {
         }
         const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);
         if (flag === SmoNote.flagStates.down) {
-          yOffset = Math.min(hiloHead.lo, yOffset);
-          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height, heightOffset);
+          yTop = Math.min(hiloHead.lo, yTop);
+          yBottom = Math.max(hiloHead.hi + vexGlyph.stem.height, yBottom);
         } else {
-          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height, yOffset);
-          heightOffset = Math.max(hiloHead.hi, heightOffset);
+          yTop = Math.min(hiloHead.lo - vexGlyph.stem.height, yTop);
+          yBottom = Math.max(hiloHead.hi, yBottom);
         }
         // Lyrics will be rendered below the lowest thing on the staff, so add to
         // belowBaseline value based on the max number of verses and font size
@@ -687,12 +715,12 @@ export class SuiLayoutFormatter {
         }
         const dynamics = note.getModifiers('SmoDynamicText') as SmoDynamicText[];
         dynamics.forEach((dyn) => {
-          heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
-          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset);
+          yBottom = Math.max((10 * dyn.yOffsetLine - 50) + 11, yBottom);
+          yTop = Math.min(10 * dyn.yOffsetLine - 50, yTop);
         });
       });
     });
-    heightOffset += lyricOffset;
-    return { belowBaseline: heightOffset, aboveBaseline: yOffset };
+    yBottom += lyricOffset;
+    return { belowBaseline: yBottom, aboveBaseline: yTop };
   }
 }

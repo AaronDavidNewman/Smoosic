@@ -91,9 +91,9 @@ export abstract class SuiNoteTextComponent extends SuiComponentBase {
   get running() {
     return this.session && this.session.isRunning;
   }
-  evKey(evdata: KeyEvent) {
+  async evKey(evdata: KeyEvent): Promise<boolean> {
     if (this.session) {
-      return this.session.evKey(evdata);
+      return await this.session.evKey(evdata);
     }
     return false;
   }

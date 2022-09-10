@@ -252,7 +252,7 @@ export abstract class SuiMapper {
     const keys = Object.keys(this.measureNoteMap);
     keys.forEach((selKey) => {
       const selection = this.measureNoteMap[selKey];
-      selection.staff.modifiers.forEach((modifier) => {
+      selection.staff.renderableModifiers.forEach((modifier) => {
         if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
           if (!modMap[modifier.attrs.id]) {
             if (modifier.logicalBox) {

@@ -214,6 +214,30 @@ export class SuiSampleMedia {
       dynamic: 100,
       options: []
     });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'pad-c4-vita',
+      family: 'synth',
+      subFamily: 'pad',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'pad-c5-vita',
+      family: 'synth',
+      subFamily: 'pad',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
   }
   static getSmoOscillatorInfo(instrument: string) {
     if (!SuiSampleMedia.sampleOscMap[instrument]) {

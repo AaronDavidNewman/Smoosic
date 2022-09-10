@@ -211,7 +211,7 @@ export class SuiChordChangeDialog extends SuiDialogBase {
 
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
-  evKey(evdata: any) {
+  async evKey(evdata: any) {
     if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
@@ -219,7 +219,7 @@ export class SuiChordChangeDialog extends SuiDialogBase {
       if (!this.chordEditorCtrl.running) {
         return;
       }
-      const edited = this.chordEditorCtrl.evKey(evdata);
+      const edited = await this.chordEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
       }

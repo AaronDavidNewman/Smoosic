@@ -130,6 +130,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
             }, {
               value: 'clarinet',
               label: 'Bb Clarinet'
+            },  {
+              value: 'pad',
+              label: 'Synth Pad'
             }]
           }, {
             smoName: 'clef',

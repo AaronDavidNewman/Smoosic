@@ -156,7 +156,7 @@ export class SuiLyricDialog extends SuiDialogBase {
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
-  evKey(evdata: any) {
+  async evKey(evdata: any) {
     if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
@@ -164,7 +164,7 @@ export class SuiLyricDialog extends SuiDialogBase {
       if (!this.lyricEditorCtrl.running) {
         return;
       }
-      const edited = this.lyricEditorCtrl.evKey(evdata);
+      const edited = await this.lyricEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
       }
