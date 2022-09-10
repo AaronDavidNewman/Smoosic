@@ -110,11 +110,20 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               value: 'piano',
               label:'Grand Piano'
             }, {
+              value: 'bass',
+              label: 'Bass'
+            }, {
               value: 'cello',
               label: 'Cello'
             }, {
+              value: 'violin',
+              label: 'Violin'
+            }, {
               value: 'trumpet',
               label: 'Bb Trumpet'
+            }, {
+              value: 'horn',
+              label: 'F Horn'
             }, {
               value: 'tuba',
               label: 'Tuba'

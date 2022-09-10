@@ -395,7 +395,7 @@ export class SuiScoreRender {
     if (this.score === null || this.measureMapper === null) {
       return [];
     }
-    staff.modifiers.forEach((modifier) => {
+    staff.renderableModifiers.forEach((modifier) => {
       const startNote = SmoSelection.noteSelection(this.score!,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
       const endNote = SmoSelection.noteSelection(this.score!,

@@ -12,12 +12,20 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
     label: 'Lines',
     menuItems: [{
       icon: 'cresc',
-      text: 'Crescendo',
+      text: 'Cresc. Hairpin',
       value: 'crescendo'
     }, {
+      icon: '',
+      text: 'Cresc. Bracket',
+      value: 'crescendoBracket'
+    }, {
       icon: 'decresc',
-      text: 'Decrescendo',
+      text: 'Dim. Hairpin',
       value: 'decrescendo'
+    }, {
+      icon: '',
+      text: 'Dim. Bracket',
+      value: 'dimenuendo'
     }, {
       icon: 'slur',
       text: 'Slur',
@@ -30,6 +38,14 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       icon: 'ending',
       text: 'nth ending',
       value: 'ending'
+    }, {
+      icon: '',
+      text: 'Accelerando',
+      value: 'accel'
+    }, {
+      icon: '',
+      text: 'Ritard',
+      value: 'ritard'
     }, {
       icon: 'slur',
       text: 'Reset slurs',
@@ -52,6 +68,14 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.slur();
     } else if (op === 'tie') {
       this.view.tie();
+    } else if (op === 'accel') {
+      this.view.accelerando();
+    } else if (op === 'dimenuendo') {
+      this.view.dimenuendo();
+    } else if (op === 'ritard') {
+      this.view.ritard();
+    } else if (op === 'crescendoBracket') {
+      this.view.crescendoBracket();
     } else if (op === 'crescendo') {
       this.view.crescendo();
     } else if (op === 'decrescendo') {

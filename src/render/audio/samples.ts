@@ -51,6 +51,54 @@ export class SuiSampleMedia {
       sustain: 'sustained',
       realOvertones: [],
       imaginaryOvertones: [],
+      sample: 'sample-bass-b1',
+      family: 'strings',
+      subFamily: 'bass',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 1 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-bass-e2',
+      family: 'strings',
+      subFamily: 'bass',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-violin-e6',
+      family: 'strings',
+      subFamily: 'violin',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-violin-e5',
+      family: 'strings',
+      subFamily: 'violin',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
       sample: 'sample-cello-bb3',
       family: 'strings',
       subFamily: 'cello',
@@ -91,6 +139,30 @@ export class SuiSampleMedia {
       family: 'brass',
       subFamily: 'trumpet',
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-horn-c4',
+      family: 'brass',
+      subFamily: 'horn',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-horn-c3',
+      family: 'brass',
+      subFamily: 'horn',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
       dynamic: 100,
       options: []
     });

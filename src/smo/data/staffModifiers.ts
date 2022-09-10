@@ -257,6 +257,83 @@ export class SmoStaffHairpin extends StaffModifierBase {
   }
 }
 
+/**
+ * constructor params for {@link SmoStaffHairpin}
+ * @category SmoParameters
+ */
+export interface SmoStaffTextBracketParams {
+  line: number,
+  position: number,
+  text: string,
+  superscript: string,
+  startSelector: SmoSelector,
+  endSelector: SmoSelector
+}
+
+export type SmoTextBracketStringType = 'text' | 'superscript';
+export const SmoTextBracketStringTypes: SmoTextBracketStringType[] = ['text', 'superscript'];
+export type SmoTextBracketNumberType = 'line' | 'position';
+export const SmoTextBracketNumberTypes: SmoTextBracketNumberType[] = ['line', 'position'];
+/**
+ * Text like 8va, rit. that is bracketed on a system
+ * @category SmoModifier
+ */
+export class SmoStaffTextBracket extends StaffModifierBase {
+  static RITARD = 'ritard';
+  static ACCEL = 'accelerando';
+  static CRESCENDO = 'crescendo';
+  static DIMENUENDO = 'diminuendo';
+  static OCTAVEUP = '8va';
+  static OCTAVEDOWN = '8vb';
+  static OCTAVEUP2 = '15va';
+  static OCTAVE2DOWN = '15vb';
+  static get defaults(): SmoStaffTextBracketParams {
+    return JSON.parse(JSON.stringify({
+      line: 1,
+      position: SmoStaffTextBracket.positions.BOTTOM,
+      text: '',
+      superscript: '',
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
+    }));
+  }
+  static get positions() {
+    // matches VF.modifier
+    return {
+      TOP: 1,
+      BOTTOM: -1
+    };
+  }  
+  static get attributes() {
+    return ['startSelector', 'endSelector', 'line', 'position', 'text', 'superscript'];
+  }
+  position: number = SmoStaffTextBracket.positions.BOTTOM;
+  text: string = '';
+  superscript: string = '';
+  line: number = 1;
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  serialize() {
+    const params: any = {};
+    smoSerialize.serializedMergeNonDefault(SmoStaffTextBracket.defaults, SmoStaffTextBracket.attributes, this, params);
+    params.ctor = 'SmoStaffTextBracket';
+    return params;
+  }
+  constructor(params: SmoStaffTextBracketParams) {
+    super('SmoStaffTextBracket');
+    smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, SmoStaffTextBracket.defaults, this);
+    smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, params, this);
+    this.startSelector = JSON.parse(JSON.stringify(params.startSelector));
+    this.endSelector = JSON.parse(JSON.stringify(params.endSelector));
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoStaffTextBracket'
+      };
+    }
+  }
+}
+
 export type SlurNumberParam = 'spacing' | 'thickness' | 'xOffset' | 'yOffset' | 'position' |
   'position_end' | 'cp1x' | 'cp1y' | 'cp2x' | 'cp2y';
 export const SlurNumberParams: SlurNumberParam[] = ['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 

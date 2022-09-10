@@ -9,7 +9,8 @@ import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
-import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, SmoTie } from './staffModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, 
+  SmoTie, SmoStaffTextBracket } from './staffModifiers';
 import { SmoPartInfo } from './partInfo';
 import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
@@ -39,6 +40,7 @@ export interface SmoSystemStaffParams {
   measures: SmoMeasure[],
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
+  textBrackets?: SmoStaffTextBracket[];
 }
 /**
  * A staff is a line of music that can span multiple measures.
@@ -82,6 +84,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   measureInstrumentMap: Record<number, SmoInstrument> = {};
   measures: SmoMeasure[] = [];
   modifiers: StaffModifierBase[] = [];
+  textBrackets: SmoStaffTextBracket[] = [];
   attrs: SmoAttrs = {
     id: '',
     type: 'SmoSystemStaff'
@@ -97,6 +100,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       renumberingMap: {},
       keySignatureMap: {},
       measureInstrumentMap: {},
+      textBrackets: [],
       measures: [],
       modifiers: []
     }));
@@ -112,6 +116,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.staffId = params.staffId;
     this.measures = params.measures;
     this.modifiers = params.modifiers;
+    this.textBrackets = params.textBrackets ?? [];
     if (Object.keys(params.measureInstrumentMap).length === 0) {
       this.measureInstrumentMap[0] = new SmoInstrument(SmoInstrument.defaults);
       this.measureInstrumentMap[0].startSelector.staff = this.staffId;
@@ -147,6 +152,11 @@ export class SmoSystemStaff implements SmoObjectParams {
       'renumberingMap', 'keySignatureMap', 'instrumentInfo'];
   }
 
+  get renderableModifiers() {
+    const rv: StaffModifierBase[] = 
+      this.modifiers.concat(this.textBrackets);
+    return rv;
+  }
   // ### serialize
   // JSONify self.
   serialize() {
@@ -164,6 +174,9 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
+    });
+    this.textBrackets.forEach((bracket) => {
+      params.modifiers.push(bracket.serialize());
     });
     params.partInfo = this.partInfo.serialize();
     return params;
@@ -390,6 +403,22 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.measures.forEach((measure) => {
       measure.setChordAdjustWidth(adjustNoteWidth);
     });
+  }
+  addTextBracket(bracketParams: SmoStaffTextBracket) {    
+    const nb = new SmoStaffTextBracket(bracketParams);
+    const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
+      || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+    brackets.push(new SmoStaffTextBracket(bracketParams));
+    this.textBrackets = brackets;
+  }
+  removeTextBracket(bracketParams: SmoStaffTextBracket) {    
+    const nb = new SmoStaffTextBracket(bracketParams);
+    const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
+      || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+    this.textBrackets = brackets;
+  }
+  getTextBracketsStartingAt(selector: SmoSelector) {
+    return this.textBrackets.filter((tb) => SmoSelector.eq(tb.startSelector, selector));
   }
 
   // ### getSlursStartingAt

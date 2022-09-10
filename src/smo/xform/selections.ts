@@ -483,6 +483,20 @@ export class SmoSelection {
     }
     return rv;
   }
+  static getMeasuresBetween(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector): SmoSelection[] {
+    let i = 0;
+    const rv: SmoSelection[] = [];
+    if (fromSelector.staff !== toSelector.staff) {
+      return rv;
+    }
+    for (i = fromSelector.measure; i <= toSelector.measure; ++i) {
+      const sel = SmoSelection.measureSelection(score, fromSelector.staff, i);
+      if (sel) {
+        rv.push(sel);
+      }
+    }
+    return rv;
+  }
   // ### selectionsSameMeasure
   // Return true if the selections are all in the same measure.  Used to determine what
   // type of undo we need.

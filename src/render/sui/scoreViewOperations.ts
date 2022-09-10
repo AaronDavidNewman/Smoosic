@@ -22,7 +22,7 @@ import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { StaffModifierBase, SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
+import { StaffModifierBase, SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
 import { SuiPiano } from './piano';
 import { PromiseHelpers } from '../../common/promiseHelpers';
@@ -1208,11 +1208,60 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   /**
+   * Add crescendo to selection
+   */
+   crescendoBracket(): Promise<void> {
+    this._lineOperation('crescendoBracket');
+    return this.renderer.updatePromise();
+  }
+  /**
+   * Add crescendo to selection
+   */
+  dimenuendo(): Promise<void> {
+    this._lineOperation('dimenuendo');
+    return this.renderer.updatePromise();
+  }
+  /**
+   * Add crescendo to selection
+   */
+  accelerando(): Promise<void> {
+    this._lineOperation('accelerando');
+    return this.renderer.updatePromise();
+  }
+  /**
+   * Add crescendo to selection
+   */
+  ritard(): Promise<void> {
+    this._lineOperation('ritard');
+    return this.renderer.updatePromise();
+  }
+  /**
    * diminuendo selections
    * @returns 
    */
   decrescendo(): Promise<void> {
     this._lineOperation('decrescendo');
+    return this.renderer.updatePromise();
+  }
+  removeTextBracket(bracket: SmoStaffTextBracket): Promise<void> {
+    return this.removeStaffModifier(bracket);
+  }
+  addOrReplaceTextBracket(modifier: SmoStaffTextBracket) {
+    const from1 = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const to1 = SmoSelection.noteFromSelector(this.score, modifier.endSelector);
+    if (from1 === null || to1 === null) {
+      return;
+    }
+    const altFrom = this._getEquivalentSelection(from1);
+    const altTo = this._getEquivalentSelection(to1);
+    if (altFrom === null || altTo === null) {
+      return;
+    }
+    SmoOperation.addOrReplaceBracket(modifier, from1, to1);
+    SmoOperation.addOrReplaceBracket(modifier, altFrom, altTo);
+    const redraw = SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
+    this._undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this._renderChangedMeasures(redraw);
     return this.renderer.updatePromise();
   }
   /**

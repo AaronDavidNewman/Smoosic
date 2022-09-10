@@ -4,7 +4,7 @@ import { VxMeasure } from './vxMeasure';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie } from '../../smo/data/staffModifiers';
+import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
@@ -345,6 +345,12 @@ export class VxSystem {
         Vex.Merge(tie.render_options, ctie.vexOptions);
         tie.setContext(this.context).draw();
       }
+    } else if (modifier.ctor === 'SmoStaffTextBracket') {
+      const smoBracket = (modifier as SmoStaffTextBracket);
+      const bracket = new VF.TextBracket({
+        start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
+      });
+      bracket.setContext(this.context).draw();
     }
 
     this.context.closeGroup();

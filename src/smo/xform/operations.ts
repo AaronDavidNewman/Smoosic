@@ -6,14 +6,14 @@ import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament,
+import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoOrnament,
   SmoDynamicText } from '../data/noteModifiers';
 import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
-  SmoSlurParams, SmoInstrumentMeasure } from '../data/staffModifiers';
+  SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams } from '../data/staffModifiers';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
@@ -774,7 +774,45 @@ export class SmoOperation {
     }
     return false;
   }
-
+  static addOrReplaceBracket(modifier: SmoStaffTextBracket, fromSelection: SmoSelection, toSelection: SmoSelection) {
+    fromSelection.staff.addTextBracket(modifier);
+  }
+  static ritard(fromSelection: SmoSelection, toSelection: SmoSelection) {
+    const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
+    params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    params.text = SmoStaffTextBracket.RITARD;
+    const modifier = new SmoStaffTextBracket(params);
+    fromSelection.staff.addTextBracket(modifier);
+    return modifier;
+  }
+  static accelerando(fromSelection: SmoSelection, toSelection: SmoSelection) {
+    const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
+    params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    params.text = SmoStaffTextBracket.ACCEL;
+    const modifier = new SmoStaffTextBracket(params);
+    fromSelection.staff.addTextBracket(modifier);
+    return modifier;
+  }
+  static crescendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
+    const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
+    params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    params.text = SmoStaffTextBracket.CRESCENDO;
+    const modifier = new SmoStaffTextBracket(params);
+    fromSelection.staff.addTextBracket(modifier);
+    return modifier;
+  }
+  static dimenuendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+    const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
+    params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    params.text = SmoStaffTextBracket.CRESCENDO;
+    const modifier = new SmoStaffTextBracket(params);
+    fromSelection.staff.addTextBracket(modifier);
+    return modifier;
+  }
   static crescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffHairpinParams = SmoStaffHairpin.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
@@ -805,6 +843,7 @@ export class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
+
   /**
    * Heuristically determine how a slur should be formatted based on the notes.  Determine control points,
    * offset, and alignment
@@ -928,7 +967,6 @@ export class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-
   static addStaff(score: SmoScore, parameters: SmoSystemStaffParams) {
     score.addStaff(parameters);
   }

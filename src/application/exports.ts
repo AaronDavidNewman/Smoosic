@@ -43,6 +43,7 @@ import { SuiTempoDialog } from '../ui/dialogs/tempo';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
 import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
 import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
+import { SuiTextBracketDialog } from '../ui/dialogs/textBracket';
 import { SuiScoreFontDialog } from '../ui/dialogs/fonts';
 import { SuiGlobalLayoutDialog } from '../ui/dialogs/globalLayout';
 import { SuiScoreViewDialog } from '../ui/dialogs/scoreView';import { SuiLibraryDialog } from '../ui/dialogs/library';
@@ -111,6 +112,7 @@ import { SvgHelpers } from '../render/sui/svgHelpers';
 // audio library
 import { SuiAudioPlayer } from '../render/audio/player';
 import { SuiOscillator, SuiSampler, SuiReverb } from '../render/audio/oscillator';
+import { SuiSampleMedia } from '../render/audio/samples';
 
 // SMO object model
 import { SmoScore } from '../smo/data/score';
@@ -118,7 +120,7 @@ import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
 import { createLoadTests } from '../../tests/file-load';
-import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
+import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
 import { SmoAudioPitch } from '../smo/data/music';
@@ -160,6 +162,7 @@ export const Smo = {
     SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
+    SuiTextBracketDialog,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
     SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextBlockDialog, SuiLyricDialog, SuiChordChangeDialog,
@@ -186,7 +189,7 @@ export const Smo = {
     SuiScoreViewOperations,
 
     // Audio components
-    SuiAudioPlayer, SuiOscillator, SuiSampler, SuiReverb,
+    SuiAudioPlayer, SuiOscillator, SuiSampleMedia, SuiSampler, SuiReverb,
 
     // Smo Music Objects
     SmoScore,
@@ -201,6 +204,7 @@ export const Smo = {
     SmoNote,
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
+    SmoStaffTextBracket,
     SmoInstrument, SmoSlur, SmoTie, 
     // score modifiers
     SmoSystemGroup, SmoAudioPlayerSettings,

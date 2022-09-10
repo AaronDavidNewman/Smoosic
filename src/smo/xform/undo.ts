@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { StaffModifierBase } from '../data/staffModifiers';
+import { SmoStaffTextBracket, StaffModifierBase } from '../data/staffModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoMusic } from '../data/music';
 import { SmoOperation } from './operations';
@@ -203,7 +203,11 @@ export class UndoBuffer {
         }
         // If we undo an add, we just remove it.
         if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
-          staff.addStaffModifier(modifier);
+          if (modifier.ctor === 'SmoStaffTextBracket') {
+            staff.addTextBracket(modifier as SmoStaffTextBracket);
+          } else {
+            staff.addStaffModifier(modifier);
+          }
         }
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
         smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);

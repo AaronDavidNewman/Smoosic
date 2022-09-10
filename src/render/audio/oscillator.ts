@@ -398,6 +398,17 @@ export class SuiWavetable extends SuiOscillator {
  * An audio output primitive that uses frequency-adjusted sampled sounds
  */
 export class SuiSampler extends SuiOscillator {
+  constructor(params: SuiOscillatorParams) {
+    super(params);
+    if (SuiSampleMedia.sampleOscMap[this.instrument]) {
+      const sampleInfo = SuiSampleMedia.sampleOscMap[this.instrument];
+      if (sampleInfo.length) {
+        if (sampleInfo[0].sustain === 'sustained') {
+          this.attack = 0.1 * this.duration;
+        }
+      }
+    }
+  }
   // Note: samplePromise must be complete before you call this  
   createAudioNode(): AudioScheduledSourceNode {
     const node = SuiOscillator.audio.createBufferSource();

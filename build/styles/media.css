@@ -72,6 +72,9 @@
     font-style: normal;
 }
 
+.printing #link-hdr {
+  display: none;
+}
 #link-hdr {
   position: relative;
   background: #aaa;
