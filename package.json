@@ -1,30 +1,59 @@
 {
-    "name": "smoosic",
-    "version": "0.1.0",
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^4.29.1",
-        "@typescript-eslint/parser": "^4.29.1",
-        "eslint": "^7.32.0",
-        "grunt": "^1.5.3",
-        "grunt-typedoc": "^0.2.4",
-        "grunt-webpack": "^4.0.3",
-        "jquery": "^3.6.0",
-        "ts-loader": "^9.2.5",
-        "typedoc": "^0.22.9",
-        "typescript": "^4.3.5",
-        "webpack": "^5.50.0",
-        "webpack-dev-server": "^3.11.2",
-        "webpack-inject-plugin": "^1.5.5"
-    },
-    "dependencies": {
-        "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-plugin-import": "^2.24.0",
-        "grunt-cli": "^1.4.3",
-        "grunt-contrib-copy": "^1.0.0",
-        "grunt-eslint": "^23.0.0",
-        "midi-parser-js": "^4.0.4",
-        "midi-writer-js": "^1.7.5",
-        "typedoc-custom-theme-demo": "^1.0.0",
-        "xmldom": "^0.6.0"
-    }
+  "name": "smoosic",
+  "version": "0.1.0",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.1",
+    "@typescript-eslint/parser": "^4.29.1",
+    "eslint": "^7.32.0",
+    "grunt": "^1.5.3",
+    "grunt-typedoc": "^0.2.4",
+    "grunt-webpack": "^4.0.3",
+    "jquery": "^3.6.0",
+    "ts-loader": "^9.2.5",
+    "typedoc": "^0.22.9",
+    "typescript": "^4.3.5",
+    "webpack": "^5.50.0",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-inject-plugin": "^1.5.5"
+  },
+  "dependencies": {
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.24.0",
+    "grunt-cli": "^1.4.3",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-eslint": "^23.0.0",
+    "midi-parser-js": "^4.0.4",
+    "midi-writer-js": "^1.7.5",
+    "typedoc-custom-theme-demo": "^1.0.0",
+    "xmldom": "^0.6.0"
+  },
+  "description": "<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub>",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AaronDavidNewman/Smoosic.git"
+  },
+  "keywords": [
+    "music",
+    "engraving",
+    "notation",
+    "audio",
+    "midi",
+    "musicxml"
+  ],
+  "author": "Aaron D Newman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AaronDavidNewman/Smoosic/issues"
+  },
+  "homepage": "https://github.com/AaronDavidNewman/Smoosic#readme",
+  "publishConfig": {
+    "@AaronDavidNewman:registry": "https://npm.pkg.github.com"
+  }
 }
