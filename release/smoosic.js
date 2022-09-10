@@ -989,6 +989,7 @@ const tempo_1 = __webpack_require__(/*! ../ui/dialogs/tempo */ "./src/ui/dialogs
 const scoreId_1 = __webpack_require__(/*! ../ui/dialogs/scoreId */ "./src/ui/dialogs/scoreId.ts");
 const preferences_1 = __webpack_require__(/*! ../ui/dialogs/preferences */ "./src/ui/dialogs/preferences.ts");
 const pageLayout_1 = __webpack_require__(/*! ../ui/dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts");
+const textBracket_1 = __webpack_require__(/*! ../ui/dialogs/textBracket */ "./src/ui/dialogs/textBracket.ts");
 const fonts_1 = __webpack_require__(/*! ../ui/dialogs/fonts */ "./src/ui/dialogs/fonts.ts");
 const globalLayout_1 = __webpack_require__(/*! ../ui/dialogs/globalLayout */ "./src/ui/dialogs/globalLayout.ts");
 const scoreView_1 = __webpack_require__(/*! ../ui/dialogs/scoreView */ "./src/ui/dialogs/scoreView.ts");
@@ -1049,6 +1050,7 @@ const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/
 // audio library
 const player_2 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
+const samples_1 = __webpack_require__(/*! ../render/audio/samples */ "./src/render/audio/samples.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -1093,6 +1095,7 @@ exports.Smo = {
     SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SuiStaffMenu: staff_1.SuiStaffMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
     // Dialogs
     SuiTempoDialog: tempo_1.SuiTempoDialog, SuiInstrumentDialog: instrument_1.SuiInstrumentDialog, SuiModifierDialogFactory: factory_1.SuiModifierDialogFactory, SuiLibraryDialog: library_1.SuiLibraryDialog,
+    SuiTextBracketDialog: textBracket_1.SuiTextBracketDialog,
     SuiScoreViewDialog: scoreView_1.SuiScoreViewDialog, SuiGlobalLayoutDialog: globalLayout_1.SuiGlobalLayoutDialog, SuiScoreIdentificationDialog: scoreId_1.SuiScoreIdentificationDialog,
     SuiScoreFontDialog: fonts_1.SuiScoreFontDialog, SuiPageLayoutDialog: pageLayout_1.SuiPageLayoutDialog, SuiMeasureDialog: measureFormat_1.SuiMeasureDialog, SuiInsertMeasures: addMeasure_1.SuiInsertMeasures,
     SuiTimeSignatureDialog: timeSignature_1.SuiTimeSignatureDialog, SuiTextBlockDialog: textBlock_1.SuiTextBlockDialog, SuiLyricDialog: lyric_1.SuiLyricDialog, SuiChordChangeDialog: chordChange_1.SuiChordChangeDialog,
@@ -1118,7 +1121,7 @@ exports.Smo = {
     SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SvgHelpers: svgHelpers_1.SvgHelpers, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations,
     // Audio components
-    SuiAudioPlayer: player_2.SuiAudioPlayer, SuiOscillator: oscillator_1.SuiOscillator, SuiSampler: oscillator_1.SuiSampler, SuiReverb: oscillator_1.SuiReverb,
+    SuiAudioPlayer: player_2.SuiAudioPlayer, SuiOscillator: oscillator_1.SuiOscillator, SuiSampleMedia: samples_1.SuiSampleMedia, SuiSampler: oscillator_1.SuiSampler, SuiReverb: oscillator_1.SuiReverb,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
     XmlToSmo: xmlToSmo_1.XmlToSmo,
@@ -1132,6 +1135,7 @@ exports.Smo = {
     SmoNote: note_2.SmoNote,
     // staff modifier
     SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
+    SmoStaffTextBracket: staffModifiers_1.SmoStaffTextBracket,
     SmoInstrument: staffModifiers_1.SmoInstrument, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie,
     // score modifiers
     SmoSystemGroup: scoreModifiers_1.SmoSystemGroup, SmoAudioPlayerSettings: scoreModifiers_1.SmoAudioPlayerSettings,
@@ -4137,6 +4141,17 @@ exports.SuiWavetable = SuiWavetable;
  * An audio output primitive that uses frequency-adjusted sampled sounds
  */
 class SuiSampler extends SuiOscillator {
+    constructor(params) {
+        super(params);
+        if (samples_1.SuiSampleMedia.sampleOscMap[this.instrument]) {
+            const sampleInfo = samples_1.SuiSampleMedia.sampleOscMap[this.instrument];
+            if (sampleInfo.length) {
+                if (sampleInfo[0].sustain === 'sustained') {
+                    this.attack = 0.1 * this.duration;
+                }
+            }
+        }
+    }
     // Note: samplePromise must be complete before you call this  
     createAudioNode() {
         const node = SuiOscillator.audio.createBufferSource();
@@ -4629,6 +4644,54 @@ class SuiSampleMedia {
             sustain: 'sustained',
             realOvertones: [],
             imaginaryOvertones: [],
+            sample: 'sample-bass-b1',
+            family: 'strings',
+            subFamily: 'bass',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 1 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-bass-e2',
+            family: 'strings',
+            subFamily: 'bass',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-violin-e6',
+            family: 'strings',
+            subFamily: 'violin',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-violin-e5',
+            family: 'strings',
+            subFamily: 'violin',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
             sample: 'sample-cello-bb3',
             family: 'strings',
             subFamily: 'cello',
@@ -4669,6 +4732,30 @@ class SuiSampleMedia {
             family: 'brass',
             subFamily: 'trumpet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-horn-c4',
+            family: 'brass',
+            subFamily: 'horn',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-horn-c3',
+            family: 'brass',
+            subFamily: 'horn',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
             dynamic: 100,
             options: []
         });
@@ -7453,7 +7540,7 @@ class SuiScoreRender {
         if (this.score === null || this.measureMapper === null) {
             return [];
         }
-        staff.modifiers.forEach((modifier) => {
+        staff.renderableModifiers.forEach((modifier) => {
             const startNote = selections_1.SmoSelection.noteSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
             const endNote = selections_1.SmoSelection.noteSelection(this.score, modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
             if (!startNote || !endNote) {
@@ -9304,11 +9391,60 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     /**
+     * Add crescendo to selection
+     */
+    crescendoBracket() {
+        this._lineOperation('crescendoBracket');
+        return this.renderer.updatePromise();
+    }
+    /**
+     * Add crescendo to selection
+     */
+    dimenuendo() {
+        this._lineOperation('dimenuendo');
+        return this.renderer.updatePromise();
+    }
+    /**
+     * Add crescendo to selection
+     */
+    accelerando() {
+        this._lineOperation('accelerando');
+        return this.renderer.updatePromise();
+    }
+    /**
+     * Add crescendo to selection
+     */
+    ritard() {
+        this._lineOperation('ritard');
+        return this.renderer.updatePromise();
+    }
+    /**
      * diminuendo selections
      * @returns
      */
     decrescendo() {
         this._lineOperation('decrescendo');
+        return this.renderer.updatePromise();
+    }
+    removeTextBracket(bracket) {
+        return this.removeStaffModifier(bracket);
+    }
+    addOrReplaceTextBracket(modifier) {
+        const from1 = selections_1.SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+        const to1 = selections_1.SmoSelection.noteFromSelector(this.score, modifier.endSelector);
+        if (from1 === null || to1 === null) {
+            return;
+        }
+        const altFrom = this._getEquivalentSelection(from1);
+        const altTo = this._getEquivalentSelection(to1);
+        if (altFrom === null || altTo === null) {
+            return;
+        }
+        operations_1.SmoOperation.addOrReplaceBracket(modifier, from1, to1);
+        operations_1.SmoOperation.addOrReplaceBracket(modifier, altFrom, altTo);
+        const redraw = selections_1.SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
+        this._undoStaffModifier('add repl text bracket', modifier, undo_1.UndoBuffer.bufferSubtypes.ADD);
+        this._renderChangedMeasures(redraw);
         return this.renderer.updatePromise();
     }
     /**
@@ -14549,6 +14685,13 @@ class VxSystem {
                 Vex.Merge(tie.render_options, ctie.vexOptions);
                 tie.setContext(this.context).draw();
             }
+        }
+        else if (modifier.ctor === 'SmoStaffTextBracket') {
+            const smoBracket = modifier;
+            const bracket = new VF.TextBracket({
+                start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
+            });
+            bracket.setContext(this.context).draw();
         }
         this.context.closeGroup();
         if (xoffset) {
@@ -21391,7 +21534,7 @@ exports.SmoTextGroup = SmoTextGroup;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTie = exports.SmoSlur = exports.SlurNumberParams = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
+exports.SmoTie = exports.SmoSlur = exports.SlurNumberParams = exports.SmoStaffTextBracket = exports.SmoTextBracketNumberTypes = exports.SmoTextBracketStringTypes = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -21581,6 +21724,68 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 exports.SmoStaffHairpin = SmoStaffHairpin;
+exports.SmoTextBracketStringTypes = ['text', 'superscript'];
+exports.SmoTextBracketNumberTypes = ['line', 'position'];
+/**
+ * Text like 8va, rit. that is bracketed on a system
+ * @category SmoModifier
+ */
+class SmoStaffTextBracket extends StaffModifierBase {
+    constructor(params) {
+        super('SmoStaffTextBracket');
+        this.position = SmoStaffTextBracket.positions.BOTTOM;
+        this.text = '';
+        this.superscript = '';
+        this.line = 1;
+        this.startSelector = selections_1.SmoSelector.default;
+        this.endSelector = selections_1.SmoSelector.default;
+        serializationHelpers_1.smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, SmoStaffTextBracket.defaults, this);
+        serializationHelpers_1.smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, params, this);
+        this.startSelector = JSON.parse(JSON.stringify(params.startSelector));
+        this.endSelector = JSON.parse(JSON.stringify(params.endSelector));
+        if (!this.attrs) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoStaffTextBracket'
+            };
+        }
+    }
+    static get defaults() {
+        return JSON.parse(JSON.stringify({
+            line: 1,
+            position: SmoStaffTextBracket.positions.BOTTOM,
+            text: '',
+            superscript: '',
+            startSelector: selections_1.SmoSelector.default,
+            endSelector: selections_1.SmoSelector.default
+        }));
+    }
+    static get positions() {
+        // matches VF.modifier
+        return {
+            TOP: 1,
+            BOTTOM: -1
+        };
+    }
+    static get attributes() {
+        return ['startSelector', 'endSelector', 'line', 'position', 'text', 'superscript'];
+    }
+    serialize() {
+        const params = {};
+        serializationHelpers_1.smoSerialize.serializedMergeNonDefault(SmoStaffTextBracket.defaults, SmoStaffTextBracket.attributes, this, params);
+        params.ctor = 'SmoStaffTextBracket';
+        return params;
+    }
+}
+exports.SmoStaffTextBracket = SmoStaffTextBracket;
+SmoStaffTextBracket.RITARD = 'ritard';
+SmoStaffTextBracket.ACCEL = 'accelerando';
+SmoStaffTextBracket.CRESCENDO = 'crescendo';
+SmoStaffTextBracket.DIMENUENDO = 'diminuendo';
+SmoStaffTextBracket.OCTAVEUP = '8va';
+SmoStaffTextBracket.OCTAVEDOWN = '8vb';
+SmoStaffTextBracket.OCTAVEUP2 = '15va';
+SmoStaffTextBracket.OCTAVE2DOWN = '15vb';
 exports.SlurNumberParams = ['spacing', 'thickness', 'xOffset', 'yOffset', 'position',
     'position_end', 'cp1x', 'cp1y', 'cp2x', 'cp2y'];
 /**
@@ -21791,12 +21996,14 @@ const VF = eval('Vex.Flow');
  * */
 class SmoSystemStaff {
     constructor(params) {
+        var _a;
         this.staffId = 0;
         this.renumberingMap = {};
         this.keySignatureMap = {};
         this.measureInstrumentMap = {};
         this.measures = [];
         this.modifiers = [];
+        this.textBrackets = [];
         this.attrs = {
             id: '',
             type: 'SmoSystemStaff'
@@ -21806,6 +22013,7 @@ class SmoSystemStaff {
         this.staffId = params.staffId;
         this.measures = params.measures;
         this.modifiers = params.modifiers;
+        this.textBrackets = (_a = params.textBrackets) !== null && _a !== void 0 ? _a : [];
         if (Object.keys(params.measureInstrumentMap).length === 0) {
             this.measureInstrumentMap[0] = new staffModifiers_1.SmoInstrument(staffModifiers_1.SmoInstrument.defaults);
             this.measureInstrumentMap[0].startSelector.staff = this.staffId;
@@ -21869,6 +22077,7 @@ class SmoSystemStaff {
             renumberingMap: {},
             keySignatureMap: {},
             measureInstrumentMap: {},
+            textBrackets: [],
             measures: [],
             modifiers: []
         }));
@@ -21885,6 +22094,10 @@ class SmoSystemStaff {
         return [
             'renumberingMap', 'keySignatureMap', 'instrumentInfo'
         ];
+    }
+    get renderableModifiers() {
+        const rv = this.modifiers.concat(this.textBrackets);
+        return rv;
     }
     // ### serialize
     // JSONify self.
@@ -21903,6 +22116,9 @@ class SmoSystemStaff {
         });
         this.modifiers.forEach((modifier) => {
             params.modifiers.push(modifier.serialize());
+        });
+        this.textBrackets.forEach((bracket) => {
+            params.modifiers.push(bracket.serialize());
         });
         params.partInfo = this.partInfo.serialize();
         return params;
@@ -22130,6 +22346,22 @@ class SmoSystemStaff {
         this.measures.forEach((measure) => {
             measure.setChordAdjustWidth(adjustNoteWidth);
         });
+    }
+    addTextBracket(bracketParams) {
+        const nb = new staffModifiers_1.SmoStaffTextBracket(bracketParams);
+        const brackets = this.textBrackets.filter((tb) => selections_1.SmoSelector.lteq(tb.startSelector, nb.startSelector)
+            || selections_1.SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+        brackets.push(new staffModifiers_1.SmoStaffTextBracket(bracketParams));
+        this.textBrackets = brackets;
+    }
+    removeTextBracket(bracketParams) {
+        const nb = new staffModifiers_1.SmoStaffTextBracket(bracketParams);
+        const brackets = this.textBrackets.filter((tb) => selections_1.SmoSelector.lteq(tb.startSelector, nb.startSelector)
+            || selections_1.SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+        this.textBrackets = brackets;
+    }
+    getTextBracketsStartingAt(selector) {
+        return this.textBrackets.filter((tb) => selections_1.SmoSelector.eq(tb.startSelector, selector));
     }
     // ### getSlursStartingAt
     // like it says.  Used by audio player to slur notes
@@ -27923,6 +28155,45 @@ class SmoOperation {
         }
         return false;
     }
+    static addOrReplaceBracket(modifier, fromSelection, toSelection) {
+        fromSelection.staff.addTextBracket(modifier);
+    }
+    static ritard(fromSelection, toSelection) {
+        const params = staffModifiers_1.SmoStaffTextBracket.defaults;
+        params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        params.text = staffModifiers_1.SmoStaffTextBracket.RITARD;
+        const modifier = new staffModifiers_1.SmoStaffTextBracket(params);
+        fromSelection.staff.addTextBracket(modifier);
+        return modifier;
+    }
+    static accelerando(fromSelection, toSelection) {
+        const params = staffModifiers_1.SmoStaffTextBracket.defaults;
+        params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        params.text = staffModifiers_1.SmoStaffTextBracket.ACCEL;
+        const modifier = new staffModifiers_1.SmoStaffTextBracket(params);
+        fromSelection.staff.addTextBracket(modifier);
+        return modifier;
+    }
+    static crescendoBracket(fromSelection, toSelection) {
+        const params = staffModifiers_1.SmoStaffTextBracket.defaults;
+        params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        params.text = staffModifiers_1.SmoStaffTextBracket.CRESCENDO;
+        const modifier = new staffModifiers_1.SmoStaffTextBracket(params);
+        fromSelection.staff.addTextBracket(modifier);
+        return modifier;
+    }
+    static dimenuendo(fromSelection, toSelection) {
+        const params = staffModifiers_1.SmoStaffTextBracket.defaults;
+        params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        params.text = staffModifiers_1.SmoStaffTextBracket.CRESCENDO;
+        const modifier = new staffModifiers_1.SmoStaffTextBracket(params);
+        fromSelection.staff.addTextBracket(modifier);
+        return modifier;
+    }
     static crescendo(fromSelection, toSelection) {
         const params = staffModifiers_1.SmoStaffHairpin.defaults;
         params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
@@ -28649,6 +28920,20 @@ class SmoSelection {
                 }));
             }
             cur = sel.selector.measure;
+        }
+        return rv;
+    }
+    static getMeasuresBetween(score, fromSelector, toSelector) {
+        let i = 0;
+        const rv = [];
+        if (fromSelector.staff !== toSelector.staff) {
+            return rv;
+        }
+        for (i = fromSelector.measure; i <= toSelector.measure; ++i) {
+            const sel = SmoSelection.measureSelection(score, fromSelector.staff, i);
+            if (sel) {
+                rv.push(sel);
+            }
         }
         return rv;
     }
@@ -29661,7 +29946,12 @@ class UndoBuffer {
                 }
                 // If we undo an add, we just remove it.
                 if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
-                    staff.addStaffModifier(modifier);
+                    if (modifier.ctor === 'SmoStaffTextBracket') {
+                        staff.addTextBracket(modifier);
+                    }
+                    else {
+                        staff.addStaffModifier(modifier);
+                    }
                 }
             }
             else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
@@ -40017,8 +40307,9 @@ const lyric_1 = __webpack_require__(/*! ./lyric */ "./src/ui/dialogs/lyric.ts");
 const tie_1 = __webpack_require__(/*! ./tie */ "./src/ui/dialogs/tie.ts");
 const dynamics_1 = __webpack_require__(/*! ./dynamics */ "./src/ui/dialogs/dynamics.ts");
 const textBlock_1 = __webpack_require__(/*! ./textBlock */ "./src/ui/dialogs/textBlock.ts");
+const textBracket_1 = __webpack_require__(/*! ./textBracket */ "./src/ui/dialogs/textBracket.ts");
 exports.ModifiersWithDialogNames = ['SmoStaffHairpin', 'SmoTie', 'SmoSlur', 'SmoDynamicText', 'SmoVolta',
-    'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup'];
+    'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup', 'SmoStaffTextBracket'];
 function isModifierWithDialog(modifier) {
     return exports.ModifiersWithDialogNames.indexOf(modifier.attrs.type) >= 0;
 }
@@ -40052,6 +40343,9 @@ class SuiModifierDialogFactory {
         }
         else if (ctor === 'SmoTextGroup') {
             return (0, dialog_1.createAndDisplayDialog)(textBlock_1.SuiTextBlockDialog, parameters);
+        }
+        else if (ctor === 'SmoStaffTextBracket') {
+            return (0, dialog_1.createAndDisplayDialog)(textBracket_1.SuiTextBracketDialog, parameters);
         }
         else {
             return (0, dialog_1.createAndDisplayDialog)(lyric_1.SuiLyricDialog, parameters);
@@ -41079,11 +41373,20 @@ SuiInstrumentDialog.dialogElements = {
                     value: 'piano',
                     label: 'Grand Piano'
                 }, {
+                    value: 'bass',
+                    label: 'Bass'
+                }, {
                     value: 'cello',
                     label: 'Cello'
                 }, {
+                    value: 'violin',
+                    label: 'Violin'
+                }, {
                     value: 'trumpet',
                     label: 'Bb Trumpet'
+                }, {
+                    value: 'horn',
+                    label: 'F Horn'
                 }, {
                     value: 'tuba',
                     label: 'Tuba'
@@ -43521,6 +43824,118 @@ class helpModal {
     }
 }
 exports.helpModal = helpModal;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/textBracket.ts":
+/*!***************************************!*\
+  !*** ./src/ui/dialogs/textBracket.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTextBracketDialog = exports.SuiTextBracketAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiTextBracketAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, bracket) {
+        super(view);
+        this.changed = false;
+        this.bracket = bracket;
+        this.view = view;
+        this.backup = new staffModifiers_1.SmoStaffTextBracket(this.bracket);
+        this.backup.attrs.id = bracket.attrs.id;
+        this.backup.associatedStaff = bracket.associatedStaff;
+    }
+    cancel() {
+        if (this.changed) {
+            this.view.removeTextBracket(this.bracket);
+            this.view.addOrReplaceTextBracket(this.backup);
+        }
+    }
+    remove() {
+        this.view.removeStaffModifier(this.bracket);
+    }
+    commit() {
+    }
+    updateValue(param, val) {
+        const current = new staffModifiers_1.SmoStaffTextBracket(this.bracket);
+        this.bracket[param] = parseInt(val.toString(), 10);
+        this.view.addOrUpdateStaffModifier(current, this.bracket);
+        this.changed = true;
+    }
+    updateText(param, val) {
+        const current = new staffModifiers_1.SmoStaffTextBracket(this.bracket);
+        this.bracket[param] = val;
+        this.view.addOrUpdateStaffModifier(current, this.bracket);
+        this.changed = true;
+    }
+    get text() {
+        return this.bracket.text;
+    }
+    set text(val) {
+        this.updateText('text', val);
+    }
+    get superscript() {
+        return this.bracket.superscript;
+    }
+    set superscript(val) {
+        this.updateText('superscript', val);
+    }
+    get position() {
+        return this.bracket.position;
+    }
+    set position(val) {
+        this.updateValue('position', val);
+    }
+    get line() {
+        return this.bracket.line;
+    }
+    set line(val) {
+        this.updateValue('line', val);
+    }
+}
+exports.SuiTextBracketAdapter = SuiTextBracketAdapter;
+class SuiTextBracketDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiTextBracketAdapter(parameters.view, parameters.modifier);
+        super(SuiTextBracketDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+    }
+}
+exports.SuiTextBracketDialog = SuiTextBracketDialog;
+SuiTextBracketDialog.dialogElements = {
+    label: 'Text Bracket Properties', elements: [{
+            smoName: 'line',
+            defaultValue: 1,
+            control: 'SuiRockerComponent',
+            label: 'Line'
+        }, {
+            smoName: 'position',
+            control: 'SuiDropdownComponent',
+            label: 'Position',
+            options: [
+                {
+                    value: '1',
+                    label: 'Above'
+                }, {
+                    value: '-1',
+                    label: 'Below'
+                }
+            ]
+        }, {
+            smoName: 'text',
+            control: 'SuiTextInputComponent',
+            label: 'Text'
+        }, {
+            smoName: 'superscript',
+            control: 'SuiTextInputComponent',
+            label: 'SubText'
+        }],
+    staticText: []
+};
 
 
 /***/ }),
@@ -52081,6 +52496,18 @@ class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
         else if (op === 'tie') {
             this.view.tie();
         }
+        else if (op === 'accel') {
+            this.view.accelerando();
+        }
+        else if (op === 'dimenuendo') {
+            this.view.dimenuendo();
+        }
+        else if (op === 'ritard') {
+            this.view.ritard();
+        }
+        else if (op === 'crescendoBracket') {
+            this.view.crescendoBracket();
+        }
         else if (op === 'crescendo') {
             this.view.crescendo();
         }
@@ -52105,12 +52532,20 @@ SuiStaffModifierMenu.defaults = {
     label: 'Lines',
     menuItems: [{
             icon: 'cresc',
-            text: 'Crescendo',
+            text: 'Cresc. Hairpin',
             value: 'crescendo'
         }, {
+            icon: '',
+            text: 'Cresc. Bracket',
+            value: 'crescendoBracket'
+        }, {
             icon: 'decresc',
-            text: 'Decrescendo',
+            text: 'Dim. Hairpin',
             value: 'decrescendo'
+        }, {
+            icon: '',
+            text: 'Dim. Bracket',
+            value: 'dimenuendo'
         }, {
             icon: 'slur',
             text: 'Slur',
@@ -52123,6 +52558,14 @@ SuiStaffModifierMenu.defaults = {
             icon: 'ending',
             text: 'nth ending',
             value: 'ending'
+        }, {
+            icon: '',
+            text: 'Accelerando',
+            value: 'accel'
+        }, {
+            icon: '',
+            text: 'Ritard',
+            value: 'ritard'
         }, {
             icon: 'slur',
             text: 'Reset slurs',
