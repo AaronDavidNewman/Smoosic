@@ -658,7 +658,7 @@ export class SuiLayoutFormatter {
           }
         } else if (mm.ctor === 'SmoStaffTextBracket') {
           const tb = mm as SmoStaffTextBracket;
-          const tbHeight = 14; // default font size
+          const tbHeight = 14 * tb.line; // default font size
           if (tb.position === SmoStaffTextBracket.positions.TOP) {
             yTop = yTop - tbHeight;
           } else {
