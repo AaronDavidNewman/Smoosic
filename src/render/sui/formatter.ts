@@ -7,7 +7,7 @@
 import { SvgHelpers } from './svgHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { vexGlyph } from '../vex/glyphDimensions';
-import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoDynamicText, SmoLyric, SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
 import { SmoBeamer } from '../../smo/xform/beamers';
 import { SmoScore } from '../../smo/data/score';
@@ -658,7 +658,7 @@ export class SuiLayoutFormatter {
           }
         } else if (mm.ctor === 'SmoStaffTextBracket') {
           const tb = mm as SmoStaffTextBracket;
-          const tbHeight = 14 * tb.line; // default font size
+          const tbHeight = 14 + (10 * Math.abs(tb.line - 1)); // 14 default font size
           if (tb.position === SmoStaffTextBracket.positions.TOP) {
             yTop = yTop - tbHeight;
           } else {
@@ -718,6 +718,20 @@ export class SuiLayoutFormatter {
           yBottom = Math.max((10 * dyn.yOffsetLine - 50) + 11, yBottom);
           yTop = Math.min(10 * dyn.yOffsetLine - 50, yTop);
         });
+        note.articulations.forEach((articulation) => {
+          if (articulation.position === SmoArticulation.positions.above) {
+            yTop -= 10;
+          } else {
+            yBottom += 10;
+          }
+        });
+        note.ornaments.forEach((ornament) => {
+          if (ornament.position === SmoOrnament.positions.above) {
+            yTop -= 10;
+          } else {
+            yBottom += 10;
+          }
+        })
       });
     });
     yBottom += lyricOffset;
