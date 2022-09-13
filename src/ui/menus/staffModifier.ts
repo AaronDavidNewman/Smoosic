@@ -15,17 +15,9 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       text: 'Cresc. Hairpin',
       value: 'crescendo'
     }, {
-      icon: '',
-      text: 'Cresc. Bracket',
-      value: 'crescendoBracket'
-    }, {
       icon: 'decresc',
       text: 'Dim. Hairpin',
       value: 'decrescendo'
-    }, {
-      icon: '',
-      text: 'Dim. Bracket',
-      value: 'dimenuendo'
     }, {
       icon: 'slur',
       text: 'Slur',
@@ -38,6 +30,14 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       icon: 'ending',
       text: 'nth ending',
       value: 'ending'
+    }, {
+      icon: '',
+      text: 'Dim. Bracket',
+      value: 'dimenuendo'
+    }, {
+      icon: '',
+      text: 'Cresc. Bracket',
+      value: 'crescendoBracket'
     }, {
       icon: '',
       text: 'Accelerando',

@@ -99,6 +99,18 @@ export class SuiSampleMedia {
       sustain: 'sustained',
       realOvertones: [],
       imaginaryOvertones: [],
+      sample: 'sample-violin-e4',
+      family: 'strings',
+      subFamily: 'violin',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100,
+      options: []
+    });
+    SuiSampleMedia.insertIntoMap({
+      waveform: 'sample',
+      sustain: 'sustained',
+      realOvertones: [],
+      imaginaryOvertones: [],
       sample: 'sample-cello-bb3',
       family: 'strings',
       subFamily: 'cello',
@@ -222,7 +234,7 @@ export class SuiSampleMedia {
       sample: 'pad-c4-vita',
       family: 'synth',
       subFamily: 'pad',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
       dynamic: 100,
       options: []
     });
@@ -234,7 +246,7 @@ export class SuiSampleMedia {
       sample: 'pad-c5-vita',
       family: 'synth',
       subFamily: 'pad',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
       dynamic: 100,
       options: []
     });

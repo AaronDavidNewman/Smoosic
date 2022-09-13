@@ -259,8 +259,9 @@ export class SmoSystemStaff implements SmoObjectParams {
         mod.associatedStaff = jsonObj.staffId;
         if (mod.ctor === 'SmoStaffTextBracket') {
           params.textBrackets!.push(mod as SmoStaffTextBracket);
+        } else {
+          params.modifiers.push(mod);
         }
-        params.modifiers.push(mod);
       });
     }
     const rv = new SmoSystemStaff(params);

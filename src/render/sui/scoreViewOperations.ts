@@ -23,7 +23,6 @@ import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
-import { SuiRenderState } from './renderState';
 import { SuiPiano } from './piano';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;
@@ -184,7 +183,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._undoScorePreferences('Update preferences');
     this.score.scoreInfo = scoreInfo;
     this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
-    this.renderer.setDirty();
     return this.renderer.updatePromise()
   }
 

@@ -658,6 +658,11 @@ export class SmoToXml {
       for (j = 0; j < dots; ++j) {
         nn(noteElement, 'dot', null, '');
       }
+      // time modification (tuplet) comes before notations which have tuplet beaming rules
+      // also before stem
+      if (tuplet) {
+        SmoToXml.tupletTime(noteElement, tuplet, smoState);
+      }
       if (note.flagState === SmoNote.flagStates.up) {
         nn(noteElement, 'stem', { direction: 'up' }, 'direction');
       }
@@ -666,10 +671,6 @@ export class SmoToXml {
       }
       // stupid musicxml requires beam to be last.
       const notationsElement = noteElement.ownerDocument.createElement('notations');
-      // time modification (tuplet) comes before notations which have tuplet beaming rules
-      if (tuplet) {
-        SmoToXml.tupletTime(noteElement, tuplet, smoState);
-      }
       // If a multi-part staff, we need to include 'staff' element
       if (smoState.partStaves.length > 1) {
         nn(noteElement, 'staff', { staffIx: smoState.staffPartIx + 1 }, 'staffIx');
@@ -696,7 +697,7 @@ export class SmoToXml {
         if (ornamentsElement.children.length) {
           notationsElement.appendChild(ornamentsElement);
         }
-      } 
+      }
       const jazzOrnaments = note.getJazzOrnaments();
       const articulations = note.articulations;
       if (jazzOrnaments.length || articulations.length) {

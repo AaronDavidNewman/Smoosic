@@ -395,6 +395,7 @@ export class SuiScoreRender {
     if (this.score === null || this.measureMapper === null) {
       return [];
     }
+    const renderedId: Record<string, boolean> = {};
     staff.renderableModifiers.forEach((modifier) => {
       const startNote = SmoSelection.noteSelection(this.score!,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
@@ -457,9 +458,10 @@ export class SuiScoreRender {
           }
         }
       }
-      if (!vxStart && !vxEnd) {
+      if (!vxStart && !vxEnd || renderedId[modifier.attrs.id]) {
         return;
       }
+      renderedId[modifier.attrs.id] = true;
       system.renderModifier(this.measureMapper!.scroller, modifier, vxStart, vxEnd, startNote, endNote);
       modifiersToBox.push(modifier);
     });

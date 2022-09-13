@@ -93,6 +93,8 @@ export class CuedAudioContexts {
 export class SuiAudioPlayer {
   static _playing: boolean = false;
   static instanceId: number = 0;
+  static duplicatePitchThresh = 4;
+  static voiceThresh = 8;
   static _playingInstance: SuiAudioPlayer | null = null;
   static set playing(val) {
     SuiAudioPlayer._playing = val;
@@ -140,7 +142,8 @@ export class SuiAudioPlayer {
   getNoteSoundData(measureIndex: number) {
     const measureNotes: Record<number, SoundParams[]> = {};
     let measureTicks = this.score.staves[0].measures[measureIndex].getMaxTicksVoice();
-    const freqDuplicates: Record<number, Record<number, boolean>> = {};
+    const freqDuplicates: Record<number, Record<number, number>> = {};
+    const voiceCount: Record<number, number> = {};
     this.score.staves.forEach((staff, staffIx) => {
       const measure = staff.measures[measureIndex];
       measure.voices.forEach((voice, voiceIx) => {
@@ -163,11 +166,16 @@ export class SuiAudioPlayer {
               const freqRound = Math.round(freq);
               if (!freqDuplicates[curTick]) {
                 freqDuplicates[curTick] = {};
+                voiceCount[curTick] = 0;
               }
               const freqBeat = freqDuplicates[curTick];
               if (!freqBeat[freqRound]) {
-                freqBeat[freqRound] = true;
+                freqBeat[freqRound] = 0;
+              }
+              if (freqBeat[freqRound] < SuiAudioPlayer.duplicatePitchThresh && voiceCount[curTick] < SuiAudioPlayer.voiceThresh) {
                 frequencies.push(freq);
+                freqBeat[freqRound] += 1;
+                voiceCount[curTick] += 1;
               }
             });
             const duration = smoNote.tickCount;
