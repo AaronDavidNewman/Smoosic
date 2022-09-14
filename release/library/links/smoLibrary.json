@@ -11,10 +11,23 @@
 	},
 	"children": [
     {
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/samples.json",
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/piano.json",
 			"format": "library",
 			"metadata": {
-				"name": "Samples, Demos, Templates"
+				"name": "Piano Music"
+			}
+		},
+    {
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/soprano.json",
+			"format": "library",
+			"metadata": {
+				"name": "Soprano Art Songs"
+			}
+		},{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/trumpet.json",
+			"format": "library",
+			"metadata": {
+				"name": "Trumpet Duet, Trio, Trumpet Piano"
 			}
 		},
 		{

@@ -1,0 +1,43 @@
+{
+	"format": "library",
+	"metadata": {
+		"name": "Music for Sopranos",
+		"type": "collection",
+		"tags": [
+			"smoosic",
+			"arrangements",
+			"testing"
+		]
+	},
+	"children": [
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Solovey",
+				"composer": "Folks",
+				"tags": [
+					"Art Songs"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/soprano/Solovey.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Postillion-Lied",
+				"composer": "Franz Grothe",
+				"tags": [
+					"Art Songs"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/soprano/Postillionlied.json"
+		},
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Gesu Bambino",
+				"composer": "Pietro Yon"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/soprano/Gesu Bambino.json"
+		}
+	]
+}

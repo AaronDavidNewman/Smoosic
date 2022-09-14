@@ -1,0 +1,79 @@
+{
+	"format": "library",
+	"metadata": {
+		"name": "Trumpet Solos, Duets",
+		"type": "collection",
+		"tags": [
+			"smoosic",
+			"arrangements",
+			"testing"
+		]
+	},
+	"children": [
+    {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Cantata BMV 68 for Trumpet and Piano",
+				"composer": "JS Bach",
+				"tags": [
+					"Trumpet organ"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json"
+		}	,
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Music for the Royal Fireworks",
+				"composer": "Handel",
+				"tags": [
+					"Trumpet Duet"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/trumpet/Fireworks - trumpets.json"
+		},
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Hymn to Freedom",
+				"composer": "Oscar Peterson"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/trumpet/HymnFreedom.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "World Peace Prayer (Death to Life)",
+				"composer": "Mary Haugen"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/WorldPeacePrayer.json"
+		},
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "There is a Balm in Gilead",
+				"composer": "Traditional"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/balm.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Hyfrydol",
+				"composer": "Prichard/Williams",
+				"tags": [
+					"Hymn Trumpets"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Hyfrydol.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Cantata BMV 68 for Trumpet and Piano",
+				"composer": "JS Bach",
+				"tags": [
+					"Trumpet organ"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json"
+		}
+	]
+}

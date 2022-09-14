@@ -1,0 +1,47 @@
+{
+	"format": "library",
+	"metadata": {
+		"name": "Piano Music",
+		"type": "collection",
+		"tags": [
+			"smoosic",
+			"arrangements",
+			"testing"
+		]
+	},
+	"children": [
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Invention #1",
+				"composer": "JS Bach",
+				"tags": [
+					"keyboard",
+					"bach"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/piano/BachInvention.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Well-Tempered Clavier",
+				"composer": "JS Bach",
+				"tags": [
+					"keyboard",
+					"bach"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/piano/BachWTC-3.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Gnossienne No. 3",
+				"composer": "Eric Satie",
+				"tags": [
+					"Art Songs"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/piano/Gnossienne3-3.json"
+		}
+  ]
+}
