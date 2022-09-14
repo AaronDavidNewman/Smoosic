@@ -4289,6 +4289,7 @@ class SuiAudioPlayer {
         const measureNotes = {};
         let measureTicks = this.score.staves[0].measures[measureIndex].getMaxTicksVoice();
         const freqDuplicates = {};
+        const voiceCount = {};
         this.score.staves.forEach((staff, staffIx) => {
             const measure = staff.measures[measureIndex];
             measure.voices.forEach((voice, voiceIx) => {
@@ -4312,11 +4313,16 @@ class SuiAudioPlayer {
                             const freqRound = Math.round(freq);
                             if (!freqDuplicates[curTick]) {
                                 freqDuplicates[curTick] = {};
+                                voiceCount[curTick] = 0;
                             }
                             const freqBeat = freqDuplicates[curTick];
                             if (!freqBeat[freqRound]) {
-                                freqBeat[freqRound] = true;
+                                freqBeat[freqRound] = 0;
+                            }
+                            if (freqBeat[freqRound] < SuiAudioPlayer.duplicatePitchThresh && voiceCount[curTick] < SuiAudioPlayer.voiceThresh) {
                                 frequencies.push(freq);
+                                freqBeat[freqRound] += 1;
+                                voiceCount[curTick] += 1;
                             }
                         });
                         const duration = smoNote.tickCount;
@@ -4588,6 +4594,8 @@ class SuiAudioPlayer {
 exports.SuiAudioPlayer = SuiAudioPlayer;
 SuiAudioPlayer._playing = false;
 SuiAudioPlayer.instanceId = 0;
+SuiAudioPlayer.duplicatePitchThresh = 4;
+SuiAudioPlayer.voiceThresh = 8;
 SuiAudioPlayer._playingInstance = null;
 
 
@@ -4684,6 +4692,18 @@ class SuiSampleMedia {
             family: 'strings',
             subFamily: 'violin',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'sample-violin-e4',
+            family: 'strings',
+            subFamily: 'violin',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
             dynamic: 100,
             options: []
         });
@@ -4804,6 +4824,30 @@ class SuiSampleMedia {
             family: 'woodwind',
             subFamily: 'clarinet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'pad-c4-vita',
+            family: 'synth',
+            subFamily: 'pad',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
+            dynamic: 100,
+            options: []
+        });
+        SuiSampleMedia.insertIntoMap({
+            waveform: 'sample',
+            sustain: 'sustained',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: 'pad-c5-vita',
+            family: 'synth',
+            subFamily: 'pad',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
             dynamic: 100,
             options: []
         });
@@ -5025,6 +5069,7 @@ const glyphDimensions_1 = __webpack_require__(/*! ../vex/glyphDimensions */ "./s
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const note_1 = __webpack_require__(/*! ../../smo/data/note */ "./src/smo/data/note.ts");
 const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data//measureModifiers */ "./src/smo/data/measureModifiers.ts");
@@ -5169,7 +5214,7 @@ class SuiLayoutFormatter {
             s.clefLast = measureToLeft.clef;
             this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
             // calculate vertical offsets from the baseline
-            const offsets = SuiLayoutFormatter.estimateMeasureHeight(measure);
+            const offsets = this.estimateMeasureHeight(measure);
             measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
             measure.setY(y - measure.yTop, 'estimateColumns height');
             measure.setX(x, 'render:estimateColumn');
@@ -5589,24 +5634,54 @@ class SuiLayoutFormatter {
             measure.svg.forceKeySignature = false;
         }
     }
-    // ### estimateMeasureHeight
-    // The baseline is the top line of the staff.  aboveBaseline is a negative number
-    // that indicates how high above the baseline the measure goes.  belowBaseline
-    // is a positive number that indicates how far below the baseline the measure goes.
-    // the height of the measure is below-above.  Vex always renders a staff such that
-    // the y coordinate passed in for the stave is on the baseline.
-    // Note to past self: this was a really useful comment.  Thank you.
-    static estimateMeasureHeight(measure) {
-        let heightOffset = 50; // assume 5 lines, todo is non-5-line staffs
-        let yOffset = 0;
+    /**
+     * The baseline is the top line of the staff.  aboveBaseline is a negative number
+     * that indicates how high above the baseline the measure goes.  belowBaseline
+     * is a positive number that indicates how far below the baseline the measure goes.
+     * the height of the measure is below-above.  Vex always renders a staff such that
+     * the y coordinate passed in for the stave is on the baseline.
+     *
+     * Note to past self: this was a really useful comment.  Thank you.
+     * **/
+    estimateMeasureHeight(measure) {
+        let yTop = 0; // highest point, smallest Y value
+        let yBottom = measure.lines * 10; // lowest point, largest Y value.
         let flag = -1;
         let lyricOffset = 0;
+        const measureIndex = measure.measureNumber.measureIndex;
+        const staffIndex = measure.measureNumber.staffId;
+        const stave = this.score.staves[staffIndex];
+        stave.renderableModifiers.forEach((mm) => {
+            if (mm.startSelector.staff === staffIndex && (mm.startSelector.measure <= measureIndex && mm.endSelector.measure >= measureIndex) ||
+                mm.endSelector.staff === staffIndex &&
+                    (mm.endSelector.measure <= measureIndex && mm.endSelector.measure >= measureIndex && mm.endSelector.measure !== mm.startSelector.measure)) {
+                if (mm.ctor === 'SmoHairpin') {
+                    const hp = mm;
+                    if (hp.position === staffModifiers_1.SmoStaffHairpin.positions.ABOVE) {
+                        yTop = yTop - hp.height;
+                    }
+                    else {
+                        yBottom = yBottom + hp.height;
+                    }
+                }
+                else if (mm.ctor === 'SmoStaffTextBracket') {
+                    const tb = mm;
+                    const tbHeight = 14 + (10 * Math.abs(tb.line - 1)); // 14 default font size
+                    if (tb.position === staffModifiers_1.SmoStaffTextBracket.positions.TOP) {
+                        yTop = yTop - tbHeight;
+                    }
+                    else {
+                        yBottom = yBottom + tbHeight;
+                    }
+                }
+            }
+        });
         if (measure.svg.forceClef) {
-            heightOffset += glyphDimensions_1.vexGlyph.clef(measure.clef).yTop + glyphDimensions_1.vexGlyph.clef(measure.clef).yBottom;
-            yOffset = yOffset - glyphDimensions_1.vexGlyph.clef(measure.clef).yTop;
+            yBottom += glyphDimensions_1.vexGlyph.clef(measure.clef).yTop + glyphDimensions_1.vexGlyph.clef(measure.clef).yBottom;
+            yTop = yTop - glyphDimensions_1.vexGlyph.clef(measure.clef).yTop;
         }
         if (measure.svg.forceTempo) {
-            yOffset = Math.min(-1 * glyphDimensions_1.vexGlyph.tempo.yTop, yOffset);
+            yTop = Math.min(-1 * glyphDimensions_1.vexGlyph.tempo.yTop, yTop);
         }
         measure.voices.forEach((voice) => {
             voice.notes.forEach((note) => {
@@ -5632,12 +5707,12 @@ class SuiLayoutFormatter {
                 }
                 const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);
                 if (flag === note_1.SmoNote.flagStates.down) {
-                    yOffset = Math.min(hiloHead.lo, yOffset);
-                    heightOffset = Math.max(hiloHead.hi + glyphDimensions_1.vexGlyph.stem.height, heightOffset);
+                    yTop = Math.min(hiloHead.lo, yTop);
+                    yBottom = Math.max(hiloHead.hi + glyphDimensions_1.vexGlyph.stem.height, yBottom);
                 }
                 else {
-                    yOffset = Math.min(hiloHead.lo - glyphDimensions_1.vexGlyph.stem.height, yOffset);
-                    heightOffset = Math.max(hiloHead.hi, heightOffset);
+                    yTop = Math.min(hiloHead.lo - glyphDimensions_1.vexGlyph.stem.height, yTop);
+                    yBottom = Math.max(hiloHead.hi, yBottom);
                 }
                 // Lyrics will be rendered below the lowest thing on the staff, so add to
                 // belowBaseline value based on the max number of verses and font size
@@ -5650,13 +5725,29 @@ class SuiLayoutFormatter {
                 }
                 const dynamics = note.getModifiers('SmoDynamicText');
                 dynamics.forEach((dyn) => {
-                    heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
-                    yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset);
+                    yBottom = Math.max((10 * dyn.yOffsetLine - 50) + 11, yBottom);
+                    yTop = Math.min(10 * dyn.yOffsetLine - 50, yTop);
+                });
+                note.articulations.forEach((articulation) => {
+                    if (articulation.position === noteModifiers_1.SmoArticulation.positions.above) {
+                        yTop -= 10;
+                    }
+                    else {
+                        yBottom += 10;
+                    }
+                });
+                note.ornaments.forEach((ornament) => {
+                    if (ornament.position === noteModifiers_1.SmoOrnament.positions.above) {
+                        yTop -= 10;
+                    }
+                    else {
+                        yBottom += 10;
+                    }
                 });
             });
         });
-        heightOffset += lyricOffset;
-        return { belowBaseline: heightOffset, aboveBaseline: yOffset };
+        yBottom += lyricOffset;
+        return { belowBaseline: yBottom, aboveBaseline: yTop };
     }
 }
 exports.SuiLayoutFormatter = SuiLayoutFormatter;
@@ -6021,7 +6112,7 @@ class SuiMapper {
         keys.forEach((selKey) => {
             var _a, _b;
             const selection = this.measureNoteMap[selKey];
-            selection.staff.modifiers.forEach((modifier) => {
+            selection.staff.renderableModifiers.forEach((modifier) => {
                 if (selections_1.SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
                     if (!modMap[modifier.attrs.id]) {
                         if (modifier.logicalBox) {
@@ -7540,6 +7631,7 @@ class SuiScoreRender {
         if (this.score === null || this.measureMapper === null) {
             return [];
         }
+        const renderedId = {};
         staff.renderableModifiers.forEach((modifier) => {
             const startNote = selections_1.SmoSelection.noteSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
             const endNote = selections_1.SmoSelection.noteSelection(this.score, modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
@@ -7598,9 +7690,10 @@ class SuiScoreRender {
                     }
                 }
             }
-            if (!vxStart && !vxEnd) {
+            if (!vxStart && !vxEnd || renderedId[modifier.attrs.id]) {
                 return;
             }
+            renderedId[modifier.attrs.id] = true;
             system.renderModifier(this.measureMapper.scroller, modifier, vxStart, vxEnd, startNote, endNote);
             modifiersToBox.push(modifier);
         });
@@ -8384,7 +8477,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this._undoScorePreferences('Update preferences');
         this.score.scoreInfo = scoreInfo;
         this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
-        this.renderer.setDirty();
         return this.renderer.updatePromise();
     }
     /**
@@ -10625,9 +10717,18 @@ exports.SvgHelpers = SvgHelpers;
 /*!************************************!*\
   !*** ./src/render/sui/textEdit.ts ***!
   \************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiChordSession = exports.SuiLyricSession = exports.SuiTextSession = exports.SuiDragSession = exports.SuiChordEditor = exports.SuiLyricEditor = exports.SuiTextBlockEditor = exports.SuiTextEditor = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
@@ -11014,77 +11115,84 @@ class SuiTextEditor {
     // Handle key events that filter down to the editor
     evKey(evdata) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
-        if (evdata.code === 'ArrowRight') {
-            if (evdata.shiftKey) {
-                this.growSelectionRight();
-            }
-            else {
-                this.moveCursorRight();
-            }
-            (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
-            return true;
-        }
-        if (evdata.code === 'ArrowLeft') {
-            if (evdata.shiftKey) {
-                this.growSelectionLeft();
-            }
-            else {
-                this.moveCursorLeft();
-            }
-            (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
-            return true;
-        }
-        if (evdata.code === 'Backspace') {
-            if (this.selectionStart >= 0) {
-                this.deleteSelections();
-            }
-            else {
-                if (this.textPos > 0) {
-                    this.selectionStart = this.textPos - 1;
-                    this.selectionLength = 1;
-                    this.deleteSelections();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (evdata.code === 'ArrowRight') {
+                if (evdata.shiftKey) {
+                    this.growSelectionRight();
                 }
-            }
-            (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.render();
-            return true;
-        }
-        if (evdata.code === 'Delete') {
-            if (this.selectionStart >= 0) {
-                this.deleteSelections();
-            }
-            else {
-                if (this.textPos > 0 && this.svgText !== null && this.textPos < this.svgText.blocks.length) {
-                    this.selectionStart = this.textPos;
-                    this.selectionLength = 1;
-                    this.deleteSelections();
+                else {
+                    this.moveCursorRight();
                 }
+                (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
+                return true;
             }
-            (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
-            return true;
-        }
-        if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
-            if (this.empty) {
-                (_e = this.svgText) === null || _e === void 0 ? void 0 : _e.removeBlockAt(0);
-                this.empty = false;
-                const def = textRender_1.SuiInlineText.blockDefaults;
-                def.text = evdata.key;
-                (_f = this.svgText) === null || _f === void 0 ? void 0 : _f.addTextBlockAt(0, def);
-                this.setTextPos(1);
+            if (evdata.code === 'ArrowLeft') {
+                if (evdata.shiftKey) {
+                    this.growSelectionLeft();
+                }
+                else {
+                    this.moveCursorLeft();
+                }
+                (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
+                return true;
             }
-            else {
+            if (evdata.code === 'Backspace') {
                 if (this.selectionStart >= 0) {
                     this.deleteSelections();
                 }
-                const def = textRender_1.SuiInlineText.blockDefaults;
-                def.text = evdata.key;
-                def.textType = this.textType;
-                (_g = this.svgText) === null || _g === void 0 ? void 0 : _g.addTextBlockAt(this.textPos, def);
-                this.setTextPos(this.textPos + 1);
+                else {
+                    if (this.textPos > 0) {
+                        this.selectionStart = this.textPos - 1;
+                        this.selectionLength = 1;
+                        this.deleteSelections();
+                    }
+                }
+                (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.render();
+                return true;
             }
-            (_h = this.svgText) === null || _h === void 0 ? void 0 : _h.render();
-            return true;
-        }
-        return false;
+            if (evdata.code === 'Delete') {
+                if (this.selectionStart >= 0) {
+                    this.deleteSelections();
+                }
+                else {
+                    if (this.textPos > 0 && this.svgText !== null && this.textPos < this.svgText.blocks.length) {
+                        this.selectionStart = this.textPos;
+                        this.selectionLength = 1;
+                        this.deleteSelections();
+                    }
+                }
+                (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
+                return true;
+            }
+            if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
+                const isPaste = evdata.ctrlKey && evdata.key === 'v';
+                let text = evdata.key;
+                if (isPaste) {
+                    text = yield navigator.clipboard.readText();
+                }
+                if (this.empty) {
+                    (_e = this.svgText) === null || _e === void 0 ? void 0 : _e.removeBlockAt(0);
+                    this.empty = false;
+                    const def = textRender_1.SuiInlineText.blockDefaults;
+                    def.text = text;
+                    (_f = this.svgText) === null || _f === void 0 ? void 0 : _f.addTextBlockAt(0, def);
+                    this.setTextPos(1);
+                }
+                else {
+                    if (this.selectionStart >= 0) {
+                        this.deleteSelections();
+                    }
+                    const def = textRender_1.SuiInlineText.blockDefaults;
+                    def.text = text;
+                    def.textType = this.textType;
+                    (_g = this.svgText) === null || _g === void 0 ? void 0 : _g.addTextBlockAt(this.textPos, def);
+                    this.setTextPos(this.textPos + 1);
+                }
+                (_h = this.svgText) === null || _h === void 0 ? void 0 : _h.render();
+                return true;
+            }
+            return false;
+        });
     }
 }
 exports.SuiTextEditor = SuiTextEditor;
@@ -11116,32 +11224,37 @@ class SuiTextBlockEditor extends SuiTextEditor {
         return '';
     }
     evKey(evdata) {
+        const _super = Object.create(null, {
+            evKey: { get: () => super.evKey }
+        });
         var _a, _b, _c, _d;
-        if (evdata.key.charCodeAt(0) === 32) {
-            if (this.empty) {
-                (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.removeBlockAt(0);
-                this.empty = false;
-                const def = textRender_1.SuiInlineText.blockDefaults;
-                def.text = ' ';
-                (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.addTextBlockAt(0, def);
-                this.setTextPos(1);
-            }
-            else {
-                if (this.selectionStart >= 0) {
-                    this.deleteSelections();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (evdata.key.charCodeAt(0) === 32) {
+                if (this.empty) {
+                    (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.removeBlockAt(0);
+                    this.empty = false;
+                    const def = textRender_1.SuiInlineText.blockDefaults;
+                    def.text = ' ';
+                    (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.addTextBlockAt(0, def);
+                    this.setTextPos(1);
                 }
-                const def = textRender_1.SuiInlineText.blockDefaults;
-                def.text = ' ';
-                def.textType = this.textType;
-                (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.addTextBlockAt(this.textPos, def);
-                this.setTextPos(this.textPos + 1);
+                else {
+                    if (this.selectionStart >= 0) {
+                        this.deleteSelections();
+                    }
+                    const def = textRender_1.SuiInlineText.blockDefaults;
+                    def.text = ' ';
+                    def.textType = this.textType;
+                    (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.addTextBlockAt(this.textPos, def);
+                    this.setTextPos(this.textPos + 1);
+                }
+                (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
+                return true;
             }
-            (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
-            return true;
-        }
-        const rv = super.evKey(evdata);
-        this._highlightEditor();
-        return rv;
+            const rv = _super.evKey.call(this, evdata);
+            this._highlightEditor();
+            return rv;
+        });
     }
     stopEditor() {
         var _a;
@@ -11347,31 +11460,36 @@ class SuiChordEditor extends SuiTextEditor {
         this.textPos += 1;
     }
     evKey(evdata) {
+        const _super = Object.create(null, {
+            evKey: { get: () => super.evKey }
+        });
         var _a, _b;
-        let edited = false;
-        if (this._setSymbolModifier(evdata.key)) {
-            return true;
-        }
-        // Dialog gives us a specific glyph code
-        if (evdata.key[0] === '@' && evdata.key.length > 2) {
-            const glyph = evdata.key.substr(1, evdata.key.length - 2);
-            this._addGlyphAt(this.textPos, glyph);
-            (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
-            edited = true;
-        }
-        else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
-            this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
-            (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
-            edited = true;
-        }
-        else {
-            // some ordinary key
-            edited = super.evKey(evdata);
-        }
-        if (this.svgText !== null && this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
-            this.textType = this.svgText.blocks[this.textPos].textType;
-        }
-        return edited;
+        return __awaiter(this, void 0, void 0, function* () {
+            let edited = false;
+            if (this._setSymbolModifier(evdata.key)) {
+                return true;
+            }
+            // Dialog gives us a specific glyph code
+            if (evdata.key[0] === '@' && evdata.key.length > 2) {
+                const glyph = evdata.key.substr(1, evdata.key.length - 2);
+                this._addGlyphAt(this.textPos, glyph);
+                (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
+                edited = true;
+            }
+            else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
+                this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
+                (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
+                edited = true;
+            }
+            else {
+                // some ordinary key
+                edited = yield _super.evKey.call(this, evdata);
+            }
+            if (this.svgText !== null && this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
+                this.textType = this.svgText.blocks[this.textPos].textType;
+            }
+            return edited;
+        });
     }
     stopEditor() {
         var _a;
@@ -11552,14 +11670,16 @@ class SuiTextSession {
     // ### evKey
     // Key handler (pass to editor)
     evKey(evdata) {
-        if (this.state !== SuiTextEditor.States.RUNNING || this.editor === null) {
-            return false;
-        }
-        const rv = this.editor.evKey(evdata);
-        if (rv) {
-            this._removeScoreText();
-        }
-        return rv;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.state !== SuiTextEditor.States.RUNNING || this.editor === null) {
+                return false;
+            }
+            const rv = yield this.editor.evKey(evdata);
+            if (rv) {
+                this._removeScoreText();
+            }
+            return rv;
+        });
     }
     handleMouseEvent(ev) {
         if (this.isRunning && this.editor !== null) {
@@ -11746,22 +11866,25 @@ class SuiLyricSession {
     // ### evKey
     // Key handler (pass to editor)
     evKey(evdata) {
-        if (this.state !== SuiTextEditor.States.RUNNING) {
-            return;
-        }
-        if (evdata.key === '-' || evdata.key === ' ') {
-            // skip
-            const back = evdata.shiftKey && evdata.key === ' ';
-            if (evdata.key === '-' && this.editor !== null) {
-                this.editor.evKey(evdata);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.state !== SuiTextEditor.States.RUNNING) {
+                return false;
             }
-            this._updateLyricFromEditor();
-            this._advanceSelection(back);
-        }
-        else if (this.editor !== null) {
-            this.editor.evKey(evdata);
-            this._hideLyric();
-        }
+            if (evdata.key === '-' || evdata.key === ' ') {
+                // skip
+                const back = evdata.shiftKey && evdata.key === ' ';
+                if (evdata.key === '-' && this.editor !== null) {
+                    yield this.editor.evKey(evdata);
+                }
+                this._updateLyricFromEditor();
+                this._advanceSelection(back);
+            }
+            else if (this.editor !== null) {
+                yield this.editor.evKey(evdata);
+                this._hideLyric();
+            }
+            return true;
+        });
     }
     get textType() {
         if (this.isRunning && this.editor !== null) {
@@ -11793,20 +11916,22 @@ class SuiChordSession extends SuiLyricSession {
     // ### evKey
     // Key handler (pass to editor)
     evKey(evdata) {
-        let edited = false;
-        if (this.state !== SuiTextEditor.States.RUNNING) {
-            return false;
-        }
-        if (evdata.code === 'Enter') {
-            this._updateLyricFromEditor();
-            this._advanceSelection(evdata.shiftKey);
-            edited = true;
-        }
-        else if (this.editor !== null) {
-            edited = this.editor.evKey(evdata);
-        }
-        this._hideLyric();
-        return edited;
+        return __awaiter(this, void 0, void 0, function* () {
+            let edited = false;
+            if (this.state !== SuiTextEditor.States.RUNNING) {
+                return false;
+            }
+            if (evdata.code === 'Enter') {
+                this._updateLyricFromEditor();
+                this._advanceSelection(evdata.shiftKey);
+                edited = true;
+            }
+            else if (this.editor !== null) {
+                edited = yield this.editor.evKey(evdata);
+            }
+            this._hideLyric();
+            return edited;
+        });
     }
     // ### _setLyricForNote
     // Get the text from the editor and update the lyric with it.
@@ -14687,11 +14812,19 @@ class VxSystem {
             }
         }
         else if (modifier.ctor === 'SmoStaffTextBracket') {
-            const smoBracket = modifier;
-            const bracket = new VF.TextBracket({
-                start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
-            });
-            bracket.setContext(this.context).draw();
+            if (vxStart && !vxEnd) {
+                vxEnd = vxStart;
+            }
+            else if (vxEnd && !vxStart) {
+                vxStart = vxEnd;
+            }
+            if (vxStart && vxEnd) {
+                const smoBracket = modifier;
+                const bracket = new VF.TextBracket({
+                    start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
+                });
+                bracket.setLine(smoBracket.line).setContext(this.context).draw();
+            }
         }
         this.context.closeGroup();
         if (xoffset) {
@@ -14981,7 +15114,7 @@ const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/x
 // @internal
 const VF = eval('Vex.Flow');
 // @internal
-exports.SmoMeasureNumberParams = ['padRight', 'transposeIndex', 'activeVoice'];
+exports.SmoMeasureNumberParams = ['padRight', 'transposeIndex', 'activeVoice', 'lines'];
 // @internal
 exports.SmoMeasureStringParams = ['timeSignatureString', 'keySignature'];
 /**
@@ -15030,6 +15163,7 @@ class SmoMeasure {
          *  */
         this.activeVoice = 0;
         this.beamGroups = [];
+        this.lines = 5;
         this.tempo = new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults);
         this.svg = {
             staffWidth: 0,
@@ -15136,7 +15270,7 @@ class SmoMeasure {
             'keySignature', 'timeSignatureString',
             'measureNumber',
             'activeVoice', 'clef', 'transposeIndex',
-            'format', 'rightMargin'
+            'format', 'rightMargin', 'lines'
         ];
     }
     // @internal
@@ -16086,6 +16220,7 @@ SmoMeasure._defaults = {
         staffId: 0
     },
     clef: 'treble',
+    lines: 5,
     voices: [],
     format: new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults),
     activeVoice: 0,
@@ -22132,6 +22267,7 @@ class SmoSystemStaff {
         params.staffId = (_a = jsonObj.staffId) !== null && _a !== void 0 ? _a : 0;
         params.measures = [];
         params.modifiers = [];
+        params.textBrackets = [];
         if (jsonObj.partInfo) {
             // Deserialize the text groups first
             const tgs = [];
@@ -22200,7 +22336,12 @@ class SmoSystemStaff {
             jsonObj.modifiers.forEach((modParams) => {
                 const mod = staffModifiers_1.StaffModifierBase.deserialize(modParams);
                 mod.associatedStaff = jsonObj.staffId;
-                params.modifiers.push(mod);
+                if (mod.ctor === 'SmoStaffTextBracket') {
+                    params.textBrackets.push(mod);
+                }
+                else {
+                    params.modifiers.push(mod);
+                }
             });
         }
         const rv = new SmoSystemStaff(params);
@@ -22280,13 +22421,20 @@ class SmoSystemStaff {
     // Remove a modifier of given type and location
     removeStaffModifier(modifier) {
         const mods = [];
-        this.modifiers.forEach((mod) => {
+        const tbs = [];
+        this.renderableModifiers.forEach((mod) => {
             if (mod.attrs.type !== modifier.attrs.type ||
                 selections_1.SmoSelector.neq(mod.startSelector, modifier.startSelector) ||
                 selections_1.SmoSelector.neq(mod.endSelector, modifier.endSelector)) {
-                mods.push(mod);
+                if (mod.ctor === 'SmoStaffTextBracket') {
+                    tbs.push(mod);
+                }
+                else {
+                    mods.push(mod);
+                }
             }
         });
+        this.textBrackets = tbs;
         this.modifiers = mods;
     }
     // ### getVoltaMap
@@ -24183,6 +24331,11 @@ class SmoToXml {
             for (j = 0; j < dots; ++j) {
                 nn(noteElement, 'dot', null, '');
             }
+            // time modification (tuplet) comes before notations which have tuplet beaming rules
+            // also before stem
+            if (tuplet) {
+                SmoToXml.tupletTime(noteElement, tuplet, smoState);
+            }
             if (note.flagState === note_1.SmoNote.flagStates.up) {
                 nn(noteElement, 'stem', { direction: 'up' }, 'direction');
             }
@@ -24191,10 +24344,6 @@ class SmoToXml {
             }
             // stupid musicxml requires beam to be last.
             const notationsElement = noteElement.ownerDocument.createElement('notations');
-            // time modification (tuplet) comes before notations which have tuplet beaming rules
-            if (tuplet) {
-                SmoToXml.tupletTime(noteElement, tuplet, smoState);
-            }
             // If a multi-part staff, we need to include 'staff' element
             if (smoState.partStaves.length > 1) {
                 nn(noteElement, 'staff', { staffIx: smoState.staffPartIx + 1 }, 'staffIx');
@@ -37583,9 +37732,18 @@ SuiAudioSettingsDialog.dialogElements = {
 /*!***************************************!*\
   !*** ./src/ui/dialogs/chordChange.ts ***!
   \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiChordChangeDialog = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
@@ -37696,19 +37854,21 @@ class SuiChordChangeDialog extends dialog_1.SuiDialogBase {
     // ### handleKeydown
     // allow a dialog to be dismissed by esc.
     evKey(evdata) {
-        if (evdata.key === 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-        }
-        else {
-            if (!this.chordEditorCtrl.running) {
-                return;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (evdata.key === 'Escape') {
+                $(this.dgDom.element).find('.cancel-button').click();
+                evdata.preventDefault();
             }
-            const edited = this.chordEditorCtrl.evKey(evdata);
-            if (edited) {
-                evdata.stopPropagation();
+            else {
+                if (!this.chordEditorCtrl.running) {
+                    return;
+                }
+                const edited = yield this.chordEditorCtrl.evKey(evdata);
+                if (edited) {
+                    evdata.stopPropagation();
+                }
             }
-        }
+        });
     }
     _complete() {
         if (this.chordEditorCtrl.running) {
@@ -38422,9 +38582,18 @@ exports.SuiFontComponent = SuiFontComponent;
 /*!***********************************************!*\
   !*** ./src/ui/dialogs/components/noteText.ts ***!
   \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiChordComponent = exports.SuiLyricComponent = exports.SuiNoteTextComponent = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
@@ -38469,10 +38638,12 @@ class SuiNoteTextComponent extends baseComponent_1.SuiComponentBase {
         return this.session && this.session.isRunning;
     }
     evKey(evdata) {
-        if (this.session) {
-            return this.session.evKey(evdata);
-        }
-        return false;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.session) {
+                return yield this.session.evKey(evdata);
+            }
+            return false;
+        });
     }
     setDialogLyric() {
         if (this.session && this.session.lyric) {
@@ -41393,6 +41564,9 @@ SuiInstrumentDialog.dialogElements = {
                 }, {
                     value: 'clarinet',
                     label: 'Bb Clarinet'
+                }, {
+                    value: 'pad',
+                    label: 'Synth Pad'
                 }]
         }, {
             smoName: 'clef',
@@ -41616,9 +41790,18 @@ SuiLibraryDialog.dialogElements = {
 /*!*********************************!*\
   !*** ./src/ui/dialogs/lyric.ts ***!
   \*********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiLyricDialog = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
@@ -41714,19 +41897,21 @@ class SuiLyricDialog extends dialog_1.SuiDialogBase {
     // ### handleKeydown
     // allow a dialog to be dismissed by esc.
     evKey(evdata) {
-        if (evdata.key === 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-        }
-        else {
-            if (!this.lyricEditorCtrl.running) {
-                return;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (evdata.key === 'Escape') {
+                $(this.dgDom.element).find('.cancel-button').click();
+                evdata.preventDefault();
             }
-            const edited = this.lyricEditorCtrl.evKey(evdata);
-            if (edited) {
-                evdata.stopPropagation();
+            else {
+                if (!this.lyricEditorCtrl.running) {
+                    return;
+                }
+                const edited = yield this.lyricEditorCtrl.evKey(evdata);
+                if (edited) {
+                    evdata.stopPropagation();
+                }
             }
-        }
+        });
     }
     _complete() {
         if (this.lyricEditorCtrl.running) {
@@ -44316,9 +44501,18 @@ SuiVoltaAttributeDialog.dialogElements = {
 /*!*******************************!*\
   !*** ./src/ui/eventSource.ts ***!
   \*******************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BrowserEventSource = void 0;
 /**
@@ -44343,8 +44537,12 @@ class BrowserEventSource {
         window.addEventListener("keydown", this.handleKeydown, true);
     }
     evKey(event) {
-        this.keydownHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
+        return __awaiter(this, void 0, void 0, function* () {
+            let i = 0;
+            for (i = 0; i < this.keydownHandlers.length; ++i) {
+                const handler = this.keydownHandlers[i];
+                yield handler.sink[handler.method](event);
+            }
         });
     }
     mouseMove(event) {
@@ -52535,17 +52733,9 @@ SuiStaffModifierMenu.defaults = {
             text: 'Cresc. Hairpin',
             value: 'crescendo'
         }, {
-            icon: '',
-            text: 'Cresc. Bracket',
-            value: 'crescendoBracket'
-        }, {
             icon: 'decresc',
             text: 'Dim. Hairpin',
             value: 'decrescendo'
-        }, {
-            icon: '',
-            text: 'Dim. Bracket',
-            value: 'dimenuendo'
         }, {
             icon: 'slur',
             text: 'Slur',
@@ -52558,6 +52748,14 @@ SuiStaffModifierMenu.defaults = {
             icon: 'ending',
             text: 'nth ending',
             value: 'ending'
+        }, {
+            icon: '',
+            text: 'Dim. Bracket',
+            value: 'dimenuendo'
+        }, {
+            icon: '',
+            text: 'Cresc. Bracket',
+            value: 'crescendoBracket'
         }, {
             icon: '',
             text: 'Accelerando',
