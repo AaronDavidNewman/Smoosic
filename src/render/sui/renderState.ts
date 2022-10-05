@@ -364,6 +364,13 @@ export class SuiRenderState {
     return this._score;
   }
 
+  // used for debugging and drawing dots.
+  dbgDrawDot(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise: boolean) {
+    this.context.beginPath();
+    this.context.arc(x, y, radius, startAngle, endAngle, counterclockwise);
+    this.context.closePath();
+    this.context.fill();
+  }
   set score(score: SmoScore | null) {
     if (score === null) {
       return;

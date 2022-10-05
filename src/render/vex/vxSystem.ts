@@ -105,7 +105,7 @@ export class VxSystem {
       const chords = note.getLyricForVerse(i, SmoLyric.parsers.chord);
       chords.forEach((bchord) => {
         const chord = bchord as SmoLyric;
-        const dom = $(this.context.svg).find(chord.selector)[0];
+        const dom = this.context.svg.getElementById('vf-' + chord.attrs.id);
         if (dom) {
           dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
         }
@@ -209,8 +209,8 @@ export class VxSystem {
         });
       });
       lyrics.forEach((lyric) => {
-        const dom = $(this.context.svg).find(lyric.selector)[0];
-        if (typeof (dom) !== 'undefined') {
+        const dom = this.context.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
+        if (dom) {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
           // Keep track of lyrics that are 'dash'
           if (lyric.isDash()) {
@@ -219,7 +219,7 @@ export class VxSystem {
         }
       });
       lyricHyphens.forEach((lyric) => {
-        const parent = $(this.context.svg).find(lyric.selector)[0];
+        const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
         if (parent && lyric.logicalBox !== null) {
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
@@ -231,7 +231,7 @@ export class VxSystem {
         }
       });
       lyricsDash.forEach((lyric) => {
-        const parent = $(this.context.svg).find(lyric.selector)[0];
+        const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
         if (parent && lyric.logicalBox !== null) {
           const line = document.createElementNS(SvgHelpers.namespace, 'line');
           const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
@@ -244,8 +244,12 @@ export class VxSystem {
           line.setAttributeNS('', 'fill', 'none');
           line.setAttributeNS('', 'stroke', '#999999');
           parent.appendChild(line);
-          const text = $(this.context.svg).find(lyric.selector).find('text')[0];
-          text.setAttributeNS('', 'fill', '#fff');
+          const texts = parent.getElementsByTagName('text');
+          // hide hyphen and replace with dash
+          if (texts && texts.length) {
+            const text = texts[0];
+            text.setAttributeNS('', 'fill', '#fff');
+          }
         }
       });
     }
@@ -269,12 +273,18 @@ export class VxSystem {
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {
-      $(this.context.svg).find('g.' + modifier.attrs.id).remove();
+      const toRemove = this.context.svg.getElementById('vf-' + modifier.attrs.id);
+      if (toRemove) {
+        toRemove.remove();
+      }
     }
     const artifactId = modifier.attrs.id + '-' + this.lineIndex;
-    const group = this.context.openGroup();
+    const group = this.context.openGroup('slur', artifactId);
     group.classList.add(modifier.attrs.id);
-    group.classList.add(artifactId);
+    const measureMod = 'mod-' + smoStart.selector.staff + '-' + smoStart.selector.measure;
+    const staffMod = 'mod-' + smoStart.selector.staff;
+    group.classList.add(measureMod);
+    group.classList.add(staffMod);
     if (modifier.ctor === 'SmoStaffHairpin') {
       const hp = modifier as SmoStaffHairpin;
       if (!vxStart && !vxEnd) {
@@ -362,8 +372,10 @@ export class VxSystem {
 
     this.context.closeGroup();
     if (xoffset) {
-      const slurBox = $('.' + artifactId)[0];
-      SvgHelpers.translateElement(slurBox, xoffset, 0);
+      const slurBox = this.context.svg.getElementById('vf-' + artifactId);
+      if (slurBox) {
+        SvgHelpers.translateElement(slurBox, xoffset, 0);
+      }
     }
     modifier.element = group;
     // modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());

@@ -286,6 +286,8 @@ export class SuiScoreRender {
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
         if (this.measureMapper !== null) {
+          const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
+          SvgHelpers.removeElementsByClass(this.context.svg, modId);
           vxSystem.renderMeasure(measure, printing);
           const pageIndex = measure.svg.pageIndex;
           const renderMeasures = this.renderedPages[pageIndex];
@@ -370,6 +372,9 @@ export class SuiScoreRender {
     if (!measure) {
       return;
     }
+    const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
+    SvgHelpers.removeElementsByClass(this.context.svg, modId);
+
     if (measure.svg.element) {
       measure.svg.element.remove();
       measure.svg.element = null;
@@ -504,6 +509,7 @@ export class SuiScoreRender {
     const measuresToMeasure: SmoMeasure[] = [];
     selections.forEach((selection) => {
       if (system !== null && this.measureMapper !== null) {
+        this.unrenderMeasure(selection.measure);
         system.renderMeasure(selection.measure, false);
         measuresToMeasure.push(selection.measure);
       }

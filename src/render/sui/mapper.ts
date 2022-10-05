@@ -326,8 +326,10 @@ export abstract class SuiMapper {
           smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
             const lyric: SmoLyric = lyrict as SmoLyric;
             if (lyric.getText().length || lyric.isHyphenated()) {
-              lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
-              SvgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric as any);
+              const lyricElement = this.renderer.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
+              if (lyricElement) {
+                SvgHelpers.updateArtifactBox(this.renderer.svg, lyricElement, lyric as any);
+              }
             }
           });
           smoNote.graceNotes.forEach((g) => {

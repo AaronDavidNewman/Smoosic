@@ -394,7 +394,6 @@ export class SmoSystemStaff implements SmoObjectParams {
     return this.getModifiers().find((mod) =>
       SmoSelector.eq(mod.startSelector, modData.startSelector) && mod.attrs.type === modData.attrs.type);
   }
-
   setLyricFont(fontInfo: FontInfo) {
     this.measures.forEach((measure) => {
       measure.setLyricFont(fontInfo);

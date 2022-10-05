@@ -537,7 +537,13 @@ export class SvgHelpers {
     svg.setAttributeNS('', 'viewBox', '' + xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
       Math.round(height / scale));
   }
-
+  static removeElementsByClass(svg: SVGSVGElement, className: string) {
+    const els = svg.getElementsByClassName(className);
+    const ellength = els.length
+    for (var xxx = 0; xxx < ellength; ++xxx) {
+      els[0].remove();
+    }
+  }
   // ### logicalToClient
   // Convert a point from logical (pixels) to actual screen dimensions based on current
   // zoom, aspect ratio

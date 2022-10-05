@@ -168,7 +168,7 @@ export class VxMeasure {
       return;
     }
     const vexL = new VF.Annotation(text); // .setReportWidth(lyric.adjustNoteWidth);
-    vexL.setAttribute(lyric.attrs.id); //
+    vexL.setAttribute('id', lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
     vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
@@ -182,6 +182,7 @@ export class VxMeasure {
 
   _addChordChangeToNote(vexNote: any, lyric: SmoLyric) {
     const cs = new VF.ChordSymbol();
+    cs.setAttribute('id', lyric.attrs.id);
     const blocks = lyric.getVexChordBlocks();
     blocks.forEach((block) => {
       if (block.glyph) {

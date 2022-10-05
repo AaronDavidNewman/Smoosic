@@ -133,6 +133,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
             },  {
               value: 'pad',
               label: 'Synth Pad'
+            }, {
+              value: 'none',
+              label: 'None'
             }]
           }, {
             smoName: 'clef',

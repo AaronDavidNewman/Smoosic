@@ -548,7 +548,8 @@ export class SuiLayoutFormatter {
       // missing offset is for systems that have fewer measures than the default (due to section break or score ending)
       let missingOffset = 0;
       if (scoreLayout.maxMeasureSystem > 1 && 
-        columnCount < scoreLayout.maxMeasureSystem) {
+        columnCount < scoreLayout.maxMeasureSystem
+        && lastSystem) {
           missingOffset = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1)) * (scoreLayout.maxMeasureSystem - columnCount);
           columnCount = scoreLayout.maxMeasureSystem;
       }

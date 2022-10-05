@@ -24,6 +24,7 @@ import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
+import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;
 declare var SmoConfig: SmoRenderConfiguration;
@@ -306,6 +307,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       equiv!.note!.removeLyric(lyric);
     }
     this.renderer.addToReplaceQueue(selection);
+    lyric.deleted = true;
     return this.renderer.updatePromise();
   }
 
@@ -1180,6 +1182,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const altSel = this._getEquivalentSelection(sel);
       SmoOperation.addStaffModifier(sel, modifier);
       SmoOperation.addStaffModifier(altSel!, copy);
+      const modId = 'mod-' + sel.selector.staff + '-' + sel.selector.measure;
+      SvgHelpers.removeElementsByClass(this.renderer.svg, modId);
+      const els = this.renderer.svg.getElementsByClassName(modifier.attrs.id);
+      for (var xxx = 0; xxx < els.length; ++xxx) {
+        els[xxx].remove();
+      }
     }
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
     return this.renderer.updatePromise();
