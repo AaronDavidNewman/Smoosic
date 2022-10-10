@@ -190,7 +190,7 @@ export class SuiAudioPlayer {
               durationPct: duration / measureTicks,
               noteType: smoNote.noteType,
               duration,
-              instrument: instrument.subFamily
+              instrument: instrument.instrument
             };
             // If this is continuation of tied note, just change duration
             if (this.openTies[tieIx]) {

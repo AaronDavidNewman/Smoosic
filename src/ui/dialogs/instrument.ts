@@ -44,10 +44,10 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
     return this.instrument.instrumentName;
   }
   get subFamily() {
-    return this.instrument.subFamily;
+    return this.instrument.instrument;
   }
   set subFamily(value: string) {
-    this.writeStringParam('subFamily', value);
+    this.writeStringParam('instrument', value);
   }
   set instrumentName(value: string) {
     this.writeStringParam('instrumentName', value);

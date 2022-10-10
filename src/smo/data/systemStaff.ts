@@ -306,7 +306,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);
     ar.forEach((entry) => {
       let i = entry.instrument.startSelector.measure;
-      for (i; i <= entry.instrument.endSelector.measure; ++i) {
+      for (i; i <= entry.instrument.endSelector.measure && i < this.measures.length; ++i) {
         const measure = this.measures[i];
         const concertKey = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
         const targetKey = SmoMusic.vexKeySigWithOffset(concertKey, entry.instrument.keyOffset);

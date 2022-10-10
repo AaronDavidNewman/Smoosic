@@ -644,7 +644,6 @@ export class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    let proportion = this.smoMeasure.format.proportionality;
     this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
@@ -678,7 +677,6 @@ export class VxMeasure {
     this.smoMeasure.svg.element = group;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
-    const timestamp = new Date().valueOf();
     try {
       // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
       group.classList.add(this.smoMeasure.attrs.id);
@@ -686,6 +684,7 @@ export class VxMeasure {
       group.id = this.smoMeasure.attrs.id;
 
       this.stave.draw();
+      this.smoMeasure.svg.element = group;
 
       for (j = 0; j < this.voiceAr.length; ++j) {
         this.voiceAr[j].draw(this.context, this.stave);

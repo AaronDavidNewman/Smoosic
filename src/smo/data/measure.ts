@@ -588,6 +588,39 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static get emptyMeasureNoteType(): NoteType {
     return SmoMeasure._emptyMeasureNoteType;
   }
+  static timeSignatureNotes(timeSignature: TimeSignature, clef: Clef) {
+    const pitch = SmoMeasure.defaultPitchForClef[clef];
+    const maxTicks = SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
+    const noteTick = 8192 / (timeSignature.beatDuration / 2);
+    let ticks = 0;
+    let beamBeats = 2;
+    if (timeSignature.beatDuration === 8 && (timeSignature.actualBeats % 3 === 0 || timeSignature.actualBeats % 2 !== 0)) {
+      beamBeats = 3;
+    }
+    if (timeSignature.beatDuration === 16) {
+      beamBeats = 4;
+    }
+    const pnotes: SmoNote[] = [];
+    while (ticks < maxTicks) {
+      const nextNote = SmoNote.defaults;
+      nextNote.pitches = [JSON.parse(JSON.stringify(pitch))];
+      nextNote.noteType = 'r';
+      nextNote.ticks.numerator = noteTick;
+      pnotes.push(new SmoNote(nextNote));
+      ticks += noteTick;
+    }
+    if (timeSignature.beatDuration === 8 && (timeSignature.actualBeats % 3 === 0 || timeSignature.actualBeats % 2 !== 0)) {
+      let ix = 0;
+      pnotes.forEach((pnote) => {
+        if ((ix + 1) % 3 === 0) {
+          pnote.endBeam = true;
+        }
+        pnote.beamBeats = 2048 * 3;
+        ix += 1;
+      });
+    }
+    return pnotes;
+  }
   /**
    * Get a measure full of default notes for a given timeSignature/clef.
    * returns 8th notes for triple-time meters, etc.
@@ -595,57 +628,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * @returns 
    */
   static getDefaultNotes(params: SmoMeasureParams): SmoNote[] {
-    let beamBeats = 0;
-    let beats = 0;
-    let i = 0;
-    let tripleTime: boolean = false;
-    let ticks = {
-      numerator: SmoMeasure.defaultDupleDuration,
-      denominator: 1,
-      remainder: 0
-    };
-    if (params === null) {
-      params = SmoMeasure.defaults;
-    }
-    if (!params.timeSignature) {
-      params.timeSignature = SmoMeasure.timeSignatureDefault;
-    }
-    params.clef = params.clef ? params.clef : 'treble';
-    beamBeats = 4096;
-    beats = params.timeSignature.actualBeats;
-    if (params.timeSignature.beatDuration === 8) {
-      ticks = {
-        numerator: 2048,
-        denominator: 1,
-        remainder: 0
-      };
-      if (params.timeSignature.actualBeats % 3 === 0) {
-        tripleTime = true;
-        ticks.numerator = SmoMeasure.defaultTripleDuration;
-        beats = params.timeSignature.actualBeats / 3;
-      }
-      beamBeats = 2048 * 3;
-    }
-    const pitches: Pitch =
-      JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
-    const rv = [];
-
-    // Treat 2/2 like 4/4 time.
-    if (params.timeSignature.beatDuration === 2 || ticks.numerator === 2048 && !tripleTime) {
-      beats = beats * 2;
-    }
-
-    for (i = 0; i < beats; ++i) {
-      const defs = SmoNote.defaults;
-      defs.pitches = [pitches];
-      defs.noteType = SmoMeasure.emptyMeasureNoteType;
-      defs.clef = params.clef;
-      defs.noteType = SmoMeasure.emptyMeasureNoteType;
-      defs.ticks = ticks;
-      const note = new SmoNote(defs);
-      rv.push(note);
-    }
-    return rv;
+    return SmoMeasure.timeSignatureNotes(new TimeSignature(params.timeSignature), params.clef);
   }
 
   /**

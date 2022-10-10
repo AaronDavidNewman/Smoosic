@@ -86,6 +86,9 @@ export class SuiTimeSignatureDialog extends SuiDialogAdapterBase<SuiTimeSignatur
               control: 'SuiDropdownComponent',
               label: 'Beat Value',
               options: [{
+                value: 16,
+                label: '16',
+              }, {
                 value: 8,
                 label: '8',
               }, {

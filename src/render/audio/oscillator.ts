@@ -144,7 +144,7 @@ export abstract class SuiOscillator {
       return;
     }
     const soundInfo = selection.staff.getStaffInstrument(selection.selector.measure);
-    const oscInfo = SuiSampleMedia.getSmoOscillatorInfo(soundInfo.subFamily);
+    const oscInfo = SuiSampleMedia.getSmoOscillatorInfo(soundInfo.instrument);
     setTimeout(() => {
       const ar = SuiOscillator.fromNote(selection.measure, selection.note!, score, oscInfo[0], gain);
       ar.forEach((osc) => {
@@ -185,7 +185,7 @@ export abstract class SuiOscillator {
       const mtone: SmoMicrotone | null = note.getMicrotone(pitchIx) ?? null;
       frequency = SmoAudioPitch.smoPitchToFrequency(pitch, -1 * measure.transposeIndex, mtone);
       const def = SuiOscillator.defaults;
-      def.instrument = soundInfo.subFamily;
+      def.instrument = soundInfo.instrument;
       def.frequency = frequency;
       def.duration = duration;
       def.gain = gain;
@@ -412,7 +412,13 @@ export class SuiSampler extends SuiOscillator {
   // Note: samplePromise must be complete before you call this  
   createAudioNode(): AudioScheduledSourceNode {
     const node = SuiOscillator.audio.createBufferSource();
-    const sample = SuiSampleMedia.matchedSample(this.instrument, this.frequency);
+    const chooserParams = {
+      instrument: this.instrument,
+      frequency: this.frequency,
+      duration: this.duration,
+      gain: this.gain
+    }
+    const sample = SuiSampleMedia.matchedSample(chooserParams);
     if (!sample) {
       return node;
     }
