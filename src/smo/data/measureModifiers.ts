@@ -37,8 +37,8 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
 export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'proportionality' | 'padLeft' | 'measureIndex';
 export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
   ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
-export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
-export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
+export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem' | 'restBreak' | 'forceRest';
+export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
 
 /**
  * Constructor parameter for measure formatting object
@@ -58,6 +58,7 @@ export interface SmoMeasureFormatParams {
   systemBreak: boolean | null,
   pageBreak: boolean | null,
   restBreak: boolean | null,
+  forceRest: boolean | null,
   padLeft: number | null,
   padAllInSystem: boolean | null,
   measureIndex: number | null,
@@ -79,7 +80,7 @@ export interface ISmoMeasureFormatMgr {
  */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
-    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak'];
+    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak', 'forceRest'];
   }
   static get formatAttributes() {
     return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
@@ -110,6 +111,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       systemBreak: false,
       pageBreak: false,
       restBreak: false,
+      forceRest: false,
       padLeft: 0,
       padAllInSystem: true,
       autoJustify: true,
@@ -121,6 +123,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   systemBreak: boolean = false;
   pageBreak: boolean = false;
   restBreak: boolean = false;
+  forceRest: boolean = false;
   padLeft: number = 0;
   padAllInSystem: boolean = true;
   autoJustify: boolean = true;

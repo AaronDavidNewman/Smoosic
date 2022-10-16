@@ -127,6 +127,14 @@ export class SuiPartMenu extends SuiMenuBase {
           // don't let the user restrict the view if we are already viewing a part.
           defs.push(item);
         }
+      } else if (item.value === 'editPart') {
+        if (this.view.isPartExposed() === false) {
+          // TODO: use language-specific text for both of these
+          item.text = 'Edit Part';
+        } else {
+          item.text = 'Part Properties';
+        }
+        defs.push(item);
       } else {
         defs.push(item);
       }

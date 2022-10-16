@@ -527,7 +527,9 @@ export class VxMeasure {
     } else {
       this.stave.setBegBarType(sb.toVexBarline());
     }
-    if (eb.barline !== SmoBarline.barlines.singleBar) {
+    if (this.smoMeasure.svg.multimeasureLength > 0 && !this.smoMeasure.svg.hideMultimeasure) {
+      this.stave.setEndBarType(SmoBarline.toVexBarline[this.smoMeasure.svg.multimeasureEndBarline]);
+    } else if (eb.barline !== SmoBarline.barlines.singleBar) {
       this.stave.setEndBarType(eb.toVexBarline());
     }
     if (sym && sym.symbol !== SmoRepeatSymbol.symbols.None) {
@@ -561,7 +563,7 @@ export class VxMeasure {
     if (tempo && this.smoMeasure.svg.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
       const vexTempo = this.stave.modifiers.find((mod: any) => mod.attrs.type === 'StaveTempo');
-      vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
+      vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 13, weight: 'bold' };
     }
   }
 

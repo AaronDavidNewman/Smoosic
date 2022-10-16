@@ -67,8 +67,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altGroup = this.storeScore.textGroups[index];
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
       UndoBuffer.bufferSubtypes.REMOVE);
-    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-      UndoBuffer.bufferSubtypes.REMOVE);
+    const isPartExposed = this.isPartExposed();
+    if (!isPartExposed) {
+      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
+        UndoBuffer.bufferSubtypes.REMOVE);
+    } else {
+      const partInfo = this.score.staves[0].partInfo;
+      if (!partInfo.preserveTextGroups && altGroup) {
+        SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
+          UndoBuffer.bufferSubtypes.REMOVE);
+        }
+    }
     this.renderer.renderScoreModifiers();
     return this.renderer.updatePromise()
   }

@@ -48,6 +48,18 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
     }
     this.writeNumber('padLeft', value);
   }
+  get forceRest() {
+    return this.format.forceRest;
+  }
+  set forceRest(value: boolean) {
+    this.writeBoolean('forceRest', value);
+  }
+  get restBreak() {
+    return this.format.restBreak;
+  }
+  set restBreak(value: boolean) {
+    this.writeBoolean('restBreak', value);
+  }
   get customStretch() {
     return this.format.customStretch;
   }
@@ -108,6 +120,14 @@ export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapt
             smoName: 'autoJustify',
             control: 'SuiToggleComponent',
             label: 'Justify Columns'
+          }, {
+            smoName: 'restBreak',
+            control: 'SuiToggleComponent',
+            label: 'Break Multimeasure Rest in Part'
+          }, {
+            smoName: 'forceRest',
+            control: 'SuiToggleComponent',
+            label: 'Force Multimeasure Rest'
           }, {
             smoName: 'systemBreak',
             control: 'SuiToggleComponent',

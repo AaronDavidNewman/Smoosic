@@ -79,6 +79,7 @@ export interface MeasureSvg {
   forceTempo: boolean,
   hideMultimeasure: boolean,
   multimeasureLength: number,
+  multimeasureEndBarline: number,
   element: SVGSVGElement | null
 }
 
@@ -299,6 +300,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       forceTempo: false,
       hideMultimeasure: false,
       multimeasureLength: 0,
+      multimeasureEndBarline: SmoBarline.barlines['singleBar'],
       element: null
     };
 
@@ -1225,7 +1227,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return rv;
   }
 
-  getEndBarline(): SmoBarline {
+  getEndBarline(): SmoBarline {    
     return this._getBarline(SmoBarline.positions.end);
   }
   getStartBarline(): SmoBarline {

@@ -713,9 +713,15 @@ export class SuiTracker extends SuiMapper {
   }
 
   _setArtifactAsSuggestion(artifact: SmoSelection) {
-    const sameSel =
-      this.selections.find((ss) => SmoSelector.sameNote(ss.selector, artifact.selector));
-
+    let sameSel: SmoSelection | null = null;
+    let i = 0;
+    for (i = 0; i < this.selections.length; ++i) {
+      const ss = this.selections[i];
+      if (ss && SmoSelector.sameNote(ss.selector, artifact.selector)) {
+        sameSel = ss;
+        break;
+      }
+    }
     if (sameSel || !artifact.box) {
       return;
     }

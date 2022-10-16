@@ -1034,16 +1034,19 @@ export class SmoOperation {
       return;
     }
     while (i < measureCount) {
-      if (score.isMultimeasureRest(i)) {
+      let forceRest = score.staves[0].measures[i].format.forceRest;
+      if (score.isMultimeasureRest(i, true, forceRest)) {
         for (j = i + 1; j < measureCount; ++j) {
-          if (!score.isMultimeasureRest(j)) {          
+          const restBreak = score.staves[0].measures[j].format.restBreak;
+          forceRest = score.staves[0].measures[j].format.forceRest;                    
+          if (!score.isMultimeasureRest(j, false, forceRest) || restBreak) {
             break;          
           }
         }
         if (j - i >= 2) {
           measureRanges[i] = j;
         }
-        i = j + 1;
+        i = j;
       } else {
         const startMeasure = i;
         score.staves.forEach((staff) => {
@@ -1056,7 +1059,12 @@ export class SmoOperation {
     multiKeys.forEach((key) => {
       const endMeasure = measureRanges[key];
       score.staves.forEach((staff) => {
-        staff.measures[key].svg.multimeasureLength = endMeasure - key;
+        const mmLength = endMeasure - key;
+        const svg = staff.measures[key].svg;
+        svg.multimeasureLength = mmLength;
+        if (svg.multimeasureLength > 1) {
+          svg.multimeasureEndBarline = staff.measures[endMeasure - 1].getEndBarline().barline;
+        }
         staff.measures[key].svg.hideMultimeasure = false;
         for (i = key + 1; i < endMeasure; ++i) {
           staff.measures[i].svg.hideMultimeasure = true;

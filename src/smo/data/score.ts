@@ -581,32 +581,40 @@ export class SmoScore {
 
   /**
    * determine if the measure at this index could be a multi-measure rest
-   * @param measureIndex 
+   * @param measureIndex - the measure index we are considering to add
+   * @param start - the measure index would be the start of the rest 
    * @returns 
    */
-  isMultimeasureRest(measureIndex: number) {
+  isMultimeasureRest(measureIndex: number, start: boolean, forceRest: boolean) {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
-      if (!this.staves[i].isRest(measureIndex)) {
+      if (!forceRest && !this.staves[i].isRest(measureIndex)) {
         return false;
       }
       if (this.staves[i].getVoltasForMeasure(measureIndex).length > 0) {
         return false;
       }
-      if (this.staves[i].isRepeat(measureIndex)) {
+      if (!start && measureIndex > 0 && this.staves[i].isRepeat(measureIndex - 1)) {
         return false;
       }
       if (this.staves[i].isRehearsal(measureIndex)) {
         return false;
       }
-      if (this.staves[i].measureInstrumentMap[measureIndex]) {
-        return false;
-      }
-      if (this.staves[i].keySignatureMap[measureIndex]) {
+      // instrument change other than the initial measure
+      if (this.staves[i].measureInstrumentMap[measureIndex] && i > 0) {
         return false;
       }
     }
-    const measure = this.staves[0].measures[measureIndex];
+    if (measureIndex > 0) {
+      const measure = this.staves[0].measures[measureIndex];
+      const prev = this.staves[0].measures[measureIndex - 1];
+      if (!start && !TimeSignature.equal(measure.timeSignature, prev.timeSignature)) {
+        return false;
+      }
+      if (!start && measure.keySignature !== prev.keySignature) {
+        return false;
+      }
+    }
     return true;
   }
 
