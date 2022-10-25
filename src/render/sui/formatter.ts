@@ -16,6 +16,7 @@ import { layoutDebug } from './layoutDebug';
 import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
+import { SvgPageMap } from './svgPageMap';
 const VF = eval('Vex.Flow');
 
 export interface SuiTickContext {
@@ -41,10 +42,10 @@ export class SuiLayoutFormatter {
   systems: Record<number, LineRender> = {};
   columnMeasureMap: Record<number, SmoMeasure[]>;
   currentPage: number = 0;
-  svg: SVGSVGElement;
+  svg: SvgPageMap;
   renderedPages: Record<number,RenderedPage | null>;
   lines: number[] = [];
-  constructor(score: SmoScore, svg: SVGSVGElement, renderedPages: Record<number, RenderedPage | null>) {
+  constructor(score: SmoScore, svg: SvgPageMap, renderedPages: Record<number, RenderedPage | null>) {
     this.score = score;
     this.svg = svg;
     this.columnMeasureMap = {};
@@ -325,8 +326,11 @@ export class SuiLayoutFormatter {
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             if (measure.svg.logicalBox) {
-              ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.system);
-              ld.debugBox(this.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
+              const context = this.svg.getRenderer(measure.svg.logicalBox);
+              if (context) {
+                ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.system);
+                ld.debugBox(context.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
+              }
             }
           });
         }
@@ -345,7 +349,10 @@ export class SuiLayoutFormatter {
       // ld declared for lint
       const ld = layoutDebug;
       measureEstimate?.measures.forEach((measure) => {
-        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+        const context = this.svg.getRenderer(measure.svg.logicalBox);
+        if (context) {
+          ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+        }
       });
       this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
       currentLine = currentLine.concat(measureEstimate.measures);
@@ -561,8 +568,12 @@ export class SuiLayoutFormatter {
       rowAdj.forEach((measure) => {
         measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
         measure.setX(measure.staffX + justOffset, 'justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
-        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset,
+          measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+        const context = this.svg.getRenderer(measure.svg.logicalBox);
+        if (context) {
+          ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        }
         justOffset += justifyX;
       });
     }

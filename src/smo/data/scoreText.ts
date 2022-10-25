@@ -9,6 +9,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
 import { FontInfo, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
+import { VexRendererContainer } from '../../render/sui/svgPageMap';
 
 const VF = eval('Vex.Flow');
 
@@ -369,7 +370,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   selector?: SmoSelector;
   musicXOffset: number = 0;
   musicYOffset: number = 0;
-  element: SVGSVGElement | null = null;
+  elements: Record<string, VexRendererContainer> = {};
   textBlocks: SmoTextBlock[] = [];
   edited: boolean = false;  // indicates not edited this session
   skipRender: boolean = false; // don't render if it is being edited

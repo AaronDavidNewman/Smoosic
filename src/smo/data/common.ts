@@ -163,6 +163,9 @@ export interface SmoModifierBase {
     attrs: SmoAttrs
 }
 
+export interface Renderable {
+    logicalBox: SvgBox | null | undefined
+}
 /**
  * Restriction from string to supported clefs
  */

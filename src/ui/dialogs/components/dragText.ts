@@ -55,7 +55,7 @@ export class SuiDragText extends SuiComponentBase {
     $('body').addClass('text-move');
     this.session = new SuiDragSession({
       textGroup: (this.dialog as any).modifier,
-      context: this.view.renderer.context,
+      context: this.view.renderer.pageMap,
       scroller: this.view.tracker.scroller
     });
     $(this._getInputElement()).find('label').text(this.altLabel);

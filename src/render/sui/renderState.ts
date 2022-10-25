@@ -60,11 +60,12 @@ export class SuiRenderState {
     this.idleRedrawTime = config.config.idleRedrawTime;
     this.demonPollTime = config.config.demonPollTime;
     this.undoBuffer = config.undoBuffer;
-
   }
-
   get elementId() {
     return this.renderer.elementId;
+  }
+  get pageMap() {
+    return this.renderer.vexContainers;
   }
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
@@ -152,9 +153,6 @@ export class SuiRenderState {
     return (this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false) ||
       (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.renderer.backgroundRender === false);
   }
-  get viewportCreated() {
-    return this.renderer.vexRenderer !== null;
-  }
   /**
    * Do a quick re-render of a measure that has changed, defer the whole score.
    * @returns 
@@ -190,13 +188,6 @@ export class SuiRenderState {
       self.suspendRendering = oldSuspend;
     };
     return PromiseHelpers.makePromise(condition, endAction, null, this.demonPollTime);
-  }
-  createViewportPromise(): Promise<void> {
-    const self = this;
-    const condition = () => {
-      return self.viewportCreated;
-    }
-    return PromiseHelpers.makePromise(condition, null, null, this.demonPollTime)
   }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
@@ -350,26 +341,19 @@ export class SuiRenderState {
     this.passState = st;
   }
 
-  // ### get context
-  // ### Description:
-  // return the VEX renderer context.
-  get context() {
-    return this.renderer.vexRenderer.getContext();
-  }
-  get svg() {
-    return this.context.svg;
-  }
-
   get score(): SmoScore | null {
     return this._score;
   }
 
   // used for debugging and drawing dots.
   dbgDrawDot(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise: boolean) {
-    this.context.beginPath();
-    this.context.arc(x, y, radius, startAngle, endAngle, counterclockwise);
-    this.context.closePath();
-    this.context.fill();
+    const context = this.renderer.getRenderer({ x, y });
+    if (context) {
+      context.getContext().beginPath();
+      context.getContext().arc(x, y, radius, startAngle, endAngle, counterclockwise);
+      context.getContext().closePath();
+      context.getContext().fill();  
+    }
   }
   set score(score: SmoScore | null) {
     if (score === null) {

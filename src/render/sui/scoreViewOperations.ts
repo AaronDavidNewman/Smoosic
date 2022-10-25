@@ -1069,7 +1069,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   updateEnding(ending: SmoVolta): Promise<void> {
     this._undoScore('Change Volta');
-    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    ending.elements.forEach((el) => {
+      $(el).find('g.' + ending.attrs.id).remove();
+    });
+    ending.elements = [];
     SmoOperation.removeEnding(this.storeScore, ending);
     SmoOperation.removeEnding(this.score, ending);
     const altVolta = new SmoVolta(ending);
@@ -1085,7 +1088,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   removeEnding(ending: SmoVolta): Promise<void> {
     this._undoScore('Remove Volta');
-    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    ending.elements.forEach((el) => {
+      $(el).find('g.' + ending.attrs.id).remove();
+    });
+    ending.elements = [];
     SmoOperation.removeEnding(this.storeScore, ending);
     SmoOperation.removeEnding(this.score, ending);
     this.renderer.setRefresh();
@@ -1156,7 +1162,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._undoStaffModifier('Set measure proportion', modifier,
       UndoBuffer.bufferSubtypes.REMOVE);
     this._removeStaffModifier(modifier);
-    this._removeStandardModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
     return this.renderer.updatePromise();
   }
@@ -1192,10 +1197,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.addStaffModifier(sel, modifier);
       SmoOperation.addStaffModifier(altSel!, copy);
       const modId = 'mod-' + sel.selector.staff + '-' + sel.selector.measure;
-      SvgHelpers.removeElementsByClass(this.renderer.svg, modId);
-      const els = this.renderer.svg.getElementsByClassName(modifier.attrs.id);
-      for (var xxx = 0; xxx < els.length; ++xxx) {
-        els[xxx].remove();
+      const context = this.renderer.renderer.getRenderer(sel.measure.svg.logicalBox);
+      if (context) {
+        SvgHelpers.removeElementsByClass(context.svg, modId);
       }
     }
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
@@ -1414,7 +1418,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
         // the measure
         staff.modifiers.forEach((modifier) => {
           if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
-            $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+            if (modifier.logicalBox) {
+              const context = this.renderer.renderer.getRenderer(modifier.logicalBox);
+              if (context) {
+                $(context.svg).find('g.' + modifier.attrs.id).remove();
+              }
+            }
           }
         });
       });

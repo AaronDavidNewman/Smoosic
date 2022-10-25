@@ -3,6 +3,7 @@
 
 import { Transposable, SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoSelection } from '../../smo/xform/selections';
+import { VexRendererContainer } from './svgPageMap';
 
 declare var $: any;
 
@@ -17,11 +18,11 @@ export interface StrokeInfo {
 
 export interface OutlineInfo {
   stroke: StrokeInfo,
-  context: any, // Vex SVG context
   classes: string,
   box: SvgBox | SvgBox[],
   clientCoordinates: boolean,
-  scroll: SvgPoint
+  scroll: SvgPoint,
+  context: VexRendererContainer
 }
 
 export interface GradientInfo {
@@ -171,13 +172,13 @@ export class SvgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg: SVGSVGElement, element: SVGSVGElement | undefined, artifact: Transposable) {
+  static updateArtifactBox(context: VexRendererContainer, element: SVGSVGElement | undefined, artifact: Transposable) {
     if (typeof (element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
-    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(svg, artifact.logicalBox));
+    artifact.logicalBox = context.offsetBbox(element);
+    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(context.svg, artifact.logicalBox));
   }
 
   // ### eraseOutline
@@ -197,7 +198,7 @@ export class SvgHelpers {
       return;
     }
     const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
-    var grp = context.openGroup(classes, classes + '-outline');
+    var grp = context.getContext().openGroup(classes, classes + '-outline');
     const boxes = Array.isArray(params.box) ? params.box : [params.box];
 
     boxes.forEach((box: SvgBox) => {
@@ -208,10 +209,10 @@ export class SvgHelpers {
         /* if (params.clientCoordinates === true) {
           box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
         } */
-        context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+        context.getContext().rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
     });
-    context.closeGroup(grp);
+    context.getContext().closeGroup(grp);
   }
 
 
@@ -252,7 +253,7 @@ export class SvgHelpers {
     return rect;
   }
 
-  static line(svg: Document, x1: number | string, y1: number | string, x2: number | string, y2: number | string, attrs: StrokeInfo, classes: string) {
+  static line(svg: SVGSVGElement, x1: number | string, y1: number | string, x2: number | string, y2: number | string, attrs: StrokeInfo, classes: string) {
     var line = document.createElementNS(SvgHelpers.namespace, 'line');
     x1 = typeof (x1) == 'string' ? x1 : x1.toString();
     y1 = typeof (y1) == 'string' ? y1 : y1.toString();
@@ -270,7 +271,7 @@ export class SvgHelpers {
     svg.appendChild(line);
   }
 
-  static arrowDown(svg: Document, box: SvgBox) {
+  static arrowDown(svg: SVGSVGElement, box: SvgBox) {
     const arrowStroke: StrokeInfo = { strokeName: 'arrow-stroke', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
     SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     var arrowY = box.y + box.height / 4;
@@ -320,7 +321,7 @@ export class SvgHelpers {
     svg.appendChild(r.dom());
   }
 
-  static placeSvgText(svg: Document, attributes: Record<string | number, string | number>[], classes: string, text: string): SVGSVGElement {
+  static placeSvgText(svg: SVGSVGElement, attributes: Record<string | number, string | number>[], classes: string, text: string): SVGSVGElement {
     var ns = SvgHelpers.namespace;
     var e = document.createElementNS(ns, 'text');
     attributes.forEach((attr) => {
@@ -470,16 +471,20 @@ export class SvgHelpers {
     if (typeof (box) === "undefined" || box === null) {
       return SvgBox.default;
     }
+    let testBox = box;
+    if (Array.isArray(box)) {
+      testBox = box[0];
+    }
     const hround = (f: number): number => {
       return Math.round((f + Number.EPSILON) * 100) / 100;
     }
-    const x = typeof (box.x) == 'undefined' ? hround(box.left) : hround(box.x);
-    const y = typeof (box.y) == 'undefined' ? hround(box.top) : hround(box.y);
+    const x = typeof (testBox.x) == 'undefined' ? hround(testBox.left) : hround(testBox.x);
+    const y = typeof (testBox.y) == 'undefined' ? hround(testBox.top) : hround(testBox.y);
     return ({
       x: hround(x),
       y: hround(y),
-      width: hround(box.width),
-      height: hround(box.height)
+      width: hround(testBox.width),
+      height: hround(testBox.height)
     });
   }
   // ### unionRect

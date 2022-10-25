@@ -15,6 +15,7 @@ import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifier
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { Clef, IsClef } from '../../smo/data/common';
+import { VexRendererContainer } from '../sui/svgPageMap';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
@@ -23,7 +24,7 @@ const VF = eval('Vex.Flow');
  * @category SuiRender
  */
 export class VxMeasure {
-  context: any;
+  context: VexRendererContainer;
   static readonly musicFontScaleNote: number = 38;
   static readonly musicFontScaleCue: number = 28;
   printing: boolean;
@@ -47,7 +48,7 @@ export class VxMeasure {
   modifiersToBox: SmoNoteModifierBase[] = [];
   collisionMap: Record<number, SmoNote[]> = {};
 
-  constructor(context: any, selection: SmoSelection, printing: boolean, softmax: number) {
+  constructor(context: VexRendererContainer, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
     this.rendered = false;
     this.selection = selection;
@@ -382,20 +383,21 @@ export class VxMeasure {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
-    var group = this.context.openGroup();
+    y -= this.context.box.y;
+    var group = this.context.getContext().openGroup();
     group.classList.add(textObj.attrs.id + '-' + smoNote.attrs.id);
     group.classList.add(textObj.attrs.id);
     textObj.text.split('').forEach((ch) => {
       const glyphCode = VF.TextDynamics.GLYPHS[ch];
       if (glyphCode) {
         const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
-        glyph.render(this.context, x, y);
+        glyph.render(this.context.getContext(), x, y);
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
     textObj.element = group;
     this.modifiersToBox.push(textObj);
-    this.context.closeGroup();
+    this.context.getContext().closeGroup();
   }
 
   renderDynamics() {
@@ -582,11 +584,12 @@ export class VxMeasure {
     const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
     const canceledKey = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft,
+    const staffY = this.smoMeasure.staffY - this.context.box.y;
+    this.stave = new VF.Stave(staffX, staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.format.padLeft) {
-      this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.format.padLeft, 50, {
+      this.context.getContext().rect(this.smoMeasure.staffX, staffY, this.smoMeasure.format.padLeft, 50, {
         fill: 'none', 'stroke-width': 1, stroke: 'white'
       });
     }
@@ -617,7 +620,7 @@ export class VxMeasure {
       this.stave.addTimeSignature(tsString);
     }
     // Connect it to the rendering context and draw!
-    this.stave.setContext(this.context);
+    this.stave.setContext(this.context.getContext());
 
     this.createMeasureModifiers();
 
@@ -661,7 +664,7 @@ export class VxMeasure {
   format(voices: any[]) {
     if (this.smoMeasure.svg.multimeasureLength > 0) {
       this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
-      this.multimeasureRest.setContext(this.context);
+      this.multimeasureRest.setContext(this.context.getContext());
       this.multimeasureRest.setStave(this.stave);
       return;
     }
@@ -675,7 +678,7 @@ export class VxMeasure {
    * render is called after format.  Actually draw the things.
    */
   render() {
-    var group = this.context.openGroup() as SVGSVGElement;
+    var group = this.context.getContext().openGroup() as SVGSVGElement;
     this.smoMeasure.svg.element = group;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
@@ -684,20 +687,19 @@ export class VxMeasure {
       group.classList.add(this.smoMeasure.attrs.id);
       group.classList.add(mmClass);
       group.id = this.smoMeasure.attrs.id;
-
       this.stave.draw();
       this.smoMeasure.svg.element = group;
 
       for (j = 0; j < this.voiceAr.length; ++j) {
-        this.voiceAr[j].draw(this.context, this.stave);
+        this.voiceAr[j].draw(this.context.getContext(), this.stave);
       }
 
       this.vexBeamGroups.forEach((b) => {
-        b.setContext(this.context).draw();
+        b.setContext(this.context.getContext()).draw();
       });
 
       this.vexTuplets.forEach((tuplet) => {
-        tuplet.setContext(this.context).draw();
+        tuplet.setContext(this.context.getContext()).draw();
       });
       if (this.multimeasureRest) {
         this.multimeasureRest.draw();
@@ -706,13 +708,13 @@ export class VxMeasure {
       this.renderDynamics();
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
-      this.context.closeGroup();
+      this.context.getContext().closeGroup();
       // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 
       this.rendered = true;
     } catch (exc) {
       console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
-      this.context.closeGroup();
+      this.context.getContext().closeGroup();
     }
   }
 }

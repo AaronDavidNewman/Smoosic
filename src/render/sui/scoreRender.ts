@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SvgBox } from '../../smo/data/common';
+import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
@@ -20,6 +20,7 @@ import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { UndoBuffer } from '../../smo/xform/undo';
+import { SvgPageMap, VexRendererContainer } from './svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -44,12 +45,15 @@ export class SuiScoreRender {
   constructor(params: ScoreRenderParams) {    
     this.elementId = params.elementId;
     this.score = params.score;
+    this.vexContainers = new SvgPageMap(this.score.layoutManager!.globalLayout, this.elementId, this.score.layoutManager!.pageLayouts);
+    this.vexContainers.createRenderers();
     this.setViewport(true);
   }
   elementId: any;
   startRenderTime: number = 0;
   formatter: SuiLayoutFormatter | null = null;
-  vexRenderer: any = null;
+  vexContainers: SvgPageMap;
+  // vexRenderer: any = null;
   score: SmoScore | null = null;
   measureMapper: SuiMapper | null = null;
   viewportChanged: boolean = false;
@@ -57,7 +61,6 @@ export class SuiScoreRender {
   backgroundRender: boolean = false;
   renderedPages: Record<number, RenderedPage | null> = {};
   _autoAdjustRenderTime: boolean = true;
-  allScoreText: SVGSVGElement | null = null;
   renderingPage: number = -1;
 
   get autoAdjustRenderTime() {
@@ -66,29 +69,28 @@ export class SuiScoreRender {
   set autoAdjustRenderTime(value: boolean) {
     this._autoAdjustRenderTime = value;
   }
+  getRenderer(box: SvgBox | SvgPoint): VexRendererContainer | null {
+    return this.vexContainers.getRenderer(box);
+  }
   renderTextGroup(gg: SmoTextGroup) {
-    if (this.vexRenderer === null) {
-      return;
-    }
     let ix = 0;
     let jj = 0;
     if (gg.skipRender || this.score === null || this.measureMapper === null) {
       return;
     }
-    if (gg.element) {
-      gg.element.remove();
-      gg.element = null;
-    }
-    gg.logicalBox = SvgBox.default;
-    const group = this.context.openGroup();
-    gg.element = group;
-    group.id = gg.attrs.id;
-    const scaledScoreLayout = this.score!.layoutManager!.getScaledPageLayout(0);
+    const ggKeys = Object.keys(gg.elements);
+    ggKeys.forEach((key) => {
+      gg.elements[key].svg.remove();
+    });
+    gg.elements = {};
+    const layoutManager = this.score!.layoutManager!;
+    const scaledScoreLayout = layoutManager.getScaledPageLayout(0);
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.
     const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.score!.layoutManager!.pageLayouts.length, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
+      let container: VexRendererContainer = this.vexContainers.getRendererFromModifier(newGroup);
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
         // If this text is attached to a staff that is not visible, don't draw it.
@@ -106,23 +108,34 @@ export class SuiScoreRender {
             const yoff = mm.svg.logicalBox.y + newGroup.musicYOffset;
             newGroup.textBlocks[0].text.x = xoff;
             newGroup.textBlocks[0].text.y = yoff;
+            const pageNo = (Math.round(yoff / scaledScoreLayout.pageHeight)).toString();
+            if (!gg.elements[pageNo]) {
+              container = this.vexContainers.getRenderer({ x: xoff, y: yoff });
+              if (container) {
+                gg.elements[pageNo] = container;
+              }
+            } else {
+              container = gg.elements[pageNo];
+            }
           }
         }
       }
-      const block = SuiTextBlock.fromTextGroup(newGroup, this.context, this.measureMapper!.scroller);
-      block.render();
-      // For the first one we render, use that as the bounding box for all the text, for
-      // purposes of mapper/tracker
-      if (ix === 0) {
-        gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
-        // map all the child scoreText objects, too.
-        for (jj = 0; jj < gg.textBlocks.length; ++jj) {
-          gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+      if (container) {
+        const block = SuiTextBlock.fromTextGroup(newGroup, container, this.measureMapper!.scroller);
+        block.render();  
+        // For the first one we render, use that as the bounding box for all the text, for
+        // purposes of mapper/tracker
+        if (ix === 0) {
+          gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
+          // map all the child scoreText objects, too.
+          for (jj = 0; jj < gg.textBlocks.length; ++jj) {
+            gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+          }
         }
+        ix += 1;
       }
-      ix += 1;
     });
-    this.context.closeGroup();
+    ggKeys.forEach((ggKey) => gg.elements[ggKey].getContext().closeGroup());
   }
   
   // ### unrenderAll
@@ -135,7 +148,7 @@ export class SuiScoreRender {
     this.score.staves.forEach((staff) => {
       this.unrenderStaff(staff);
     });
-    $(this.context.svg).find('g.lineBracket').remove();
+    // $(this.context.svg).find('g.lineBracket').remove();
   }
   // ### unrenderStaff
   // ### Description:
@@ -165,57 +178,32 @@ export class SuiScoreRender {
     const layoutManager = this.score!.layoutManager!;
     // All pages have same width/height, so use that
     const layout = layoutManager.getGlobalLayout();
+    this.vexContainers.updateLayout(layout, layoutManager.pageLayouts);
     this.renderedPages = {};
-
-    // zoomScale is the zoom level pct.
-    // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
-    //   vs. window size means smaller notes/more notes per page.
-    // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
-    const zoomScale = layoutManager.getZoomScale();
-    const renderScale = layout.svgScale * zoomScale;
-    const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
-    const pageWidth = layout.pageWidth * zoomScale;
-    $(this.elementId).css('width', '' + Math.round(pageWidth) + 'px');
-    $(this.elementId).css('height', '' + Math.round(totalHeight) + 'px');
-    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-    if (reset) {
-      $(this.elementId).html('');
-      this.vexRenderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
-      this.viewportChanged = true;
-      if (this.measureMapper) {
-        this.measureMapper.scroller.scrollAbsolute(0, 0);
-      }
+    this.viewportChanged = true;
+    if (this.measureMapper) {
+      this.measureMapper.scroller.scrollAbsolute(0, 0);
     }
-    SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
-    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    console.log('layout setViewport: pstate initial');
     if (this.measureMapper) {
       this.measureMapper.scroller.updateViewport();
     }
-  }
-  get context() {
-    return this.vexRenderer.getContext();
+    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+    console.log('layout setViewport: pstate initial');
   }
 
   renderScoreModifiers() {
     // remove existing modifiers, and also remove parent group for 'extra'
     // groups associated with pagination (once per page etc)
     this.score!.textGroups.forEach((tg) => {
-      if (tg.element) {
-        tg.element.remove();
-        tg.element = null;
-      }
+      Object.keys(tg.elements).forEach((ggKey) => {
+        tg.elements[ggKey].svg.remove();
+      });
+      tg.elements = {};
     });
-    if (this.allScoreText) {
-      this.allScoreText.remove();
-    }
-    const group = this.context.openGroup();
-    this.allScoreText = group;
     // group.classList.add('all-score-text');
     this.score!.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });
-    this.context.closeGroup();
   }
   _getMeasuresInColumn(ix: number): SmoMeasure[] {
     const rv: SmoMeasure[] = [];
@@ -239,17 +227,17 @@ export class SuiScoreRender {
    * @param printing 
    */
   measureRenderedElements(vxSystem: VxSystem, measures: SmoMeasure[], modifiers: StaffModifierBase[], printing: boolean) {
+    const pageContext =  vxSystem.context;
     measures.forEach((smoMeasure) => {
       const element = smoMeasure.svg.element;
-      if (element) {
-        const lbox = element.getBBox();
-        smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
+      if (element) {        
+        smoMeasure.setBox(pageContext.offsetBbox(element), 'vxMeasure bounding box');
       }
       const vxMeasure = vxSystem.getVxMeasure(smoMeasure);
       if (vxMeasure) {
         vxMeasure.modifiersToBox.forEach((modifier) => {
           if (modifier.element) {
-            modifier.logicalBox = SvgHelpers.smoBox(modifier.element.getBBox());
+            modifier.logicalBox = pageContext.offsetBbox(modifier.element);
           }
         });
       }
@@ -263,7 +251,7 @@ export class SuiScoreRender {
     });
     modifiers.forEach((modifier) => {
       if (modifier.element) {
-        modifier.logicalBox = SvgHelpers.smoBox(modifier.element.getBBox());
+        modifier.logicalBox = pageContext.offsetBbox(modifier.element);
       }
     });
   }
@@ -281,13 +269,14 @@ export class SuiScoreRender {
       return;
     }
     this.renderingPage = pageIndex;
-    const vxSystem: VxSystem = new VxSystem(this.context, 0, lineIx, this.score);
+    const context = this.vexContainers.getRendererForPage(pageIndex);
+    const vxSystem: VxSystem = new VxSystem(context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
         if (this.measureMapper !== null) {
           const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
-          SvgHelpers.removeElementsByClass(this.context.svg, modId);
+          SvgHelpers.removeElementsByClass(context.svg, modId);
           vxSystem.renderMeasure(measure, printing);
           const pageIndex = measure.svg.pageIndex;
           const renderMeasures = this.renderedPages[pageIndex];
@@ -306,7 +295,7 @@ export class SuiScoreRender {
             at.push({ x: measure.svg.logicalBox.x + 25 });
             at.push({ 'font-family': SourceSansProFont.fontFamily });
             at.push({ 'font-size': '12pt' });
-            SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+            SvgHelpers.placeSvgText(context.svg, at, 'measure-format', '*');
           }
         }
       });
@@ -347,7 +336,12 @@ export class SuiScoreRender {
       this.renderScoreModifiers();
       this.numberMeasures();
       if (layoutDebug.mask & layoutDebug.values.artifactMap) {
-        this.measureMapper?.artifactMap.debugBox(this.context.svg);
+        if (this.measureMapper?.artifactMap?.box) {
+          const container = this.vexContainers.getRenderer(this.measureMapper?.artifactMap.box);
+          if (container) {
+            this.measureMapper?.artifactMap.debugBox(container.svg);
+          }
+        }
       }
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
@@ -373,7 +367,11 @@ export class SuiScoreRender {
       return;
     }
     const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
-    SvgHelpers.removeElementsByClass(this.context.svg, modId);
+    const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
+    if (!context) {
+      return;
+    }
+    SvgHelpers.removeElementsByClass(context.svg, modId);
 
     if (measure.svg.element) {
       measure.svg.element.remove();
@@ -479,17 +477,21 @@ export class SuiScoreRender {
 
   drawPageLines() {
     let i = 0;
-    $(this.context.svg).find('.pageLine').remove();
     const printing = $('body').hasClass('print-render');
     const layoutMgr = this.score!.layoutManager;
     if (printing || !layoutMgr) {
       return;
     }
     for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
-      const scaledPage = layoutMgr.getScaledPageLayout(i);
-      const y = scaledPage.pageHeight * i;
-      SvgHelpers.line(this.context.svg, 0, y, scaledPage.pageWidth, y,
-        { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+      const context = this.vexContainers.getRendererForPage(i - 1);
+      if (context) {
+        $(context.svg).find('.pageLine').remove();
+        const scaledPage = layoutMgr.getScaledPageLayout(i);
+        const y = scaledPage.pageHeight * i;
+        SvgHelpers.line(context.svg, 0, y, scaledPage.pageWidth, y,
+          { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+  
+      }
     }
   }
   replaceSelection(staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }>, change: SmoSelection) {
@@ -500,8 +502,11 @@ export class SuiScoreRender {
     SmoBeamer.applyBeams(change.measure);
     // Defer modifier update until all selected measures are drawn.
     if (!staffMap[change.staff.staffId]) {
-      system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
-      staffMap[change.staff.staffId] = { system, staff: change.staff };
+      const context = this.vexContainers.getRenderer(change.measure.svg.logicalBox);
+      if (context) {
+        system = new VxSystem(context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
+        staffMap[change.staff.staffId] = { system, staff: change.staff };  
+      }
     } else {
       system = staffMap[change.staff.staffId].system;
     }
@@ -514,7 +519,9 @@ export class SuiScoreRender {
         measuresToMeasure.push(selection.measure);
       }
     });
-    this.measureRenderedElements(system, measuresToMeasure, [], false);
+    if (system) {
+      this.measureRenderedElements(system, measuresToMeasure, [], false);
+    }
   }
 
   renderAllMeasures(lines: number[]) {
@@ -548,13 +555,14 @@ export class SuiScoreRender {
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
+      const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
+      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox && context) {
         const numAr = [];
         numAr.push({ y: measure.svg.logicalBox.y - 10 });
         numAr.push({ x: measure.svg.logicalBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
-        SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
+        SvgHelpers.placeSvgText(context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
         if (measure.format.systemBreak && !printing) {
@@ -564,7 +572,7 @@ export class SuiScoreRender {
           starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
-          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
+          SvgHelpers.placeSvgText(context.svg, starAr, 'measure-format', symbol);
         }
       }
     });
@@ -580,7 +588,7 @@ export class SuiScoreRender {
     }
     const score = this.score;
     $('head title').text(this.score.scoreInfo.name);
-    const formatter = new SuiLayoutFormatter(score, this.context.svg, this.renderedPages);
+    const formatter = new SuiLayoutFormatter(score, this.vexContainers, this.renderedPages);
     const startPageCount = this.score.layoutManager!.pageLayouts.length;
     this.formatter = formatter;
     formatter.layout();    

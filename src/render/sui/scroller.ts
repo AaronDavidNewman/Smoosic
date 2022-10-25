@@ -3,6 +3,7 @@
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SuiRendererBase } from './mapper';
+import { SvgPageMap, VexRendererContainer } from './svgPageMap';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -13,7 +14,7 @@ const VF = eval('Vex.Flow');
  */
 export class SuiScroller {
   selector: HTMLElement;
-  renderer: SuiRendererBase;
+  svgPages: SvgPageMap;
   _scroll: SvgPoint;
   _offsetInitial: SvgPoint;
   viewport: SvgBox = SvgBox.default;
@@ -22,16 +23,13 @@ export class SuiScroller {
   // ### constructor
   // selector is the scrollable DOM container of the music container
   // (grandparent of svg element)
-  constructor(selector: HTMLElement, renderer: SuiRendererBase) {
+  constructor(selector: HTMLElement, svgPages: SvgPageMap) {
     const self = this;
     this.selector = selector;
     this._scroll = { x: 0, y: 0 };
-    this.renderer = renderer;
+    this.svgPages = svgPages;
     const scroller = $(selector);
     this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    renderer.createViewportPromise().then(() => {
-      self.updateViewport();
-    });
     const dbgDiv = $('<div class="scroll-box-debug"/>');
     $('body').append(dbgDiv);
   }
@@ -77,16 +75,21 @@ export class SuiScroller {
   scrollVisibleBox(box: SvgBox) {
     let yoff = 0;
     let xoff = 0;
-    const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderer.svg, box,
-      { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
-    if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
-      yoff = screenBox.y;
+    const container = this.svgPages.getRendererFromPoint({ x: 0, y: 0 });
+    if (container) {
+      const svg = container.svg;
+      // Since the pages will all be the same dimensions, any page svg should work here.
+      const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, box,
+        { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
+      if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
+        yoff = screenBox.y;
+      }
+      if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
+        xoff = screenBox.x;
+      }
+      this.scrollOffset(xoff, yoff);
     }
-    if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
-      xoff = screenBox.x;
-    }
-    this.scrollOffset(xoff, yoff);
-  }
+}
   // Update viewport size, and also fix height of scroll region.
   updateViewport() {
     $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
@@ -95,8 +98,11 @@ export class SuiScroller {
       $(this.selector).offset().top,
       $(this.selector).width(),
       $(this.selector).height());
-    this.logicalViewport = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.renderer.svg, this.viewport));
-    this.deferUpdateDebug();
+    const container = this.svgPages.getRendererFromPoint({ x: 0, y: 0 });
+    if (container) {
+      this.logicalViewport = SvgHelpers.smoBox(SvgHelpers.clientToLogical(container.svg, this.viewport));
+      this.deferUpdateDebug();
+    }
   }
 
   // ### scrollBox

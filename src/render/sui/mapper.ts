@@ -13,6 +13,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SuiArtifactMap } from './artifactMap';
 import { SmoScore, SmoModifier } from '../../smo/data/score';
 import { ModifierTab } from '../../smo/xform/selections';
+import { SvgPageMap } from './svgPageMap';
 declare var $: any;
 
 /**
@@ -30,16 +31,14 @@ declare var $: any;
  * @category SuiRender
  */
 export interface SuiRendererBase {
-  svg: SVGSVGElement,
+  pageMap: SvgPageMap,
   score: SmoScore | null,
   dirty: boolean,
   passState: number,
   remapAll(): void,
   renderPromise(): Promise<any>,
   addToReplaceQueue(mm: SmoSelection[]): void,
-  createViewportPromise(): Promise<void>,
-  renderElement: Element,
-  context: any
+  renderElement: Element
 }
 
 export interface LocalModifier {
@@ -219,14 +218,19 @@ export abstract class SuiMapper {
   }
   _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoNoteModifierBase, ix: number) {
     if (!modMap[modifier.attrs.id]) {
-      this.modifierTabs.push({
-        modifier,
-        selection,
-        box: SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState)),
-        index: ix
-      });
-      ix += 1;
-      modMap[modifier.attrs.id] = true;
+      const context = this.renderer.pageMap.getRendererFromModifier(modifier);
+      if (context) {
+        this.modifierTabs.push({
+          modifier,
+          selection,
+          box: SvgHelpers.smoBox(SvgHelpers.logicalToClient(context.svg,
+            SvgHelpers.smoBox(modifier.logicalBox), 
+            this.scroller.scrollState)),
+          index: ix
+        });
+        ix += 1;
+        modMap[modifier.attrs.id] = true;
+      }
     }
     return ix;
   }
@@ -319,28 +323,31 @@ export abstract class SuiMapper {
   _setModifierBoxes(measure: SmoMeasure) {
     measure.voices.forEach((voice: SmoVoice) => {
       voice.notes.forEach((smoNote: SmoNote) =>  {
-        const el = this.renderer.svg.getElementById(smoNote.renderId as string);
-        if (el) {
-          SvgHelpers.updateArtifactBox(this.renderer.svg, (el as any), smoNote);
-          // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
-            const lyric: SmoLyric = lyrict as SmoLyric;
-            if (lyric.getText().length || lyric.isHyphenated()) {
-              const lyricElement = this.renderer.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
-              if (lyricElement) {
-                SvgHelpers.updateArtifactBox(this.renderer.svg, lyricElement, lyric as any);
+        const context = this.renderer.pageMap.getRendererFromModifier(smoNote);
+        if (context) {
+          const el = context.svg.getElementById(smoNote.renderId as string);
+           if (el) {
+            SvgHelpers.updateArtifactBox(context, (el as any), smoNote);
+            // TODO: fix this, only works on the first line.
+            smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
+              const lyric: SmoLyric = lyrict as SmoLyric;
+              if (lyric.getText().length || lyric.isHyphenated()) {
+                const lyricElement = context.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
+                if (lyricElement) {
+                  SvgHelpers.updateArtifactBox(context, lyricElement, lyric as any);
+                }
               }
-            }
-          });
+            });
+          }
           smoNote.graceNotes.forEach((g) => {
-            var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
+            var gel = context.svg.getElementById('vf-' + g.renderId);
             $(gel).addClass('grace-note');
-            SvgHelpers.updateArtifactBox(this.renderer.svg, gel as any, g);
+            SvgHelpers.updateArtifactBox(context, gel as any, g);
           });
           smoNote.textModifiers.forEach((modifier) => {
             const modEl = $('.' + modifier.attrs.id);
             if (modifier.logicalBox && modEl.length) {
-              SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier as any);
+              SvgHelpers.updateArtifactBox(context, modEl[0], modifier as any);
             }
           });
         }
@@ -570,28 +577,31 @@ export abstract class SuiMapper {
   intersectingArtifact(bb: SvgBox) {
     let sel: ModifierTab[] = [];
     bb = SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const logicalBox = SvgHelpers.smoBox(
-      SvgHelpers.clientToLogical(this.renderer.svg, 
-      SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)
-      )
-    );
-    if (layoutDebug.mask & layoutDebug.values.cursor) {
-      layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
-      layoutDebug.debugBox(this.renderer.svg, logicalBox, layoutDebug.values.cursor);
-    }
-    const artifacts = this.artifactMap.findArtifact(logicalBox);
-    // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
-    // TODO: handle overlapping suggestions
-    if (!artifacts.length) {
-      const bsel = SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs as any);
-      sel = bsel as ModifierTab[];
-      if (sel.length) {
-        this._setModifierAsSuggestion(sel[0]);
+    const context = this.renderer.pageMap.getRenderer(bb);
+    if (context) {
+      const logicalBox = SvgHelpers.smoBox(
+        SvgHelpers.clientToLogical(context.svg, 
+          SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)
+        )
+      );
+      if (layoutDebug.mask & layoutDebug.values.cursor) {
+        layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
+        layoutDebug.debugBox(context.svg, logicalBox, layoutDebug.values.cursor);
       }
-      return;
+      const artifacts = this.artifactMap.findArtifact(logicalBox);
+      // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+      // TODO: handle overlapping suggestions
+      if (!artifacts.length) {
+        const bsel = SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs as any);
+        sel = bsel as ModifierTab[];
+        if (sel.length) {
+          this._setModifierAsSuggestion(sel[0]);
+        }
+        return;
+      }
+      const artifact = artifacts[0];
+      this._setArtifactAsSuggestion(artifact);
     }
-    const artifact = artifacts[0];
-    this._setArtifactAsSuggestion(artifact);
   }
   _getRectangleChain(selection: SmoSelection) {
     const rv: number[] = [];

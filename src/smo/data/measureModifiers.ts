@@ -349,6 +349,7 @@ export class SmoVolta extends SmoMeasureModifierBase {
   endingId: string | null = null;
   startSelector: SmoSelector | null = null;
   endSelector: SmoSelector | null = null;
+  elements: SVGSVGElement[] = [];
   constructor(parameters: SmoVoltaParams) {
     super('SmoVolta');
     smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);

@@ -13,6 +13,11 @@ import { SvgBox, KeyEvent } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelection } from '../../smo/xform/selections';
+import { VexRendererContainer } from './svgPageMap';
+import { SuiScoreViewOperations } from './scoreViewOperations';
+import { SuiScoreRender } from './scoreRender';
+import { SvgPageMap } from './svgPageMap';
+
 const VF = eval('Vex.Flow');
 declare var $: any;
 
@@ -25,7 +30,7 @@ declare var $: any;
  * @param text initial text
  */
 export interface SuiTextEditorParams {
-  context: any,
+  context: VexRendererContainer,
   scroller: SuiScroller,
   x: number,
   y: number,
@@ -37,7 +42,7 @@ export interface SuiLyricEditorParams extends SuiTextEditorParams {
 
 export interface SuiTextSessionParams {
   scroller: SuiScroller;
-  renderer: any;
+  renderer: SuiRenderState;
   scoreText: SmoScoreText;
   text: string;
   x: number;
@@ -49,7 +54,7 @@ export interface SuiLyricSessionParams {
   score: SmoScore;
   renderer: SuiRenderState;
   scroller: SuiScroller;
-  view: any;
+  view: SuiScoreViewOperations;
   verse: number;
   selector: SmoSelector;
 }
@@ -818,13 +823,13 @@ export class SuiChordEditor extends SuiTextEditor {
   }
 }
 export interface SuiDragSessionParams {
-  context: any;
+  context: SvgPageMap;
   scroller: SuiScroller;
   textGroup: SmoTextGroup;
 }
 
 export class SuiDragSession {
-  context: any;
+  pageMap: SvgPageMap;
   scroller: SuiScroller;
   xOffset: number = 0;
   yOffset: number = 0;
@@ -836,22 +841,25 @@ export class SuiDragSession {
   textGroup: SmoTextGroup;
   constructor(params: SuiDragSessionParams) {
     this.textGroup = params.textGroup;
-    this.context = params.context;
+    this.pageMap = params.context;
     this.scroller = params.scroller;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context, this.scroller); // SuiTextBlock
+    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, pageContext, this.scroller); // SuiTextBlock
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = SvgHelpers.smoBox(this.startBox);
-    this.currentClientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState));
+    this.currentClientBox = SvgHelpers.smoBox(
+      SvgHelpers.logicalToClient(pageContext.svg, this.currentBox, this.scroller.scrollState));
   }
 
   _outlineBox() {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
+    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
     const obj: OutlineInfo = {
-      context: this.context, box: this.currentBox, classes: 'text-drag',
+      context: pageContext, box: this.currentBox, classes: 'text-drag',
       stroke: outlineStroke, scroll: this.scroller.scrollState,
       clientCoordinates: false
     };
@@ -877,7 +885,8 @@ export class SuiDragSession {
     const svgY = this.currentBox.y;
     this.currentClientBox.x = e.clientX + this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
-    const coor = SvgHelpers.clientToLogical(this.context.svg,
+    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
+    const coor = SvgHelpers.clientToLogical(pageContext.svg,
       {
         x: this.currentClientBox.x + + this.scroller.scrollState.x,
         y: this.currentClientBox.y + this.scroller.scrollState.y,
@@ -888,7 +897,7 @@ export class SuiDragSession {
     this.textObject.offsetStartX(this.currentBox.x - svgX);
     this.textObject.offsetStartY(this.currentBox.y - svgY);
     this.textObject.render();
-    SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
+    SvgHelpers.eraseOutline(pageContext.svg, SuiTextEditor.strokes['text-drag']);
     this._outlineBox();
   }
   get deltaX(): number {
@@ -906,7 +915,8 @@ export class SuiDragSession {
     this.startBox.x += this.deltaX;
     this.startBox.y += this.deltaY;
     this.dragging = false;
-    SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
+    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
+    SvgHelpers.eraseOutline(pageContext.svg, SuiTextEditor.strokes['text-drag']);
   }
 }
 
@@ -994,13 +1004,16 @@ export class SuiTextSession {
   // ### _startSessionForNote
   // Start the lyric session
   startSession() {
-    this.editor = new SuiTextBlockEditor({
-      x: this.x, y: this.y, scroller: this.scroller,
-      context: this.renderer.context, text: this.scoreText.text
-    });
-    this.cursorPromise = this.editor.startCursorPromise();
-    this.state = SuiTextEditor.States.RUNNING;
-    this._removeScoreText();
+    const context = this.renderer.pageMap.getRenderer({ x: this.x, y: this.y });
+    if (context) {
+      this.editor = new SuiTextBlockEditor({
+        x: this.x, y: this.y, scroller: this.scroller,
+        context: context, text: this.scoreText.text
+      });
+      this.cursorPromise = this.editor.startCursorPromise();
+      this.state = SuiTextEditor.States.RUNNING;
+      this._removeScoreText();
+    }
   }
 
   // ### _startSessionForNote
@@ -1042,7 +1055,7 @@ export class SuiLyricSession {
   score: SmoScore;
   renderer: SuiRenderState;
   scroller: SuiScroller;
-  view: any;
+  view: SuiScoreViewOperations;
   parser: number;
   verse: number;
   selector: SmoSelector;
@@ -1152,18 +1165,22 @@ export class SuiLyricSession {
       startX = this.lyric.logicalBox.x;
       startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
     }
-    this.editor = new SuiLyricEditor({
-      context: this.view.renderer.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-      text: this.lyric.getText()
-    });
-    this.state = SuiTextEditor.States.RUNNING;
-    if (!lyricRendered && this.editor !== null && this.editor.svgText !== null) {
-      const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
-      this.editor.svgText.offsetStartY(delta);
+    const context = this.view.renderer.pageMap.getRenderer({ x: startX, y: startY });
+    if (context) {
+      this.editor = new SuiLyricEditor({
+        context,
+        lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
+        text: this.lyric.getText()
+      });
+      this.state = SuiTextEditor.States.RUNNING;
+      if (!lyricRendered && this.editor !== null && this.editor.svgText !== null) {
+        const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
+        this.editor.svgText.offsetStartY(delta);
+      }
+      this.cursorPromise = this.editor.startCursorPromise();
+      this._hideLyric();
+        
     }
-    this.cursorPromise = this.editor.startCursorPromise();
-    this._hideLyric();
   }
 
   // ### _startSessionForNote
@@ -1340,17 +1357,20 @@ export class SuiChordSession extends SuiLyricSession {
       startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
     }
     this.selection.measure.svg.logicalBox.y + this.selection.measure.svg.logicalBox.height - 70;
-    this.editor = new SuiChordEditor({
-      context: this.view.renderer.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-      text: this.lyric.getText()
-    });
-    this.state = SuiTextEditor.States.RUNNING;
-    if (this.editor !== null && this.editor.svgText !== null) {
-      const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
-      this.editor.svgText.offsetStartY(delta);
+    const context = this.renderer.pageMap.getRenderer({ x: startX, y: startY });
+    if (context) {
+      this.editor = new SuiChordEditor({
+        context,
+        lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
+        text: this.lyric.getText()
+      });
+      this.state = SuiTextEditor.States.RUNNING;
+      if (this.editor !== null && this.editor.svgText !== null) {
+        const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
+        this.editor.svgText.offsetStartY(delta);
+      }
+      this.cursorPromise = this.editor.startCursorPromise();
+      this._hideLyric();  
     }
-    this.cursorPromise = this.editor.startCursorPromise();
-    this._hideLyric();
   }
 }

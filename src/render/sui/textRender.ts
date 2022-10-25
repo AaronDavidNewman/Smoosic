@@ -5,6 +5,7 @@ import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreText';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox } from '../../smo/data/common';
+import { VexRendererContainer } from './svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -39,7 +40,7 @@ export interface SuiInlineTextParams {
   startY: number,
   scroller: SuiScroller,
   purpose: string,
-  context: any
+  context: VexRendererContainer
 }
 export interface SuiInlineBlock {
   symbolType: number,
@@ -169,7 +170,7 @@ export class SuiInlineText {
   startY: number;
   blocks: SuiInlineBlock[] = [];
   updatedMetrics: boolean = false;
-  context: any;
+  context: VexRendererContainer;
   scroller: SuiScroller;
   artifacts: SuiInlineArtifact[] = [];
   logicalBox: SvgBox = SvgBox.default;
@@ -201,7 +202,7 @@ export class SuiInlineText {
     this.context = params.context;
   }
 
-  static fromScoreText(scoreText: SmoScoreText, context: any, scroller: SuiScroller): SuiInlineText {
+  static fromScoreText(scoreText: SmoScoreText, context: VexRendererContainer, scroller: SuiScroller): SuiInlineText {
     const params: SuiInlineTextParams = {
       fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
@@ -372,12 +373,12 @@ export class SuiInlineText {
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
-    const group = this.context.openGroup();
+    const group = this.context.getContext().openGroup();
     group.id = 'inlineCursor';
     const h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
       SvgHelpers.renderCursor(group, this.startX, this.startY - h, h);
-      this.context.closeGroup();
+      this.context.getContext().closeGroup();
       return;
     }
     const block = this.blocks[position];
@@ -397,7 +398,7 @@ export class SuiInlineText {
       }
     }
     SvgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
-    this.context.closeGroup();
+    this.context.getContext().closeGroup();
   }
   removeCursor() {
     $('svg #inlineCursor').remove();
@@ -486,10 +487,10 @@ export class SuiInlineText {
       this._calculateBlockIndex();
     }
 
-    this.context.setFont({
+    this.context.getContext().setFont({
       family: this.fontFamily, size: this.fontSize, weight: this.fontWeight, style: this.fontStyle
     });
-    const group = this.context.openGroup();
+    const group = this.context.getContext().openGroup();
     const mmClass = 'suiInlineText';
     let ix = 0;
     group.classList.add('vf-' + this.attrs.id);
@@ -500,54 +501,56 @@ export class SuiInlineText {
     this.artifacts = [];
 
     this.blocks.forEach((block) => {
-      var bg = this.context.openGroup();
+      var bg = this.context.getContext().openGroup();
       bg.classList.add('textblock-' + this.attrs.id + ix);
       this._drawBlock(block);
-      this.context.closeGroup();
+      this.context.getContext().closeGroup();
       const artifact: SuiInlineArtifact = { block, box: SvgBox.default, index: 0 };
-      artifact.box = SvgHelpers.smoBox(bg.getBBox());
+      artifact.box = this.context.offsetBbox(bg);
       artifact.index = ix;
       this.artifacts.push(artifact);
       ix += 1;
     });
-    this.context.closeGroup();
-    this.logicalBox = SvgHelpers.smoBox(group.getBBox());
+    this.context.getContext().closeGroup();
+    this.logicalBox = this.context.offsetBbox(group);
   }
 
   _drawBlock(block: SuiInlineBlock) {
     const sp = this.isSuperscript(block);
     const sub = this.isSubcript(block);
     const highlight = this.getHighlight(block);
-    const y = block.y;
+    const y = block.y - this.context.box.y; // relative y into page
 
     if (highlight) {
-      this.context.save();
-      this.context.setFillStyle('#999');
+      this.context.getContext().save();
+      this.context.getContext().setFillStyle('#999');
     }
 
     // This is how svgcontext expects to get 'style'
     const weight = this.fontWeight;
     const style = this.fontStyle;
     const family = this.fontFamily;
+    let font = { family, size: this.fontSize, weight, style };
+    let textFormatter = VF.TextFormatter
 
     if (sp || sub) {
-      this.context.save();
-      this.context.setFont({
+      this.context.getContext().save();
+      this.context.getContext().setFont({
         family, size: this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight, style
       });
     } else {
-      this.context.setFont({ family, size: this.fontSize * block.scale, weight, style });
+      this.context.getContext().setFont({ family, size: this.fontSize * block.scale, weight, style });
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-      this.context.fillText(block.text, block.x, y);
+      this.context.getContext().fillText(block.text, block.x, y);
     } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
       block.glyph.render(this.context, block.x, y);
     }
     if (sp || sub) {
-      this.context.restore();
+      this.context.getContext().restore();
     }
     if (highlight) {
-      this.context.restore();
+      this.context.getContext().restore();
     }
   }
 
@@ -569,7 +572,7 @@ export interface SuiTextBlockParams {
   blocks: SuiTextBlockBlock[];
   scroller: SuiScroller;
   spacing: number;
-  context: any;
+  context: VexRendererContainer;
   skipRender: boolean;
   justification: number;
 }
@@ -590,7 +593,7 @@ export class SuiTextBlock {
   inlineBlocks: SuiTextBlockBlock[] = [];
   scroller: SuiScroller;
   spacing: number = 0;
-  context: any;
+  context: VexRendererContainer;
   skipRender: boolean;
   currentBlockIndex: number = 0;
   justification: number;
@@ -708,7 +711,7 @@ export class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg: SmoTextGroup, context: any, scroller: SuiScroller): SuiTextBlock {
+  static fromTextGroup(tg: SmoTextGroup, context: VexRendererContainer, scroller: SuiScroller): SuiTextBlock {
     const blocks: SuiTextBlockBlock[] = [];
 
     // Create an inline block for each ScoreText
