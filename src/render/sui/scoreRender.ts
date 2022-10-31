@@ -558,8 +558,9 @@ export class SuiScoreRender {
       const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
       if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox && context) {
         const numAr = [];
-        numAr.push({ y: measure.svg.logicalBox.y - 10 });
-        numAr.push({ x: measure.svg.logicalBox.x });
+        const modBox = context.offsetSvgPoint(measure.svg.logicalBox);
+        numAr.push({ y: modBox.y - 10 });
+        numAr.push({ x: modBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
         SvgHelpers.placeSvgText(context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
@@ -568,8 +569,8 @@ export class SuiScoreRender {
         if (measure.format.systemBreak && !printing) {
           const starAr = [];
           const symbol = '\u21b0';
-          starAr.push({ y: measure.svg.logicalBox.y - 5 });
-          starAr.push({ x: measure.svg.logicalBox.x + 25 });
+          starAr.push({ y: modBox.y - 5 });
+          starAr.push({ x: modBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
           SvgHelpers.placeSvgText(context.svg, starAr, 'measure-format', symbol);

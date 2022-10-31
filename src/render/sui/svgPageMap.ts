@@ -1,6 +1,7 @@
 import { SvgHelpers } from "./svgHelpers";
 import { SvgPoint, SvgBox, Renderable } from '../../smo/data/common';
 import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
@@ -8,6 +9,7 @@ export class VexRendererContainer {
     _renderer: any;
     pageNumber: number;
     box: SvgBox;
+    systemMap: Record<string, SmoSelection> = {};
     getContext(): any {
         return this._renderer.getContext();
     }
@@ -21,6 +23,12 @@ export class VexRendererContainer {
         const xoff = this.box.x;
         const lbox = element.getBBox();
         return ({ x: lbox.x + xoff, y: lbox.y + yoff, width: lbox.width, height: lbox.height });
+    }
+    offsetSvgBox(box: SvgBox) {
+      return { x: box.x - this.box.x, y: box.y - this.box.y, width: box.width, height: box.height };
+    }
+    offsetSvgPoint(box: SvgPoint) {
+      return { x: box.x - this.box.x, y: box.y - this.box.y };
     }
     get svg(): SVGSVGElement {
         return this.getContext().svg as SVGSVGElement;
@@ -73,15 +81,15 @@ export class SvgPageMap {
         });
     }
     addPage() {
-        const ix = this.pageLayouts.length - 1;
+        const ix = this.vfRenderers.length;
         const container = document.createElement('div');
         container.setAttribute('id', 'smoosic-svg-div-' + ix.toString());
         this._container.append(container);
         const vexRenderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
         const svg = vexRenderer.getContext().svg as SVGSVGElement;
-        SvgHelpers.svgViewport(svg, 0, 0, this.pageWidth, this.pageHeight, this.renderScale);
+        SvgHelpers.svgViewport(svg, 0, 0, this.pageWidth, this.pageHeight, this.renderScale * this.zoomScale);
         const topY = this.pageHeight * ix;
-        const box = SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight + topY)
+        const box = SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight)
         this.vfRenderers.push(new VexRendererContainer(vexRenderer, ix, box));
     }
     removePage() {
@@ -124,7 +132,7 @@ export class SvgPageMap {
         return this.vfRenderers[this.vfRenderers.length - 1];
     }
     getRendererFromPoint(point: SvgPoint): VexRendererContainer | null {
-        const ix = Math.round(point.y / (this.layout.pageHeight * this.layout.svgScale));
+        const ix = Math.floor(point.y / (this.layout.pageHeight * this.layout.zoomScale));
         if (ix < this.vfRenderers.length) {
             return this.vfRenderers[ix];
         }
