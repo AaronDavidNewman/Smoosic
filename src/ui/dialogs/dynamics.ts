@@ -22,6 +22,9 @@ export class SuiDynamicDialogAdapter extends SuiComponentAdapter {
   get xOffset() {
     return this.modifier.xOffset;
   }
+  remove() {
+    this.view.removeDynamic(this.modifier);
+  }
   set xOffset(value: number) {
     this.modifier.xOffset = value;
     this.view.addDynamic(this.selection, this.modifier);

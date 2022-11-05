@@ -106,10 +106,6 @@ export class SuiLayoutFormatter {
     // See if this measure breaks a page.
     const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-      // Advance to next page settings
-      if (this.renderedPages[this.currentPage]) {
-
-      }
       this.currentPage += 1;
       // If this is a new page, make sure there is a layout for it.
       lm.addToPageLayouts(this.currentPage);
@@ -129,6 +125,7 @@ export class SuiLayoutFormatter {
         measure.setBox(SvgHelpers.boxPoints(
           measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
         measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
+        measure.svg.pageIndex = this.currentPage;
       });
     }
     return scoreLayout;

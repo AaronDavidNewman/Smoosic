@@ -1,9 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
+import { SuiMapper, SuiRendererBase } from './mapper';
 import { SvgHelpers, StrokeInfo, OutlineInfo } from './svgHelpers';
 import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiOscillator } from '../audio/oscillator';
 import { SmoScore } from '../../smo/data/score';
@@ -120,12 +119,6 @@ export class SuiTracker extends SuiMapper {
     }
   }
 
-  // ### selectModifierById
-  // programatically select a modifier by ID.  Used by text editor.
-  selectId(id: string) {
-    this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id === id);
-  }
-
   getSelectedModifier() {
     if (this.modifierSelections.length) {
       return this.modifierSelections[0];
@@ -156,10 +149,6 @@ export class SuiTracker extends SuiMapper {
       delete this.strokeMemory['staffModifier'];
     }
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
-
-    if (!this.modifierTabs.length) {
-      return;
-    }
     this.modifierIndex = this.modifierIndex + offset;
     this.modifierIndex = (this.modifierIndex === -2 && this.localModifiers.length) ?
       this.localModifiers.length - 1 : this.modifierIndex;
@@ -168,7 +157,7 @@ export class SuiTracker extends SuiMapper {
       this.modifierSelections = [];
       return;
     }
-    const local: LocalModifier = this.localModifiers[this.modifierIndex];
+    const local: ModifierTab = this.localModifiers[this.modifierIndex];
     const box: SvgBox = SvgHelpers.smoBox(local.box) as SvgBox;
     this.modifierSelections = [{ index: 0, box, modifier: local.modifier, selection: local.selection }];
     this._highlightModifier();
@@ -239,7 +228,7 @@ export class SuiTracker extends SuiMapper {
     }
     const ix = (offset < 0) ? 0 : far.length - 1;
     const sel: ModifierTab = far[ix] as ModifierTab;
-    const left = this.modifierTabs.filter((mt) =>
+    const left = this.localModifiers.filter((mt) =>
       mt.modifier?.attrs?.type === 'SmoGraceNote' && sel.selection && mt.selection &&
       SmoSelector.sameNote(mt.selection.selector, sel.selection.selector)
     );
@@ -250,6 +239,7 @@ export class SuiTracker extends SuiMapper {
     if (!leftSel) {
       console.warn('bad selector in _growGraceNoteSelections');
     }
+    leftSel.box = leftSel.box ?? SvgBox.default;
     this.modifierSelections.push(leftSel);
     this._highlightModifier();
   }
@@ -622,18 +612,14 @@ export class SuiTracker extends SuiMapper {
     }
     this.idleTimer = Date.now();
 
-    if (this.modifierSuggestion >= 0) {
+    if (this.modifierSuggestion) {
       if (this.suggestFadeTimer) {
         clearTimeout(this.suggestFadeTimer);
         this.suggestFadeTimer = null;
       }
       this.modifierIndex = -1;
-      const selToAdd = this.modifierTabs[this.modifierSuggestion];
-      if (!selToAdd) {
-        console.warn('bad modifier selection in selectSuggestion');
-      }
-      this.modifierSelections = [selToAdd];
-      this.modifierSuggestion = -1;
+      this.modifierSelections = [this.modifierSuggestion];
+      this.modifierSuggestion = null;
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
       this._highlightModifier();
@@ -674,8 +660,8 @@ export class SuiTracker extends SuiMapper {
     } else {
       this.selections = [this.suggestion];
     }
-    if (preselected && this.modifierTabs.length) {
-      const mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
+    if (preselected && this.modifierSelections.length) {
+      const mods  = this.modifierSelections.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
       if (mods.length) {
         const modToAdd = mods[0];
         if (!modToAdd) {
@@ -703,7 +689,7 @@ export class SuiTracker extends SuiMapper {
           SvgHelpers.eraseOutline(this.strokeMemory['suggestion'].svg, SuiTracker.strokes['suggestion']);
           delete this.strokeMemory['suggestion'];
         }
-        tracker.modifierSuggestion = -1;
+        tracker.modifierSuggestion = null;
       }
     }, 1000);
   }
@@ -712,7 +698,7 @@ export class SuiTracker extends SuiMapper {
     if (!artifact.box) {
       return;
     }
-    this.modifierSuggestion = artifact.index;
+    this.modifierSuggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
     this._setFadeTimer();
   }
@@ -730,7 +716,7 @@ export class SuiTracker extends SuiMapper {
     if (sameSel || !artifact.box) {
       return;
     }
-    this.modifierSuggestion = -1;
+    this.modifierSuggestion = null;
 
     this.suggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
@@ -866,9 +852,10 @@ export class SuiTracker extends SuiMapper {
     if (!context) {
       context = this.renderer.pageMap.getRendererForPage(0);
     }
+    testBox.y -= context.box.y;
     this.strokeMemory[strokeName] = context;
     return {
-      context: context, box, classes: '',
+      context: context, box: testBox, classes: '',
       stroke, scroll: this.scroller.scrollState, clientCoordinates: false
     };
   }

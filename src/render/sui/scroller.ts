@@ -30,8 +30,6 @@ export class SuiScroller {
     this.svgPages = svgPages;
     const scroller = $(selector);
     this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    const dbgDiv = $('<div class="scroll-box-debug"/>');
-    $('body').append(dbgDiv);
   }
 
   get scrollState(): SvgPoint {
@@ -47,11 +45,10 @@ export class SuiScroller {
   // update viewport in response to scroll events
   handleScroll(x: number, y: number) {
     this._scroll = { x, y };
+    this.deferUpdateDebug();
   }
   updateDebug() {
-    const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
-    $('.scroll-box-debug').text(displayString);
-    $('.scroll-box-debug').css('left', '2%').css('top', '2%');
+    layoutDebug.updateScrollDebug(this._scroll);
   }
   deferUpdateDebug() {
     if (layoutDebug.mask & layoutDebug.values.scroll) {

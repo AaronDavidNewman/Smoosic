@@ -15,12 +15,13 @@ import { SvgBox, SvgPoint } from '../data/common';
 /**
  * Modifier tab is a modifier and its bounding box, that can be tabbed to with the keyboard
  */
-export interface ModifierTab {
+ export interface ModifierTab {
   modifier: SmoModifier,
   selection: SmoSelection | null,
   box: SvgBox,
   index: number
 }
+
 /**
  * There are 2 parts to a selection: the actual musical bits that are selected, and the
  * indices that define what was selected.  This is the latter.  The actual object does not
@@ -164,7 +165,6 @@ export class SmoSelection {
   _measure: SmoMeasure;
   _note: SmoNote | null;
   _pitches: number[] = [];
-  type: string | null = null;
   box: SvgBox | null = null;
   scrollBox: SvgPoint | null = null;
   // ### measureSelection

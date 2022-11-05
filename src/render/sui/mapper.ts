@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoSelector, SmoSelection } from '../../smo/xform/selections';
+import { SmoSelector, SmoSelection, ModifierTab } from '../../smo/xform/selections';
 import { SvgHelpers } from './svgHelpers';
 import { layoutDebug } from './layoutDebug';
 import { SuiScroller } from './scroller';
@@ -12,7 +12,6 @@ import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SuiArtifactMap } from './artifactMap';
 import { SmoScore, SmoModifier } from '../../smo/data/score';
-import { ModifierTab } from '../../smo/xform/selections';
 import { SvgPageMap } from './svgPageMap';
 declare var $: any;
 
@@ -40,12 +39,6 @@ export interface SuiRendererBase {
   addToReplaceQueue(mm: SmoSelection[]): void,
   renderElement: Element
 }
-
-export interface LocalModifier {
-  modifier: SmoModifier,
-  selection: SmoSelection,
-  box: SvgBox | null,
-}
 // used to perform highlights in the backgroundd
 export interface HighlightQueue {
   selectionCount: number, deferred: boolean
@@ -65,12 +58,10 @@ export abstract class SuiMapper {
   // modifiers (text etc.) that have been selected
   modifierSelections: ModifierTab[] = [];
   selections: SmoSelection[] = [];
-  // all the modifiers
-  modifierTabs: ModifierTab[] = [];
   // The list of modifiers near the current selection
-  localModifiers: LocalModifier[] = [];
+  localModifiers: ModifierTab[] = [];
   modifierIndex: number = -1;
-  modifierSuggestion: number = -1;
+  modifierSuggestion: ModifierTab | null = null;
   pitchIndex: number = -1;
   // By default, defer highlights for performance.
   deferHighlightMode: boolean = true;
@@ -84,8 +75,6 @@ export abstract class SuiMapper {
     this.scroller = scroller;
     this.modifierIndex = -1;
     this.localModifiers = [];
-    // mouse-over that might be selected soon
-    this.modifierSuggestion = -1;
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
@@ -130,29 +119,57 @@ export abstract class SuiMapper {
   }
   _createLocalModifiersList() {
     this.localModifiers = [];
+    let index = 0;
     this.selections.forEach((sel) => {
       sel.note?.getGraceNotes().forEach((gg) => {
-        this.localModifiers.push({ selection: sel, modifier: gg, box: gg.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: gg, box: gg.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.note?.getModifiers('SmoDynamicText').forEach((dyn) => {
-        this.localModifiers.push({ selection: sel, modifier: dyn, box: dyn.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: dyn, box: dyn.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
-        this.localModifiers.push({ selection: sel, modifier: volta, box: volta.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: volta, box: volta.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
-        this.localModifiers.push({ selection: sel, modifier: tempo, box: tempo.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: tempo, box: tempo.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.staff.getModifiers().forEach((mod) => {
         if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
           SmoSelector.lteq(sel.selector, mod.endSelector) && mod.logicalBox)  {
           const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);
           if (!exists) {
-            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.logicalBox });
+            this.localModifiers.push({ index, selection: sel, modifier: mod, box: mod.logicalBox });
+            index += 1;
           }
         }
       });
     });
+  }
+  /**
+   * When a modifier is selected graphically, update the selection list
+   * and create a local modifier list
+   * @param modifierTabs 
+   */
+  createLocalModifiersFromModifierTabs(modifierTabs: ModifierTab[]) {
+    const selections: SmoSelection[] = [];
+    const modMap: Record<string, boolean> = {};
+    modifierTabs.forEach((mt) => {
+      if (mt.selection) {
+        const key = SmoSelector.getNoteKey(mt.selection.selector);
+        if (!modMap[key]) {
+          selections.push(mt.selection);
+          modMap[key] = true;
+        }
+      }
+    });
+    if (selections.length) {
+      this.selections = selections;
+      this._createLocalModifiersList();
+    }
   }
   // used by remove dialogs to clear removed thing
   clearModifierSelections() {
@@ -217,34 +234,31 @@ export abstract class SuiMapper {
     }
   }
   _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoNoteModifierBase, ix: number) {
-    if (!modMap[modifier.attrs.id]) {
-      const context = this.renderer.pageMap.getRendererFromModifier(modifier);
-      if (context) {
-        this.modifierTabs.push({
+    if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
+      this.renderer.pageMap.addModifierTab(
+        {
           modifier,
           selection,
-          box: SvgHelpers.smoBox(SvgHelpers.logicalToClient(context.svg,
-            SvgHelpers.smoBox(modifier.logicalBox), 
-            this.scroller.scrollState)),
+          box: modifier.logicalBox,
           index: ix
-        });
-        ix += 1;
-        modMap[modifier.attrs.id] = true;
-      }
+        }
+      );
+      ix += 1;
+      const context = this.renderer.pageMap.getRendererFromModifier(modifier);
+      modMap[modifier.attrs.id] = true;
     }
     return ix;
   }
 
   _updateModifiers() {
     let ix = 0;
-    this.modifierTabs = [];
     const modMap: Record<string, boolean> = {};
     if (!this.renderer.score) {
       return;
     }
     this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
-        this.modifierTabs.push({
+        this.renderer.pageMap.addModifierTab({
           modifier,
           selection: null,
           box: modifier.logicalBox,
@@ -253,14 +267,14 @@ export abstract class SuiMapper {
         ix += 1;
       }
     });
-    const keys = Object.keys(this.measureNoteMap);
+    const keys = Object.keys(this.measureNoteMap);    
     keys.forEach((selKey) => {
       const selection = this.measureNoteMap[selKey];
       selection.staff.renderableModifiers.forEach((modifier) => {
         if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
           if (!modMap[modifier.attrs.id]) {
             if (modifier.logicalBox) {
-              this.modifierTabs.push({
+              this.renderer.pageMap.addModifierTab({
                 modifier,
                 selection,
                 box: modifier.logicalBox,
@@ -276,7 +290,7 @@ export abstract class SuiMapper {
         if (modifier.attrs.id
           && !modMap[modifier.attrs.id]
           && modifier.logicalBox) {
-          this.modifierTabs.push({
+          this.renderer.pageMap.addModifierTab({
             modifier,
             selection,
             box: SvgHelpers.smoBox(modifier.logicalBox),
@@ -321,9 +335,9 @@ export abstract class SuiMapper {
   // ### _setModifierBoxes
   // Create the DOM modifiers for the lyrics and other modifiers
   _setModifierBoxes(measure: SmoMeasure) {
+    const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
     measure.voices.forEach((voice: SmoVoice) => {
       voice.notes.forEach((smoNote: SmoNote) =>  {
-        const context = this.renderer.pageMap.getRendererFromModifier(smoNote);
         if (context) {
           const el = context.svg.getElementById(smoNote.renderId as string);
            if (el) {
@@ -576,26 +590,22 @@ export abstract class SuiMapper {
    */
   intersectingArtifact(bb: SvgBox) {
     let sel: ModifierTab[] = [];
-    bb = SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const context = this.renderer.pageMap.getRenderer(bb);
-    if (context) {
-      const logicalBox = SvgHelpers.smoBox(
-        SvgHelpers.clientToLogical(context.svg, 
-          SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)
-        )
-      );
+    const scrollState = this.scroller.scrollState;
+    bb = SvgHelpers.boxPoints(bb.x + scrollState.x, bb.y + scrollState.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+    const { selections, page } = this.renderer.pageMap.findArtifact(bb);
+    if (page) {
       if (layoutDebug.mask & layoutDebug.values.cursor) {
         layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
-        layoutDebug.debugBox(context.svg, logicalBox, layoutDebug.values.cursor);
+        layoutDebug.debugBox(page.svg, page.box, layoutDebug.values.cursor);
       }
-      const artifacts = this.artifactMap.findArtifact(logicalBox);
+      const artifacts = selections;
       // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
       // TODO: handle overlapping suggestions
       if (!artifacts.length) {
-        const bsel = SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs as any);
-        sel = bsel as ModifierTab[];
+        const sel = this.renderer.pageMap.findModifierTabs(bb);
         if (sel.length) {
           this._setModifierAsSuggestion(sel[0]);
+          this.createLocalModifiersFromModifierTabs(sel);
         }
         return;
       }
@@ -635,7 +645,7 @@ export abstract class SuiMapper {
       return;
     }
     this.measureNoteMap[noteKey] = artifact;
-    this.artifactMap.addBox(this._getRectangleChain(artifact), 0, artifact);
+    this.renderer.pageMap.addArtifact(artifact);
     artifact.scrollBox = { x: artifact.box.x,
       y: artifact.measure.svg.logicalBox.y };
   }

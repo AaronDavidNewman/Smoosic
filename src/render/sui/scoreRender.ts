@@ -545,6 +545,7 @@ export class SuiScoreRender {
     this.backgroundRender = true;
     this.startRenderTime = new Date().valueOf();
     this.renderingPage = -1;
+    this.vexContainers.updateContainerOffset();
     this._renderNextSystem(0, lines, printing);
   }
   // Number the measures at the first measure in each system.

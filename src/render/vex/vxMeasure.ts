@@ -14,6 +14,7 @@ import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
+import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef } from '../../smo/data/common';
 import { VexRendererContainer } from '../sui/svgPageMap';
 declare var $: any;
@@ -383,7 +384,6 @@ export class VxMeasure {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
-    y -= this.context.box.y;
     var group = this.context.getContext().openGroup();
     group.classList.add(textObj.attrs.id + '-' + smoNote.attrs.id);
     group.classList.add(textObj.attrs.id);
@@ -393,6 +393,8 @@ export class VxMeasure {
         const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
         glyph.render(this.context.getContext(), x, y);
         x += VF.TextDynamics.GLYPHS[ch].width;
+        const metrics = glyph.getMetrics();
+        textObj.logicalBox = SvgHelpers.boxPoints(x, y + this.context.box.y, metrics.width, metrics.height);
       }
     });
     textObj.element = group;

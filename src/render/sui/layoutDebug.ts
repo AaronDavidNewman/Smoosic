@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from './svgHelpers';
-import { SvgBox } from '../../smo/data/common';
+import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 const VF = eval('Vex.Flow');
 declare var $: any;
@@ -19,7 +19,7 @@ export class layoutDebug {
       system: 8,
       scroll: 16,
       artifactMap: 32,
-      measureHistory: 64,
+      mouseDebug: 64,
       textEditorHistory: 128,
       dialogEvents: 256,
       cursor: 512
@@ -34,7 +34,7 @@ export class layoutDebug {
       8: 'system-place-dbg',
       16: 'scroll-box-debug',
       32: 'measure-adjustHeight-dbg',
-      64: '',
+      64: 'mouse-debug',
       128: '',
       256: '',
       512: 'cursor-adj-dbg',
@@ -127,8 +127,28 @@ export class layoutDebug {
       return;
     }
     layoutDebug.mask |= flag;
+    layoutDebug.setFlagDivs();
   }
-
+  static setFlagDivs() {
+    if (layoutDebug.mask | layoutDebug.values.scroll) {
+      const dbgDiv = $('<div class="scroll-box-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+    if (layoutDebug.mask | layoutDebug.values.mouseDebug) {
+      const dbgDiv = $('<div class="mouse-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+  }
+  static updateScrollDebug(point: SvgPoint) {
+    const displayString = 'X: ' + point.x + ' Y: ' + point.y;
+    $('.scroll-box-debug').text(displayString);
+    $('.scroll-box-debug').css('left', '2%').css('top', '20px');
+  }
+  static updateMouseDebug(client: SvgPoint, logical: SvgPoint, offset: SvgPoint) {
+    const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) offset (${offset.x}, ${offset.y})`;
+    $('.mouse-debug').text(displayString);
+    $('.mouse-debug').css('left', '2%').css('top', '60px').css('position','absolute').css('font-size','11px');
+  }
   static addTextDebug(value: number) {
     layoutDebug._textDebug.push(value);
     console.log(value);
