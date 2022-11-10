@@ -20,7 +20,7 @@ export class layoutDebug {
       scroll: 16,
       artifactMap: 32,
       mouseDebug: 64,
-      textEditorHistory: 128,
+      dragDebug: 128,
       dialogEvents: 256,
       cursor: 512
     };
@@ -35,7 +35,7 @@ export class layoutDebug {
       16: 'scroll-box-debug',
       32: 'measure-adjustHeight-dbg',
       64: 'mouse-debug',
-      128: '',
+      128: 'drag-debug',
       256: '',
       512: 'cursor-adj-dbg',
     };
@@ -138,6 +138,10 @@ export class layoutDebug {
       const dbgDiv = $('<div class="mouse-debug"/>');
       $('body').append(dbgDiv);  
     }
+    if (layoutDebug.mask | layoutDebug.values.dragDebug) {
+      const dbgDiv = $('<div class="drag-debug"/>');
+      $('body').append(dbgDiv);  
+    }
   }
   static updateScrollDebug(point: SvgPoint) {
     const displayString = 'X: ' + point.x + ' Y: ' + point.y;
@@ -149,6 +153,12 @@ export class layoutDebug {
     $('.mouse-debug').text(displayString);
     $('.mouse-debug').css('left', '2%').css('top', '60px').css('position','absolute').css('font-size','11px');
   }
+  static updateDragDebug(client: SvgPoint, logical: SvgPoint, state: string) {
+    const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) state ${state})`;
+    $('.drag-debug').text(displayString);
+    $('.drag-debug').css('left', '2%').css('top', '80px').css('position','absolute').css('font-size','11px');
+  }
+
   static addTextDebug(value: number) {
     layoutDebug._textDebug.push(value);
     console.log(value);

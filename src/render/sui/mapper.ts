@@ -10,7 +10,6 @@ import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
 import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
-import { SuiArtifactMap } from './artifactMap';
 import { SmoScore, SmoModifier } from '../../smo/data/score';
 import { SvgPageMap } from './svgPageMap';
 declare var $: any;
@@ -53,7 +52,6 @@ export abstract class SuiMapper {
   scroller: SuiScroller;
   // measure to selector map
   measureNoteMap: Record<string | number, SmoSelection> = {};
-  artifactMap: SuiArtifactMap;
   // notes currently selected.  Something is always selected
   // modifiers (text etc.) that have been selected
   modifierSelections: ModifierTab[] = [];
@@ -80,7 +78,6 @@ export abstract class SuiMapper {
     // the current selection, which is also the copy/paste destination
     this.pasteBuffer = pasteBuffer;
     this.highlightQueue = { selectionCount: 0, deferred: false };
-    this.artifactMap = new SuiArtifactMap([0], 0, null);
   }
 
   abstract highlightSelection(): void;
@@ -183,7 +180,6 @@ export abstract class SuiMapper {
   // rendering
   loadScore() {
     this.measureNoteMap = {};
-    this.artifactMap = new SuiArtifactMap([0], 0, null);
     this.clearModifierSelections();
     this.selections = [];
     this.highlightQueue = { selectionCount: 0, deferred: false };
@@ -622,9 +618,6 @@ export abstract class SuiMapper {
     rv.push(selection.measure.svg.lineIndex);
     rv.push(selection.measure.measureNumber.measureIndex);
     return rv;
-  }
-  debugBox(svg: SVGSVGElement) {
-    this.artifactMap.debugBox(svg);
   }
   _updateMeasureNoteMap(artifact: SmoSelection, printing: boolean) {
     const note = artifact.note as SmoNote;

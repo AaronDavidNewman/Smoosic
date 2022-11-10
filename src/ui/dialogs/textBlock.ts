@@ -149,7 +149,10 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       const textParams = SmoScoreText.defaults;
       textParams.position = SmoScoreText.positions.custom;
       const newText = new SmoScoreText(textParams);
-      newText.y += tracker.scroller.scrollState.y;
+      // convert scroll from screen coord to svg coord
+      const svgScroll = tracker.renderer.pageMap.clientToSvg(SvgHelpers.smoBox(tracker.scroller.scrollState));
+      newText.y += svgScroll.y;
+      newText.x += svgScroll.x;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure.svg;
         if (typeof (sel.logicalBox) !== 'undefined') {

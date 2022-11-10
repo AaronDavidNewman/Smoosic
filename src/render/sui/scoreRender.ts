@@ -268,8 +268,11 @@ export class SuiScoreRender {
     if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
       return;
     }
-    this.renderingPage = pageIndex;
     const context = this.vexContainers.getRendererForPage(pageIndex);
+    if (this.renderingPage !== pageIndex) {
+      context.clearMap();
+      this.renderingPage = pageIndex;
+    }
     const vxSystem: VxSystem = new VxSystem(context, 0, lineIx, this.score);
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
@@ -335,14 +338,6 @@ export class SuiScoreRender {
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
-      if (layoutDebug.mask & layoutDebug.values.artifactMap) {
-        if (this.measureMapper?.artifactMap?.box) {
-          const container = this.vexContainers.getRenderer(this.measureMapper?.artifactMap.box);
-          if (container) {
-            this.measureMapper?.artifactMap.debugBox(container.svg);
-          }
-        }
-      }
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
       // score.
@@ -545,7 +540,7 @@ export class SuiScoreRender {
     this.backgroundRender = true;
     this.startRenderTime = new Date().valueOf();
     this.renderingPage = -1;
-    this.vexContainers.updateContainerOffset();
+    this.vexContainers.updateContainerOffset(this.measureMapper!.scroller.scrollState);
     this._renderNextSystem(0, lines, printing);
   }
   // Number the measures at the first measure in each system.

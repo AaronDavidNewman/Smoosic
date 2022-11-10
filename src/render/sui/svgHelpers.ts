@@ -189,7 +189,6 @@ export class SvgHelpers {
   }
 
   static _outlineRect(params: OutlineInfo) {
-    const scroll = params.scroll;
     const context = params.context;
     // vex puts 'vf-' before everything rendered by context API
     SvgHelpers.eraseOutline(context.svg, params.stroke);

@@ -433,6 +433,10 @@ export class SmoTextGroup extends SmoScoreModifierBase {
         xx.text = xx.text.replace('@@@', pages.toString()); /// page number
         xx.y += pageHeight * ix;
       });
+      if (tg.logicalBox) {
+        ngroup.logicalBox = JSON.parse(JSON.stringify(tg.logicalBox));
+        ngroup.logicalBox!.y += pageHeight * i;
+      }
       rv.push(ngroup);
     }
     return rv;

@@ -245,9 +245,13 @@ export class SvgPageMap {
     get container() {
         return this._container;
     }
-    updateContainerOffset() {
+    /**
+     * Update the offset of the music container, in client coordinates.
+     * @param scrollPoint 
+     */
+    updateContainerOffset(scrollPoint: SvgPoint) {
       const rect = SvgHelpers.smoBox(this.container.getBoundingClientRect());
-      this.containerOffset = { x: rect.x, y: rect.y };
+      this.containerOffset = { x: rect.x + scrollPoint.x, y: rect.y + scrollPoint.y };
     }
     get layout() {
       return this._layout;
@@ -303,13 +307,21 @@ export class SvgPageMap {
       this.vfRenderers.push(new VexRendererContainer(vexRenderer, ix, box));
     }
     clientToSvg(box: SvgBox) {
-      const x = (box.x - this.containerOffset.x) / (this.zoomScale / this.renderScale);
-      const y = (box.y - this.containerOffset.y) / (this.zoomScale / this.renderScale);
-      const logicalBox = SvgHelpers.boxPoints(x, y, 1, 1);
+      const cof = (this.zoomScale / this.renderScale);
+      const x = (box.x - this.containerOffset.x) / cof;
+      const y = (box.y - this.containerOffset.y) / cof;
+      const logicalBox = SvgHelpers.boxPoints(x, y, Math.max(box.width / cof, 1), Math.max(box.height / cof, 1));
       if (layoutDebug.mask | layoutDebug.values['mouseDebug']) {
         layoutDebug.updateMouseDebug(box, logicalBox, this.containerOffset);
       }
       return logicalBox;
+    }
+    svgToClient(box: SvgBox) {
+      const cof = (this.zoomScale / this.renderScale);
+      const x = (box.x * cof) + this.containerOffset.x;
+      const y = (box.y * cof) + this.containerOffset.y;
+      const clientBox = SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);
+      return clientBox;
     }
     findArtifact(box: SvgBox): { selections: SmoSelection[], page: VexRendererContainer} {
       const selections: SmoSelection[] = [];

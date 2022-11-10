@@ -830,50 +830,69 @@ export interface SuiDragSessionParams {
 
 export class SuiDragSession {
   pageMap: SvgPageMap;
+  page: VexRendererContainer;
   scroller: SuiScroller;
-  xOffset: number = 0;
-  yOffset: number = 0;
+  outlineBox: SvgBox;
   textObject: SuiTextBlock;
   dragging: boolean = false;
-  startBox: SvgBox;
-  currentBox: SvgBox;
-  currentClientBox: SvgBox;
   textGroup: SmoTextGroup;
   constructor(params: SuiDragSessionParams) {
     this.textGroup = params.textGroup;
     this.pageMap = params.context;
     this.scroller = params.scroller;
-    this.xOffset = 0;
-    this.yOffset = 0;
-    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, pageContext, this.scroller); // SuiTextBlock
+    this.page = this.pageMap.getRendererFromModifier(this.textGroup);
+    // create a temporary text object for dragging
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.page, this.scroller); // SuiTextBlock
     this.dragging = false;
-    this.startBox = this.textObject.getLogicalBox();
-    this.startBox.y += this.textObject.maxFontHeight(1);
-    this.currentBox = SvgHelpers.smoBox(this.startBox);
-    this.currentClientBox = SvgHelpers.smoBox(
-      SvgHelpers.logicalToClient(pageContext.svg, this.currentBox, this.scroller.scrollState));
+    this.outlineBox = this.textObject.getLogicalBox();
   }
 
   _outlineBox() {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
-    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
+    const x = this.outlineBox.x - this.page.box.x;
+    const y = this.outlineBox.y - this.page.box.y;
     const obj: OutlineInfo = {
-      context: pageContext, box: this.currentBox, classes: 'text-drag',
+      context: this.page, 
+      box: SvgHelpers.boxPoints(x , y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
+      classes: 'text-drag',
       stroke: outlineStroke, scroll: this.scroller.scrollState,
       clientCoordinates: false
     };
     SvgHelpers.outlineLogicalRect(obj);
   }
-
+  scrolledClientBox(x: number, y: number) {
+    return { x: x + this.scroller.scrollState.x, y: y + this.scroller.scrollState.y, width: 1, height: 1 };
+  }
+  checkBounds() {
+    if (this.outlineBox.y < this.outlineBox.height) {
+      this.outlineBox.y = this.outlineBox.height;
+    }
+    if (this.outlineBox.x < 0) {
+      this.outlineBox.x = 0;
+    }
+    if (this.outlineBox.x > this.page.box.x + this.page.box.width - this.outlineBox.width) {
+      this.outlineBox.x = this.page.box.x + this.page.box.width - this.outlineBox.width;
+    }
+    if (this.outlineBox.y > this.page.box.y + this.page.box.height) {
+      this.outlineBox.y = this.page.box.y + this.page.box.height;
+    }
+  }
   startDrag(e: any) {
-    if (!SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, SvgHelpers.smoBox(this.scroller.scrollState))) {
+    const evBox = this.scrolledClientBox(e.clientX, e.clientY);
+    const svgMouseBox = this.pageMap.clientToSvg(evBox);
+    svgMouseBox.y -= this.outlineBox.height;
+    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+      layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'start');
+    }
+    if (!SvgHelpers.doesBox1ContainBox2(this.outlineBox, svgMouseBox)) {
       return;
     }
-    this.dragging = true;
-    // calculate offset of mouse start vs. box UL
-    this.yOffset = this.currentClientBox.y - e.clientY;
-    this.xOffset = this.currentClientBox.x - e.clientX;
+    this.dragging = true;    
+    this.outlineBox = svgMouseBox;
+    const currentBox = this.textObject.getLogicalBox();
+    this.outlineBox.width = currentBox.width;
+    this.outlineBox.height = currentBox.height;
+    this.checkBounds();
     this._outlineBox();
   }
 
@@ -881,42 +900,36 @@ export class SuiDragSession {
     if (!this.dragging) {
       return;
     }
-    const svgX = this.currentBox.x;
-    const svgY = this.currentBox.y;
-    this.currentClientBox.x = e.clientX + this.xOffset;
-    this.currentClientBox.y = e.clientY - this.yOffset;
-    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
-    const coor = SvgHelpers.clientToLogical(pageContext.svg,
-      {
-        x: this.currentClientBox.x + + this.scroller.scrollState.x,
-        y: this.currentClientBox.y + this.scroller.scrollState.y,
-        width: 0, height: 0
-      });
-    this.currentBox.x = coor.x;
-    this.currentBox.y = coor.y;
-    this.textObject.offsetStartX(this.currentBox.x - svgX);
-    this.textObject.offsetStartY(this.currentBox.y - svgY);
+    const evBox = this.scrolledClientBox(e.clientX, e.clientY);
+    const svgMouseBox = this.pageMap.clientToSvg(evBox);
+    svgMouseBox.y -= this.outlineBox.height;
+    this.outlineBox = SvgHelpers.smoBox(svgMouseBox);
+    const currentBox = this.textObject.getLogicalBox();
+    this.outlineBox.width = currentBox.width;
+    this.outlineBox.height = currentBox.height;
+    this.checkBounds();
+
+    this.textObject.offsetStartX(this.outlineBox.x - currentBox.x);
+    this.textObject.offsetStartY(this.outlineBox.y - currentBox.y);
     this.textObject.render();
-    SvgHelpers.eraseOutline(pageContext.svg, SuiTextEditor.strokes['text-drag']);
+    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+      layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'drag');
+    }
+    SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
     this._outlineBox();
-  }
-  get deltaX(): number {
-    return this.currentBox.x - this.startBox.x;
-  }
-  get deltaY(): number {
-    return this.currentBox.y - this.startBox.y;
   }
 
   endDrag() {
     this.textObject.render();
-    this.textGroup.offsetX(this.deltaX);
-    this.textGroup.offsetY(this.deltaY);
-    // Update starting position if the drag session starts again.
-    this.startBox.x += this.deltaX;
-    this.startBox.y += this.deltaY;
+    const newBox = this.textObject.getLogicalBox();
+    const curBox = this.textGroup.logicalBox ?? SvgBox.default;
+    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+      layoutDebug.updateDragDebug(curBox, newBox, 'end');
+    }
+    this.textGroup.offsetX(newBox.x - curBox.x);
+    this.textGroup.offsetY(newBox.y - curBox.y + this.outlineBox.height);
     this.dragging = false;
-    const pageContext = this.pageMap.getRendererFromModifier(this.textGroup);
-    SvgHelpers.eraseOutline(pageContext.svg, SuiTextEditor.strokes['text-drag']);
+    SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
   }
 }
 
