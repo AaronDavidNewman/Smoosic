@@ -36,6 +36,9 @@ const VF = eval('Vex.Flow');
   undoBuffer: UndoBuffer
 }
 
+export interface MapParameters {
+  vxSystem: VxSystem, measuresToBox: SmoMeasure[], modifiersToBox: StaffModifierBase[], printing: boolean
+}
 /**
  * This module renders the entire score.  It calculates the layout first based on the
  * computed dimensions.
@@ -56,6 +59,7 @@ export class SuiScoreRender {
   // vexRenderer: any = null;
   score: SmoScore | null = null;
   measureMapper: SuiMapper | null = null;
+  measuresToMap: MapParameters[] = [];
   viewportChanged: boolean = false;
   renderTime: number = 0;
   backgroundRender: boolean = false;
@@ -266,6 +270,7 @@ export class SuiScoreRender {
     // If this page hasn't changed since rendered
     const pageIndex = columns[0][0].svg.pageIndex;
     if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
+      console.log(`skipping render on page ${pageIndex}`);
       return;
     }
     const context = this.vexContainers.getRendererForPage(pageIndex);
@@ -311,6 +316,7 @@ export class SuiScoreRender {
     if (this.measureMapper !== null) {
       vxSystem.renderEndings(this.measureMapper.scroller);
     }
+    this.measuresToMap.push({vxSystem, measuresToBox, modifiersToBox, printing });
     this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
 
     const timestamp = new Date().valueOf();
@@ -338,6 +344,10 @@ export class SuiScoreRender {
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
+      this.measuresToMap.forEach((mm) => {
+        this.measureRenderedElements(mm.vxSystem, mm.measuresToBox, mm.modifiersToBox, mm.printing);
+      });
+      this.measuresToMap = [];
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
       // score.
@@ -482,7 +492,7 @@ export class SuiScoreRender {
       if (context) {
         $(context.svg).find('.pageLine').remove();
         const scaledPage = layoutMgr.getScaledPageLayout(i);
-        const y = scaledPage.pageHeight * i;
+        const y = scaledPage.pageHeight * i - context.box.y;
         SvgHelpers.line(context.svg, 0, y, scaledPage.pageWidth, y,
           { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
   
@@ -592,6 +602,7 @@ export class SuiScoreRender {
     if (this.formatter.trimPages(startPageCount)) {
       this.setViewport(true);
     }
+    this.measuresToMap = [];
     this.renderAllMeasures(formatter.lines);
   } 
 }

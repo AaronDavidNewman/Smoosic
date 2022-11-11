@@ -272,10 +272,10 @@ export class SvgPageMap {
       return this.layout.pageWidth * this.zoomScale;
     }
     get pageHeight() {
-      return this.layout.pageHeight * this.layout.svgScale;
+      return this.layout.pageHeight / this.layout.svgScale;
     }
     get pageWidth() {
-      return this.layout.pageWidth * this.layout.svgScale;
+      return this.layout.pageWidth / this.layout.svgScale;
     }
     get totalHeight() {
       return this.pageDivHeight * this.pageLayouts.length;
@@ -307,7 +307,7 @@ export class SvgPageMap {
       this.vfRenderers.push(new VexRendererContainer(vexRenderer, ix, box));
     }
     clientToSvg(box: SvgBox) {
-      const cof = (this.zoomScale / this.renderScale);
+      const cof = (this.zoomScale * this.renderScale);
       const x = (box.x - this.containerOffset.x) / cof;
       const y = (box.y - this.containerOffset.y) / cof;
       const logicalBox = SvgHelpers.boxPoints(x, y, Math.max(box.width / cof, 1), Math.max(box.height / cof, 1));
@@ -401,7 +401,7 @@ export class SvgPageMap {
         return this.vfRenderers[this.vfRenderers.length - 1];
     }
     getRendererFromPoint(point: SvgPoint): VexRendererContainer | null {
-        const ix = Math.floor(point.y / (this.layout.pageHeight));
+        const ix = Math.floor(point.y / (this.layout.pageHeight / this.layout.svgScale));
         if (ix < this.vfRenderers.length) {
             return this.vfRenderers[ix];
         }

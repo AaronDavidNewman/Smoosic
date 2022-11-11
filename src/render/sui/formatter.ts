@@ -303,17 +303,15 @@ export class SuiLayoutFormatter {
         const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
         if (renderedPage) {
           if (pageCheck !== this.currentPage) {
-            if (renderedPage.endMeasure !== measureIx - 1) {
+            // The last measure in the last system of the previous page
+            const previousSystem = currentLine[0].measureNumber.measureIndex - 1;
+            if (renderedPage.endMeasure !== previousSystem) {
               this.renderedPages[pageCheck] = null;
             }            
             const nextPage = this.renderedPages[this.currentPage];
-            if (nextPage && nextPage.startMeasure !== measureIx) {
+            if (nextPage && nextPage.startMeasure !== previousSystem + 1) {
               this.renderedPages[this.currentPage] = null;
-            }
-          } else {
-            if (renderedPage.startMeasure > measureIx || renderedPage.endMeasure < measureIx) {
-              this.renderedPages[pageCheck] = null;
-            }
+            }          
           }
         }
         pageCheck = this.currentPage;
