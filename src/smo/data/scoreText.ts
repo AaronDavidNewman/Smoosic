@@ -370,7 +370,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   selector?: SmoSelector;
   musicXOffset: number = 0;
   musicYOffset: number = 0;
-  elements: Record<string, VexRendererContainer> = {};
+  elements: SVGSVGElement[] = [];
   textBlocks: SmoTextBlock[] = [];
   edited: boolean = false;  // indicates not edited this session
   skipRender: boolean = false; // don't render if it is being edited

@@ -142,7 +142,10 @@ export class SuiRenderState {
     this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
     this._resetViewport = true;
   }
-
+  clearLine(measure: SmoMeasure) {
+    const page = measure.svg.pageIndex;
+    this.renderer.clearRenderedPage(page);
+  }
   remapAll() {
     this.setRefresh();
   }

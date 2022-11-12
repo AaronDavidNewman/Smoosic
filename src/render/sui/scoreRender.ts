@@ -65,6 +65,7 @@ export class SuiScoreRender {
   backgroundRender: boolean = false;
   renderedPages: Record<number, RenderedPage | null> = {};
   _autoAdjustRenderTime: boolean = true;
+  lyricsToOffset: Map<number, VxSystem> = new Map();
   renderingPage: number = -1;
 
   get autoAdjustRenderTime() {
@@ -82,11 +83,10 @@ export class SuiScoreRender {
     if (gg.skipRender || this.score === null || this.measureMapper === null) {
       return;
     }
-    const ggKeys = Object.keys(gg.elements);
-    ggKeys.forEach((key) => {
-      gg.elements[key].svg.remove();
+    gg.elements.forEach((element) => {
+      element.remove();
     });
-    gg.elements = {};
+    gg.elements = [];
     const layoutManager = this.score!.layoutManager!;
     const scaledScoreLayout = layoutManager.getScaledPageLayout(0);
 
@@ -112,21 +112,15 @@ export class SuiScoreRender {
             const yoff = mm.svg.logicalBox.y + newGroup.musicYOffset;
             newGroup.textBlocks[0].text.x = xoff;
             newGroup.textBlocks[0].text.y = yoff;
-            const pageNo = (Math.round(yoff / scaledScoreLayout.pageHeight)).toString();
-            if (!gg.elements[pageNo]) {
-              container = this.vexContainers.getRenderer({ x: xoff, y: yoff });
-              if (container) {
-                gg.elements[pageNo] = container;
-              }
-            } else {
-              container = gg.elements[pageNo];
-            }
           }
         }
       }
       if (container) {
         const block = SuiTextBlock.fromTextGroup(newGroup, container, this.measureMapper!.scroller);
-        block.render();  
+        block.render();
+        if (block.currentBlock?.text.element) {
+          gg.elements.push(block.currentBlock?.text.element);
+        }
         // For the first one we render, use that as the bounding box for all the text, for
         // purposes of mapper/tracker
         if (ix === 0) {
@@ -139,7 +133,6 @@ export class SuiScoreRender {
         ix += 1;
       }
     });
-    ggKeys.forEach((ggKey) => gg.elements[ggKey].getContext().closeGroup());
   }
   
   // ### unrenderAll
@@ -199,10 +192,10 @@ export class SuiScoreRender {
     // remove existing modifiers, and also remove parent group for 'extra'
     // groups associated with pagination (once per page etc)
     this.score!.textGroups.forEach((tg) => {
-      Object.keys(tg.elements).forEach((ggKey) => {
-        tg.elements[ggKey].svg.remove();
+      tg.elements.forEach((element) => {
+        element.remove();
       });
-      tg.elements = {};
+      tg.elements = [];
     });
     // group.classList.add('all-score-text');
     this.score!.textGroups.forEach((tg) => {
@@ -317,10 +310,13 @@ export class SuiScoreRender {
       vxSystem.renderEndings(this.measureMapper.scroller);
     }
     this.measuresToMap.push({vxSystem, measuresToBox, modifiersToBox, printing });
-    this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
+    // this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
 
     const timestamp = new Date().valueOf();
-    vxSystem.updateLyricOffsets();
+    if (!this.lyricsToOffset.has(vxSystem.lineIndex)) {
+      this.lyricsToOffset.set(vxSystem.lineIndex, vxSystem);
+    }
+    // vxSystem.updateLyricOffsets();
     layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
   }
   _renderNextSystemPromise(systemIx: number, keys: number[], printing: boolean) {
@@ -347,7 +343,11 @@ export class SuiScoreRender {
       this.measuresToMap.forEach((mm) => {
         this.measureRenderedElements(mm.vxSystem, mm.measuresToBox, mm.modifiersToBox, mm.printing);
       });
+      this.lyricsToOffset.forEach((vv) => {
+        vv.updateLyricOffsets();
+      });
       this.measuresToMap = [];
+      this.lyricsToOffset = new Map();
       // We pro-rate the background render timer on how long it takes
       // to actually render the score, so we are not thrashing on a large
       // score.
@@ -603,6 +603,7 @@ export class SuiScoreRender {
       this.setViewport(true);
     }
     this.measuresToMap = [];
+    this.lyricsToOffset = new Map();
     this.renderAllMeasures(formatter.lines);
   } 
 }

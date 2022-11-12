@@ -10,7 +10,6 @@ import { ModifierTab } from '../../smo/xform/selections';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
-
 /**
  * Hash keys for music or modifier artifacts for quicker searching
  */
@@ -281,13 +280,18 @@ export class SvgPageMap {
       return this.pageDivHeight * this.pageLayouts.length;
     }
     createRenderers() {
+      // $(this.container).html('');
       $(this.container).css('width', '' + Math.round(this.pageDivWidth) + 'px');
       $(this.container).css('height', '' + Math.round(this.totalHeight) + 'px');
+      const toRemove: HTMLElement[] = [];
       this.vfRenderers.forEach((renderer) => {
           const container = (renderer.svg as SVGSVGElement).parentElement;
           if (container) {
-              container.remove();
+            toRemove.push(container);
           }
+      });
+      toRemove.forEach((tt) => {
+        tt.remove();
       });
       this.vfRenderers = [];
       this.pageLayouts.forEach(() => {

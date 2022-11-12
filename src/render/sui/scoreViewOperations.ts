@@ -1482,7 +1482,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     nmeasure.setActiveVoice(0);
     this.score.addMeasure(pos);
     this.storeScore.addMeasure(pos);
-    // this.renderer.clearLine(measure);
+    this.renderer.clearLine(measure);
     this.renderer.setRefresh();
     return this.renderer.updatePromise();
   }

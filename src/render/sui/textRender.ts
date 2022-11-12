@@ -174,7 +174,7 @@ export class SuiInlineText {
   scroller: SuiScroller;
   artifacts: SuiInlineArtifact[] = [];
   logicalBox: SvgBox = SvgBox.default;
-  renderedBox: SvgBox = SvgBox.default;
+  element: SVGSVGElement | null = null;
 
   updateFontInfo(): VexTextFont {
     return VF.TextFormatter.create({
@@ -404,7 +404,8 @@ export class SuiInlineText {
     $('svg #inlineCursor').remove();
   }
   unrender() {
-    $('svg #' + this.attrs.id).remove();
+    this.element?.remove();
+    this.element = null;
   }
   getIntersectingBlocks(box: SvgBox): SuiInlineArtifact[] {
     if (!this.artifacts) {
@@ -481,8 +482,6 @@ export class SuiInlineText {
   }
 
   render() {
-    $('svg #' + this.attrs.id).remove();
-
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
@@ -491,6 +490,7 @@ export class SuiInlineText {
       family: this.fontFamily, size: this.fontSize, weight: this.fontWeight, style: this.fontStyle
     });
     const group = this.context.getContext().openGroup();
+    this.element = group;
     const mmClass = 'suiInlineText';
     let ix = 0;
     group.classList.add('vf-' + this.attrs.id);
@@ -730,8 +730,10 @@ export class SuiTextBlock {
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {
-      const selector = '#' + block.text.attrs.id;
-      $(selector).remove();
+      if (block.text.element) {
+        block.text.element.remove();
+        block.text.element = null;
+      }
     });
   }
   // ### _justify
