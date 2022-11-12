@@ -364,10 +364,10 @@ export class SuiLayoutFormatter {
       }
     }
     // If a measure was added to the last page, make sure we re-render the page
-    const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
+    const renderedPage: RenderedPage | null = this.renderedPages[this.currentPage];
     if (renderedPage) {
-      if (renderedPage.endMeasure !== measureIx) {
-        this.renderedPages[pageCheck] = null;
+      if (renderedPage.endMeasure !== currentLine[0].measureNumber.measureIndex) {
+        this.renderedPages[this.currentPage] = null;
       }
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);

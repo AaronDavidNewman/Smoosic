@@ -377,7 +377,9 @@ export class SuiInlineText {
     group.id = 'inlineCursor';
     const h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
-      SvgHelpers.renderCursor(group, this.startX, this.startY - h, h);
+      const x = this.startX - this.context.box.x;
+      const y = this.startY - this.context.box.y;
+      SvgHelpers.renderCursor(group,  x, y - h, h);
       this.context.getContext().closeGroup();
       return;
     }
@@ -397,7 +399,9 @@ export class SuiInlineText {
         }
       }
     }
-    SvgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
+    const x = block.x + block.width - this.context.box.x;
+    const y = adjY - (adjH * block.scale) - this.context.box.y;
+    SvgHelpers.renderCursor(group, x, y, adjH * block.scale);
     this.context.getContext().closeGroup();
   }
   removeCursor() {
@@ -530,9 +534,6 @@ export class SuiInlineText {
     const weight = this.fontWeight;
     const style = this.fontStyle;
     const family = this.fontFamily;
-    let font = { family, size: this.fontSize, weight, style };
-    let textFormatter = VF.TextFormatter
-
     if (sp || sub) {
       this.context.getContext().save();
       this.context.getContext().setFont({
@@ -544,7 +545,7 @@ export class SuiInlineText {
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.getContext().fillText(block.text, block.x, y);
     } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
-      block.glyph.render(this.context, block.x, y);
+      block.glyph.render(this.context.getContext(), block.x, y);
     }
     if (sp || sub) {
       this.context.getContext().restore();

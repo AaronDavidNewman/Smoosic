@@ -107,7 +107,6 @@ export class MappedSystems {
     if (this.systemMap.has(selection.measure.svg.lineIndex)) {
       const mmap = this.systemMap.get(selection.measure.svg.lineIndex);
       if (mmap) {
-        mmap.clearMeasure(selection.measure);
         this.systemMap.delete(selection.measure.svg.lineIndex);
       }
     }

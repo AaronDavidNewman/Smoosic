@@ -444,6 +444,12 @@ export class SuiTextEditor {
   // ### evKey
   // Handle key events that filter down to the editor
   async evKey(evdata: KeyEvent): Promise<boolean> {
+    const removeCurrent = () => {
+      if (this.svgText) {
+        this.svgText.element?.remove();
+        this.svgText.element = null;
+      }
+    }
     if (evdata.code === 'ArrowRight') {
       if (evdata.shiftKey) {
         this.growSelectionRight();
@@ -463,6 +469,7 @@ export class SuiTextEditor {
       return true;
     }
     if (evdata.code === 'Backspace') {
+      removeCurrent();
       if (this.selectionStart >= 0) {
         this.deleteSelections();
       } else {
@@ -476,6 +483,7 @@ export class SuiTextEditor {
       return true;
     }
     if (evdata.code === 'Delete') {
+      removeCurrent();
       if (this.selectionStart >= 0) {
         this.deleteSelections();
       } else {
@@ -489,6 +497,7 @@ export class SuiTextEditor {
       return true;
     }
     if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
+      removeCurrent();
       const isPaste = evdata.ctrlKey && evdata.key === 'v';
       let text = evdata.key;
       if (isPaste) {
@@ -504,6 +513,10 @@ export class SuiTextEditor {
       } else {
         if (this.selectionStart >= 0) {
           this.deleteSelections();
+        }
+        if (this.svgText) {
+          this.svgText.element?.remove();
+          this.svgText.element = null;
         }
         const def = SuiInlineText.blockDefaults;
         def.text = text;
@@ -772,7 +785,11 @@ export class SuiChordEditor extends SuiTextEditor {
     this.svgText?.addGlyphBlockAt(ix, blockP);
     this.textPos += 1;
   }
-
+  unrender() {
+    if (this.svgText) {
+      this.svgText.element?.remove();
+    }
+  }
   async evKey(evdata: KeyEvent): Promise<boolean> {
     let edited = false;
     if (this._setSymbolModifier(evdata.key)) {
@@ -780,11 +797,13 @@ export class SuiChordEditor extends SuiTextEditor {
     }
     // Dialog gives us a specific glyph code
     if (evdata.key[0] === '@' && evdata.key.length > 2) {
+      this.unrender();
       const glyph = evdata.key.substr(1, evdata.key.length - 2);
       this._addGlyphAt(this.textPos, glyph);
       this.svgText?.render();
       edited = true;
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
+      this.unrender();
       this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
       this.svgText?.render();
       edited = true;
