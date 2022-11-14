@@ -320,7 +320,7 @@ export class SvgPageMap {
       return logicalBox;
     }
     svgToClient(box: SvgBox) {
-      const cof = (this.zoomScale / this.renderScale);
+      const cof = (this.zoomScale * this.renderScale);
       const x = (box.x * cof) + this.containerOffset.x;
       const y = (box.y * cof) + this.containerOffset.y;
       const clientBox = SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);

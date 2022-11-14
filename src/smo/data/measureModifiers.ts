@@ -17,7 +17,6 @@ const VF = eval('Vex.Flow');
 export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
   constructor(ctor: string) {
     this.ctor = ctor;

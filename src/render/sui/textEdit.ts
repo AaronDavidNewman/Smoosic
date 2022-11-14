@@ -224,10 +224,6 @@ export class SuiTextEditor {
     }
     const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.context.svg, 
       SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY, width: 1, height: 1 } )));
-    if (layoutDebug.mask & layoutDebug.values.cursor) {
-      layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
-      layoutDebug.debugBox(this.context.svg, logicalBox, layoutDebug.values.cursor);
-    }
     var blocks = this.svgText.getIntersectingBlocks(logicalBox);
 
     // The mouse is not over the text

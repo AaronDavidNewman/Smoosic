@@ -17,14 +17,12 @@ const VF = eval('Vex.Flow');
  * Base class for all {@link SmoScore} modifiers. 
  * It is used to de/serialize the objects.
  * @param ctor constructor for derived class
- * @param renderedBox bounding box in client coordinates, if rendered
  * @param logicalBox bounding box in SVG coordinates, if rendered
  * @param attrs object identification
  * @category SmoModifier
  */
 export abstract class SmoScoreModifierBase implements SmoModifierBase {
   ctor: string;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
   attrs: SmoAttrs;
   constructor(ctor: string) {

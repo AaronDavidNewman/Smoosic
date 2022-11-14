@@ -178,7 +178,6 @@ export class SvgHelpers {
       return;
     }
     artifact.logicalBox = context.offsetBbox(element);
-    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(context.svg, artifact.logicalBox));
   }
 
   // ### eraseOutline

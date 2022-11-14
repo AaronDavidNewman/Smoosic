@@ -22,7 +22,6 @@ const VF = eval('Vex.Flow');
 export abstract class SmoNoteModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
   element: SVGSVGElement | null = null;
   constructor(ctor: string) {

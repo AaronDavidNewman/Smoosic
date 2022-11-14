@@ -16,7 +16,6 @@ const VF = eval('Vex.Flow');
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
  * @param ctor constructor for derived class
- * @param renderedBox bounding box in client coordinates, if rendered
  * @param logicalBox bounding box in SVG coordinates, if rendered
  * @param attrs object identification
  * @param startSelector where the modifier starts
@@ -29,7 +28,6 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   associatedStaff: number = 0;
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
   element: SVGSVGElement | null = null;
   constructor(ctor: string) {

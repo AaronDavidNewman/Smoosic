@@ -12,6 +12,7 @@ import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
 import { VexRendererContainer } from './svgPageMap';
+import { layoutDebug } from './layoutDebug';
 declare var $: any;
 /**
  * SuiTracker
@@ -83,7 +84,6 @@ export class SuiTracker extends SuiMapper {
    * @returns 
    */
   musicCursor(selector: SmoSelector, offsetPct: number, durationPct: number) {
-    const key = SmoSelector.getNoteKey(selector);
     if (!this.score) {
       return;
     }
@@ -94,28 +94,33 @@ export class SuiTracker extends SuiMapper {
       0, selector.measure);
     const measure = measureSel?.measure as SmoMeasure;
     if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
+      const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
       const topBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+      topBox.y -= context.box.y;
       const botBox = SvgHelpers.smoBox(measure.svg.logicalBox);
+      botBox.y -= context.box.y;
       const height = (botBox.y + botBox.height) - topBox.y;
       const measureWidth = botBox.width - measure.svg.adjX;
       const width = measureWidth * durationPct;
       const y = topBox.y;
-      const x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+      let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+      const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
+      if (noteBox && noteBox.logicalBox) {
+        x = noteBox.logicalBox.x;
+      }
       const screenBox = SvgHelpers.boxPoints(x, y, width, height);
       const fillParams: Record<string, string> = {};
       fillParams['fill-opacity'] = '0.5';
       fillParams['fill'] = '#4444ff';
-      const context = this.renderer.pageMap.getRenderer(topBox);
-      if (context) {
-        const ctx = context.getContext();
-        this.clearMusicCursor();
-        ctx.save();
-        ctx.openGroup('music-cursor', 'music-cursor');
-        ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
-        ctx.closeGroup();
-        ctx.restore();
-        this.scroller.scrollVisibleBox(screenBox);        
-      }
+      const ctx = context.getContext();
+      this.clearMusicCursor();
+      ctx.save();
+      ctx.openGroup('music-cursor', 'music-cursor');
+      ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
+      ctx.closeGroup();
+      ctx.restore();
+      layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
+      this.scroller.scrollVisibleBox(measure.svg.logicalBox);        
     }
   }
 
@@ -620,6 +625,7 @@ export class SuiTracker extends SuiMapper {
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierSuggestion];
       this.modifierSuggestion = null;
+      this.createLocalModifiersFromModifierTabs(this.modifierSelections);
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
       this._highlightModifier();
@@ -658,7 +664,12 @@ export class SuiTracker extends SuiMapper {
       this.pitchIndex =  (this.pitchIndex + 1) % note.pitches.length;
       this.selections[0].selector.pitches = [this.pitchIndex];
     } else {
-      this.selections = [this.suggestion];
+      const selection = SmoSelection.noteFromSelector(this.score, this.suggestion.selector);
+      if (selection) {
+        selection.box = JSON.parse(JSON.stringify(this.suggestion.box));
+        selection.scrollBox = JSON.parse(JSON.stringify(this.suggestion.scrollBox));
+        this.selections = [selection];
+      }
     }
     if (preselected && this.modifierSelections.length) {
       const mods  = this.modifierSelections.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));

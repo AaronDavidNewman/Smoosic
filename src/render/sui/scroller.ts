@@ -33,7 +33,6 @@ export class SuiScroller {
   }
 
   get scrollState(): SvgPoint {
-    const scroll = JSON.parse(JSON.stringify(this._scroll));
     return { x: this._scroll.x, y: this._scroll.y };
   }
   restoreScrollState(state: SvgPoint) {
@@ -72,20 +71,33 @@ export class SuiScroller {
   scrollVisibleBox(box: SvgBox) {
     let yoff = 0;
     let xoff = 0;
-    const container = this.svgPages.getRendererFromPoint({ x: 0, y: 0 });
-    if (container) {
-      const svg = container.svg;
-      // Since the pages will all be the same dimensions, any page svg should work here.
-      const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, box,
-        { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
-      if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
-        yoff = screenBox.y;
-      }
-      if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
-        xoff = screenBox.x;
-      }
-      this.scrollOffset(xoff, yoff);
+    // Since the pages will all be the same dimensions, any page svg should work here.
+    const screenBox = this.svgPages.svgToClient(box);
+    const offset = this.svgPages.svgToClient(SvgHelpers.boxPoints(0,0,1,1));
+    const scrollState = this.scrollState;
+    const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height + offset.y;
+    const scrollUp = () => screenBox.y < scrollState.y + offset.y;
+    const scrollLeft = () => screenBox.x < scrollState.x + offset.x;
+    const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width + offset.x;
+    const vScrollAmt = () => this.viewport.height > screenBox.height ? (this.viewport.height - screenBox.height - 30) : this.viewport.height;
+    const hScrollAmt = () => this.viewport.width > screenBox.width ? (this.viewport.width - screenBox.width - 30) : this.viewport.width;
+    while (scrollUp()) {
+      yoff -= vScrollAmt();
+      screenBox.y += vScrollAmt();
+    } 
+    while (scrollDown()) {
+      yoff += vScrollAmt();
+      screenBox.y -= vScrollAmt();
     }
+    while (scrollLeft()) {
+      xoff -= hScrollAmt(); 
+      screenBox.x += hScrollAmt();
+    }
+    while (scrollRight()) {
+      xoff += hScrollAmt();
+      screenBox.x -= hScrollAmt();
+    }
+    this.scrollOffset(xoff, yoff);
 }
   // Update viewport size, and also fix height of scroll region.
   updateViewport() {
@@ -117,8 +129,8 @@ export class SuiScroller {
   // ### scrollOffset
   // scroll the offset from the starting scroll point
   scrollOffset(x: number, y: number) {
-    const xScreen = this._scroll.x + x;
-    const yScreen = this._scroll.y + y;
+    const xScreen = Math.max(this._scroll.x + x, 0);
+    const yScreen = Math.max(this._scroll.y + y, 0);
     this.scrollAbsolute(xScreen, yScreen);
   }
 

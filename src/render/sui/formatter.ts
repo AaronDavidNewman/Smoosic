@@ -274,8 +274,6 @@ export class SuiLayoutFormatter {
     let measureEstimate: MeasureEstimate | null = null;
 
     layoutDebug.clearDebugBoxes(layoutDebug.values.pre);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.post);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
     layoutDebug.clearDebugBoxes(layoutDebug.values.system);
     const timestamp = new Date().valueOf();
 
@@ -324,7 +322,6 @@ export class SuiLayoutFormatter {
               const context = this.svg.getRenderer(measure.svg.logicalBox);
               if (context) {
                 ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.system);
-                ld.debugBox(context.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
               }
             }
           });

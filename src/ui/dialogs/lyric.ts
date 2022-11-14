@@ -125,9 +125,9 @@ export class SuiLyricDialog extends SuiDialogBase {
   _focusSelection() {
     const selection = this.lyricEditorCtrl.session?.selection;
     const note = selection?.note;
-    const box: SvgBox | null = note?.renderedBox ?? null;
+    const box: SvgBox | null = note?.logicalBox ?? null;
     if (box) {
-      this.view.scroller.scrollVisibleBox(box);      
+      this.view.scroller.scrollVisibleBox(this.view.renderer.pageMap.svgToClient(box));
     }
   }
   changed() {

@@ -128,7 +128,6 @@ export class SmoNote implements Transposable {
   renderId: string | null = null;
   keySignature: string = 'c';
   logicalBox: SvgBox | null = null;
-  renderedBox: SvgBox | null = null;
   isCue: boolean = false;
   accidentalsRendered: string[] = [];// set by renderer if accidental is to display
   /**

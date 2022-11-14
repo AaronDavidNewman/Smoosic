@@ -166,6 +166,7 @@ export abstract class SuiMapper {
     if (selections.length) {
       this.selections = selections;
       this._createLocalModifiersList();
+      this.deferHighlight();
     }
   }
   // used by remove dialogs to clear removed thing
@@ -590,10 +591,6 @@ export abstract class SuiMapper {
     bb = SvgHelpers.boxPoints(bb.x + scrollState.x, bb.y + scrollState.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
     const { selections, page } = this.renderer.pageMap.findArtifact(bb);
     if (page) {
-      if (layoutDebug.mask & layoutDebug.values.cursor) {
-        layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
-        layoutDebug.debugBox(page.svg, page.box, layoutDebug.values.cursor);
-      }
       const artifacts = selections;
       // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
       // TODO: handle overlapping suggestions
@@ -601,7 +598,6 @@ export abstract class SuiMapper {
         const sel = this.renderer.pageMap.findModifierTabs(bb);
         if (sel.length) {
           this._setModifierAsSuggestion(sel[0]);
-          this.createLocalModifiersFromModifierTabs(sel);
         }
         return;
       }

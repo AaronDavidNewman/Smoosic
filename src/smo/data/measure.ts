@@ -66,7 +66,6 @@ export interface MeasureSvg {
   staffX: number, // The left-most x position of the staff
   staffY: number,
   logicalBox: SvgBox,
-  renderedBox: SvgBox | null,
   yTop: number,
   adjRight: number,
   history: string[],
@@ -286,7 +285,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       logicalBox: {
         x: 0, y: 0, width: 0, height: 0
       },
-      renderedBox: null,
       yTop: 0,
       adjX: 0,
       adjRight: 0,
