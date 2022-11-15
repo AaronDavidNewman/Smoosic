@@ -13,7 +13,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
-import { VexRendererContainer } from '../sui/svgPageMap';
+import { SvgPage } from '../sui/svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -32,7 +32,7 @@ export interface SuiSystemGroup {
  * text, aligns the lyrics.
  * */
 export class VxSystem {
-  context: VexRendererContainer;
+  context: SvgPage;
   leftConnector: any[] = [null, null];
   score: SmoScore;
   vxMeasures: VxMeasure[] = [];
@@ -51,7 +51,7 @@ export class VxSystem {
   ys: number[] = [];
   measures: VxMeasure[] = [];
   modifiers: any[] = [];
-  constructor(context: VexRendererContainer, topY: number, lineIndex: number, score: SmoScore) {
+  constructor(context: SvgPage, topY: number, lineIndex: number, score: SmoScore) {
     this.context = context;
     this.lineIndex = lineIndex;
     this.score = score;

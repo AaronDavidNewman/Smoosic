@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoModifierBase } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
@@ -158,8 +157,7 @@ export abstract class SuiScoreView {
     const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
-    const context = this.renderer.pageMap.getRendererForPage(0);
-    const pt = SvgHelpers.logicalToClient(context.svg, SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState);
+    const pt = this.renderer.pageMap.svgToClient(SvgHelpers.smoBox({ x: lw, y: lh }));
     return Math.round(midY / pt.y);
   }
   // ### _undoRectangle

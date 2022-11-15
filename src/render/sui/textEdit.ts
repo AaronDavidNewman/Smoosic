@@ -13,7 +13,7 @@ import { SvgBox, KeyEvent } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelection } from '../../smo/xform/selections';
-import { VexRendererContainer } from './svgPageMap';
+import { SvgPage } from './svgPageMap';
 import { SuiScoreViewOperations } from './scoreViewOperations';
 import { SuiScoreRender } from './scoreRender';
 import { SvgPageMap } from './svgPageMap';
@@ -30,7 +30,8 @@ declare var $: any;
  * @param text initial text
  */
 export interface SuiTextEditorParams {
-  context: VexRendererContainer,
+  pageMap: SvgPageMap,
+  context: SvgPage,
   scroller: SuiScroller,
   x: number,
   y: number,
@@ -104,7 +105,8 @@ export class SuiTextEditor {
   }
 
   svgText: SuiInlineText | null = null;
-  context: any;
+  context: SvgPage;
+  pageMap: SvgPageMap;
   x: number = 0;
   y: number = 0;
   text: string;
@@ -127,6 +129,7 @@ export class SuiTextEditor {
     this.x = params.x;
     this.y = params.y;
     this.text = params.text;
+    this.pageMap = params.pageMap;
   }
 
   static get strokes(): Record<SuiTextStrokeName, StrokeInfo> {
@@ -222,8 +225,11 @@ export class SuiTextEditor {
     if (this.svgText === null) {
       return false;
     }
-    const logicalBox = SvgHelpers.smoBox(SvgHelpers.clientToLogical(this.context.svg, 
-      SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY, width: 1, height: 1 } )));
+    const clientBox = SvgHelpers.boxPoints(
+      ev.clientX + this.scroller.scrollState.x,
+      ev.clientY + this.scroller.scrollState.y, 
+      1, 1);
+      const logicalBox = this.pageMap.clientToSvg(clientBox);
     var blocks = this.svgText.getIntersectingBlocks(logicalBox);
 
     // The mouse is not over the text
@@ -421,11 +427,12 @@ export class SuiTextEditor {
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
     let i = 0;
+    
     this.svgText = new SuiInlineText({
       context: this.context, startX: this.x, startY: this.y,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller,
       purpose: SuiInlineText.textPurposes.edit,
-      fontStyle: 'normal'
+      fontStyle: 'normal', pageMap: this.pageMap
     });
     for (i = 0; i < this.text.length; ++i) {
       const def = SuiInlineText.blockDefaults;
@@ -845,7 +852,7 @@ export interface SuiDragSessionParams {
 
 export class SuiDragSession {
   pageMap: SvgPageMap;
-  page: VexRendererContainer;
+  page: SvgPage;
   scroller: SuiScroller;
   outlineBox: SvgBox;
   textObject: SuiTextBlock;
@@ -857,7 +864,7 @@ export class SuiDragSession {
     this.scroller = params.scroller;
     this.page = this.pageMap.getRendererFromModifier(this.textGroup);
     // create a temporary text object for dragging
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.page, this.scroller); // SuiTextBlock
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.page, this.pageMap, this.scroller); // SuiTextBlock
     this.dragging = false;
     this.outlineBox = this.textObject.getLogicalBox();
   }
@@ -1036,7 +1043,7 @@ export class SuiTextSession {
     if (context) {
       this.editor = new SuiTextBlockEditor({
         x: this.x, y: this.y, scroller: this.scroller,
-        context: context, text: this.scoreText.text
+        context: context, text: this.scoreText.text, pageMap: this.renderer.pageMap
       });
       this.cursorPromise = this.editor.startCursorPromise();
       this.state = SuiTextEditor.States.RUNNING;
@@ -1198,7 +1205,8 @@ export class SuiLyricSession {
       this.editor = new SuiLyricEditor({
         context,
         lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-        text: this.lyric.getText()
+        text: this.lyric.getText(),
+        pageMap: this.renderer.pageMap
       });
       this.state = SuiTextEditor.States.RUNNING;
       if (!lyricRendered && this.editor !== null && this.editor.svgText !== null) {
@@ -1390,7 +1398,8 @@ export class SuiChordSession extends SuiLyricSession {
       this.editor = new SuiChordEditor({
         context,
         lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-        text: this.lyric.getText()
+        text: this.lyric.getText(),
+        pageMap: this.renderer.pageMap
       });
       this.state = SuiTextEditor.States.RUNNING;
       if (this.editor !== null && this.editor.svgText !== null) {

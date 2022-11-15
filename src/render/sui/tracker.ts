@@ -11,7 +11,7 @@ import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
-import { VexRendererContainer } from './svgPageMap';
+import { SvgPage } from './svgPageMap';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
 /**
@@ -24,7 +24,7 @@ export class SuiTracker extends SuiMapper {
   musicCursorGlyph: SVGSVGElement | null = null;
   // timer: NodeJS.Timer | null = null;
   suggestFadeTimer: NodeJS.Timer | null = null;
-  strokeMemory: Record<string, VexRendererContainer> = {};
+  strokeMemory: Record<string, SvgPage> = {};
   static get strokes(): Record<string, StrokeInfo> {
     return {
       suggestion: {

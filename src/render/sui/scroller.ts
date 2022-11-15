@@ -2,8 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
-import { SuiRendererBase } from './mapper';
-import { SvgPageMap, VexRendererContainer } from './svgPageMap';
+import { SvgPageMap } from './svgPageMap';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -107,11 +106,7 @@ export class SuiScroller {
       $(this.selector).offset().top,
       $(this.selector).width(),
       $(this.selector).height());
-    const container = this.svgPages.getRendererFromPoint({ x: 0, y: 0 });
-    if (container) {
-      this.logicalViewport = SvgHelpers.smoBox(SvgHelpers.clientToLogical(container.svg, this.viewport));
-      this.deferUpdateDebug();
-    }
+    this.deferUpdateDebug();
   }
 
   // ### scrollBox

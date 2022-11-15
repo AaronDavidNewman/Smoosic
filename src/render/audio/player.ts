@@ -244,6 +244,10 @@ export class SuiAudioPlayer {
         const soundData = measureNotes[beatTime];
         let durationPct = 0;
         let offsetPct = 0;
+        if (soundData.length === 0) {
+          console.log('empty sound measure');
+          continue;
+        }
         soundData.forEach((ss) => {
           if (durationPct === 0) {
             durationPct = ss.durationPct;

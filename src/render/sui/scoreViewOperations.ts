@@ -1058,6 +1058,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     params.number = 1;
     const volta = new SmoVolta(params);
     const altVolta = new SmoVolta(params);
+    this._renderChangedMeasures([ft, tt]);
     SmoOperation.addEnding(this.storeScore, altVolta);
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();

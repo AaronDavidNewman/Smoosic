@@ -16,7 +16,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef } from '../../smo/data/common';
-import { VexRendererContainer } from '../sui/svgPageMap';
+import { SvgPage } from '../sui/svgPageMap';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
@@ -25,7 +25,7 @@ const VF = eval('Vex.Flow');
  * @category SuiRender
  */
 export class VxMeasure {
-  context: VexRendererContainer;
+  context: SvgPage;
   static readonly musicFontScaleNote: number = 38;
   static readonly musicFontScaleCue: number = 28;
   printing: boolean;
@@ -49,7 +49,7 @@ export class VxMeasure {
   modifiersToBox: SmoNoteModifierBase[] = [];
   collisionMap: Record<number, SmoNote[]> = {};
 
-  constructor(context: VexRendererContainer, selection: SmoSelection, printing: boolean, softmax: number) {
+  constructor(context: SvgPage, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
     this.rendered = false;
     this.selection = selection;

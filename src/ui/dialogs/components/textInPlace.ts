@@ -99,7 +99,7 @@ export class SuiTextInPlace extends SuiComponentBase {
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
       if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
+        const svgText = SuiInlineText.fromScoreText(st, context, this.view.renderer.pageMap, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;

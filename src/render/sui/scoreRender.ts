@@ -20,7 +20,7 @@ import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SvgPageMap, VexRendererContainer } from './svgPageMap';
+import { SvgPageMap, SvgPage } from './svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -74,7 +74,7 @@ export class SuiScoreRender {
   set autoAdjustRenderTime(value: boolean) {
     this._autoAdjustRenderTime = value;
   }
-  getRenderer(box: SvgBox | SvgPoint): VexRendererContainer | null {
+  getRenderer(box: SvgBox | SvgPoint): SvgPage | null {
     return this.vexContainers.getRenderer(box);
   }
   renderTextGroup(gg: SmoTextGroup) {
@@ -94,7 +94,7 @@ export class SuiScoreRender {
     // else the array contains the original.
     const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.score!.layoutManager!.pageLayouts.length, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
-      let container: VexRendererContainer = this.vexContainers.getRendererFromModifier(newGroup);
+      let container: SvgPage = this.vexContainers.getRendererFromModifier(newGroup);
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
         // If this text is attached to a staff that is not visible, don't draw it.
@@ -116,7 +116,7 @@ export class SuiScoreRender {
         }
       }
       if (container) {
-        const block = SuiTextBlock.fromTextGroup(newGroup, container, this.measureMapper!.scroller);
+        const block = SuiTextBlock.fromTextGroup(newGroup, container, this.vexContainers, this.measureMapper!.scroller);
         block.render();
         if (block.currentBlock?.text.element) {
           gg.elements.push(block.currentBlock?.text.element);

@@ -5,7 +5,7 @@ import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreText';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox } from '../../smo/data/common';
-import { VexRendererContainer } from './svgPageMap';
+import { SvgPage, SvgPageMap } from './svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -40,7 +40,8 @@ export interface SuiInlineTextParams {
   startY: number,
   scroller: SuiScroller,
   purpose: string,
-  context: VexRendererContainer
+  context: SvgPage,
+  pageMap: SvgPageMap
 }
 export interface SuiInlineBlock {
   symbolType: number,
@@ -170,7 +171,8 @@ export class SuiInlineText {
   startY: number;
   blocks: SuiInlineBlock[] = [];
   updatedMetrics: boolean = false;
-  context: VexRendererContainer;
+  context: SvgPage;
+  pageMap: SvgPageMap;
   scroller: SuiScroller;
   artifacts: SuiInlineArtifact[] = [];
   logicalBox: SvgBox = SvgBox.default;
@@ -200,9 +202,10 @@ export class SuiInlineText {
       type: 'SuiInlineText'
     };
     this.context = params.context;
+    this.pageMap = params.pageMap;
   }
 
-  static fromScoreText(scoreText: SmoScoreText, context: VexRendererContainer, scroller: SuiScroller): SuiInlineText {
+  static fromScoreText(scoreText: SmoScoreText, context: SvgPage, pageMap: SvgPageMap, scroller: SuiScroller): SuiInlineText {
     const params: SuiInlineTextParams = {
       fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
@@ -210,7 +213,8 @@ export class SuiInlineText {
       startX: scoreText.x, startY: scoreText.y,
       scroller,
       purpose: SuiInlineText.textPurposes.render,
-      fontSize: scoreText.fontInfo.size, context
+      fontSize: scoreText.fontInfo.size, context,
+      pageMap
     };
     const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
@@ -573,7 +577,7 @@ export interface SuiTextBlockParams {
   blocks: SuiTextBlockBlock[];
   scroller: SuiScroller;
   spacing: number;
-  context: VexRendererContainer;
+  context: SvgPage;
   skipRender: boolean;
   justification: number;
 }
@@ -594,7 +598,7 @@ export class SuiTextBlock {
   inlineBlocks: SuiTextBlockBlock[] = [];
   scroller: SuiScroller;
   spacing: number = 0;
-  context: VexRendererContainer;
+  context: SvgPage;
   skipRender: boolean;
   currentBlockIndex: number = 0;
   justification: number;
@@ -679,26 +683,13 @@ export class SuiTextBlock {
     });
     return rv;
   }
-
-  static inlineParamsFromScoreText(scoreText: SmoScoreText, context: any, scroller: SuiScroller): SuiInlineTextParams {
-    const rv: SuiInlineTextParams = {
-      fontFamily: scoreText.fontInfo.family,
-      startX: scoreText.x, startY: scoreText.y, fontWeight: scoreText.fontInfo.weight,
-      fontStyle: scoreText.fontInfo.style ?? 'normal', purpose: SuiInlineText.textPurposes.render,
-      fontSize: scoreText.fontInfo.size, context, scroller
-    };
-    return rv;
-  }
-  static blockFromScoreText(scoreText: SmoScoreText, context: any, position: number, scroller: SuiScroller): SuiTextBlockBlock {
-    var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
+  static blockFromScoreText(scoreText: SmoScoreText, context: SvgPage, pageMap: SvgPageMap, position: number, scroller: SuiScroller): SuiTextBlockBlock {
+    var inlineText = SuiInlineText.fromScoreText(scoreText, context, pageMap, scroller);
     return { text: inlineText, position, activeText: true };
   }
 
   getLogicalBox(): SvgBox {
     return this._calculateBoundingClientRect();
-  }
-  getRenderedBox(): SvgBox {
-    return SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState));
   }
   _calculateBoundingClientRect(): SvgBox {
     let rv: SvgBox = SvgBox.default;
@@ -712,13 +703,13 @@ export class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg: SmoTextGroup, context: VexRendererContainer, scroller: SuiScroller): SuiTextBlock {
+  static fromTextGroup(tg: SmoTextGroup, context: SvgPage, pageMap: SvgPageMap, scroller: SuiScroller): SuiTextBlock {
     const blocks: SuiTextBlockBlock[] = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position, scroller);
+      const newText = SuiTextBlock.blockFromScoreText(st, context, pageMap, stBlock.position, scroller);
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
