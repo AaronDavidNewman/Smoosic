@@ -144,7 +144,6 @@ export interface Transposable {
     pitches: Pitch[],
     noteType: string,
     renderId: string | null,
-    renderedBox: SvgBox | null,
     logicalBox: SvgBox | null
 }
 
@@ -152,17 +151,18 @@ export interface Transposable {
  * All note, measure etc. modifiers have these attributes.  The SVG info
  * is for the tracker to track the artifacts in the UI (mouse events, etc)
  * @param ctor - constructor name for deserialize
- * @param renderedBox - bounding box in client coordinates
  * @param logicalBox - bounding box in SVG coordinates
  * @param attr - unique ID, simlar to vex object attrs field
  */
 export interface SmoModifierBase {
     ctor: string,
-    renderedBox: SvgBox | null,
     logicalBox: SvgBox | null,
     attrs: SmoAttrs
 }
 
+export interface Renderable {
+    logicalBox: SvgBox | null | undefined
+}
 /**
  * Restriction from string to supported clefs
  */

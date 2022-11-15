@@ -93,13 +93,13 @@ export class SuiTextInPlace extends SuiComponentBase {
   }
   _renderInactiveBlocks() {
     const modifier = this.value;
-    const context = this.view.renderer.context;
+    const context = this.view.renderer.pageMap.getRendererFromModifier(this.value).getContext();
     context.save();
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
       if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
+        const svgText = SuiInlineText.fromScoreText(st, context, this.view.renderer.pageMap, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
@@ -117,7 +117,8 @@ export class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     const modifier = this.value;
     modifier.skipRender = true;
-    $(this.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
+    let pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.value);
+    $(pageContext.svg).find('#' + modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 

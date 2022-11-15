@@ -16,6 +16,7 @@ import { layoutDebug } from './layoutDebug';
 import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
+import { SvgPageMap } from './svgPageMap';
 const VF = eval('Vex.Flow');
 
 export interface SuiTickContext {
@@ -41,10 +42,10 @@ export class SuiLayoutFormatter {
   systems: Record<number, LineRender> = {};
   columnMeasureMap: Record<number, SmoMeasure[]>;
   currentPage: number = 0;
-  svg: SVGSVGElement;
+  svg: SvgPageMap;
   renderedPages: Record<number,RenderedPage | null>;
   lines: number[] = [];
-  constructor(score: SmoScore, svg: SVGSVGElement, renderedPages: Record<number, RenderedPage | null>) {
+  constructor(score: SmoScore, svg: SvgPageMap, renderedPages: Record<number, RenderedPage | null>) {
     this.score = score;
     this.svg = svg;
     this.columnMeasureMap = {};
@@ -105,10 +106,6 @@ export class SuiLayoutFormatter {
     // See if this measure breaks a page.
     const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-      // Advance to next page settings
-      if (this.renderedPages[this.currentPage]) {
-
-      }
       this.currentPage += 1;
       // If this is a new page, make sure there is a layout for it.
       lm.addToPageLayouts(this.currentPage);
@@ -128,6 +125,7 @@ export class SuiLayoutFormatter {
         measure.setBox(SvgHelpers.boxPoints(
           measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
         measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
+        measure.svg.pageIndex = this.currentPage;
       });
     }
     return scoreLayout;
@@ -276,8 +274,6 @@ export class SuiLayoutFormatter {
     let measureEstimate: MeasureEstimate | null = null;
 
     layoutDebug.clearDebugBoxes(layoutDebug.values.pre);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.post);
-    layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
     layoutDebug.clearDebugBoxes(layoutDebug.values.system);
     const timestamp = new Date().valueOf();
 
@@ -305,17 +301,15 @@ export class SuiLayoutFormatter {
         const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
         if (renderedPage) {
           if (pageCheck !== this.currentPage) {
-            if (renderedPage.endMeasure !== measureIx - 1) {
+            // The last measure in the last system of the previous page
+            const previousSystem = currentLine[0].measureNumber.measureIndex - 1;
+            if (renderedPage.endMeasure !== previousSystem) {
               this.renderedPages[pageCheck] = null;
             }            
             const nextPage = this.renderedPages[this.currentPage];
-            if (nextPage && nextPage.startMeasure !== measureIx) {
+            if (nextPage && nextPage.startMeasure !== previousSystem + 1) {
               this.renderedPages[this.currentPage] = null;
-            }
-          } else {
-            if (renderedPage.startMeasure > measureIx || renderedPage.endMeasure < measureIx) {
-              this.renderedPages[pageCheck] = null;
-            }
+            }          
           }
         }
         pageCheck = this.currentPage;
@@ -325,8 +319,10 @@ export class SuiLayoutFormatter {
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             if (measure.svg.logicalBox) {
-              ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.system);
-              ld.debugBox(this.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
+              const context = this.svg.getRenderer(measure.svg.logicalBox);
+              if (context) {
+                ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.system);
+              }
             }
           });
         }
@@ -345,7 +341,10 @@ export class SuiLayoutFormatter {
       // ld declared for lint
       const ld = layoutDebug;
       measureEstimate?.measures.forEach((measure) => {
-        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+        const context = this.svg.getRenderer(measure.svg.logicalBox);
+        if (context) {
+          ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+        }
       });
       this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
       currentLine = currentLine.concat(measureEstimate.measures);
@@ -362,10 +361,10 @@ export class SuiLayoutFormatter {
       }
     }
     // If a measure was added to the last page, make sure we re-render the page
-    const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
+    const renderedPage: RenderedPage | null = this.renderedPages[this.currentPage];
     if (renderedPage) {
-      if (renderedPage.endMeasure !== measureIx) {
-        this.renderedPages[pageCheck] = null;
+      if (renderedPage.endMeasure !== currentLine[0].measureNumber.measureIndex) {
+        this.renderedPages[this.currentPage] = null;
       }
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
@@ -561,8 +560,12 @@ export class SuiLayoutFormatter {
       rowAdj.forEach((measure) => {
         measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
         measure.setX(measure.staffX + justOffset, 'justifyY');
-        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
-        ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset,
+          measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
+        const context = this.svg.getRenderer(measure.svg.logicalBox);
+        if (context) {
+          ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.adjust);
+        }
         justOffset += justifyX;
       });
     }

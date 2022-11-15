@@ -3,6 +3,7 @@
 
 import { Transposable, SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoSelection } from '../../smo/xform/selections';
+import { SvgPage } from './svgPageMap';
 
 declare var $: any;
 
@@ -17,11 +18,11 @@ export interface StrokeInfo {
 
 export interface OutlineInfo {
   stroke: StrokeInfo,
-  context: any, // Vex SVG context
   classes: string,
   box: SvgBox | SvgBox[],
   clientCoordinates: boolean,
-  scroll: SvgPoint
+  scroll: SvgPoint,
+  context: SvgPage
 }
 
 export interface GradientInfo {
@@ -171,13 +172,12 @@ export class SvgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg: SVGSVGElement, element: SVGSVGElement | undefined, artifact: Transposable) {
+  static updateArtifactBox(context: SvgPage, element: SVGSVGElement | undefined, artifact: Transposable) {
     if (typeof (element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
-    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(svg, artifact.logicalBox));
+    artifact.logicalBox = context.offsetBbox(element);
   }
 
   // ### eraseOutline
@@ -188,7 +188,6 @@ export class SvgHelpers {
   }
 
   static _outlineRect(params: OutlineInfo) {
-    const scroll = params.scroll;
     const context = params.context;
     // vex puts 'vf-' before everything rendered by context API
     SvgHelpers.eraseOutline(context.svg, params.stroke);
@@ -197,7 +196,7 @@ export class SvgHelpers {
       return;
     }
     const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
-    var grp = context.openGroup(classes, classes + '-outline');
+    var grp = context.getContext().openGroup(classes, classes + '-outline');
     const boxes = Array.isArray(params.box) ? params.box : [params.box];
 
     boxes.forEach((box: SvgBox) => {
@@ -208,10 +207,10 @@ export class SvgHelpers {
         /* if (params.clientCoordinates === true) {
           box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
         } */
-        context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+        context.getContext().rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
     });
-    context.closeGroup(grp);
+    context.getContext().closeGroup(grp);
   }
 
 
@@ -252,7 +251,7 @@ export class SvgHelpers {
     return rect;
   }
 
-  static line(svg: Document, x1: number | string, y1: number | string, x2: number | string, y2: number | string, attrs: StrokeInfo, classes: string) {
+  static line(svg: SVGSVGElement, x1: number | string, y1: number | string, x2: number | string, y2: number | string, attrs: StrokeInfo, classes: string) {
     var line = document.createElementNS(SvgHelpers.namespace, 'line');
     x1 = typeof (x1) == 'string' ? x1 : x1.toString();
     y1 = typeof (y1) == 'string' ? y1 : y1.toString();
@@ -270,7 +269,7 @@ export class SvgHelpers {
     svg.appendChild(line);
   }
 
-  static arrowDown(svg: Document, box: SvgBox) {
+  static arrowDown(svg: SVGSVGElement, box: SvgBox) {
     const arrowStroke: StrokeInfo = { strokeName: 'arrow-stroke', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
     SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     var arrowY = box.y + box.height / 4;
@@ -320,7 +319,7 @@ export class SvgHelpers {
     svg.appendChild(r.dom());
   }
 
-  static placeSvgText(svg: Document, attributes: Record<string | number, string | number>[], classes: string, text: string): SVGSVGElement {
+  static placeSvgText(svg: SVGSVGElement, attributes: Record<string | number, string | number>[], classes: string, text: string): SVGSVGElement {
     var ns = SvgHelpers.namespace;
     var e = document.createElementNS(ns, 'text');
     attributes.forEach((attr) => {
@@ -365,39 +364,6 @@ export class SvgHelpers {
     });
 
     return rv;
-  }
-
-  // ### findIntersectingArtifactFromMap
-  // Same as findIntersectionArtifact but uses a map of keys instead of an array
-  static findIntersectingArtifactFromMap(clientBox: SvgBox, map: Record<string | number, SmoSelection>, scrollState: SvgBox): any[] {
-    var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-    // box.y = box.y - this.renderElement.offsetTop;
-    // box.x = box.x - this.renderElement.offsetLeft;
-    var rv: any[] = [];
-
-    Object.keys(map).forEach((k) => {
-      var object = map[k];
-      // Measure has been updated, but not drawn.
-      if (!object.box) {
-        // console.log('there is no box');
-      } else {
-        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-        if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
-          rv.push(object);
-        }
-      }
-    });
-    return rv;
-  }
-
-  static containsPoint(box: SvgBox, point: SvgPoint, scrollState: SvgBox) {
-    var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(box), scrollState));
-    const i1 = point.x - box.x + scrollState.x; // handle edge not believe in x and y
-    const i2 = point.y - box.y + scrollState.y;
-    if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
-      return true;
-    }
-    return false;
   }
 
   static findSmallestIntersection(clientBox: SvgBox, objects: Boxable[]) {
@@ -451,18 +417,6 @@ export class SvgHelpers {
     }
   }
 
-  // ### pointBox
-  // return a point-sized box at the given coordinate
-  static pointBox(x: number, y: number) {
-    return {
-      x: x,
-      y: y,
-      width: 0,
-      height: 0
-    };
-  }
-
-
   // ### smoBox:
   // return a simple box object that can be serialized, copied
   // (from svg DOM box)
@@ -470,16 +424,20 @@ export class SvgHelpers {
     if (typeof (box) === "undefined" || box === null) {
       return SvgBox.default;
     }
+    let testBox = box;
+    if (Array.isArray(box)) {
+      testBox = box[0];
+    }
     const hround = (f: number): number => {
       return Math.round((f + Number.EPSILON) * 100) / 100;
     }
-    const x = typeof (box.x) == 'undefined' ? hround(box.left) : hround(box.x);
-    const y = typeof (box.y) == 'undefined' ? hround(box.top) : hround(box.y);
+    const x = typeof (testBox.x) == 'undefined' ? hround(testBox.left) : hround(testBox.x);
+    const y = typeof (testBox.y) == 'undefined' ? hround(testBox.top) : hround(testBox.y);
     return ({
       x: hround(x),
       y: hround(y),
-      width: hround(box.width),
-      height: hround(box.height)
+      width: hround(testBox.width),
+      height: hround(testBox.height)
     });
   }
   // ### unionRect
@@ -497,19 +455,6 @@ export class SvgHelpers {
     };
   }
 
-  // ### adjustScroll
-  // Add the scroll to the screen coordinates so we can find the mapped
-  // location of something.
-  static adjustScroll(box: SvgBox, scroll: SvgPoint) {
-    // WIP...
-    if (typeof (box) == 'undefined' || typeof (scroll) == 'undefined') {
-      console.log('bad values to scroll thing');
-      return;
-    }
-    return SvgHelpers.boxPoints(box.x - scroll.x, box.y - scroll.y, box.width, box.height);
-    // return box;
-  }
-
   static boxPoints(x: number, y: number, w: number, h: number): SvgBox {
     return ({
       x: x,
@@ -517,16 +462,6 @@ export class SvgHelpers {
       width: w,
       height: h
     });
-  }
-
-  static copyBox(box: SvgBox): SvgBox {
-    box = SvgHelpers.smoBox(box);
-    return {
-      x: box.x,
-      y: box.y,
-      width: box.width,
-      height: box.height
-    };
   }
 
   // ### svgViewport
@@ -543,86 +478,5 @@ export class SvgHelpers {
     for (var xxx = 0; xxx < ellength; ++xxx) {
       els[0].remove();
     }
-  }
-  // ### logicalToClient
-  // Convert a point from logical (pixels) to actual screen dimensions based on current
-  // zoom, aspect ratio
-  /* static logicalToClient(svg, logicalPoint) {
-  var rect = svg.getBoundingClientRect();
-  var rv = SvgHelpers.copyBox(logicalPoint);
-  rv.x += rect.x;
-  rv.y += rect.y;
-  return rv;
-  }   */
-
-  // ### clientToLogical
-  // return a box or point in svg coordintes from screen coordinates
-  static clientToLogical(svg: SVGSVGElement, point: SvgBox): SvgBox | SvgPoint {
-    var pt = svg.createSVGPoint();
-    if (!point)
-      return SvgBox.default;
-    const x = point.x;
-    const y = point.y;
-    pt.x = x;
-    pt.y = y;
-    const screen = svg.getScreenCTM();
-    if (!screen) {
-      return SvgBox.default;
-    }
-    var sp = pt.matrixTransform(screen.inverse());
-    if (typeof (point['width']) == 'undefined') {
-      return {
-        x: sp.x,
-        y: sp.y
-      };
-    }
-
-    const endPt = svg.createSVGPoint();
-    endPt.x = pt.x + point.width;
-    endPt.y = pt.y + point.height;
-    const mat = svg.getScreenCTM();
-    if (!mat) {
-      return SvgBox.default;
-    }
-    const ep = endPt.matrixTransform(mat.inverse());
-    return {
-      x: sp.x,
-      y: sp.y,
-      width: ep.x - sp.x,
-      height: ep.y - sp.y
-    };
-  }
-
-  /**
-   * return a box or point in screen coordinates from svg coordinates
-   * @param svg 
-   * @param point - in SVG coordinates (logical)
-   * @param scroller  - in client coordinates (rendered)
-   * @returns 
-   */
-  static logicalToClient(svg: SVGSVGElement, point: SvgBox, scroller: SvgPoint): SvgBox | SvgPoint {
-    var pt = svg.createSVGPoint();
-    pt.x = point.x;
-    pt.y = point.y;
-    var sp = pt.matrixTransform(svg.getScreenCTM() ?? undefined);
-    if (!point['width']) {
-      return {
-        x: sp.x + scroller.x,
-        y: sp.y + scroller.y
-      };
-    }
-    var endPt = svg.createSVGPoint();
-    endPt.x = pt.x + point.width;
-    endPt.y = pt.y + point.height;
-    var ep = endPt.matrixTransform(svg.getScreenCTM() ?? undefined);
-    return {
-      x: sp.x + scroller.x,
-      y: sp.y + scroller.y,
-      width: ep.x - sp.x,
-      height: ep.y - sp.y
-    };
-  }
-  static logicalToClientRaw(svg: SVGSVGElement, point: SvgBox): SvgBox | SvgPoint {
-    return this.logicalToClient(svg, point, { x: 0, y: 0});
   }
 }

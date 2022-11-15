@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoModifierBase } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
@@ -57,7 +56,7 @@ export abstract class SuiScoreView {
     this.renderer = new SuiRenderState(renderParams);
     this.config = config;
     const scoreJson = score.serialize();
-    this.scroller = new SuiScroller(scrollSelector, this.renderer);
+    this.scroller = new SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
     this.tracker = new SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
@@ -158,7 +157,7 @@ export abstract class SuiScoreView {
     const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
-    const pt = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState);
+    const pt = this.renderer.pageMap.svgToClient(SvgHelpers.smoBox({ x: lw, y: lh }));
     return Math.round(midY / pt.y);
   }
   // ### _undoRectangle
@@ -302,9 +301,6 @@ export abstract class SuiScoreView {
       console.warn(ex);
       return null;
     }
-  }
-  _removeStandardModifier(modifier: SmoModifierBase) {
-    $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
   }
 
   _getEquivalentGraceNote(selection: SmoSelection, gn: SmoGraceNote): SmoGraceNote {

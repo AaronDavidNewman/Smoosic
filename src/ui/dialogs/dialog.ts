@@ -346,8 +346,8 @@ export interface DialogDom {
       this.positionGlobally();
       return;
     }
-    
-    const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.view.renderer.svg, this.modifier.logicalBox, this.scroller.scrollState));
+    const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.modifier);
+    const screenBox = this.view.renderer.pageMap.svgToClient(this.modifier.logicalBox);
     this.position(screenBox);
   }
   // ### positionGlobally
@@ -361,7 +361,7 @@ export interface DialogDom {
   positionFromSelection() {
     const note: SmoNote | null = this.view.tracker.selections[0].note;
     if (note && note.logicalBox) {
-      const screenBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.view.renderer.svg, note.logicalBox, this.scroller.scrollState));
+      const screenBox = this.view.renderer.pageMap.svgToClient(note.logicalBox);
       this.position(screenBox);
     }
   }

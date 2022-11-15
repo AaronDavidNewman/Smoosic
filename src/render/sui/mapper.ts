@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoSelector, SmoSelection } from '../../smo/xform/selections';
+import { SmoSelector, SmoSelection, ModifierTab } from '../../smo/xform/selections';
 import { SvgHelpers } from './svgHelpers';
 import { layoutDebug } from './layoutDebug';
 import { SuiScroller } from './scroller';
@@ -10,9 +10,8 @@ import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
 import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
-import { SuiArtifactMap } from './artifactMap';
 import { SmoScore, SmoModifier } from '../../smo/data/score';
-import { ModifierTab } from '../../smo/xform/selections';
+import { SvgPageMap } from './svgPageMap';
 declare var $: any;
 
 /**
@@ -30,22 +29,14 @@ declare var $: any;
  * @category SuiRender
  */
 export interface SuiRendererBase {
-  svg: SVGSVGElement,
+  pageMap: SvgPageMap,
   score: SmoScore | null,
   dirty: boolean,
   passState: number,
   remapAll(): void,
   renderPromise(): Promise<any>,
   addToReplaceQueue(mm: SmoSelection[]): void,
-  createViewportPromise(): Promise<void>,
-  renderElement: Element,
-  context: any
-}
-
-export interface LocalModifier {
-  modifier: SmoModifier,
-  selection: SmoSelection,
-  box: SvgBox | null,
+  renderElement: Element
 }
 // used to perform highlights in the backgroundd
 export interface HighlightQueue {
@@ -61,17 +52,14 @@ export abstract class SuiMapper {
   scroller: SuiScroller;
   // measure to selector map
   measureNoteMap: Record<string | number, SmoSelection> = {};
-  artifactMap: SuiArtifactMap;
   // notes currently selected.  Something is always selected
   // modifiers (text etc.) that have been selected
   modifierSelections: ModifierTab[] = [];
   selections: SmoSelection[] = [];
-  // all the modifiers
-  modifierTabs: ModifierTab[] = [];
   // The list of modifiers near the current selection
-  localModifiers: LocalModifier[] = [];
+  localModifiers: ModifierTab[] = [];
   modifierIndex: number = -1;
-  modifierSuggestion: number = -1;
+  modifierSuggestion: ModifierTab | null = null;
   pitchIndex: number = -1;
   // By default, defer highlights for performance.
   deferHighlightMode: boolean = true;
@@ -85,14 +73,11 @@ export abstract class SuiMapper {
     this.scroller = scroller;
     this.modifierIndex = -1;
     this.localModifiers = [];
-    // mouse-over that might be selected soon
-    this.modifierSuggestion = -1;
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
     this.pasteBuffer = pasteBuffer;
     this.highlightQueue = { selectionCount: 0, deferred: false };
-    this.artifactMap = new SuiArtifactMap([0], 0, null);
   }
 
   abstract highlightSelection(): void;
@@ -131,29 +116,58 @@ export abstract class SuiMapper {
   }
   _createLocalModifiersList() {
     this.localModifiers = [];
+    let index = 0;
     this.selections.forEach((sel) => {
       sel.note?.getGraceNotes().forEach((gg) => {
-        this.localModifiers.push({ selection: sel, modifier: gg, box: gg.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: gg, box: gg.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.note?.getModifiers('SmoDynamicText').forEach((dyn) => {
-        this.localModifiers.push({ selection: sel, modifier: dyn, box: dyn.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: dyn, box: dyn.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
-        this.localModifiers.push({ selection: sel, modifier: volta, box: volta.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: volta, box: volta.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
-        this.localModifiers.push({ selection: sel, modifier: tempo, box: tempo.logicalBox ?? SvgBox.default });
+        this.localModifiers.push({ index, selection: sel, modifier: tempo, box: tempo.logicalBox ?? SvgBox.default });
+        index += 1;
       });
       sel.staff.getModifiers().forEach((mod) => {
         if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
           SmoSelector.lteq(sel.selector, mod.endSelector) && mod.logicalBox)  {
           const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);
           if (!exists) {
-            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.logicalBox });
+            this.localModifiers.push({ index, selection: sel, modifier: mod, box: mod.logicalBox });
+            index += 1;
           }
         }
       });
     });
+  }
+  /**
+   * When a modifier is selected graphically, update the selection list
+   * and create a local modifier list
+   * @param modifierTabs 
+   */
+  createLocalModifiersFromModifierTabs(modifierTabs: ModifierTab[]) {
+    const selections: SmoSelection[] = [];
+    const modMap: Record<string, boolean> = {};
+    modifierTabs.forEach((mt) => {
+      if (mt.selection) {
+        const key = SmoSelector.getNoteKey(mt.selection.selector);
+        if (!modMap[key]) {
+          selections.push(mt.selection);
+          modMap[key] = true;
+        }
+      }
+    });
+    if (selections.length) {
+      this.selections = selections;
+      this._createLocalModifiersList();
+      this.deferHighlight();
+    }
   }
   // used by remove dialogs to clear removed thing
   clearModifierSelections() {
@@ -167,7 +181,6 @@ export abstract class SuiMapper {
   // rendering
   loadScore() {
     this.measureNoteMap = {};
-    this.artifactMap = new SuiArtifactMap([0], 0, null);
     this.clearModifierSelections();
     this.selections = [];
     this.highlightQueue = { selectionCount: 0, deferred: false };
@@ -218,14 +231,17 @@ export abstract class SuiMapper {
     }
   }
   _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoNoteModifierBase, ix: number) {
-    if (!modMap[modifier.attrs.id]) {
-      this.modifierTabs.push({
-        modifier,
-        selection,
-        box: SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState)),
-        index: ix
-      });
+    if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
+      this.renderer.pageMap.addModifierTab(
+        {
+          modifier,
+          selection,
+          box: modifier.logicalBox,
+          index: ix
+        }
+      );
       ix += 1;
+      const context = this.renderer.pageMap.getRendererFromModifier(modifier);
       modMap[modifier.attrs.id] = true;
     }
     return ix;
@@ -233,14 +249,13 @@ export abstract class SuiMapper {
 
   _updateModifiers() {
     let ix = 0;
-    this.modifierTabs = [];
     const modMap: Record<string, boolean> = {};
     if (!this.renderer.score) {
       return;
     }
     this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
-        this.modifierTabs.push({
+        this.renderer.pageMap.addModifierTab({
           modifier,
           selection: null,
           box: modifier.logicalBox,
@@ -249,14 +264,14 @@ export abstract class SuiMapper {
         ix += 1;
       }
     });
-    const keys = Object.keys(this.measureNoteMap);
+    const keys = Object.keys(this.measureNoteMap);    
     keys.forEach((selKey) => {
       const selection = this.measureNoteMap[selKey];
       selection.staff.renderableModifiers.forEach((modifier) => {
         if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
           if (!modMap[modifier.attrs.id]) {
             if (modifier.logicalBox) {
-              this.modifierTabs.push({
+              this.renderer.pageMap.addModifierTab({
                 modifier,
                 selection,
                 box: modifier.logicalBox,
@@ -272,7 +287,7 @@ export abstract class SuiMapper {
         if (modifier.attrs.id
           && !modMap[modifier.attrs.id]
           && modifier.logicalBox) {
-          this.modifierTabs.push({
+          this.renderer.pageMap.addModifierTab({
             modifier,
             selection,
             box: SvgHelpers.smoBox(modifier.logicalBox),
@@ -317,30 +332,33 @@ export abstract class SuiMapper {
   // ### _setModifierBoxes
   // Create the DOM modifiers for the lyrics and other modifiers
   _setModifierBoxes(measure: SmoMeasure) {
+    const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
     measure.voices.forEach((voice: SmoVoice) => {
       voice.notes.forEach((smoNote: SmoNote) =>  {
-        const el = this.renderer.svg.getElementById(smoNote.renderId as string);
-        if (el) {
-          SvgHelpers.updateArtifactBox(this.renderer.svg, (el as any), smoNote);
-          // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
-            const lyric: SmoLyric = lyrict as SmoLyric;
-            if (lyric.getText().length || lyric.isHyphenated()) {
-              const lyricElement = this.renderer.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
-              if (lyricElement) {
-                SvgHelpers.updateArtifactBox(this.renderer.svg, lyricElement, lyric as any);
+        if (context) {
+          const el = context.svg.getElementById(smoNote.renderId as string);
+           if (el) {
+            SvgHelpers.updateArtifactBox(context, (el as any), smoNote);
+            // TODO: fix this, only works on the first line.
+            smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
+              const lyric: SmoLyric = lyrict as SmoLyric;
+              if (lyric.getText().length || lyric.isHyphenated()) {
+                const lyricElement = context.svg.getElementById('vf-' + lyric.attrs.id) as SVGSVGElement;
+                if (lyricElement) {
+                  SvgHelpers.updateArtifactBox(context, lyricElement, lyric as any);
+                }
               }
-            }
-          });
+            });
+          }
           smoNote.graceNotes.forEach((g) => {
-            var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
+            var gel = context.svg.getElementById('vf-' + g.renderId);
             $(gel).addClass('grace-note');
-            SvgHelpers.updateArtifactBox(this.renderer.svg, gel as any, g);
+            SvgHelpers.updateArtifactBox(context, gel as any, g);
           });
           smoNote.textModifiers.forEach((modifier) => {
             const modEl = $('.' + modifier.attrs.id);
             if (modifier.logicalBox && modEl.length) {
-              SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier as any);
+              SvgHelpers.updateArtifactBox(context, modEl[0], modifier as any);
             }
           });
         }
@@ -569,29 +587,23 @@ export abstract class SuiMapper {
    */
   intersectingArtifact(bb: SvgBox) {
     let sel: ModifierTab[] = [];
-    bb = SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const logicalBox = SvgHelpers.smoBox(
-      SvgHelpers.clientToLogical(this.renderer.svg, 
-      SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)
-      )
-    );
-    if (layoutDebug.mask & layoutDebug.values.cursor) {
-      layoutDebug.clearDebugBoxes(layoutDebug.values.cursor);
-      layoutDebug.debugBox(this.renderer.svg, logicalBox, layoutDebug.values.cursor);
-    }
-    const artifacts = this.artifactMap.findArtifact(logicalBox);
-    // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
-    // TODO: handle overlapping suggestions
-    if (!artifacts.length) {
-      const bsel = SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs as any);
-      sel = bsel as ModifierTab[];
-      if (sel.length) {
-        this._setModifierAsSuggestion(sel[0]);
+    const scrollState = this.scroller.scrollState;
+    bb = SvgHelpers.boxPoints(bb.x + scrollState.x, bb.y + scrollState.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+    const { selections, page } = this.renderer.pageMap.findArtifact(bb);
+    if (page) {
+      const artifacts = selections;
+      // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+      // TODO: handle overlapping suggestions
+      if (!artifacts.length) {
+        const sel = this.renderer.pageMap.findModifierTabs(bb);
+        if (sel.length) {
+          this._setModifierAsSuggestion(sel[0]);
+        }
+        return;
       }
-      return;
+      const artifact = artifacts[0];
+      this._setArtifactAsSuggestion(artifact);
     }
-    const artifact = artifacts[0];
-    this._setArtifactAsSuggestion(artifact);
   }
   _getRectangleChain(selection: SmoSelection) {
     const rv: number[] = [];
@@ -602,9 +614,6 @@ export abstract class SuiMapper {
     rv.push(selection.measure.svg.lineIndex);
     rv.push(selection.measure.measureNumber.measureIndex);
     return rv;
-  }
-  debugBox(svg: SVGSVGElement) {
-    this.artifactMap.debugBox(svg);
   }
   _updateMeasureNoteMap(artifact: SmoSelection, printing: boolean) {
     const note = artifact.note as SmoNote;
@@ -625,7 +634,7 @@ export abstract class SuiMapper {
       return;
     }
     this.measureNoteMap[noteKey] = artifact;
-    this.artifactMap.addBox(this._getRectangleChain(artifact), 0, artifact);
+    this.renderer.pageMap.addArtifact(artifact);
     artifact.scrollBox = { x: artifact.box.x,
       y: artifact.measure.svg.logicalBox.y };
   }

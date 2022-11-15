@@ -20,7 +20,8 @@ export interface SoundParams {
   durationPct: number,
   volume: number,
   noteType: string,
-  instrument: string
+  instrument: string,
+  selector: SmoSelector
 }
 export interface SoundParamMeasureLink {
   soundParams: Record<number, SoundParams[]>,
@@ -33,7 +34,8 @@ export interface CuedAudioContext {
   playTickIndex: number,
   waitTime: number,
   offsetPct: number,
-  durationPct: number
+  durationPct: number,
+  selector: SmoSelector
 }
 export interface CuedAudioLink {
   sound: CuedAudioContext;
@@ -190,7 +192,8 @@ export class SuiAudioPlayer {
               durationPct: duration / measureTicks,
               noteType: smoNote.noteType,
               duration,
-              instrument: instrument.instrument
+              instrument: instrument.instrument,
+              selector
             };
             // If this is continuation of tied note, just change duration
             if (this.openTies[tieIx]) {
@@ -241,6 +244,10 @@ export class SuiAudioPlayer {
         const soundData = measureNotes[beatTime];
         let durationPct = 0;
         let offsetPct = 0;
+        if (soundData.length === 0) {
+          console.log('empty sound measure');
+          continue;
+        }
         soundData.forEach((ss) => {
           if (durationPct === 0) {
             durationPct = ss.durationPct;
@@ -250,7 +257,7 @@ export class SuiAudioPlayer {
           offsetPct = Math.min(offsetPct, ss.offsetPct);
         });
         const cuedSound: CuedAudioContext = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j,
-           offsetPct, durationPct };
+           offsetPct, durationPct, selector: soundData[0].selector };
         const timeRatio = 60000 / (tempo * 4096);
         // If there is complete silence here, put a silent beat
         if (beatTime > measureBeat) {
@@ -260,7 +267,7 @@ export class SuiAudioPlayer {
           params.gain = 0;
           params.useReverb = false;
           const silence: CuedAudioContext = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j,
-            offsetPct, durationPct };
+            offsetPct, durationPct, selector: soundData[0].selector };
           silence.oscs.push(new SuiSampler(params));
           this.cuedSounds.addToTail(silence);
           measureBeat = beatTime;
@@ -343,7 +350,7 @@ export class SuiAudioPlayer {
           return;
         }
         SuiAudioPlayer._playChord(cuedSound.oscs);
-        this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] },
+        this.tracker.musicCursor(cuedSound.selector,
           cuedSound.offsetPct, cuedSound.durationPct);
         this.cuedSounds.playMeasureIndex += 1;
         this.cuedSounds.playWaitTimer = cuedSound.waitTime;
@@ -360,7 +367,7 @@ export class SuiAudioPlayer {
   startPlayer(measureIndex: number) {
     this.openTies = {};
     this.cuedSounds.reset();
-    this.cuedSounds.cueMeasureIndex = this.tracker.getFirstMeasureOfSelection()?.measureNumber.measureIndex ?? 0;
+    this.cuedSounds.cueMeasureIndex = measureIndex;
     this.cuedSounds.playMeasureIndex = this.cuedSounds.cueMeasureIndex;
     this.cuedSounds.paramLinkHead = null;
     this.cuedSounds.paramLinkTail = null;

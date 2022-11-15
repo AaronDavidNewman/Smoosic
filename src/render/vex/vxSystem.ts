@@ -13,6 +13,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SvgPage } from '../sui/svgPageMap';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -31,7 +32,7 @@ export interface SuiSystemGroup {
  * text, aligns the lyrics.
  * */
 export class VxSystem {
-  context: any;
+  context: SvgPage;
   leftConnector: any[] = [null, null];
   score: SmoScore;
   vxMeasures: VxMeasure[] = [];
@@ -50,7 +51,7 @@ export class VxSystem {
   ys: number[] = [];
   measures: VxMeasure[] = [];
   modifiers: any[] = [];
-  constructor(context: any, topY: number, lineIndex: number, score: SmoScore) {
+  constructor(context: SvgPage, topY: number, lineIndex: number, score: SmoScore) {
     this.context = context;
     this.lineIndex = lineIndex;
     this.score = score;
@@ -279,7 +280,7 @@ export class VxSystem {
       }
     }
     const artifactId = modifier.attrs.id + '-' + this.lineIndex;
-    const group = this.context.openGroup('slur', artifactId);
+    const group = this.context.getContext().openGroup('slur', artifactId);
     group.classList.add(modifier.attrs.id);
     const measureMod = 'mod-' + smoStart.selector.staff + '-' + smoStart.selector.measure;
     const staffMod = 'mod-' + smoStart.selector.staff;
@@ -288,7 +289,7 @@ export class VxSystem {
     if (modifier.ctor === 'SmoStaffHairpin') {
       const hp = modifier as SmoStaffHairpin;
       if (!vxStart && !vxEnd) {
-        this.context.closeGroup();
+        this.context.getContext().closeGroup();
       }
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
@@ -302,7 +303,7 @@ export class VxSystem {
         left_shift_px: hp.xOffsetLeft,
         right_shift_px: hp.xOffsetRight
       });
-      hairpin.setContext(this.context).setPosition(hp.position).draw();
+      hairpin.setContext(this.context.getContext()).setPosition(hp.position).draw();
     } else if (modifier.ctor === 'SmoSlur') {
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const slur = modifier as SmoSlur;
@@ -331,7 +332,7 @@ export class VxSystem {
           position: slur.position,
           position_end: slur.position_end
         });
-      curve.setContext(this.context).draw();
+      curve.setContext(this.context.getContext()).draw();
     } else if (modifier.ctor === 'SmoTie') {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
@@ -353,7 +354,7 @@ export class VxSystem {
           }
         });
         Vex.Merge(tie.render_options, ctie.vexOptions);
-        tie.setContext(this.context).draw();
+        tie.setContext(this.context.getContext()).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {
       if (vxStart && !vxEnd) {
@@ -366,19 +367,18 @@ export class VxSystem {
         const bracket = new VF.TextBracket({
           start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
         });
-        bracket.setLine(smoBracket.line).setContext(this.context).draw();
+        bracket.setLine(smoBracket.line).setContext(this.context.getContext()).draw();
       }
     }
 
-    this.context.closeGroup();
+    this.context.getContext().closeGroup();
     if (xoffset) {
-      const slurBox = this.context.svg.getElementById('vf-' + artifactId);
+      const slurBox = this.context.svg.getElementById('vf-' + artifactId) as SVGSVGElement;
       if (slurBox) {
         SvgHelpers.translateElement(slurBox, xoffset, 0);
       }
     }
     modifier.element = group;
-    // modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
   }
 
   renderEndings(scroller: SuiScroller) {
@@ -402,14 +402,14 @@ export class VxSystem {
           $(this.context.svg).find('g.' + ending.attrs.id).remove();
         }
         if ((ending.startBar <= mix) && (ending.endBar >= mix) && vxMeasure.stave !== null) {
-          const group = this.context.openGroup(null, ending.attrs.id);
+          const group = this.context.getContext().openGroup(null, ending.attrs.id);
           group.classList.add(ending.attrs.id);
           group.classList.add(ending.endingId);
           const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
           const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
-          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
-          this.context.closeGroup();
-          ending.logicalBox = SvgHelpers.smoBox(group.getBBox());
+          vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+          this.context.getContext().closeGroup();
+          ending.logicalBox = this.context.offsetBbox(group);
           if (!pushed) {
             voAr.push({ smoMeasure, ending });
             pushed = true;
@@ -516,7 +516,7 @@ export class VxSystem {
 
     if (systemIndex === 0 && lastStaff) {
       $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
-      const group = this.context.openGroup();
+      const group = this.context.getContext().openGroup();
       group.classList.add('lineBracket-' + this.lineIndex);
       group.classList.add('lineBracket');
       this.vxMeasures.forEach((vv) => {
@@ -528,7 +528,7 @@ export class VxSystem {
           if (startSel && endSel) {
             const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
               .setType(systemGroup.leftConnectorVx());
-            c1.setContext(this.context).draw();
+            c1.setContext(this.context.getContext()).draw();
             brackets = true;
           }
         }
@@ -537,9 +537,9 @@ export class VxSystem {
       if (!brackets && this.vxMeasures.length > 1) {
         const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave,
           VF.StaveConnector.type.SINGLE_LEFT);
-        c2.setContext(this.context).draw();
+        c2.setContext(this.context.getContext()).draw();
       }
-      this.context.closeGroup();
+      this.context.getContext().closeGroup();
     } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
       if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
         const endMeasure = vxMeasure;
@@ -547,13 +547,13 @@ export class VxSystem {
           vv.selection.selector.measure === vxMeasure.selection.selector.measure);
         if (endMeasure && startMeasure) {
           $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-          const group = this.context.openGroup();
+          const group = this.context.getContext().openGroup();
           group.classList.add('endBracket-' + this.lineIndex);
           group.classList.add('endBracket');
           const c2 = new VF.StaveConnector(startMeasure.stave, endMeasure.stave)
             .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-          c2.setContext(this.context).draw();
-          this.context.closeGroup();
+          c2.setContext(this.context.getContext()).draw();
+          this.context.getContext().closeGroup();
         }
       }
     }

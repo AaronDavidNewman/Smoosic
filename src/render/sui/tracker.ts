@@ -1,9 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
+import { SuiMapper, SuiRendererBase } from './mapper';
 import { SvgHelpers, StrokeInfo, OutlineInfo } from './svgHelpers';
 import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiOscillator } from '../audio/oscillator';
 import { SmoScore } from '../../smo/data/score';
@@ -12,6 +11,8 @@ import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
+import { SvgPage } from './svgPageMap';
+import { layoutDebug } from './layoutDebug';
 declare var $: any;
 /**
  * SuiTracker
@@ -23,8 +24,7 @@ export class SuiTracker extends SuiMapper {
   musicCursorGlyph: SVGSVGElement | null = null;
   // timer: NodeJS.Timer | null = null;
   suggestFadeTimer: NodeJS.Timer | null = null;
-
-  
+  strokeMemory: Record<string, SvgPage> = {};
   static get strokes(): Record<string, StrokeInfo> {
     return {
       suggestion: {
@@ -68,10 +68,6 @@ export class SuiTracker extends SuiMapper {
     return this.renderer.score;
   }
 
-  get svg(): SVGSVGElement {
-    return this.renderer.svg;
-  }
-
   getIdleTime(): number {
     return this.idleTimer;
   }
@@ -88,7 +84,6 @@ export class SuiTracker extends SuiMapper {
    * @returns 
    */
   musicCursor(selector: SmoSelector, offsetPct: number, durationPct: number) {
-    const key = SmoSelector.getNoteKey(selector);
     if (!this.score) {
       return;
     }
@@ -99,32 +94,34 @@ export class SuiTracker extends SuiMapper {
       0, selector.measure);
     const measure = measureSel?.measure as SmoMeasure;
     if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
+      const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
       const topBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+      topBox.y -= context.box.y;
       const botBox = SvgHelpers.smoBox(measure.svg.logicalBox);
+      botBox.y -= context.box.y;
       const height = (botBox.y + botBox.height) - topBox.y;
       const measureWidth = botBox.width - measure.svg.adjX;
       const width = measureWidth * durationPct;
       const y = topBox.y;
-      const x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+      let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+      const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
+      if (noteBox && noteBox.logicalBox) {
+        x = noteBox.logicalBox.x;
+      }
       const screenBox = SvgHelpers.boxPoints(x, y, width, height);
       const fillParams: Record<string, string> = {};
       fillParams['fill-opacity'] = '0.5';
       fillParams['fill'] = '#4444ff';
-      const ctx = this.renderer.context;
+      const ctx = context.getContext();
       this.clearMusicCursor();
       ctx.save();
       ctx.openGroup('music-cursor', 'music-cursor');
       ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
       ctx.closeGroup();
       ctx.restore();
-      this.scroller.scrollVisibleBox(screenBox);        
+      layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
+      this.scroller.scrollVisibleBox(measure.svg.logicalBox);        
     }
-  }
-
-  // ### selectModifierById
-  // programatically select a modifier by ID.  Used by text editor.
-  selectId(id: string) {
-    this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id === id);
   }
 
   getSelectedModifier() {
@@ -152,12 +149,11 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     this.idleTimer = Date.now();
-    SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['staffModifier']);
-    const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
-
-    if (!this.modifierTabs.length) {
-      return;
+    if (this.strokeMemory['staffModifier']) {
+      SvgHelpers.eraseOutline(this.strokeMemory['staffModifier'].svg, SuiTracker.strokes['staffModifier']);
+      delete this.strokeMemory['staffModifier'];
     }
+    const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
     this.modifierIndex = this.modifierIndex + offset;
     this.modifierIndex = (this.modifierIndex === -2 && this.localModifiers.length) ?
       this.localModifiers.length - 1 : this.modifierIndex;
@@ -166,7 +162,7 @@ export class SuiTracker extends SuiMapper {
       this.modifierSelections = [];
       return;
     }
-    const local: LocalModifier = this.localModifiers[this.modifierIndex];
+    const local: ModifierTab = this.localModifiers[this.modifierIndex];
     const box: SvgBox = SvgHelpers.smoBox(local.box) as SvgBox;
     this.modifierSelections = [{ index: 0, box, modifier: local.modifier, selection: local.selection }];
     this._highlightModifier();
@@ -237,7 +233,7 @@ export class SuiTracker extends SuiMapper {
     }
     const ix = (offset < 0) ? 0 : far.length - 1;
     const sel: ModifierTab = far[ix] as ModifierTab;
-    const left = this.modifierTabs.filter((mt) =>
+    const left = this.localModifiers.filter((mt) =>
       mt.modifier?.attrs?.type === 'SmoGraceNote' && sel.selection && mt.selection &&
       SmoSelector.sameNote(mt.selection.selector, sel.selection.selector)
     );
@@ -248,6 +244,7 @@ export class SuiTracker extends SuiMapper {
     if (!leftSel) {
       console.warn('bad selector in _growGraceNoteSelections');
     }
+    leftSel.box = leftSel.box ?? SvgBox.default;
     this.modifierSelections.push(leftSel);
     this._highlightModifier();
   }
@@ -620,18 +617,15 @@ export class SuiTracker extends SuiMapper {
     }
     this.idleTimer = Date.now();
 
-    if (this.modifierSuggestion >= 0) {
+    if (this.modifierSuggestion) {
       if (this.suggestFadeTimer) {
         clearTimeout(this.suggestFadeTimer);
         this.suggestFadeTimer = null;
       }
       this.modifierIndex = -1;
-      const selToAdd = this.modifierTabs[this.modifierSuggestion];
-      if (!selToAdd) {
-        console.warn('bad modifier selection in selectSuggestion');
-      }
-      this.modifierSelections = [selToAdd];
-      this.modifierSuggestion = -1;
+      this.modifierSelections = [this.modifierSuggestion];
+      this.modifierSuggestion = null;
+      this.createLocalModifiersFromModifierTabs(this.modifierSelections);
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
       this._highlightModifier();
@@ -670,10 +664,15 @@ export class SuiTracker extends SuiMapper {
       this.pitchIndex =  (this.pitchIndex + 1) % note.pitches.length;
       this.selections[0].selector.pitches = [this.pitchIndex];
     } else {
-      this.selections = [this.suggestion];
+      const selection = SmoSelection.noteFromSelector(this.score, this.suggestion.selector);
+      if (selection) {
+        selection.box = JSON.parse(JSON.stringify(this.suggestion.box));
+        selection.scrollBox = JSON.parse(JSON.stringify(this.suggestion.scrollBox));
+        this.selections = [selection];
+      }
     }
-    if (preselected && this.modifierTabs.length) {
-      const mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
+    if (preselected && this.modifierSelections.length) {
+      const mods  = this.modifierSelections.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
       if (mods.length) {
         const modToAdd = mods[0];
         if (!modToAdd) {
@@ -697,8 +696,11 @@ export class SuiTracker extends SuiMapper {
     const tracker = this;
     this.suggestFadeTimer = setTimeout(() => {
       if (tracker.containsArtifact()) {
-        SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['suggestion']);
-        tracker.modifierSuggestion = -1;
+        if (this.strokeMemory['suggestion']) {
+          SvgHelpers.eraseOutline(this.strokeMemory['suggestion'].svg, SuiTracker.strokes['suggestion']);
+          delete this.strokeMemory['suggestion'];
+        }
+        tracker.modifierSuggestion = null;
       }
     }, 1000);
   }
@@ -707,7 +709,7 @@ export class SuiTracker extends SuiMapper {
     if (!artifact.box) {
       return;
     }
-    this.modifierSuggestion = artifact.index;
+    this.modifierSuggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
     this._setFadeTimer();
   }
@@ -725,7 +727,7 @@ export class SuiTracker extends SuiMapper {
     if (sameSel || !artifact.box) {
       return;
     }
-    this.modifierSuggestion = -1;
+    this.modifierSuggestion = null;
 
     this.suggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
@@ -734,8 +736,11 @@ export class SuiTracker extends SuiMapper {
 
   eraseAllSelections() {
     Object.keys(SuiTracker.strokes).forEach((key) => {
-      SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes[key]);
+      if (this.strokeMemory[key]) {
+        SvgHelpers.eraseOutline(this.strokeMemory[key].svg, SuiTracker.strokes[key]);
+      }
     });
+    this.strokeMemory = {};
   }
   _highlightModifier() {
     let box: SvgBox | null = null;
@@ -763,8 +768,8 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     const headEl = heads[index];
-    const box = SvgHelpers.smoBox(headEl.getBBox());
-    // const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
+    const pageContext = this.renderer.pageMap.getRendererFromModifier(note);
+    const box = pageContext.offsetBbox(headEl);
     this._drawRect(box, 'staffModifier');
   }
 
@@ -853,8 +858,15 @@ export class SuiTracker extends SuiMapper {
 
   _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string): OutlineInfo {
     const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
+    let testBox: SvgBox = SvgHelpers.smoBox(box);
+    let context = this.renderer.pageMap.getRenderer(testBox);
+    if (!context) {
+      context = this.renderer.pageMap.getRendererForPage(0);
+    }
+    testBox.y -= context.box.y;
+    this.strokeMemory[strokeName] = context;
     return {
-      context: this.renderer.context, box, classes: '',
+      context: context, box: testBox, classes: '',
       stroke, scroll: this.scroller.scrollState, clientCoordinates: false
     };
   }

@@ -1,8 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from './svgHelpers';
-import { SvgBox } from '../../smo/data/common';
+import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
+import { SmoSelector } from '../../smo/xform/selections';
 const VF = eval('Vex.Flow');
 declare var $: any;
 
@@ -14,13 +15,13 @@ export class layoutDebug {
   static get values(): Record<string, number> {
     return {
       pre: 1,
-      post: 2,
+      play: 2,
       adjust: 4,
       system: 8,
       scroll: 16,
       artifactMap: 32,
-      measureHistory: 64,
-      textEditorHistory: 128,
+      mouseDebug: 64,
+      dragDebug: 128,
       dialogEvents: 256,
       cursor: 512
     };
@@ -29,13 +30,13 @@ export class layoutDebug {
   static get classes(): Record<number, string> {
     return {
       1: 'measure-place-dbg',
-      2: 'measure-render-dbg',
+      2: 'measure-play-dbg',
       4: 'measure-adjust-dbg',
       8: 'system-place-dbg',
       16: 'scroll-box-debug',
       32: 'measure-adjustHeight-dbg',
-      64: '',
-      128: '',
+      64: 'mouse-debug',
+      128: 'drag-debug',
       256: '',
       512: 'cursor-adj-dbg',
     };
@@ -127,6 +128,49 @@ export class layoutDebug {
       return;
     }
     layoutDebug.mask |= flag;
+    layoutDebug.setFlagDivs();
+  }
+  static setFlagDivs() {
+    $('.scroll-box-debug').remove();
+    $('.drag-debug').remove();
+    $('.mouse-debug').remove();
+    $('.play-debug').remove();
+    if (layoutDebug.mask & layoutDebug.values.scroll) {
+      const dbgDiv = $('<div class="scroll-box-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+    if (layoutDebug.mask & layoutDebug.values.mouseDebug) {
+      const dbgDiv = $('<div class="mouse-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+    if (layoutDebug.mask & layoutDebug.values.dragDebug) {
+      const dbgDiv = $('<div class="drag-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+    if (layoutDebug.mask & layoutDebug.values.play) {
+      const dbgDiv = $('<div class="play-debug"/>');
+      $('body').append(dbgDiv);  
+    }
+  }
+  static updateScrollDebug(point: SvgPoint) {
+    const displayString = 'X: ' + point.x + ' Y: ' + point.y;
+    $('.scroll-box-debug').text(displayString);
+    $('.scroll-box-debug').css('left', '2%').css('top', '20px');
+  }
+  static updateMouseDebug(client: SvgPoint, logical: SvgPoint, offset: SvgPoint) {
+    const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) offset (${offset.x}, ${offset.y})`;
+    $('.mouse-debug').text(displayString);
+    $('.mouse-debug').css('left', '2%').css('top', '60px').css('position','absolute').css('font-size','11px');
+  }
+  static updateDragDebug(client: SvgPoint, logical: SvgPoint, state: string) {
+    const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) state ${state})`;
+    $('.drag-debug').text(displayString);
+    $('.drag-debug').css('left', '2%').css('top', '80px').css('position','absolute').css('font-size','11px');
+  }
+  static updatePlayDebug(selector: SmoSelector, logical: SvgBox) {
+    const displayString = `mm: ${selector.measure} tick: ${selector.tick} svg: (${logical.x},${logical.y}, ${logical.width}, ${logical.height})`;
+    $('.play-debug').text(displayString);
+    $('.play-debug').css('left', '2%').css('top', '100px').css('position','absolute').css('font-size','11px');
   }
 
   static addTextDebug(value: number) {

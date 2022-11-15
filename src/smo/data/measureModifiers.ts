@@ -17,7 +17,6 @@ const VF = eval('Vex.Flow');
 export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
-  renderedBox: SvgBox | null = null;
   logicalBox: SvgBox | null = null;
   constructor(ctor: string) {
     this.ctor = ctor;
@@ -349,6 +348,7 @@ export class SmoVolta extends SmoMeasureModifierBase {
   endingId: string | null = null;
   startSelector: SmoSelector | null = null;
   endSelector: SmoSelector | null = null;
+  elements: SVGSVGElement[] = [];
   constructor(parameters: SmoVoltaParams) {
     super('SmoVolta');
     smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);

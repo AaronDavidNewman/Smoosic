@@ -149,7 +149,10 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       const textParams = SmoScoreText.defaults;
       textParams.position = SmoScoreText.positions.custom;
       const newText = new SmoScoreText(textParams);
-      newText.y += tracker.scroller.scrollState.y;
+      // convert scroll from screen coord to svg coord
+      const svgScroll = tracker.renderer.pageMap.clientToSvg(SvgHelpers.smoBox(tracker.scroller.scrollState));
+      newText.y += svgScroll.y;
+      newText.x += svgScroll.x;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure.svg;
         if (typeof (sel.logicalBox) !== 'undefined') {
@@ -202,7 +205,9 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.highlightActiveRegion();
   }
   display() {
-    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
+    const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+    const svg = pageContext.svg;
+    this.textElement = $(svg).find('.' + this.modifier.attrs.id)[0];
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
     this.applyDisplayOptions();
@@ -304,13 +309,15 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.backup = this.modifier.serialize();
   }
   highlightActiveRegion() {
-    SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['text-highlight']);
-    SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['text-suggestion']);
-    SvgHelpers.eraseOutline(this.view.renderer.svg, SuiTextEditor.strokes['inactive-text']);
+    const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+    const svg = pageContext.svg;
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-highlight']);
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-suggestion']);
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['inactive-text']);
     if (this.activeScoreText.logicalBox) {
       const stroke = SuiTextEditor.strokes['text-highlight'];
       const outline: OutlineInfo = {
-        context: this.view.renderer.context,
+        context: pageContext,
         clientCoordinates: false,
         classes: '',
         stroke,
@@ -376,13 +383,15 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (this.mouseClickHandler) {
       this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     }
-    SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-drag']);
+    const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+    const svg = pageContext.svg;
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-drag']);
     $('body').find('g.vf-text-highlight').remove();
     // Hack - this comes from SuiInlineText and SuiTextEdit.
     $('body').find('g.sui-inline-edit').remove();
-    SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-highlight']);
-    SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['text-suggestion']);
-    SvgHelpers.eraseOutline(this.view.renderer.context.svg, SuiTextEditor.strokes['inactive-text']);
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-highlight']);
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-suggestion']);
+    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['inactive-text']);
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();
