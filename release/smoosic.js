@@ -3933,7 +3933,7 @@ class SuiOscillator {
             return;
         }
         const soundInfo = selection.staff.getStaffInstrument(selection.selector.measure);
-        const oscInfo = samples_1.SuiSampleMedia.getSmoOscillatorInfo(soundInfo.subFamily);
+        const oscInfo = samples_1.SuiSampleMedia.getSmoOscillatorInfo(soundInfo.instrument);
         setTimeout(() => {
             const ar = SuiOscillator.fromNote(selection.measure, selection.note, score, oscInfo[0], gain);
             ar.forEach((osc) => {
@@ -3972,7 +3972,7 @@ class SuiOscillator {
             const mtone = (_a = note.getMicrotone(pitchIx)) !== null && _a !== void 0 ? _a : null;
             frequency = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, -1 * measure.transposeIndex, mtone);
             const def = SuiOscillator.defaults;
-            def.instrument = soundInfo.subFamily;
+            def.instrument = soundInfo.instrument;
             def.frequency = frequency;
             def.duration = duration;
             def.gain = gain;
@@ -4147,7 +4147,7 @@ class SuiSampler extends SuiOscillator {
             const sampleInfo = samples_1.SuiSampleMedia.sampleOscMap[this.instrument];
             if (sampleInfo.length) {
                 if (sampleInfo[0].sustain === 'sustained') {
-                    this.attack = 0.1 * this.duration;
+                    // this.attack = 0.1 * this.duration;
                 }
             }
         }
@@ -4155,7 +4155,13 @@ class SuiSampler extends SuiOscillator {
     // Note: samplePromise must be complete before you call this  
     createAudioNode() {
         const node = SuiOscillator.audio.createBufferSource();
-        const sample = samples_1.SuiSampleMedia.matchedSample(this.instrument, this.frequency);
+        const chooserParams = {
+            instrument: this.instrument,
+            frequency: this.frequency,
+            duration: this.duration,
+            gain: this.gain
+        };
+        const sample = samples_1.SuiSampleMedia.matchedSample(chooserParams);
         if (!sample) {
             return node;
         }
@@ -4337,7 +4343,8 @@ class SuiAudioPlayer {
                             durationPct: duration / measureTicks,
                             noteType: smoNote.noteType,
                             duration,
-                            instrument: instrument.subFamily
+                            instrument: instrument.instrument,
+                            selector
                         };
                         // If this is continuation of tied note, just change duration
                         if (this.openTies[tieIx]) {
@@ -4389,6 +4396,10 @@ class SuiAudioPlayer {
             const soundData = measureNotes[beatTime];
             let durationPct = 0;
             let offsetPct = 0;
+            if (soundData.length === 0) {
+                console.log('empty sound measure');
+                continue;
+            }
             soundData.forEach((ss) => {
                 if (durationPct === 0) {
                     durationPct = ss.durationPct;
@@ -4398,7 +4409,7 @@ class SuiAudioPlayer {
                 offsetPct = Math.min(offsetPct, ss.offsetPct);
             });
             const cuedSound = { oscs: [], waitTime: 0, playMeasureIndex: measureIndex, playTickIndex: j,
-                offsetPct, durationPct };
+                offsetPct, durationPct, selector: soundData[0].selector };
             const timeRatio = 60000 / (tempo * 4096);
             // If there is complete silence here, put a silent beat
             if (beatTime > measureBeat) {
@@ -4408,7 +4419,7 @@ class SuiAudioPlayer {
                 params.gain = 0;
                 params.useReverb = false;
                 const silence = { oscs: [], waitTime: params.duration, playMeasureIndex: measureIndex, playTickIndex: j,
-                    offsetPct, durationPct };
+                    offsetPct, durationPct, selector: soundData[0].selector };
                 silence.oscs.push(new oscillator_1.SuiSampler(params));
                 this.cuedSounds.addToTail(silence);
                 measureBeat = beatTime;
@@ -4494,7 +4505,7 @@ class SuiAudioPlayer {
                     return;
                 }
                 SuiAudioPlayer._playChord(cuedSound.oscs);
-                this.tracker.musicCursor({ staff: 0, measure: cuedSound.playMeasureIndex, voice: 0, tick: cuedSound.playTickIndex, pitches: [] }, cuedSound.offsetPct, cuedSound.durationPct);
+                this.tracker.musicCursor(cuedSound.selector, cuedSound.offsetPct, cuedSound.durationPct);
                 this.cuedSounds.playMeasureIndex += 1;
                 this.cuedSounds.playWaitTimer = cuedSound.waitTime;
                 timer();
@@ -4508,10 +4519,9 @@ class SuiAudioPlayer {
         }, milliseconds);
     }
     startPlayer(measureIndex) {
-        var _a, _b;
         this.openTies = {};
         this.cuedSounds.reset();
-        this.cuedSounds.cueMeasureIndex = (_b = (_a = this.tracker.getFirstMeasureOfSelection()) === null || _a === void 0 ? void 0 : _a.measureNumber.measureIndex) !== null && _b !== void 0 ? _b : 0;
+        this.cuedSounds.cueMeasureIndex = measureIndex;
         this.cuedSounds.playMeasureIndex = this.cuedSounds.cueMeasureIndex;
         this.cuedSounds.paramLinkHead = null;
         this.cuedSounds.paramLinkTail = null;
@@ -4609,248 +4619,223 @@ SuiAudioPlayer._playingInstance = null;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiSampleMedia = void 0;
+exports.SuiSampleMedia = exports.sampleFromFrequency = exports.sampleFromMinDuration = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const sampleFromMinDuration = (params, samples) => {
+    const longSamples = samples.filter((ss) => ss.minDuration < params.duration && ss.minDuration > 0);
+    if (longSamples.length) {
+        return (0, exports.sampleFromFrequency)(params, longSamples);
+    }
+    return (0, exports.sampleFromFrequency)(params, samples.filter((ss) => ss.minDuration === 0));
+};
+exports.sampleFromMinDuration = sampleFromMinDuration;
+const sampleFromFrequency = (params, samples) => {
+    let min = 9999;
+    let rv = null;
+    let i = 0;
+    const f = params.frequency;
+    for (i = 0; i < samples.length; ++i) {
+        const oscInfo = samples[i];
+        if (!oscInfo.sample || !SuiSampleMedia.sampleBufferMap[oscInfo.sample]) {
+            continue;
+        }
+        const buffer = SuiSampleMedia.sampleBufferMap[oscInfo.sample];
+        if (Math.abs(f - oscInfo.nativeFrequency) < min) {
+            min = Math.abs(f - oscInfo.nativeFrequency);
+            rv = {
+                sample: buffer,
+                frequency: oscInfo.nativeFrequency,
+                patch: oscInfo.sample
+            };
+        }
+    }
+    return rv;
+};
+exports.sampleFromFrequency = sampleFromFrequency;
 class SuiSampleMedia {
     static insertIntoMap(sample) {
-        if (!this.sampleOscMap[sample.subFamily]) {
-            this.sampleOscMap[sample.subFamily] = [];
+        const oscInfo = staffModifiers_1.SmoInstrument.defaultOscillatorParam;
+        const populatePartial = (partial, full, param) => {
+            full[param] = typeof (partial[param]) === 'undefined' ? full[param] : partial[param];
+        };
+        staffModifiers_1.SmoOscillatorInfoAllTypes.forEach((paramType) => {
+            populatePartial(sample, oscInfo, paramType);
+        });
+        if (!this.sampleOscMap[oscInfo.instrument]) {
+            this.sampleOscMap[oscInfo.instrument] = [];
         }
-        this.sampleOscMap[sample.subFamily].push(sample);
-        SuiSampleMedia.sampleFiles.push(sample);
+        this.sampleOscMap[oscInfo.instrument].push(oscInfo);
+        SuiSampleMedia.sampleFiles.push(oscInfo);
     }
     static populateSampleMap() {
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'percussive',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'samplecn4',
             family: 'keyboard',
-            subFamily: 'piano',
+            instrument: 'piano',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'percussive',
             realOvertones: [],
             imaginaryOvertones: [],
             sample: 'samplebb4',
             family: 'keyboard',
-            subFamily: 'piano',
+            instrument: 'piano',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-bass-b1',
             family: 'strings',
-            subFamily: 'bass',
+            instrument: 'bass',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 1 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-bass-e2',
             family: 'strings',
-            subFamily: 'bass',
+            instrument: 'bass',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
+            sample: 'sample-violinshort-e6',
+            family: 'strings',
+            instrument: 'violin',
+            minDuration: 0,
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-violinshort-e5',
+            family: 'strings',
+            instrument: 'violin',
+            minDuration: 0,
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
             sample: 'sample-violin-e6',
             family: 'strings',
-            subFamily: 'violin',
+            instrument: 'violin',
+            minDuration: 400,
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-violin-e5',
             family: 'strings',
-            subFamily: 'violin',
+            instrument: 'violin',
+            minDuration: 400,
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-violin-e4',
             family: 'strings',
-            subFamily: 'violin',
+            instrument: 'violin',
+            minDuration: 400,
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-cello-bb3',
             family: 'strings',
-            subFamily: 'cello',
+            instrument: 'cello',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'n', octave: 3 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-cello-c4',
             family: 'strings',
-            subFamily: 'cello',
+            instrument: 'cello',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-trumpet-c4',
             family: 'brass',
-            subFamily: 'trumpet',
+            instrument: 'trumpet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-trumpet-c5',
             family: 'brass',
-            subFamily: 'trumpet',
+            instrument: 'trumpet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-horn-c4',
             family: 'brass',
-            subFamily: 'horn',
+            instrument: 'horn',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
+            dynamic: 100
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-horn-c3',
             family: 'brass',
-            subFamily: 'horn',
+            instrument: 'horn',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-tuba-c2',
             family: 'brass',
-            subFamily: 'tuba',
+            instrument: 'tuba',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 2 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-tuba-c3',
             family: 'brass',
-            subFamily: 'tuba',
+            instrument: 'tuba',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-clarinet-c4',
             family: 'woodwind',
-            subFamily: 'clarinet',
+            instrument: 'clarinet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'sample-clarinet-c5',
             family: 'woodwind',
-            subFamily: 'clarinet',
+            instrument: 'clarinet',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'pad-c4-vita',
             family: 'synth',
-            subFamily: 'pad',
+            instrument: 'pad',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
-            dynamic: 100,
-            options: []
         });
         SuiSampleMedia.insertIntoMap({
-            waveform: 'sample',
             sustain: 'sustained',
-            realOvertones: [],
-            imaginaryOvertones: [],
             sample: 'pad-c5-vita',
             family: 'synth',
-            subFamily: 'pad',
+            instrument: 'pad',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
-            dynamic: 100,
-            options: []
         });
+        const instrumentMap = Object.keys(SuiSampleMedia.sampleOscMap);
+        instrumentMap.forEach((instrumentKey) => {
+            SuiSampleMedia.instrumentChooser[instrumentKey] = {
+                instrument: instrumentKey,
+                samples: SuiSampleMedia.sampleOscMap[instrumentKey],
+                sampleChooser: exports.sampleFromFrequency
+            };
+        });
+        SuiSampleMedia.instrumentChooser['violin'].sampleChooser = exports.sampleFromMinDuration;
     }
     static getSmoOscillatorInfo(instrument) {
         if (!SuiSampleMedia.sampleOscMap[instrument]) {
@@ -4931,107 +4916,27 @@ class SuiSampleMedia {
         }
         return rv;
     }
-    static matchedSample(instrument, frequency) {
-        if (!SuiSampleMedia.sampleOscMap[instrument]) {
-            instrument = 'piano';
+    static matchedSample(params) {
+        let instrumentKey = params.instrument;
+        if (!SuiSampleMedia.instrumentChooser[instrumentKey]) {
+            instrumentKey = 'piano';
         }
-        if (!SuiSampleMedia.sampleOscMap[instrument]) {
+        if (!SuiSampleMedia.instrumentChooser[instrumentKey]) {
             const keys = Object.keys(SuiSampleMedia.sampleOscMap);
             if (keys.length === 0) {
                 return null;
             }
-            instrument = keys[0];
+            instrumentKey = keys[0];
         }
-        return SuiSampleMedia.sampleForFrequency(frequency, SuiSampleMedia.sampleOscMap[instrument]);
+        return SuiSampleMedia.instrumentChooser[instrumentKey].sampleChooser(params, SuiSampleMedia.instrumentChooser[instrumentKey].samples);
     }
 }
 exports.SuiSampleMedia = SuiSampleMedia;
 SuiSampleMedia.sampleFiles = [];
 SuiSampleMedia.sampleBufferMap = {};
 SuiSampleMedia.sampleOscMap = {};
+SuiSampleMedia.instrumentChooser = {};
 SuiSampleMedia.receivedBuffer = false;
-
-
-/***/ }),
-
-/***/ "./src/render/sui/artifactMap.ts":
-/*!***************************************!*\
-  !*** ./src/render/sui/artifactMap.ts ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiArtifactMap = void 0;
-const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
-/**
- * Keep the artifacts for mapper in a geometric type of hash, so we map client and svg
- * coordinates more rapidly.
- * @category SuiRender
- */
-class SuiArtifactMap {
-    constructor(containers, boxIndex, selection) {
-        this.children = [];
-        this.noteMap = {};
-        this.box = common_1.SvgBox.default;
-        if (!selection || !selection.note || !selection.note.logicalBox) {
-            return;
-        }
-        this.box = svgHelpers_1.SvgHelpers.smoBox(selection.measure.svg.logicalBox);
-        if (boxIndex + 1 < containers.length) {
-            this.children.push(new SuiArtifactMap(containers, boxIndex + 1, selection));
-        }
-        else {
-            this.addBox(containers, boxIndex, selection);
-        }
-    }
-    debugBox(svg) {
-        layoutDebug_1.layoutDebug.debugBox(svg, this.box, layoutDebug_1.layoutDebug.values.artifactMap);
-        this.children.forEach((child) => {
-            child.debugBox(svg);
-        });
-    }
-    addBox(containers, boxIndex, selection) {
-        if (!selection.note || !selection.note.logicalBox) {
-            return;
-        }
-        if (boxIndex === containers.length - 1) {
-            const innerBox = selection.note.logicalBox;
-            this.box = svgHelpers_1.SvgHelpers.unionRect(this.box, innerBox);
-            this.noteMap[selections_1.SmoSelector.getNoteKey(selection.selector)] = selection;
-            return;
-        }
-        else {
-            const innerBox = selection.measure.svg.logicalBox;
-            if (!innerBox) {
-                return;
-            }
-            this.box = svgHelpers_1.SvgHelpers.unionRect(this.box, innerBox);
-            if (this.children.length < containers[boxIndex] + 1) {
-                this.children.push(new SuiArtifactMap(containers, boxIndex + 1, selection));
-            }
-            else {
-                this.children[containers[boxIndex]].addBox(containers, boxIndex + 1, selection);
-            }
-        }
-    }
-    findArtifact(box) {
-        let rv = [];
-        if (this.children.length === 0) {
-            const objs = Object.keys(this.noteMap).map((mm) => this.noteMap[mm]);
-            return objs.filter((oo) => oo.box && svgHelpers_1.SvgHelpers.doesBox1ContainBox2(oo.box, box));
-        }
-        const children = this.children.filter((child) => svgHelpers_1.SvgHelpers.doesBox1ContainBox2(child.box, box));
-        children.forEach((child) => {
-            rv = rv.concat(child.findArtifact(box));
-        });
-        return rv;
-    }
-}
-exports.SuiArtifactMap = SuiArtifactMap;
 
 
 /***/ }),
@@ -5142,9 +5047,6 @@ class SuiLayoutFormatter {
         // See if this measure breaks a page.
         const maxY = bottomMeasure.svg.logicalBox.y + bottomMeasure.svg.logicalBox.height;
         if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-            // Advance to next page settings
-            if (this.renderedPages[this.currentPage]) {
-            }
             this.currentPage += 1;
             // If this is a new page, make sure there is a layout for it.
             lm.addToPageLayouts(this.currentPage);
@@ -5159,6 +5061,7 @@ class SuiLayoutFormatter {
             currentLine.forEach((measure) => {
                 measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
                 measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
+                measure.svg.pageIndex = this.currentPage;
             });
         }
         return scoreLayout;
@@ -5300,8 +5203,6 @@ class SuiLayoutFormatter {
         let currentLine = []; // the system we are esimating
         let measureEstimate = null;
         layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.pre);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.post);
-        layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.adjust);
         layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.system);
         const timestamp = new Date().valueOf();
         y = scoreLayout.topMargin;
@@ -5325,17 +5226,14 @@ class SuiLayoutFormatter {
                 const renderedPage = this.renderedPages[pageCheck];
                 if (renderedPage) {
                     if (pageCheck !== this.currentPage) {
-                        if (renderedPage.endMeasure !== measureIx - 1) {
+                        // The last measure in the last system of the previous page
+                        const previousSystem = currentLine[0].measureNumber.measureIndex - 1;
+                        if (renderedPage.endMeasure !== previousSystem) {
                             this.renderedPages[pageCheck] = null;
                         }
                         const nextPage = this.renderedPages[this.currentPage];
-                        if (nextPage && nextPage.startMeasure !== measureIx) {
+                        if (nextPage && nextPage.startMeasure !== previousSystem + 1) {
                             this.renderedPages[this.currentPage] = null;
-                        }
-                    }
-                    else {
-                        if (renderedPage.startMeasure > measureIx || renderedPage.endMeasure < measureIx) {
-                            this.renderedPages[pageCheck] = null;
                         }
                     }
                 }
@@ -5345,8 +5243,10 @@ class SuiLayoutFormatter {
                 if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.system) {
                     currentLine.forEach((measure) => {
                         if (measure.svg.logicalBox) {
-                            ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.system);
-                            ld.debugBox(this.svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug_1.layoutDebug.values.post);
+                            const context = this.svg.getRenderer(measure.svg.logicalBox);
+                            if (context) {
+                                ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.system);
+                            }
                         }
                     });
                 }
@@ -5363,7 +5263,10 @@ class SuiLayoutFormatter {
             // ld declared for lint
             const ld = layoutDebug_1.layoutDebug;
             measureEstimate === null || measureEstimate === void 0 ? void 0 : measureEstimate.measures.forEach((measure) => {
-                ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
+                const context = this.svg.getRenderer(measure.svg.logicalBox);
+                if (context) {
+                    ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
+                }
             });
             this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
             currentLine = currentLine.concat(measureEstimate.measures);
@@ -5378,10 +5281,10 @@ class SuiLayoutFormatter {
             }
         }
         // If a measure was added to the last page, make sure we re-render the page
-        const renderedPage = this.renderedPages[pageCheck];
+        const renderedPage = this.renderedPages[this.currentPage];
         if (renderedPage) {
-            if (renderedPage.endMeasure !== measureIx) {
-                this.renderedPages[pageCheck] = null;
+            if (renderedPage.endMeasure !== currentLine[0].measureNumber.measureIndex) {
+                this.renderedPages[this.currentPage] = null;
             }
         }
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
@@ -5552,7 +5455,8 @@ class SuiLayoutFormatter {
             // missing offset is for systems that have fewer measures than the default (due to section break or score ending)
             let missingOffset = 0;
             if (scoreLayout.maxMeasureSystem > 1 &&
-                columnCount < scoreLayout.maxMeasureSystem) {
+                columnCount < scoreLayout.maxMeasureSystem
+                && lastSystem) {
                 missingOffset = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1)) * (scoreLayout.maxMeasureSystem - columnCount);
                 columnCount = scoreLayout.maxMeasureSystem;
             }
@@ -5565,7 +5469,10 @@ class SuiLayoutFormatter {
                 measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
                 measure.setX(measure.staffX + justOffset, 'justifyY');
                 measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + justOffset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), 'justifyY');
-                ld.debugBox(this.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.adjust);
+                const context = this.svg.getRenderer(measure.svg.logicalBox);
+                if (context) {
+                    ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.adjust);
+                }
                 justOffset += justifyX;
             });
         }
@@ -5772,13 +5679,13 @@ class layoutDebug {
     static get values() {
         return {
             pre: 1,
-            post: 2,
+            play: 2,
             adjust: 4,
             system: 8,
             scroll: 16,
             artifactMap: 32,
-            measureHistory: 64,
-            textEditorHistory: 128,
+            mouseDebug: 64,
+            dragDebug: 128,
             dialogEvents: 256,
             cursor: 512
         };
@@ -5786,13 +5693,13 @@ class layoutDebug {
     static get classes() {
         return {
             1: 'measure-place-dbg',
-            2: 'measure-render-dbg',
+            2: 'measure-play-dbg',
             4: 'measure-adjust-dbg',
             8: 'system-place-dbg',
             16: 'scroll-box-debug',
             32: 'measure-adjustHeight-dbg',
-            64: '',
-            128: '',
+            64: 'mouse-debug',
+            128: 'drag-debug',
             256: '',
             512: 'cursor-adj-dbg',
         };
@@ -5875,6 +5782,49 @@ class layoutDebug {
             return;
         }
         layoutDebug.mask |= flag;
+        layoutDebug.setFlagDivs();
+    }
+    static setFlagDivs() {
+        $('.scroll-box-debug').remove();
+        $('.drag-debug').remove();
+        $('.mouse-debug').remove();
+        $('.play-debug').remove();
+        if (layoutDebug.mask & layoutDebug.values.scroll) {
+            const dbgDiv = $('<div class="scroll-box-debug"/>');
+            $('body').append(dbgDiv);
+        }
+        if (layoutDebug.mask & layoutDebug.values.mouseDebug) {
+            const dbgDiv = $('<div class="mouse-debug"/>');
+            $('body').append(dbgDiv);
+        }
+        if (layoutDebug.mask & layoutDebug.values.dragDebug) {
+            const dbgDiv = $('<div class="drag-debug"/>');
+            $('body').append(dbgDiv);
+        }
+        if (layoutDebug.mask & layoutDebug.values.play) {
+            const dbgDiv = $('<div class="play-debug"/>');
+            $('body').append(dbgDiv);
+        }
+    }
+    static updateScrollDebug(point) {
+        const displayString = 'X: ' + point.x + ' Y: ' + point.y;
+        $('.scroll-box-debug').text(displayString);
+        $('.scroll-box-debug').css('left', '2%').css('top', '20px');
+    }
+    static updateMouseDebug(client, logical, offset) {
+        const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) offset (${offset.x}, ${offset.y})`;
+        $('.mouse-debug').text(displayString);
+        $('.mouse-debug').css('left', '2%').css('top', '60px').css('position', 'absolute').css('font-size', '11px');
+    }
+    static updateDragDebug(client, logical, state) {
+        const displayString = `clientX: ${client.x} clientY: ${client.y} svg: (${logical.x},${logical.y}) state ${state})`;
+        $('.drag-debug').text(displayString);
+        $('.drag-debug').css('left', '2%').css('top', '80px').css('position', 'absolute').css('font-size', '11px');
+    }
+    static updatePlayDebug(selector, logical) {
+        const displayString = `mm: ${selector.measure} tick: ${selector.tick} svg: (${logical.x},${logical.y}, ${logical.width}, ${logical.height})`;
+        $('.play-debug').text(displayString);
+        $('.play-debug').css('left', '2%').css('top', '100px').css('position', 'absolute').css('font-size', '11px');
     }
     static addTextDebug(value) {
         layoutDebug._textDebug.push(value);
@@ -5917,7 +5867,6 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-const artifactMap_1 = __webpack_require__(/*! ./artifactMap */ "./src/render/sui/artifactMap.ts");
 /**
  * Map the notes in the svg so they can respond to events and interact
  * with the mouse/keyboard
@@ -5931,12 +5880,10 @@ class SuiMapper {
         // modifiers (text etc.) that have been selected
         this.modifierSelections = [];
         this.selections = [];
-        // all the modifiers
-        this.modifierTabs = [];
         // The list of modifiers near the current selection
         this.localModifiers = [];
         this.modifierIndex = -1;
-        this.modifierSuggestion = -1;
+        this.modifierSuggestion = null;
         this.pitchIndex = -1;
         // By default, defer highlights for performance.
         this.deferHighlightMode = true;
@@ -5947,14 +5894,11 @@ class SuiMapper {
         this.scroller = scroller;
         this.modifierIndex = -1;
         this.localModifiers = [];
-        // mouse-over that might be selected soon
-        this.modifierSuggestion = -1;
         // index if a single pitch of a chord is selected
         this.pitchIndex = -1;
         // the current selection, which is also the copy/paste destination
         this.pasteBuffer = pasteBuffer;
         this.highlightQueue = { selectionCount: 0, deferred: false };
-        this.artifactMap = new artifactMap_1.SuiArtifactMap([0], 0, null);
     }
     updateHighlight() {
         const self = this;
@@ -5988,34 +5932,63 @@ class SuiMapper {
     }
     _createLocalModifiersList() {
         this.localModifiers = [];
+        let index = 0;
         this.selections.forEach((sel) => {
             var _a, _b;
             (_a = sel.note) === null || _a === void 0 ? void 0 : _a.getGraceNotes().forEach((gg) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: gg, box: (_a = gg.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ index, selection: sel, modifier: gg, box: (_a = gg.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                index += 1;
             });
             (_b = sel.note) === null || _b === void 0 ? void 0 : _b.getModifiers('SmoDynamicText').forEach((dyn) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: dyn, box: (_a = dyn.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ index, selection: sel, modifier: dyn, box: (_a = dyn.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                index += 1;
             });
             sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: volta, box: (_a = volta.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ index, selection: sel, modifier: volta, box: (_a = volta.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                index += 1;
             });
             sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
                 var _a;
-                this.localModifiers.push({ selection: sel, modifier: tempo, box: (_a = tempo.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                this.localModifiers.push({ index, selection: sel, modifier: tempo, box: (_a = tempo.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default });
+                index += 1;
             });
             sel.staff.getModifiers().forEach((mod) => {
                 if (selections_1.SmoSelector.gteq(sel.selector, mod.startSelector) &&
                     selections_1.SmoSelector.lteq(sel.selector, mod.endSelector) && mod.logicalBox) {
                     const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);
                     if (!exists) {
-                        this.localModifiers.push({ selection: sel, modifier: mod, box: mod.logicalBox });
+                        this.localModifiers.push({ index, selection: sel, modifier: mod, box: mod.logicalBox });
+                        index += 1;
                     }
                 }
             });
         });
+    }
+    /**
+     * When a modifier is selected graphically, update the selection list
+     * and create a local modifier list
+     * @param modifierTabs
+     */
+    createLocalModifiersFromModifierTabs(modifierTabs) {
+        const selections = [];
+        const modMap = {};
+        modifierTabs.forEach((mt) => {
+            if (mt.selection) {
+                const key = selections_1.SmoSelector.getNoteKey(mt.selection.selector);
+                if (!modMap[key]) {
+                    selections.push(mt.selection);
+                    modMap[key] = true;
+                }
+            }
+        });
+        if (selections.length) {
+            this.selections = selections;
+            this._createLocalModifiersList();
+            this.deferHighlight();
+        }
     }
     // used by remove dialogs to clear removed thing
     clearModifierSelections() {
@@ -6029,7 +6002,6 @@ class SuiMapper {
     // rendering
     loadScore() {
         this.measureNoteMap = {};
-        this.artifactMap = new artifactMap_1.SuiArtifactMap([0], 0, null);
         this.clearModifierSelections();
         this.selections = [];
         this.highlightQueue = { selectionCount: 0, deferred: false };
@@ -6078,28 +6050,28 @@ class SuiMapper {
         }
     }
     _updateNoteModifier(selection, modMap, modifier, ix) {
-        if (!modMap[modifier.attrs.id]) {
-            this.modifierTabs.push({
+        if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
+            this.renderer.pageMap.addModifierTab({
                 modifier,
                 selection,
-                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState)),
+                box: modifier.logicalBox,
                 index: ix
             });
             ix += 1;
+            const context = this.renderer.pageMap.getRendererFromModifier(modifier);
             modMap[modifier.attrs.id] = true;
         }
         return ix;
     }
     _updateModifiers() {
         let ix = 0;
-        this.modifierTabs = [];
         const modMap = {};
         if (!this.renderer.score) {
             return;
         }
         this.renderer.score.textGroups.forEach((modifier) => {
             if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
-                this.modifierTabs.push({
+                this.renderer.pageMap.addModifierTab({
                     modifier,
                     selection: null,
                     box: modifier.logicalBox,
@@ -6116,7 +6088,7 @@ class SuiMapper {
                 if (selections_1.SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
                     if (!modMap[modifier.attrs.id]) {
                         if (modifier.logicalBox) {
-                            this.modifierTabs.push({
+                            this.renderer.pageMap.addModifierTab({
                                 modifier,
                                 selection,
                                 box: modifier.logicalBox,
@@ -6132,7 +6104,7 @@ class SuiMapper {
                 if (modifier.attrs.id
                     && !modMap[modifier.attrs.id]
                     && modifier.logicalBox) {
-                    this.modifierTabs.push({
+                    this.renderer.pageMap.addModifierTab({
                         modifier,
                         selection,
                         box: svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox),
@@ -6172,28 +6144,33 @@ class SuiMapper {
     // ### _setModifierBoxes
     // Create the DOM modifiers for the lyrics and other modifiers
     _setModifierBoxes(measure) {
+        const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
         measure.voices.forEach((voice) => {
             voice.notes.forEach((smoNote) => {
-                const el = this.renderer.svg.getElementById(smoNote.renderId);
-                if (el) {
-                    svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote);
-                    // TODO: fix this, only works on the first line.
-                    smoNote.getModifiers('SmoLyric').forEach((lyrict) => {
-                        const lyric = lyrict;
-                        if (lyric.getText().length || lyric.isHyphenated()) {
-                            lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
-                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric);
-                        }
-                    });
+                if (context) {
+                    const el = context.svg.getElementById(smoNote.renderId);
+                    if (el) {
+                        svgHelpers_1.SvgHelpers.updateArtifactBox(context, el, smoNote);
+                        // TODO: fix this, only works on the first line.
+                        smoNote.getModifiers('SmoLyric').forEach((lyrict) => {
+                            const lyric = lyrict;
+                            if (lyric.getText().length || lyric.isHyphenated()) {
+                                const lyricElement = context.svg.getElementById('vf-' + lyric.attrs.id);
+                                if (lyricElement) {
+                                    svgHelpers_1.SvgHelpers.updateArtifactBox(context, lyricElement, lyric);
+                                }
+                            }
+                        });
+                    }
                     smoNote.graceNotes.forEach((g) => {
-                        var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
+                        var gel = context.svg.getElementById('vf-' + g.renderId);
                         $(gel).addClass('grace-note');
-                        svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, gel, g);
+                        svgHelpers_1.SvgHelpers.updateArtifactBox(context, gel, g);
                     });
                     smoNote.textModifiers.forEach((modifier) => {
                         const modEl = $('.' + modifier.attrs.id);
                         if (modifier.logicalBox && modEl.length) {
-                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier);
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(context, modEl[0], modifier);
                         }
                     });
                 }
@@ -6420,25 +6397,23 @@ class SuiMapper {
      */
     intersectingArtifact(bb) {
         let sel = [];
-        bb = svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-        const logicalBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.renderer.svg, svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width, bb.height)));
-        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.cursor) {
-            layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.cursor);
-            layoutDebug_1.layoutDebug.debugBox(this.renderer.svg, logicalBox, layoutDebug_1.layoutDebug.values.cursor);
-        }
-        const artifacts = this.artifactMap.findArtifact(logicalBox);
-        // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
-        // TODO: handle overlapping suggestions
-        if (!artifacts.length) {
-            const bsel = svgHelpers_1.SvgHelpers.findIntersectingArtifact(logicalBox, this.modifierTabs);
-            sel = bsel;
-            if (sel.length) {
-                this._setModifierAsSuggestion(sel[0]);
+        const scrollState = this.scroller.scrollState;
+        bb = svgHelpers_1.SvgHelpers.boxPoints(bb.x + scrollState.x, bb.y + scrollState.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+        const { selections, page } = this.renderer.pageMap.findArtifact(bb);
+        if (page) {
+            const artifacts = selections;
+            // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
+            // TODO: handle overlapping suggestions
+            if (!artifacts.length) {
+                const sel = this.renderer.pageMap.findModifierTabs(bb);
+                if (sel.length) {
+                    this._setModifierAsSuggestion(sel[0]);
+                }
+                return;
             }
-            return;
+            const artifact = artifacts[0];
+            this._setArtifactAsSuggestion(artifact);
         }
-        const artifact = artifacts[0];
-        this._setArtifactAsSuggestion(artifact);
     }
     _getRectangleChain(selection) {
         const rv = [];
@@ -6449,9 +6424,6 @@ class SuiMapper {
         rv.push(selection.measure.svg.lineIndex);
         rv.push(selection.measure.measureNumber.measureIndex);
         return rv;
-    }
-    debugBox(svg) {
-        this.artifactMap.debugBox(svg);
     }
     _updateMeasureNoteMap(artifact, printing) {
         const note = artifact.note;
@@ -6472,7 +6444,7 @@ class SuiMapper {
             return;
         }
         this.measureNoteMap[noteKey] = artifact;
-        this.artifactMap.addBox(this._getRectangleChain(artifact), 0, artifact);
+        this.renderer.pageMap.addArtifact(artifact);
         artifact.scrollBox = { x: artifact.box.x,
             y: artifact.measure.svg.logicalBox.y };
     }
@@ -6868,6 +6840,9 @@ class SuiRenderState {
     get elementId() {
         return this.renderer.elementId;
     }
+    get pageMap() {
+        return this.renderer.vexContainers;
+    }
     // ### setMeasureMapper
     // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
     // so the UI stays in sync with the location of elements in the score.
@@ -6942,6 +6917,10 @@ class SuiRenderState {
         this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
         this._resetViewport = true;
     }
+    clearLine(measure) {
+        const page = measure.svg.pageIndex;
+        this.renderer.clearRenderedPage(page);
+    }
     remapAll() {
         this.setRefresh();
     }
@@ -6951,9 +6930,6 @@ class SuiRenderState {
     get renderStateRendered() {
         return (this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false) ||
             (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.renderer.backgroundRender === false);
-    }
-    get viewportCreated() {
-        return this.renderer.vexRenderer !== null;
     }
     /**
      * Do a quick re-render of a measure that has changed, defer the whole score.
@@ -6989,13 +6965,6 @@ class SuiRenderState {
             self.suspendRendering = oldSuspend;
         };
         return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, this.demonPollTime);
-    }
-    createViewportPromise() {
-        const self = this;
-        const condition = () => {
-            return self.viewportCreated;
-        };
-        return promiseHelpers_1.PromiseHelpers.makePromise(condition, null, null, this.demonPollTime);
     }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
@@ -7146,17 +7115,18 @@ class SuiRenderState {
         console.log(msg);
         this.passState = st;
     }
-    // ### get context
-    // ### Description:
-    // return the VEX renderer context.
-    get context() {
-        return this.renderer.vexRenderer.getContext();
-    }
-    get svg() {
-        return this.context.svg;
-    }
     get score() {
         return this._score;
+    }
+    // used for debugging and drawing dots.
+    dbgDrawDot(x, y, radius, startAngle, endAngle, counterclockwise) {
+        const context = this.renderer.getRenderer({ x, y });
+        if (context) {
+            context.getContext().beginPath();
+            context.getContext().arc(x, y, radius, startAngle, endAngle, counterclockwise);
+            context.getContext().closePath();
+            context.getContext().fill();
+        }
     }
     set score(score) {
         if (score === null) {
@@ -7263,9 +7233,6 @@ exports.SuiRenderState = SuiRenderState;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreRender = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
@@ -7277,6 +7244,7 @@ const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/t
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const svgPageMap_1 = __webpack_require__(/*! ./svgPageMap */ "./src/render/sui/svgPageMap.ts");
 const VF = eval('Vex.Flow');
 /**
  * This module renders the entire score.  It calculates the layout first based on the
@@ -7287,18 +7255,21 @@ class SuiScoreRender {
     constructor(params) {
         this.startRenderTime = 0;
         this.formatter = null;
-        this.vexRenderer = null;
+        // vexRenderer: any = null;
         this.score = null;
         this.measureMapper = null;
+        this.measuresToMap = [];
         this.viewportChanged = false;
         this.renderTime = 0;
         this.backgroundRender = false;
         this.renderedPages = {};
         this._autoAdjustRenderTime = true;
-        this.allScoreText = null;
+        this.lyricsToOffset = new Map();
         this.renderingPage = -1;
         this.elementId = params.elementId;
         this.score = params.score;
+        this.vexContainers = new svgPageMap_1.SvgPageMap(this.score.layoutManager.globalLayout, this.elementId, this.score.layoutManager.pageLayouts);
+        this.vexContainers.createRenderers();
         this.setViewport(true);
     }
     get autoAdjustRenderTime() {
@@ -7307,28 +7278,27 @@ class SuiScoreRender {
     set autoAdjustRenderTime(value) {
         this._autoAdjustRenderTime = value;
     }
+    getRenderer(box) {
+        return this.vexContainers.getRenderer(box);
+    }
     renderTextGroup(gg) {
-        if (this.vexRenderer === null) {
-            return;
-        }
         let ix = 0;
         let jj = 0;
         if (gg.skipRender || this.score === null || this.measureMapper === null) {
             return;
         }
-        if (gg.element) {
-            gg.element.remove();
-            gg.element = null;
-        }
-        gg.logicalBox = common_1.SvgBox.default;
-        const group = this.context.openGroup();
-        gg.element = group;
-        group.id = gg.attrs.id;
-        const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
+        gg.elements.forEach((element) => {
+            element.remove();
+        });
+        gg.elements = [];
+        const layoutManager = this.score.layoutManager;
+        const scaledScoreLayout = layoutManager.getScaledPageLayout(0);
         // If this is a per-page score text, get a text group copy for each page.
         // else the array contains the original.
         const groupAr = scoreText_1.SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
         groupAr.forEach((newGroup) => {
+            var _a, _b;
+            let container = this.vexContainers.getRendererFromModifier(newGroup);
             // If this text is attached to the measure, base the block location on the rendered measure location.
             if (newGroup.attachToSelector) {
                 // If this text is attached to a staff that is not visible, don't draw it.
@@ -7349,20 +7319,24 @@ class SuiScoreRender {
                     }
                 }
             }
-            const block = textRender_1.SuiTextBlock.fromTextGroup(newGroup, this.context, this.measureMapper.scroller);
-            block.render();
-            // For the first one we render, use that as the bounding box for all the text, for
-            // purposes of mapper/tracker
-            if (ix === 0) {
-                gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
-                // map all the child scoreText objects, too.
-                for (jj = 0; jj < gg.textBlocks.length; ++jj) {
-                    gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+            if (container) {
+                const block = textRender_1.SuiTextBlock.fromTextGroup(newGroup, container, this.vexContainers, this.measureMapper.scroller);
+                block.render();
+                if ((_a = block.currentBlock) === null || _a === void 0 ? void 0 : _a.text.element) {
+                    gg.elements.push((_b = block.currentBlock) === null || _b === void 0 ? void 0 : _b.text.element);
                 }
+                // For the first one we render, use that as the bounding box for all the text, for
+                // purposes of mapper/tracker
+                if (ix === 0) {
+                    gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
+                    // map all the child scoreText objects, too.
+                    for (jj = 0; jj < gg.textBlocks.length; ++jj) {
+                        gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+                    }
+                }
+                ix += 1;
             }
-            ix += 1;
         });
-        this.context.closeGroup();
     }
     // ### unrenderAll
     // ### Description:
@@ -7374,7 +7348,7 @@ class SuiScoreRender {
         this.score.staves.forEach((staff) => {
             this.unrenderStaff(staff);
         });
-        $(this.context.svg).find('g.lineBracket').remove();
+        // $(this.context.svg).find('g.lineBracket').remove();
     }
     // ### unrenderStaff
     // ### Description:
@@ -7404,55 +7378,31 @@ class SuiScoreRender {
         const layoutManager = this.score.layoutManager;
         // All pages have same width/height, so use that
         const layout = layoutManager.getGlobalLayout();
+        this.vexContainers.updateLayout(layout, layoutManager.pageLayouts);
         this.renderedPages = {};
-        // zoomScale is the zoom level pct.
-        // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
-        //   vs. window size means smaller notes/more notes per page.
-        // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
-        const zoomScale = layoutManager.getZoomScale();
-        const renderScale = layout.svgScale * zoomScale;
-        const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
-        const pageWidth = layout.pageWidth * zoomScale;
-        $(this.elementId).css('width', '' + Math.round(pageWidth) + 'px');
-        $(this.elementId).css('height', '' + Math.round(totalHeight) + 'px');
-        // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-        if (reset) {
-            $(this.elementId).html('');
-            this.vexRenderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
-            this.viewportChanged = true;
-            if (this.measureMapper) {
-                this.measureMapper.scroller.scrollAbsolute(0, 0);
-            }
+        this.viewportChanged = true;
+        if (this.measureMapper) {
+            this.measureMapper.scroller.scrollAbsolute(0, 0);
         }
-        svgHelpers_1.SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
-        // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-        console.log('layout setViewport: pstate initial');
         if (this.measureMapper) {
             this.measureMapper.scroller.updateViewport();
         }
-    }
-    get context() {
-        return this.vexRenderer.getContext();
+        // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+        console.log('layout setViewport: pstate initial');
     }
     renderScoreModifiers() {
         // remove existing modifiers, and also remove parent group for 'extra'
         // groups associated with pagination (once per page etc)
         this.score.textGroups.forEach((tg) => {
-            if (tg.element) {
-                tg.element.remove();
-                tg.element = null;
-            }
+            tg.elements.forEach((element) => {
+                element.remove();
+            });
+            tg.elements = [];
         });
-        if (this.allScoreText) {
-            this.allScoreText.remove();
-        }
-        const group = this.context.openGroup();
-        this.allScoreText = group;
         // group.classList.add('all-score-text');
         this.score.textGroups.forEach((tg) => {
             this.renderTextGroup(tg);
         });
-        this.context.closeGroup();
     }
     _getMeasuresInColumn(ix) {
         const rv = [];
@@ -7476,17 +7426,17 @@ class SuiScoreRender {
      * @param printing
      */
     measureRenderedElements(vxSystem, measures, modifiers, printing) {
+        const pageContext = vxSystem.context;
         measures.forEach((smoMeasure) => {
             const element = smoMeasure.svg.element;
             if (element) {
-                const lbox = element.getBBox();
-                smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.width, height: lbox.height }, 'vxMeasure bounding box');
+                smoMeasure.setBox(pageContext.offsetBbox(element), 'vxMeasure bounding box');
             }
             const vxMeasure = vxSystem.getVxMeasure(smoMeasure);
             if (vxMeasure) {
                 vxMeasure.modifiersToBox.forEach((modifier) => {
                     if (modifier.element) {
-                        modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(modifier.element.getBBox());
+                        modifier.logicalBox = pageContext.offsetBbox(modifier.element);
                     }
                 });
             }
@@ -7500,7 +7450,7 @@ class SuiScoreRender {
         });
         modifiers.forEach((modifier) => {
             if (modifier.element) {
-                modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(modifier.element.getBBox());
+                modifier.logicalBox = pageContext.offsetBbox(modifier.element);
             }
         });
     }
@@ -7514,14 +7464,21 @@ class SuiScoreRender {
         // If this page hasn't changed since rendered
         const pageIndex = columns[0][0].svg.pageIndex;
         if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
+            console.log(`skipping render on page ${pageIndex}`);
             return;
         }
-        this.renderingPage = pageIndex;
-        const vxSystem = new vxSystem_1.VxSystem(this.context, 0, lineIx, this.score);
+        const context = this.vexContainers.getRendererForPage(pageIndex);
+        if (this.renderingPage !== pageIndex) {
+            context.clearMap();
+            this.renderingPage = pageIndex;
+        }
+        const vxSystem = new vxSystem_1.VxSystem(context, 0, lineIx, this.score);
         const colKeys = Object.keys(columns);
         colKeys.forEach((colKey) => {
             columns[parseInt(colKey, 10)].forEach((measure) => {
                 if (this.measureMapper !== null) {
+                    const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
+                    svgHelpers_1.SvgHelpers.removeElementsByClass(context.svg, modId);
                     vxSystem.renderMeasure(measure, printing);
                     const pageIndex = measure.svg.pageIndex;
                     const renderMeasures = this.renderedPages[pageIndex];
@@ -7541,7 +7498,7 @@ class SuiScoreRender {
                         at.push({ x: measure.svg.logicalBox.x + 25 });
                         at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                         at.push({ 'font-size': '12pt' });
-                        svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+                        svgHelpers_1.SvgHelpers.placeSvgText(context.svg, at, 'measure-format', '*');
                     }
                 }
             });
@@ -7554,9 +7511,13 @@ class SuiScoreRender {
         if (this.measureMapper !== null) {
             vxSystem.renderEndings(this.measureMapper.scroller);
         }
-        this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
+        this.measuresToMap.push({ vxSystem, measuresToBox, modifiersToBox, printing });
+        // this.measureRenderedElements(vxSystem, measuresToBox, modifiersToBox, printing);
         const timestamp = new Date().valueOf();
-        vxSystem.updateLyricOffsets();
+        if (!this.lyricsToOffset.has(vxSystem.lineIndex)) {
+            this.lyricsToOffset.set(vxSystem.lineIndex, vxSystem);
+        }
+        // vxSystem.updateLyricOffsets();
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
     }
     _renderNextSystemPromise(systemIx, keys, printing) {
@@ -7567,7 +7528,6 @@ class SuiScoreRender {
         });
     }
     _renderNextSystem(lineIx, keys, printing) {
-        var _a;
         (0, htmlHelpers_1.createTopDomContainer)('#renderProgress', 'progress');
         if (lineIx < keys.length) {
             const progress = Math.round((100 * lineIx) / keys.length);
@@ -7581,9 +7541,14 @@ class SuiScoreRender {
         else {
             this.renderScoreModifiers();
             this.numberMeasures();
-            if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.artifactMap) {
-                (_a = this.measureMapper) === null || _a === void 0 ? void 0 : _a.artifactMap.debugBox(this.context.svg);
-            }
+            this.measuresToMap.forEach((mm) => {
+                this.measureRenderedElements(mm.vxSystem, mm.measuresToBox, mm.modifiersToBox, mm.printing);
+            });
+            this.lyricsToOffset.forEach((vv) => {
+                vv.updateLyricOffsets();
+            });
+            this.measuresToMap = [];
+            this.lyricsToOffset = new Map();
             // We pro-rate the background render timer on how long it takes
             // to actually render the score, so we are not thrashing on a large
             // score.
@@ -7606,6 +7571,12 @@ class SuiScoreRender {
         if (!measure) {
             return;
         }
+        const modId = 'mod-' + measure.measureNumber.staffId + '-' + measure.measureNumber.measureIndex;
+        const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
+        if (!context) {
+            return;
+        }
+        svgHelpers_1.SvgHelpers.removeElementsByClass(context.svg, modId);
         if (measure.svg.element) {
             measure.svg.element.remove();
             measure.svg.element = null;
@@ -7705,16 +7676,19 @@ class SuiScoreRender {
     }
     drawPageLines() {
         let i = 0;
-        $(this.context.svg).find('.pageLine').remove();
         const printing = $('body').hasClass('print-render');
         const layoutMgr = this.score.layoutManager;
         if (printing || !layoutMgr) {
             return;
         }
         for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
-            const scaledPage = layoutMgr.getScaledPageLayout(i);
-            const y = scaledPage.pageHeight * i;
-            svgHelpers_1.SvgHelpers.line(this.context.svg, 0, y, scaledPage.pageWidth, y, { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+            const context = this.vexContainers.getRendererForPage(i - 1);
+            if (context) {
+                $(context.svg).find('.pageLine').remove();
+                const scaledPage = layoutMgr.getScaledPageLayout(i);
+                const y = scaledPage.pageHeight * i - context.box.y;
+                svgHelpers_1.SvgHelpers.line(context.svg, 0, y, scaledPage.pageWidth, y, { strokeName: 'line', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+            }
         }
     }
     replaceSelection(staffMap, change) {
@@ -7725,8 +7699,11 @@ class SuiScoreRender {
         beamers_1.SmoBeamer.applyBeams(change.measure);
         // Defer modifier update until all selected measures are drawn.
         if (!staffMap[change.staff.staffId]) {
-            system = new vxSystem_1.VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
-            staffMap[change.staff.staffId] = { system, staff: change.staff };
+            const context = this.vexContainers.getRenderer(change.measure.svg.logicalBox);
+            if (context) {
+                system = new vxSystem_1.VxSystem(context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
+                staffMap[change.staff.staffId] = { system, staff: change.staff };
+            }
         }
         else {
             system = staffMap[change.staff.staffId].system;
@@ -7735,11 +7712,14 @@ class SuiScoreRender {
         const measuresToMeasure = [];
         selections.forEach((selection) => {
             if (system !== null && this.measureMapper !== null) {
+                this.unrenderMeasure(selection.measure);
                 system.renderMeasure(selection.measure, false);
                 measuresToMeasure.push(selection.measure);
             }
         });
-        this.measureRenderedElements(system, measuresToMeasure, [], false);
+        if (system) {
+            this.measureRenderedElements(system, measuresToMeasure, [], false);
+        }
     }
     renderAllMeasures(lines) {
         if (!this.score) {
@@ -7762,6 +7742,7 @@ class SuiScoreRender {
         this.backgroundRender = true;
         this.startRenderTime = new Date().valueOf();
         this.renderingPage = -1;
+        this.vexContainers.updateContainerOffset(this.measureMapper.scroller.scrollState);
         this._renderNextSystem(0, lines, printing);
     }
     // Number the measures at the first measure in each system.
@@ -7771,22 +7752,24 @@ class SuiScoreRender {
         const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
         $('.measure-number').remove();
         measures.forEach((measure) => {
-            if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
+            const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
+            if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox && context) {
                 const numAr = [];
-                numAr.push({ y: measure.svg.logicalBox.y - 10 });
-                numAr.push({ x: measure.svg.logicalBox.x });
+                const modBox = context.offsetSvgPoint(measure.svg.logicalBox);
+                numAr.push({ y: modBox.y - 10 });
+                numAr.push({ x: modBox.x });
                 numAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                 numAr.push({ 'font-size': '10pt' });
-                svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
+                svgHelpers_1.SvgHelpers.placeSvgText(context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
                 // Show line-feed symbol
                 if (measure.format.systemBreak && !printing) {
                     const starAr = [];
                     const symbol = '\u21b0';
-                    starAr.push({ y: measure.svg.logicalBox.y - 5 });
-                    starAr.push({ x: measure.svg.logicalBox.x + 25 });
+                    starAr.push({ y: modBox.y - 5 });
+                    starAr.push({ x: modBox.x + 25 });
                     starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                     starAr.push({ 'font-size': '12pt' });
-                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
+                    svgHelpers_1.SvgHelpers.placeSvgText(context.svg, starAr, 'measure-format', symbol);
                 }
             }
         });
@@ -7801,13 +7784,15 @@ class SuiScoreRender {
         }
         const score = this.score;
         $('head title').text(this.score.scoreInfo.name);
-        const formatter = new formatter_1.SuiLayoutFormatter(score, this.context.svg, this.renderedPages);
+        const formatter = new formatter_1.SuiLayoutFormatter(score, this.vexContainers, this.renderedPages);
         const startPageCount = this.score.layoutManager.pageLayouts.length;
         this.formatter = formatter;
         formatter.layout();
         if (this.formatter.trimPages(startPageCount)) {
             this.setViewport(true);
         }
+        this.measuresToMap = [];
+        this.lyricsToOffset = new Map();
         this.renderAllMeasures(formatter.lines);
     }
 }
@@ -7825,6 +7810,8 @@ exports.SuiScoreRender = SuiScoreRender;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreView = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
@@ -7856,7 +7843,7 @@ class SuiScoreView {
         this.renderer = new renderState_1.SuiRenderState(renderParams);
         this.config = config;
         const scoreJson = score.serialize();
-        this.scroller = new scroller_1.SuiScroller(scrollSelector, this.renderer);
+        this.scroller = new scroller_1.SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
         this.pasteBuffer = new copypaste_1.PasteBuffer();
         this.storePaste = new copypaste_1.PasteBuffer();
         this.tracker = new tracker_1.SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
@@ -7953,7 +7940,7 @@ class SuiScoreView {
         const layoutManager = this.score.layoutManager.getGlobalLayout();
         const lh = layoutManager.pageHeight / layoutManager.svgScale;
         const lw = layoutManager.pageWidth / layoutManager.svgScale;
-        const pt = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState);
+        const pt = this.renderer.pageMap.svgToClient(svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }));
         return Math.round(midY / pt.y);
     }
     // ### _undoRectangle
@@ -8083,9 +8070,6 @@ class SuiScoreView {
             console.warn(ex);
             return null;
         }
-    }
-    _removeStandardModifier(modifier) {
-        $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
     }
     _getEquivalentGraceNote(selection, gn) {
         if (selection.note !== null) {
@@ -8325,6 +8309,7 @@ const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 /**
  * MVVM-like operations on the displayed score.
@@ -8360,7 +8345,16 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
         const altGroup = this.storeScore.textGroups[index];
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
-        undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+        const isPartExposed = this.isPartExposed();
+        if (!isPartExposed) {
+            undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+        }
+        else {
+            const partInfo = this.score.staves[0].partInfo;
+            if (!partInfo.preserveTextGroups && altGroup) {
+                undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+            }
+        }
         this.renderer.renderScoreModifiers();
         return this.renderer.updatePromise();
     }
@@ -8594,6 +8588,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             equiv.note.removeLyric(lyric);
         }
         this.renderer.addToReplaceQueue(selection);
+        lyric.deleted = true;
         return this.renderer.updatePromise();
     }
     /**
@@ -9325,6 +9320,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         params.number = 1;
         const volta = new measureModifiers_1.SmoVolta(params);
         const altVolta = new measureModifiers_1.SmoVolta(params);
+        this._renderChangedMeasures([ft, tt]);
         operations_1.SmoOperation.addEnding(this.storeScore, altVolta);
         operations_1.SmoOperation.addEnding(this.score, volta);
         this.renderer.setRefresh();
@@ -9336,7 +9332,10 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     updateEnding(ending) {
         this._undoScore('Change Volta');
-        $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+        ending.elements.forEach((el) => {
+            $(el).find('g.' + ending.attrs.id).remove();
+        });
+        ending.elements = [];
         operations_1.SmoOperation.removeEnding(this.storeScore, ending);
         operations_1.SmoOperation.removeEnding(this.score, ending);
         const altVolta = new measureModifiers_1.SmoVolta(ending);
@@ -9352,7 +9351,10 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     removeEnding(ending) {
         this._undoScore('Remove Volta');
-        $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+        ending.elements.forEach((el) => {
+            $(el).find('g.' + ending.attrs.id).remove();
+        });
+        ending.elements = [];
         operations_1.SmoOperation.removeEnding(this.storeScore, ending);
         operations_1.SmoOperation.removeEnding(this.score, ending);
         this.renderer.setRefresh();
@@ -9422,7 +9424,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     removeStaffModifier(modifier) {
         this._undoStaffModifier('Set measure proportion', modifier, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
         this._removeStaffModifier(modifier);
-        this._removeStandardModifier(modifier);
         this._renderRectangle(modifier.startSelector, modifier.endSelector);
         return this.renderer.updatePromise();
     }
@@ -9457,6 +9458,11 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             const altSel = this._getEquivalentSelection(sel);
             operations_1.SmoOperation.addStaffModifier(sel, modifier);
             operations_1.SmoOperation.addStaffModifier(altSel, copy);
+            const modId = 'mod-' + sel.selector.staff + '-' + sel.selector.measure;
+            const context = this.renderer.renderer.getRenderer(sel.measure.svg.logicalBox);
+            if (context) {
+                svgHelpers_1.SvgHelpers.removeElementsByClass(context.svg, modId);
+            }
         }
         this._renderRectangle(modifier.startSelector, modifier.endSelector);
         return this.renderer.updatePromise();
@@ -9674,7 +9680,12 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 // the measure
                 staff.modifiers.forEach((modifier) => {
                     if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
-                        $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+                        if (modifier.logicalBox) {
+                            const context = this.renderer.renderer.getRenderer(modifier.logicalBox);
+                            if (context) {
+                                $(context.svg).find('g.' + modifier.attrs.id).remove();
+                            }
+                        }
                     }
                 });
             });
@@ -9733,7 +9744,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         nmeasure.setActiveVoice(0);
         this.score.addMeasure(pos);
         this.storeScore.addMeasure(pos);
-        // this.renderer.clearLine(measure);
+        this.renderer.clearLine(measure);
         this.renderer.setRefresh();
         return this.renderer.updatePromise();
     }
@@ -10056,24 +10067,18 @@ class SuiScroller {
     // ### constructor
     // selector is the scrollable DOM container of the music container
     // (grandparent of svg element)
-    constructor(selector, renderer) {
+    constructor(selector, svgPages) {
         this.viewport = common_1.SvgBox.default;
         this.logicalViewport = common_1.SvgBox.default;
         this.scrolling = false;
         const self = this;
         this.selector = selector;
         this._scroll = { x: 0, y: 0 };
-        this.renderer = renderer;
+        this.svgPages = svgPages;
         const scroller = $(selector);
         this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-        renderer.createViewportPromise().then(() => {
-            self.updateViewport();
-        });
-        const dbgDiv = $('<div class="scroll-box-debug"/>');
-        $('body').append(dbgDiv);
     }
     get scrollState() {
-        const scroll = JSON.parse(JSON.stringify(this._scroll));
         return { x: this._scroll.x, y: this._scroll.y };
     }
     restoreScrollState(state) {
@@ -10084,11 +10089,10 @@ class SuiScroller {
     // update viewport in response to scroll events
     handleScroll(x, y) {
         this._scroll = { x, y };
+        this.deferUpdateDebug();
     }
     updateDebug() {
-        const displayString = 'X: ' + this._scroll.x + ' Y: ' + this._scroll.y;
-        $('.scroll-box-debug').text(displayString);
-        $('.scroll-box-debug').css('left', '2%').css('top', '2%');
+        layoutDebug_1.layoutDebug.updateScrollDebug(this._scroll);
     }
     deferUpdateDebug() {
         if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.scroll) {
@@ -10110,12 +10114,31 @@ class SuiScroller {
     scrollVisibleBox(box) {
         let yoff = 0;
         let xoff = 0;
-        const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, box, { x: -1 * this.viewport.x, y: -1 * this.viewport.y }));
-        if (screenBox.y < 0 || screenBox.y + screenBox.height > this.viewport.height) {
-            yoff = screenBox.y;
+        // Since the pages will all be the same dimensions, any page svg should work here.
+        const screenBox = this.svgPages.svgToClient(box);
+        const offset = this.svgPages.svgToClient(svgHelpers_1.SvgHelpers.boxPoints(0, 0, 1, 1));
+        const scrollState = this.scrollState;
+        const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height + offset.y;
+        const scrollUp = () => screenBox.y < scrollState.y + offset.y;
+        const scrollLeft = () => screenBox.x < scrollState.x + offset.x;
+        const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width + offset.x;
+        const vScrollAmt = () => this.viewport.height > screenBox.height ? (this.viewport.height - screenBox.height - 30) : this.viewport.height;
+        const hScrollAmt = () => this.viewport.width > screenBox.width ? (this.viewport.width - screenBox.width - 30) : this.viewport.width;
+        while (scrollUp()) {
+            yoff -= vScrollAmt();
+            screenBox.y += vScrollAmt();
         }
-        if (screenBox.x < 0 || screenBox.x + screenBox.width > this.viewport.width) {
-            xoff = screenBox.x;
+        while (scrollDown()) {
+            yoff += vScrollAmt();
+            screenBox.y -= vScrollAmt();
+        }
+        while (scrollLeft()) {
+            xoff -= hScrollAmt();
+            screenBox.x += hScrollAmt();
+        }
+        while (scrollRight()) {
+            xoff += hScrollAmt();
+            screenBox.x -= hScrollAmt();
         }
         this.scrollOffset(xoff, yoff);
     }
@@ -10123,7 +10146,6 @@ class SuiScroller {
     updateViewport() {
         $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
         this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
-        this.logicalViewport = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.renderer.svg, this.viewport));
         this.deferUpdateDebug();
     }
     // ### scrollBox
@@ -10136,8 +10158,8 @@ class SuiScroller {
     // ### scrollOffset
     // scroll the offset from the starting scroll point
     scrollOffset(x, y) {
-        const xScreen = this._scroll.x + x;
-        const yScreen = this._scroll.y + y;
+        const xScreen = Math.max(this._scroll.x + x, 0);
+        const yScreen = Math.max(this._scroll.y + y, 0);
         this.scrollAbsolute(xScreen, yScreen);
     }
     // ### netScroll
@@ -10298,13 +10320,12 @@ class SvgHelpers {
     // ### boxNote
     // update the note geometry based on current viewbox conditions.
     // This may not be the appropriate place for this...maybe in layout
-    static updateArtifactBox(svg, element, artifact) {
+    static updateArtifactBox(context, element, artifact) {
         if (typeof (element) === 'undefined') {
             console.log('updateArtifactBox: undefined element!');
             return;
         }
-        artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
-        artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClientRaw(svg, artifact.logicalBox));
+        artifact.logicalBox = context.offsetBbox(element);
     }
     // ### eraseOutline
     // Erases old outlineRects.
@@ -10313,7 +10334,6 @@ class SvgHelpers {
         $(svg).find('g.vf-' + stroke.strokeName).remove();
     }
     static _outlineRect(params) {
-        const scroll = params.scroll;
         const context = params.context;
         // vex puts 'vf-' before everything rendered by context API
         SvgHelpers.eraseOutline(context.svg, params.stroke);
@@ -10322,7 +10342,7 @@ class SvgHelpers {
             return;
         }
         const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
-        var grp = context.openGroup(classes, classes + '-outline');
+        var grp = context.getContext().openGroup(classes, classes + '-outline');
         const boxes = Array.isArray(params.box) ? params.box : [params.box];
         boxes.forEach((box) => {
             if (box) {
@@ -10332,10 +10352,10 @@ class SvgHelpers {
                 /* if (params.clientCoordinates === true) {
                   box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
                 } */
-                context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+                context.getContext().rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
             }
         });
-        context.closeGroup(grp);
+        context.getContext().closeGroup(grp);
     }
     // ### outlineRect
     // Usage:
@@ -10469,37 +10489,6 @@ class SvgHelpers {
         });
         return rv;
     }
-    // ### findIntersectingArtifactFromMap
-    // Same as findIntersectionArtifact but uses a map of keys instead of an array
-    static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
-        var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-        // box.y = box.y - this.renderElement.offsetTop;
-        // box.x = box.x - this.renderElement.offsetLeft;
-        var rv = [];
-        Object.keys(map).forEach((k) => {
-            var object = map[k];
-            // Measure has been updated, but not drawn.
-            if (!object.box) {
-                // console.log('there is no box');
-            }
-            else {
-                var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
-                if (SvgHelpers.doesBox1ContainBox2(obox, box)) {
-                    rv.push(object);
-                }
-            }
-        });
-        return rv;
-    }
-    static containsPoint(box, point, scrollState) {
-        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(box), scrollState));
-        const i1 = point.x - box.x + scrollState.x; // handle edge not believe in x and y
-        const i2 = point.y - box.y + scrollState.y;
-        if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
-            return true;
-        }
-        return false;
-    }
     static findSmallestIntersection(clientBox, objects) {
         var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects);
         if (!ar.length) {
@@ -10548,16 +10537,6 @@ class SvgHelpers {
             console.log('{}');
         }
     }
-    // ### pointBox
-    // return a point-sized box at the given coordinate
-    static pointBox(x, y) {
-        return {
-            x: x,
-            y: y,
-            width: 0,
-            height: 0
-        };
-    }
     // ### smoBox:
     // return a simple box object that can be serialized, copied
     // (from svg DOM box)
@@ -10565,16 +10544,20 @@ class SvgHelpers {
         if (typeof (box) === "undefined" || box === null) {
             return common_1.SvgBox.default;
         }
+        let testBox = box;
+        if (Array.isArray(box)) {
+            testBox = box[0];
+        }
         const hround = (f) => {
             return Math.round((f + Number.EPSILON) * 100) / 100;
         };
-        const x = typeof (box.x) == 'undefined' ? hround(box.left) : hround(box.x);
-        const y = typeof (box.y) == 'undefined' ? hround(box.top) : hround(box.y);
+        const x = typeof (testBox.x) == 'undefined' ? hround(testBox.left) : hround(testBox.x);
+        const y = typeof (testBox.y) == 'undefined' ? hround(testBox.top) : hround(testBox.y);
         return ({
             x: hround(x),
             y: hround(y),
-            width: hround(box.width),
-            height: hround(box.height)
+            width: hround(testBox.width),
+            height: hround(testBox.height)
         });
     }
     // ### unionRect
@@ -10591,18 +10574,6 @@ class SvgHelpers {
             height: height
         };
     }
-    // ### adjustScroll
-    // Add the scroll to the screen coordinates so we can find the mapped
-    // location of something.
-    static adjustScroll(box, scroll) {
-        // WIP...
-        if (typeof (box) == 'undefined' || typeof (scroll) == 'undefined') {
-            console.log('bad values to scroll thing');
-            return;
-        }
-        return SvgHelpers.boxPoints(box.x - scroll.x, box.y - scroll.y, box.width, box.height);
-        // return box;
-    }
     static boxPoints(x, y, w, h) {
         return ({
             x: x,
@@ -10610,15 +10581,6 @@ class SvgHelpers {
             width: w,
             height: h
         });
-    }
-    static copyBox(box) {
-        box = SvgHelpers.smoBox(box);
-        return {
-            x: box.x,
-            y: box.y,
-            width: box.width,
-            height: box.height
-        };
     }
     // ### svgViewport
     // set `svg` element to `width`,`height` and viewport `scale`
@@ -10628,87 +10590,614 @@ class SvgHelpers {
         svg.setAttributeNS('', 'viewBox', '' + xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
             Math.round(height / scale));
     }
-    // ### logicalToClient
-    // Convert a point from logical (pixels) to actual screen dimensions based on current
-    // zoom, aspect ratio
-    /* static logicalToClient(svg, logicalPoint) {
-    var rect = svg.getBoundingClientRect();
-    var rv = SvgHelpers.copyBox(logicalPoint);
-    rv.x += rect.x;
-    rv.y += rect.y;
-    return rv;
-    }   */
-    // ### clientToLogical
-    // return a box or point in svg coordintes from screen coordinates
-    static clientToLogical(svg, point) {
-        var pt = svg.createSVGPoint();
-        if (!point)
-            return common_1.SvgBox.default;
-        const x = point.x;
-        const y = point.y;
-        pt.x = x;
-        pt.y = y;
-        const screen = svg.getScreenCTM();
-        if (!screen) {
-            return common_1.SvgBox.default;
+    static removeElementsByClass(svg, className) {
+        const els = svg.getElementsByClassName(className);
+        const ellength = els.length;
+        for (var xxx = 0; xxx < ellength; ++xxx) {
+            els[0].remove();
         }
-        var sp = pt.matrixTransform(screen.inverse());
-        if (typeof (point['width']) == 'undefined') {
-            return {
-                x: sp.x,
-                y: sp.y
-            };
-        }
-        const endPt = svg.createSVGPoint();
-        endPt.x = pt.x + point.width;
-        endPt.y = pt.y + point.height;
-        const mat = svg.getScreenCTM();
-        if (!mat) {
-            return common_1.SvgBox.default;
-        }
-        const ep = endPt.matrixTransform(mat.inverse());
-        return {
-            x: sp.x,
-            y: sp.y,
-            width: ep.x - sp.x,
-            height: ep.y - sp.y
-        };
-    }
-    /**
-     * return a box or point in screen coordinates from svg coordinates
-     * @param svg
-     * @param point - in SVG coordinates (logical)
-     * @param scroller  - in client coordinates (rendered)
-     * @returns
-     */
-    static logicalToClient(svg, point, scroller) {
-        var _a, _b;
-        var pt = svg.createSVGPoint();
-        pt.x = point.x;
-        pt.y = point.y;
-        var sp = pt.matrixTransform((_a = svg.getScreenCTM()) !== null && _a !== void 0 ? _a : undefined);
-        if (!point['width']) {
-            return {
-                x: sp.x + scroller.x,
-                y: sp.y + scroller.y
-            };
-        }
-        var endPt = svg.createSVGPoint();
-        endPt.x = pt.x + point.width;
-        endPt.y = pt.y + point.height;
-        var ep = endPt.matrixTransform((_b = svg.getScreenCTM()) !== null && _b !== void 0 ? _b : undefined);
-        return {
-            x: sp.x + scroller.x,
-            y: sp.y + scroller.y,
-            width: ep.x - sp.x,
-            height: ep.y - sp.y
-        };
-    }
-    static logicalToClientRaw(svg, point) {
-        return this.logicalToClient(svg, point, { x: 0, y: 0 });
     }
 }
 exports.SvgHelpers = SvgHelpers;
+
+
+/***/ }),
+
+/***/ "./src/render/sui/svgPageMap.ts":
+/*!**************************************!*\
+  !*** ./src/render/sui/svgPageMap.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SvgPageMap = exports.SvgPage = exports.MappedSystems = exports.MappedMeasures = exports.MappedNotes = exports.SelectionMap = void 0;
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const VF = eval('Vex.Flow');
+/**
+ * A selection map maps a sub-section of music (a measure, for instance) to a region
+ * on the screen.  SelectionMap can contain other SelectionMaps with
+ * different 'T', for instance, notes in a measure, in a 'Russian Dolls' kind of model.
+ * This allows us to search for elements in < O(n) time and avoid
+ * expensive geometry operations.
+ */
+class SelectionMap {
+    constructor() {
+        /**
+         * the outer bounding box of these selections
+         */
+        this.box = common_1.SvgBox.default;
+        /**
+         * map of key to child SelectionMaps or SmoSelections
+         */
+        this.systemMap = new Map();
+    }
+    ;
+    /**
+     * Given a bounding box (or point), find all the musical elements contained
+     * in that point
+     * @param box
+     * @returns SmoSelection[]
+     */
+    findArtifact(box) {
+        let rv = [];
+        for (const [key, value] of this.systemMap) {
+            rv = rv.concat(this.findValueInMap(value, box));
+        }
+        return rv;
+    }
+    /**
+     * Add a rendered element to the map, and update the bounding box
+     * @param selection
+     * @returns
+     */
+    addArtifact(selection) {
+        if (!selection.note || !selection.note.logicalBox) {
+            return;
+        }
+        const bounds = this.boxFromSelection(selection);
+        if (this.systemMap.size === 0) {
+            this.box = JSON.parse(JSON.stringify(bounds));
+        }
+        const ix = this.createKey(selection);
+        this.addKeyToMap(ix, selection);
+        this.box = svgHelpers_1.SvgHelpers.unionRect(bounds, this.box);
+    }
+}
+exports.SelectionMap = SelectionMap;
+/**
+ * logic to map a set of notes to a region on the screen, for searching
+ */
+class MappedNotes extends SelectionMap {
+    createKey(selection) {
+        return `${selection.selector.voice}-${selection.selector.tick}`;
+    }
+    boxFromSelection(selection) {
+        var _a, _b;
+        return (_b = (_a = selection.note) === null || _a === void 0 ? void 0 : _a.logicalBox) !== null && _b !== void 0 ? _b : common_1.SvgBox.default;
+    }
+    addKeyToMap(key, selection) {
+        this.systemMap.set(key, selection);
+    }
+    findValueInMap(value, box) {
+        const rv = [];
+        const note = value.note;
+        if (note && note.logicalBox && svgHelpers_1.SvgHelpers.doesBox1ContainBox2(note.logicalBox, box)) {
+            rv.push(value);
+        }
+        return rv;
+    }
+}
+exports.MappedNotes = MappedNotes;
+/**
+ * Map of measures to a region on the page.
+ */
+class MappedMeasures extends SelectionMap {
+    constructor() {
+        super(...arguments);
+        this.box = common_1.SvgBox.default;
+        this.systemMap = new Map();
+    }
+    createKey(selection) {
+        return `${selection.selector.staff}-${selection.selector.measure}`;
+    }
+    boxFromSelection(selection) {
+        var _a, _b;
+        const noteBox = (_b = (_a = selection.note) === null || _a === void 0 ? void 0 : _a.logicalBox) !== null && _b !== void 0 ? _b : common_1.SvgBox.default;
+        return svgHelpers_1.SvgHelpers.unionRect(noteBox, selection.measure.svg.logicalBox);
+    }
+    addKeyToMap(key, selection) {
+        var _a;
+        if (!this.systemMap.has(key)) {
+            const nnote = new MappedNotes();
+            this.systemMap.set(key, nnote);
+        }
+        (_a = this.systemMap.get(key)) === null || _a === void 0 ? void 0 : _a.addArtifact(selection);
+    }
+    findValueInMap(value, box) {
+        let rv = [];
+        if (svgHelpers_1.SvgHelpers.doesBox1ContainBox2(value.box, box)) {
+            rv = rv.concat(value.findArtifact(box));
+        }
+        return rv;
+    }
+}
+exports.MappedMeasures = MappedMeasures;
+/**
+ * Map of the systems on a page.  Each system has a unique line index
+ * which is the hash
+ */
+class MappedSystems extends SelectionMap {
+    constructor() {
+        super(...arguments);
+        this.box = common_1.SvgBox.default;
+        this.systemMap = new Map();
+    }
+    createKey(selection) {
+        return selection.measure.svg.lineIndex;
+    }
+    boxFromSelection(selection) {
+        var _a, _b;
+        const noteBox = (_b = (_a = selection.note) === null || _a === void 0 ? void 0 : _a.logicalBox) !== null && _b !== void 0 ? _b : common_1.SvgBox.default;
+        return svgHelpers_1.SvgHelpers.unionRect(noteBox, selection.measure.svg.logicalBox);
+    }
+    addKeyToMap(selectionKey, selection) {
+        var _a;
+        if (!this.systemMap.has(selectionKey)) {
+            const nmeasure = new MappedMeasures();
+            this.systemMap.set(selectionKey, nmeasure);
+        }
+        (_a = this.systemMap.get(selectionKey)) === null || _a === void 0 ? void 0 : _a.addArtifact(selection);
+    }
+    findValueInMap(value, box) {
+        let rv = [];
+        if (svgHelpers_1.SvgHelpers.doesBox1ContainBox2(value.box, box)) {
+            rv = rv.concat(value.findArtifact(box));
+        }
+        return rv;
+    }
+    clearMeasure(selection) {
+        if (this.systemMap.has(selection.measure.svg.lineIndex)) {
+            const mmap = this.systemMap.get(selection.measure.svg.lineIndex);
+            if (mmap) {
+                this.systemMap.delete(selection.measure.svg.lineIndex);
+            }
+        }
+    }
+}
+exports.MappedSystems = MappedSystems;
+/**
+ * Each page is a different SVG element, with its own offset within the DOM. This
+ * makes partial updates faster.  SvgPage keeps track of all musical elements in SelectionMaps.
+ * staff and score modifiers are kept in seperate lists since they may span multiple
+ * musical elements (e.g. slurs, text elements).
+ */
+class SvgPage {
+    constructor(renderer, pageNumber, box) {
+        this.systemMap = new MappedSystems();
+        this.modifierYKeys = [];
+        this.modifierTabDivs = {};
+        this._renderer = renderer;
+        this.pageNumber = pageNumber;
+        this.box = box;
+        let divEnd = this.divSize;
+        for (let i = 0; i < SvgPage.modifierDivs; ++i) {
+            this.modifierYKeys.push(divEnd);
+            divEnd += this.divSize;
+        }
+    }
+    static get defaultMap() {
+        return {
+            box: common_1.SvgBox.default,
+            systemMap: new Map()
+        };
+    }
+    /**
+     * Modifiers are divided into `modifierDivs` vertical
+     * rectangles for event lookup.
+     */
+    static get modifierDivs() {
+        return 8;
+    }
+    /**
+     * This is the VextFlow renderer context (SVGContext)
+     * @returns
+     */
+    getContext() {
+        return this._renderer.getContext();
+    }
+    get divSize() {
+        return this.box.height / SvgPage.modifierDivs;
+    }
+    /**
+     * Given SVG y, return the div for modifiers
+     * @param y
+     * @returns
+     */
+    divIndex(y) {
+        return Math.round((y - this.box.y) / this.divSize);
+    }
+    /**
+     * Remove all elements and modifiers in this page, for a redraw.
+     */
+    clearMap() {
+        this.systemMap = new MappedSystems();
+        this.modifierTabDivs = {};
+    }
+    /**
+     * Clear mapped objects associated with a measure, including any
+     * modifiers that span that measure.
+     * @param selection
+     */
+    clearMeasure(selection) {
+        this.systemMap.clearMeasure(selection);
+        const div = this.divIndex(selection.measure.svg.logicalBox.y);
+        if (div < this.modifierYKeys.length) {
+            const mods = [];
+            this.modifierTabDivs[div].forEach((mt) => {
+                if (mt.selection) {
+                    if (!selections_1.SmoSelector.sameMeasure(mt.selection.selector, selection.selector)) {
+                        mods.push(mt);
+                    }
+                }
+                else {
+                    mods.push(mt);
+                }
+            });
+            this.modifierTabDivs[div] = mods;
+        }
+    }
+    /**
+     * add a modifier to the page, indexed by its rectangle
+     * @param modifier
+     */
+    addModifierTab(modifier) {
+        const div = this.divIndex(modifier.box.y);
+        if (div < this.modifierYKeys.length) {
+            if (!this.modifierTabDivs[div]) {
+                this.modifierTabDivs[div] = [];
+            }
+            this.modifierTabDivs[div].push(modifier);
+        }
+    }
+    /**
+     * Add a new selection to the page
+     * @param selection
+     */
+    addArtifact(selection) {
+        this.systemMap.addArtifact(selection);
+    }
+    /**
+     * Try to find a selection on this page, based on the mouse event
+     * @param box
+     * @returns
+     */
+    findArtifact(box) {
+        return this.systemMap.findArtifact(box);
+    }
+    /**
+     * Try to find a modifier on this page, based on the mouse event
+     * @param box
+     * @returns
+     */
+    findModifierTabs(box) {
+        const rv = [];
+        const div = this.divIndex(box.y);
+        if (div < this.modifierYKeys.length) {
+            if (this.modifierTabDivs[div]) {
+                this.modifierTabDivs[div].forEach((modTab) => {
+                    if (svgHelpers_1.SvgHelpers.doesBox1ContainBox2(modTab.box, box)) {
+                        rv.push(modTab);
+                    }
+                });
+            }
+        }
+        return rv;
+    }
+    /**
+     * Measure the bounding box of an element.  Return the box as if the top of the first page were 0,0.
+     * Bounding boxes are stored in absolute coordinates from the top of the first page.  When rendering
+     * elements, we adjust the coordinates for hte local page.
+     * @param element
+     * @returns
+     */
+    offsetBbox(element) {
+        const yoff = this.box.y;
+        const xoff = this.box.x;
+        const lbox = element.getBBox();
+        return ({ x: lbox.x + xoff, y: lbox.y + yoff, width: lbox.width, height: lbox.height });
+    }
+    /**
+     * Adjust the bounding box to local coordinates for this page.
+     * @param box
+     * @returns
+     */
+    offsetSvgBox(box) {
+        return { x: box.x - this.box.x, y: box.y - this.box.y, width: box.width, height: box.height };
+    }
+    /**
+     * Adjust the point to local coordinates for this page.
+     * @param box
+     * @returns
+     */
+    offsetSvgPoint(box) {
+        return { x: box.x - this.box.x, y: box.y - this.box.y };
+    }
+    get svg() {
+        return this.getContext().svg;
+    }
+}
+exports.SvgPage = SvgPage;
+/**
+ * A container for all the SVG elements, and methods to manage adding and finding elements.  Each
+ * page of the score has its own SVG element.
+ */
+class SvgPageMap {
+    /**
+     *
+     * @param layout - defines the page width/height and relative zoom common to all the pages
+     * @param container - the parent DOM element that contains all the pages
+     * @param pages - the layouts (margins, etc) for each pages.
+     */
+    constructor(layout, container, pages) {
+        this.vfRenderers = [];
+        this.containerOffset = common_1.SvgPoint.default;
+        this._layout = layout;
+        this._container = container;
+        this._pageLayouts = pages;
+    }
+    get container() {
+        return this._container;
+    }
+    /**
+     * Update the offset of the music container DOM element, in client coordinates. This is used
+     * when converting absolute screen coordinates (like from a mouse event) to SVG coordinates
+     * @param scrollPoint
+     */
+    updateContainerOffset(scrollPoint) {
+        const rect = svgHelpers_1.SvgHelpers.smoBox(this.container.getBoundingClientRect());
+        this.containerOffset = { x: rect.x + scrollPoint.x, y: rect.y + scrollPoint.y };
+    }
+    get layout() {
+        return this._layout;
+    }
+    get pageLayouts() {
+        return this._pageLayouts;
+    }
+    get zoomScale() {
+        return this.layout.zoomScale;
+    }
+    get renderScale() {
+        return this.layout.svgScale;
+    }
+    get pageDivHeight() {
+        return this.layout.pageHeight * this.zoomScale;
+    }
+    get pageDivWidth() {
+        return this.layout.pageWidth * this.zoomScale;
+    }
+    get pageHeight() {
+        return this.layout.pageHeight / this.layout.svgScale;
+    }
+    get pageWidth() {
+        return this.layout.pageWidth / this.layout.svgScale;
+    }
+    get totalHeight() {
+        return this.pageDivHeight * this.pageLayouts.length;
+    }
+    /**
+     * create/re-create all the page SVG elements
+     */
+    createRenderers() {
+        // $(this.container).html('');
+        $(this.container).css('width', '' + Math.round(this.pageDivWidth) + 'px');
+        $(this.container).css('height', '' + Math.round(this.totalHeight) + 'px');
+        const toRemove = [];
+        this.vfRenderers.forEach((renderer) => {
+            const container = renderer.svg.parentElement;
+            if (container) {
+                toRemove.push(container);
+            }
+        });
+        toRemove.forEach((tt) => {
+            tt.remove();
+        });
+        this.vfRenderers = [];
+        this.pageLayouts.forEach(() => {
+            this.addPage();
+        });
+    }
+    addPage() {
+        const ix = this.vfRenderers.length;
+        const container = document.createElement('div');
+        container.setAttribute('id', 'smoosic-svg-div-' + ix.toString());
+        this._container.append(container);
+        const vexRenderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
+        const svg = vexRenderer.getContext().svg;
+        svgHelpers_1.SvgHelpers.svgViewport(svg, 0, 0, this.pageDivWidth, this.pageDivHeight, this.renderScale * this.zoomScale);
+        const topY = this.pageHeight * ix;
+        const box = svgHelpers_1.SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight);
+        this.vfRenderers.push(new SvgPage(vexRenderer, ix, box));
+    }
+    /**
+     * Convert from screen/client event to SVG space.  We assume the scroll offset is already added to `box`
+     * @param box
+     * @returns
+     */
+    clientToSvg(box) {
+        const cof = (this.zoomScale * this.renderScale);
+        const x = (box.x - this.containerOffset.x) / cof;
+        const y = (box.y - this.containerOffset.y) / cof;
+        const logicalBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, Math.max(box.width / cof, 1), Math.max(box.height / cof, 1));
+        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['mouseDebug']) {
+            layoutDebug_1.layoutDebug.updateMouseDebug(box, logicalBox, this.containerOffset);
+        }
+        return logicalBox;
+    }
+    /**
+     * Convert from SVG bounding box to screen coordinates
+     * @param box
+     * @returns
+     */
+    svgToClient(box) {
+        const cof = (this.zoomScale * this.renderScale);
+        const x = (box.x * cof) + this.containerOffset.x;
+        const y = (box.y * cof) + this.containerOffset.y;
+        const clientBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);
+        return clientBox;
+    }
+    /**
+     * Find a selection from a mouse event
+     * @param box - location of a mouse event or specific screen coordinates
+     * @returns
+     */
+    findArtifact(box) {
+        const selections = [];
+        if (box.x < this.containerOffset.x || box.y < this.containerOffset.y) {
+            return { selections, page: this.vfRenderers[0] };
+        }
+        const logicalBox = this.clientToSvg(box);
+        const page = this.getRenderer(logicalBox);
+        if (page) {
+            return { selections: page.findArtifact(logicalBox), page };
+        }
+        return { selections, page: this.vfRenderers[0] };
+    }
+    /**
+     * Find any modifiers intersecting with `box`
+     * @param box
+     * @returns
+     */
+    findModifierTabs(box) {
+        if (box.x < this.containerOffset.x || box.y < this.containerOffset.y) {
+            return [];
+        }
+        const logicalBox = this.clientToSvg(box);
+        const page = this.getRenderer(logicalBox);
+        if (page) {
+            return page.findModifierTabs(logicalBox);
+        }
+        return [];
+    }
+    /**
+     * add a rendered page to the page map
+     * @param selection
+     * @returns
+     */
+    addArtifact(selection) {
+        if (!selection.note || !selection.note.logicalBox) {
+            return;
+        }
+        const page = this.getRenderer(selection.note.logicalBox);
+        if (page) {
+            page.addArtifact(selection);
+        }
+    }
+    /**
+     * add a rendered modifier to the page map
+     * @param modifier
+     */
+    addModifierTab(modifier) {
+        const page = this.getRenderer(modifier.box);
+        if (page) {
+            page.addModifierTab(modifier);
+        }
+    }
+    /**
+     * The number of pages is changing, remove the last page
+     * @returns
+     */
+    removePage() {
+        let i = 0;
+        // Don't remove the only page
+        if (this.vfRenderers.length < 2) {
+            return;
+        }
+        // Remove last page div
+        const elementId = 'smoosic-svg-div-' + (this.vfRenderers.length - 1).toString();
+        const container = document.getElementById(elementId);
+        if (container) {
+            container.remove();
+        }
+        // pop last renderer off the stack.
+        const renderers = [];
+        const layouts = [];
+        for (i = 0; i < this.vfRenderers.length - 1; ++i) {
+            renderers.push(this.vfRenderers[i]);
+            layouts.push(this.pageLayouts[i]);
+        }
+        this.vfRenderers = renderers;
+        this._pageLayouts = layouts;
+        // update page height
+        const totalHeight = this.pageDivHeight * this.pageLayouts.length;
+        $(this.container).css('width', '' + Math.round(this.pageDivWidth) + 'px');
+        $(this.container).css('height', '' + Math.round(totalHeight) + 'px');
+    }
+    /**
+     * The score dimensions have changed, clear maps and recreate the pages.
+     * @param layout
+     * @param pageLayouts
+     */
+    updateLayout(layout, pageLayouts) {
+        this._layout = layout;
+        this._pageLayouts = pageLayouts;
+        this.createRenderers();
+    }
+    /**
+     * Return the page by index
+     * @param page
+     * @returns
+     */
+    getRendererForPage(page) {
+        if (this.vfRenderers.length > page) {
+            return this.vfRenderers[page];
+        }
+        return this.vfRenderers[this.vfRenderers.length - 1];
+    }
+    /**
+     * Return the SvgPage based on SVG point (conversion from client coordinates already done)
+     * @param point
+     * @returns
+     */
+    getRendererFromPoint(point) {
+        const ix = Math.floor(point.y / (this.layout.pageHeight / this.layout.svgScale));
+        if (ix < this.vfRenderers.length) {
+            return this.vfRenderers[ix];
+        }
+        return null;
+    }
+    /**
+     * Return the SvgPage based on SVG point (conversion from client coordinates already done)
+     * @param box
+     * @returns
+     */
+    getRenderer(box) {
+        const rv = this.getRendererFromPoint({ x: box.x, y: box.y });
+        if (rv) {
+            return rv;
+        }
+        return this.vfRenderers[0];
+    }
+    /**
+     * Return the page based on the coordinates of a modifier
+     * @param modifier
+     * @returns
+     */
+    getRendererFromModifier(modifier) {
+        let rv = this.vfRenderers[0];
+        if (modifier && modifier.logicalBox) {
+            const context = this.getRenderer(modifier.logicalBox);
+            if (context) {
+                rv = context;
+            }
+        }
+        return rv;
+    }
+}
+exports.SvgPageMap = SvgPageMap;
 
 
 /***/ }),
@@ -10740,6 +11229,7 @@ const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ 
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const VF = eval('Vex.Flow');
 /**
@@ -10783,6 +11273,7 @@ class SuiTextEditor {
         this.x = params.x;
         this.y = params.y;
         this.text = params.text;
+        this.pageMap = params.pageMap;
     }
     static get States() {
         return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
@@ -10897,11 +11388,8 @@ class SuiTextEditor {
         if (this.svgText === null) {
             return false;
         }
-        const logicalBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, svgHelpers_1.SvgHelpers.smoBox({ x: ev.clientX, y: ev.clientY, width: 1, height: 1 })));
-        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.cursor) {
-            layoutDebug_1.layoutDebug.clearDebugBoxes(layoutDebug_1.layoutDebug.values.cursor);
-            layoutDebug_1.layoutDebug.debugBox(this.context.svg, logicalBox, layoutDebug_1.layoutDebug.values.cursor);
-        }
+        const clientBox = svgHelpers_1.SvgHelpers.boxPoints(ev.clientX + this.scroller.scrollState.x, ev.clientY + this.scroller.scrollState.y, 1, 1);
+        const logicalBox = this.pageMap.clientToSvg(clientBox);
         var blocks = this.svgText.getIntersectingBlocks(logicalBox);
         // The mouse is not over the text
         if (!blocks.length) {
@@ -11099,7 +11587,7 @@ class SuiTextEditor {
             context: this.context, startX: this.x, startY: this.y,
             fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller,
             purpose: textRender_1.SuiInlineText.textPurposes.edit,
-            fontStyle: 'normal'
+            fontStyle: 'normal', pageMap: this.pageMap
         });
         for (i = 0; i < this.text.length; ++i) {
             const def = textRender_1.SuiInlineText.blockDefaults;
@@ -11114,8 +11602,15 @@ class SuiTextEditor {
     // ### evKey
     // Handle key events that filter down to the editor
     evKey(evdata) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         return __awaiter(this, void 0, void 0, function* () {
+            const removeCurrent = () => {
+                var _a;
+                if (this.svgText) {
+                    (_a = this.svgText.element) === null || _a === void 0 ? void 0 : _a.remove();
+                    this.svgText.element = null;
+                }
+            };
             if (evdata.code === 'ArrowRight') {
                 if (evdata.shiftKey) {
                     this.growSelectionRight();
@@ -11137,6 +11632,7 @@ class SuiTextEditor {
                 return true;
             }
             if (evdata.code === 'Backspace') {
+                removeCurrent();
                 if (this.selectionStart >= 0) {
                     this.deleteSelections();
                 }
@@ -11151,6 +11647,7 @@ class SuiTextEditor {
                 return true;
             }
             if (evdata.code === 'Delete') {
+                removeCurrent();
                 if (this.selectionStart >= 0) {
                     this.deleteSelections();
                 }
@@ -11165,6 +11662,7 @@ class SuiTextEditor {
                 return true;
             }
             if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
+                removeCurrent();
                 const isPaste = evdata.ctrlKey && evdata.key === 'v';
                 let text = evdata.key;
                 if (isPaste) {
@@ -11182,13 +11680,17 @@ class SuiTextEditor {
                     if (this.selectionStart >= 0) {
                         this.deleteSelections();
                     }
+                    if (this.svgText) {
+                        (_g = this.svgText.element) === null || _g === void 0 ? void 0 : _g.remove();
+                        this.svgText.element = null;
+                    }
                     const def = textRender_1.SuiInlineText.blockDefaults;
                     def.text = text;
                     def.textType = this.textType;
-                    (_g = this.svgText) === null || _g === void 0 ? void 0 : _g.addTextBlockAt(this.textPos, def);
+                    (_h = this.svgText) === null || _h === void 0 ? void 0 : _h.addTextBlockAt(this.textPos, def);
                     this.setTextPos(this.textPos + 1);
                 }
-                (_h = this.svgText) === null || _h === void 0 ? void 0 : _h.render();
+                (_j = this.svgText) === null || _j === void 0 ? void 0 : _j.render();
                 return true;
             }
             return false;
@@ -11459,6 +11961,12 @@ class SuiChordEditor extends SuiTextEditor {
         (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.addGlyphBlockAt(ix, blockP);
         this.textPos += 1;
     }
+    unrender() {
+        var _a;
+        if (this.svgText) {
+            (_a = this.svgText.element) === null || _a === void 0 ? void 0 : _a.remove();
+        }
+    }
     evKey(evdata) {
         const _super = Object.create(null, {
             evKey: { get: () => super.evKey }
@@ -11471,12 +11979,14 @@ class SuiChordEditor extends SuiTextEditor {
             }
             // Dialog gives us a specific glyph code
             if (evdata.key[0] === '@' && evdata.key.length > 2) {
+                this.unrender();
                 const glyph = evdata.key.substr(1, evdata.key.length - 2);
                 this._addGlyphAt(this.textPos, glyph);
                 (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
                 edited = true;
             }
             else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
+                this.unrender();
                 this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
                 (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
                 edited = true;
@@ -11506,76 +12016,97 @@ class SuiChordEditor extends SuiTextEditor {
 exports.SuiChordEditor = SuiChordEditor;
 class SuiDragSession {
     constructor(params) {
-        this.xOffset = 0;
-        this.yOffset = 0;
         this.dragging = false;
         this.textGroup = params.textGroup;
-        this.context = params.context;
+        this.pageMap = params.context;
         this.scroller = params.scroller;
-        this.xOffset = 0;
-        this.yOffset = 0;
-        this.textObject = textRender_1.SuiTextBlock.fromTextGroup(this.textGroup, this.context, this.scroller); // SuiTextBlock
+        this.page = this.pageMap.getRendererFromModifier(this.textGroup);
+        // create a temporary text object for dragging
+        this.textObject = textRender_1.SuiTextBlock.fromTextGroup(this.textGroup, this.page, this.pageMap, this.scroller); // SuiTextBlock
         this.dragging = false;
-        this.startBox = this.textObject.getLogicalBox();
-        this.startBox.y += this.textObject.maxFontHeight(1);
-        this.currentBox = svgHelpers_1.SvgHelpers.smoBox(this.startBox);
-        this.currentClientBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState));
+        this.outlineBox = this.textObject.getLogicalBox();
     }
     _outlineBox() {
         const outlineStroke = SuiTextEditor.strokes['text-drag'];
+        const x = this.outlineBox.x - this.page.box.x;
+        const y = this.outlineBox.y - this.page.box.y;
         const obj = {
-            context: this.context, box: this.currentBox, classes: 'text-drag',
+            context: this.page,
+            box: svgHelpers_1.SvgHelpers.boxPoints(x, y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
+            classes: 'text-drag',
             stroke: outlineStroke, scroll: this.scroller.scrollState,
             clientCoordinates: false
         };
         svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
+    scrolledClientBox(x, y) {
+        return { x: x + this.scroller.scrollState.x, y: y + this.scroller.scrollState.y, width: 1, height: 1 };
+    }
+    checkBounds() {
+        if (this.outlineBox.y < this.outlineBox.height) {
+            this.outlineBox.y = this.outlineBox.height;
+        }
+        if (this.outlineBox.x < 0) {
+            this.outlineBox.x = 0;
+        }
+        if (this.outlineBox.x > this.page.box.x + this.page.box.width - this.outlineBox.width) {
+            this.outlineBox.x = this.page.box.x + this.page.box.width - this.outlineBox.width;
+        }
+        if (this.outlineBox.y > this.page.box.y + this.page.box.height) {
+            this.outlineBox.y = this.page.box.y + this.page.box.height;
+        }
+    }
     startDrag(e) {
-        if (!svgHelpers_1.SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState))) {
+        const evBox = this.scrolledClientBox(e.clientX, e.clientY);
+        const svgMouseBox = this.pageMap.clientToSvg(evBox);
+        svgMouseBox.y -= this.outlineBox.height;
+        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+            layoutDebug_1.layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'start');
+        }
+        if (!svgHelpers_1.SvgHelpers.doesBox1ContainBox2(this.outlineBox, svgMouseBox)) {
             return;
         }
         this.dragging = true;
-        // calculate offset of mouse start vs. box UL
-        this.yOffset = this.currentClientBox.y - e.clientY;
-        this.xOffset = this.currentClientBox.x - e.clientX;
+        this.outlineBox = svgMouseBox;
+        const currentBox = this.textObject.getLogicalBox();
+        this.outlineBox.width = currentBox.width;
+        this.outlineBox.height = currentBox.height;
+        this.checkBounds();
         this._outlineBox();
     }
     mouseMove(e) {
         if (!this.dragging) {
             return;
         }
-        const svgX = this.currentBox.x;
-        const svgY = this.currentBox.y;
-        this.currentClientBox.x = e.clientX + this.xOffset;
-        this.currentClientBox.y = e.clientY - this.yOffset;
-        const coor = svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, {
-            x: this.currentClientBox.x + +this.scroller.scrollState.x,
-            y: this.currentClientBox.y + this.scroller.scrollState.y,
-            width: 0, height: 0
-        });
-        this.currentBox.x = coor.x;
-        this.currentBox.y = coor.y;
-        this.textObject.offsetStartX(this.currentBox.x - svgX);
-        this.textObject.offsetStartY(this.currentBox.y - svgY);
+        const evBox = this.scrolledClientBox(e.clientX, e.clientY);
+        const svgMouseBox = this.pageMap.clientToSvg(evBox);
+        svgMouseBox.y -= this.outlineBox.height;
+        this.outlineBox = svgHelpers_1.SvgHelpers.smoBox(svgMouseBox);
+        const currentBox = this.textObject.getLogicalBox();
+        this.outlineBox.width = currentBox.width;
+        this.outlineBox.height = currentBox.height;
+        this.checkBounds();
+        this.textObject.offsetStartX(this.outlineBox.x - currentBox.x);
+        this.textObject.offsetStartY(this.outlineBox.y - currentBox.y);
         this.textObject.render();
-        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
+        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+            layoutDebug_1.layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'drag');
+        }
+        svgHelpers_1.SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
         this._outlineBox();
     }
-    get deltaX() {
-        return this.currentBox.x - this.startBox.x;
-    }
-    get deltaY() {
-        return this.currentBox.y - this.startBox.y;
-    }
     endDrag() {
+        var _a;
         this.textObject.render();
-        this.textGroup.offsetX(this.deltaX);
-        this.textGroup.offsetY(this.deltaY);
-        // Update starting position if the drag session starts again.
-        this.startBox.x += this.deltaX;
-        this.startBox.y += this.deltaY;
+        const newBox = this.textObject.getLogicalBox();
+        const curBox = (_a = this.textGroup.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default;
+        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+            layoutDebug_1.layoutDebug.updateDragDebug(curBox, newBox, 'end');
+        }
+        this.textGroup.offsetX(newBox.x - curBox.x);
+        this.textGroup.offsetY(newBox.y - curBox.y + this.outlineBox.height);
         this.dragging = false;
-        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
+        svgHelpers_1.SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
     }
 }
 exports.SuiDragSession = SuiDragSession;
@@ -11649,13 +12180,16 @@ class SuiTextSession {
     // ### _startSessionForNote
     // Start the lyric session
     startSession() {
-        this.editor = new SuiTextBlockEditor({
-            x: this.x, y: this.y, scroller: this.scroller,
-            context: this.renderer.context, text: this.scoreText.text
-        });
-        this.cursorPromise = this.editor.startCursorPromise();
-        this.state = SuiTextEditor.States.RUNNING;
-        this._removeScoreText();
+        const context = this.renderer.pageMap.getRenderer({ x: this.x, y: this.y });
+        if (context) {
+            this.editor = new SuiTextBlockEditor({
+                x: this.x, y: this.y, scroller: this.scroller,
+                context: context, text: this.scoreText.text, pageMap: this.renderer.pageMap
+            });
+            this.cursorPromise = this.editor.startCursorPromise();
+            this.state = SuiTextEditor.States.RUNNING;
+            this._removeScoreText();
+        }
     }
     // ### _startSessionForNote
     // Stop the lyric session, return promise for done
@@ -11788,18 +12322,22 @@ class SuiLyricSession {
             startX = this.lyric.logicalBox.x;
             startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
         }
-        this.editor = new SuiLyricEditor({
-            context: this.view.renderer.context,
-            lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-            text: this.lyric.getText()
-        });
-        this.state = SuiTextEditor.States.RUNNING;
-        if (!lyricRendered && this.editor !== null && this.editor.svgText !== null) {
-            const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
-            this.editor.svgText.offsetStartY(delta);
+        const context = this.view.renderer.pageMap.getRenderer({ x: startX, y: startY });
+        if (context) {
+            this.editor = new SuiLyricEditor({
+                context,
+                lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
+                text: this.lyric.getText(),
+                pageMap: this.renderer.pageMap
+            });
+            this.state = SuiTextEditor.States.RUNNING;
+            if (!lyricRendered && this.editor !== null && this.editor.svgText !== null) {
+                const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
+                this.editor.svgText.offsetStartY(delta);
+            }
+            this.cursorPromise = this.editor.startCursorPromise();
+            this._hideLyric();
         }
-        this.cursorPromise = this.editor.startCursorPromise();
-        this._hideLyric();
     }
     // ### _startSessionForNote
     // Start the lyric session
@@ -11973,18 +12511,22 @@ class SuiChordSession extends SuiLyricSession {
             startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
         }
         this.selection.measure.svg.logicalBox.y + this.selection.measure.svg.logicalBox.height - 70;
-        this.editor = new SuiChordEditor({
-            context: this.view.renderer.context,
-            lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
-            text: this.lyric.getText()
-        });
-        this.state = SuiTextEditor.States.RUNNING;
-        if (this.editor !== null && this.editor.svgText !== null) {
-            const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
-            this.editor.svgText.offsetStartY(delta);
+        const context = this.renderer.pageMap.getRenderer({ x: startX, y: startY });
+        if (context) {
+            this.editor = new SuiChordEditor({
+                context,
+                lyric: this.lyric, x: startX, y: startY, scroller: this.scroller,
+                text: this.lyric.getText(),
+                pageMap: this.renderer.pageMap
+            });
+            this.state = SuiTextEditor.States.RUNNING;
+            if (this.editor !== null && this.editor.svgText !== null) {
+                const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
+                this.editor.svgText.offsetStartY(delta);
+            }
+            this.cursorPromise = this.editor.startCursorPromise();
+            this._hideLyric();
         }
-        this.cursorPromise = this.editor.startCursorPromise();
-        this._hideLyric();
     }
 }
 exports.SuiChordSession = SuiChordSession;
@@ -12025,7 +12567,7 @@ class SuiInlineText {
         this.updatedMetrics = false;
         this.artifacts = [];
         this.logicalBox = common_1.SvgBox.default;
-        this.renderedBox = common_1.SvgBox.default;
+        this.element = null;
         this.fontFamily = params.fontFamily;
         this.fontWeight = params.fontWeight;
         this.fontStyle = params.fontStyle;
@@ -12040,6 +12582,7 @@ class SuiInlineText {
             type: 'SuiInlineText'
         };
         this.context = params.context;
+        this.pageMap = params.pageMap;
     }
     static get textTypes() {
         return { normal: 0, superScript: 1, subScript: 2 };
@@ -12128,7 +12671,7 @@ class SuiInlineText {
             style: this.fontStyle
         });
     }
-    static fromScoreText(scoreText, context, scroller) {
+    static fromScoreText(scoreText, context, pageMap, scroller) {
         var _a;
         const params = {
             fontFamily: scoreText.fontInfo.family,
@@ -12137,7 +12680,8 @@ class SuiInlineText {
             startX: scoreText.x, startY: scoreText.y,
             scroller,
             purpose: SuiInlineText.textPurposes.render,
-            fontSize: scoreText.fontInfo.size, context
+            fontSize: scoreText.fontInfo.size, context,
+            pageMap
         };
         const rv = new SuiInlineText(params);
         rv.attrs.id = scoreText.attrs.id;
@@ -12298,12 +12842,14 @@ class SuiInlineText {
         if (!this.updatedMetrics) {
             this._calculateBlockIndex();
         }
-        const group = this.context.openGroup();
+        const group = this.context.getContext().openGroup();
         group.id = 'inlineCursor';
         const h = this.fontSize;
         if (this.blocks.length <= position || position < 0) {
-            svgHelpers_1.SvgHelpers.renderCursor(group, this.startX, this.startY - h, h);
-            this.context.closeGroup();
+            const x = this.startX - this.context.box.x;
+            const y = this.startY - this.context.box.y;
+            svgHelpers_1.SvgHelpers.renderCursor(group, x, y - h, h);
+            this.context.getContext().closeGroup();
             return;
         }
         const block = this.blocks[position];
@@ -12323,14 +12869,18 @@ class SuiInlineText {
                 }
             }
         }
-        svgHelpers_1.SvgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
-        this.context.closeGroup();
+        const x = block.x + block.width - this.context.box.x;
+        const y = adjY - (adjH * block.scale) - this.context.box.y;
+        svgHelpers_1.SvgHelpers.renderCursor(group, x, y, adjH * block.scale);
+        this.context.getContext().closeGroup();
     }
     removeCursor() {
         $('svg #inlineCursor').remove();
     }
     unrender() {
-        $('svg #' + this.attrs.id).remove();
+        var _a;
+        (_a = this.element) === null || _a === void 0 ? void 0 : _a.remove();
+        this.element = null;
     }
     getIntersectingBlocks(box) {
         if (!this.artifacts) {
@@ -12403,14 +12953,14 @@ class SuiInlineText {
         this.updatedMetrics = false;
     }
     render() {
-        $('svg #' + this.attrs.id).remove();
         if (!this.updatedMetrics) {
             this._calculateBlockIndex();
         }
-        this.context.setFont({
+        this.context.getContext().setFont({
             family: this.fontFamily, size: this.fontSize, weight: this.fontWeight, style: this.fontStyle
         });
-        const group = this.context.openGroup();
+        const group = this.context.getContext().openGroup();
+        this.element = group;
         const mmClass = 'suiInlineText';
         let ix = 0;
         group.classList.add('vf-' + this.attrs.id);
@@ -12420,52 +12970,52 @@ class SuiInlineText {
         group.id = this.attrs.id;
         this.artifacts = [];
         this.blocks.forEach((block) => {
-            var bg = this.context.openGroup();
+            var bg = this.context.getContext().openGroup();
             bg.classList.add('textblock-' + this.attrs.id + ix);
             this._drawBlock(block);
-            this.context.closeGroup();
+            this.context.getContext().closeGroup();
             const artifact = { block, box: common_1.SvgBox.default, index: 0 };
-            artifact.box = svgHelpers_1.SvgHelpers.smoBox(bg.getBBox());
+            artifact.box = this.context.offsetBbox(bg);
             artifact.index = ix;
             this.artifacts.push(artifact);
             ix += 1;
         });
-        this.context.closeGroup();
-        this.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+        this.context.getContext().closeGroup();
+        this.logicalBox = this.context.offsetBbox(group);
     }
     _drawBlock(block) {
         const sp = this.isSuperscript(block);
         const sub = this.isSubcript(block);
         const highlight = this.getHighlight(block);
-        const y = block.y;
+        const y = block.y - this.context.box.y; // relative y into page
         if (highlight) {
-            this.context.save();
-            this.context.setFillStyle('#999');
+            this.context.getContext().save();
+            this.context.getContext().setFillStyle('#999');
         }
         // This is how svgcontext expects to get 'style'
         const weight = this.fontWeight;
         const style = this.fontStyle;
         const family = this.fontFamily;
         if (sp || sub) {
-            this.context.save();
-            this.context.setFont({
+            this.context.getContext().save();
+            this.context.getContext().setFont({
                 family, size: this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight, style
             });
         }
         else {
-            this.context.setFont({ family, size: this.fontSize * block.scale, weight, style });
+            this.context.getContext().setFont({ family, size: this.fontSize * block.scale, weight, style });
         }
         if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-            this.context.fillText(block.text, block.x, y);
+            this.context.getContext().fillText(block.text, block.x, y);
         }
         else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
-            block.glyph.render(this.context, block.x, y);
+            block.glyph.render(this.context.getContext(), block.x, y);
         }
         if (sp || sub) {
-            this.context.restore();
+            this.context.getContext().restore();
         }
         if (highlight) {
-            this.context.restore();
+            this.context.getContext().restore();
         }
     }
     getText() {
@@ -12568,25 +13118,12 @@ class SuiTextBlock {
         });
         return rv;
     }
-    static inlineParamsFromScoreText(scoreText, context, scroller) {
-        var _a;
-        const rv = {
-            fontFamily: scoreText.fontInfo.family,
-            startX: scoreText.x, startY: scoreText.y, fontWeight: scoreText.fontInfo.weight,
-            fontStyle: (_a = scoreText.fontInfo.style) !== null && _a !== void 0 ? _a : 'normal', purpose: SuiInlineText.textPurposes.render,
-            fontSize: scoreText.fontInfo.size, context, scroller
-        };
-        return rv;
-    }
-    static blockFromScoreText(scoreText, context, position, scroller) {
-        var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
+    static blockFromScoreText(scoreText, context, pageMap, position, scroller) {
+        var inlineText = SuiInlineText.fromScoreText(scoreText, context, pageMap, scroller);
         return { text: inlineText, position, activeText: true };
     }
     getLogicalBox() {
         return this._calculateBoundingClientRect();
-    }
-    getRenderedBox() {
-        return svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState));
     }
     _calculateBoundingClientRect() {
         let rv = common_1.SvgBox.default;
@@ -12601,12 +13138,12 @@ class SuiTextBlock {
         rv.y = rv.y - rv.height;
         return rv;
     }
-    static fromTextGroup(tg, context, scroller) {
+    static fromTextGroup(tg, context, pageMap, scroller) {
         const blocks = [];
         // Create an inline block for each ScoreText
         tg.textBlocks.forEach((stBlock) => {
             const st = stBlock.text;
-            const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position, scroller);
+            const newText = SuiTextBlock.blockFromScoreText(st, context, pageMap, stBlock.position, scroller);
             newText.activeText = stBlock.activeText;
             blocks.push(newText);
         });
@@ -12619,8 +13156,10 @@ class SuiTextBlock {
     }
     unrender() {
         this.inlineBlocks.forEach((block) => {
-            const selector = '#' + block.text.attrs.id;
-            $(selector).remove();
+            if (block.text.element) {
+                block.text.element.remove();
+                block.text.element = null;
+            }
         });
     }
     // ### _justify
@@ -12747,6 +13286,7 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 /**
  * SuiTracker
  A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -12759,6 +13299,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.musicCursorGlyph = null;
         // timer: NodeJS.Timer | null = null;
         this.suggestFadeTimer = null;
+        this.strokeMemory = {};
     }
     static get strokes() {
         return {
@@ -12796,9 +13337,6 @@ class SuiTracker extends mapper_1.SuiMapper {
     get score() {
         return this.renderer.score;
     }
-    get svg() {
-        return this.renderer.svg;
-    }
     getIdleTime() {
         return this.idleTimer;
     }
@@ -12815,7 +13353,6 @@ class SuiTracker extends mapper_1.SuiMapper {
      */
     musicCursor(selector, offsetPct, durationPct) {
         var _a, _b;
-        const key = selections_1.SmoSelector.getNoteKey(selector);
         if (!this.score) {
             return;
         }
@@ -12824,31 +13361,34 @@ class SuiTracker extends mapper_1.SuiMapper {
         const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
         const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
         if (measure.svg.logicalBox && ((_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.logicalBox)) {
+            const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
             const topBox = svgHelpers_1.SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
+            topBox.y -= context.box.y;
             const botBox = svgHelpers_1.SvgHelpers.smoBox(measure.svg.logicalBox);
+            botBox.y -= context.box.y;
             const height = (botBox.y + botBox.height) - topBox.y;
             const measureWidth = botBox.width - measure.svg.adjX;
             const width = measureWidth * durationPct;
             const y = topBox.y;
-            const x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+            let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
+            const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
+            if (noteBox && noteBox.logicalBox) {
+                x = noteBox.logicalBox.x;
+            }
             const screenBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, width, height);
             const fillParams = {};
             fillParams['fill-opacity'] = '0.5';
             fillParams['fill'] = '#4444ff';
-            const ctx = this.renderer.context;
+            const ctx = context.getContext();
             this.clearMusicCursor();
             ctx.save();
             ctx.openGroup('music-cursor', 'music-cursor');
             ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
             ctx.closeGroup();
             ctx.restore();
-            this.scroller.scrollVisibleBox(screenBox);
+            layoutDebug_1.layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
+            this.scroller.scrollVisibleBox(measure.svg.logicalBox);
         }
-    }
-    // ### selectModifierById
-    // programatically select a modifier by ID.  Used by text editor.
-    selectId(id) {
-        this.modifierIndex = this.modifierTabs.findIndex((mm) => mm.modifier.attrs.id === id);
     }
     getSelectedModifier() {
         if (this.modifierSelections.length) {
@@ -12872,11 +13412,11 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         this.idleTimer = Date.now();
-        svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['staffModifier']);
-        const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
-        if (!this.modifierTabs.length) {
-            return;
+        if (this.strokeMemory['staffModifier']) {
+            svgHelpers_1.SvgHelpers.eraseOutline(this.strokeMemory['staffModifier'].svg, SuiTracker.strokes['staffModifier']);
+            delete this.strokeMemory['staffModifier'];
         }
+        const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
         this.modifierIndex = this.modifierIndex + offset;
         this.modifierIndex = (this.modifierIndex === -2 && this.localModifiers.length) ?
             this.localModifiers.length - 1 : this.modifierIndex;
@@ -12941,6 +13481,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         return false;
     }
     _growGraceNoteSelections(offset) {
+        var _a;
         this.idleTimer = Date.now();
         const far = this.modifierSelections.filter((mm) => mm.modifier.attrs.type === 'SmoGraceNote');
         if (!far.length) {
@@ -12948,7 +13489,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         const ix = (offset < 0) ? 0 : far.length - 1;
         const sel = far[ix];
-        const left = this.modifierTabs.filter((mt) => {
+        const left = this.localModifiers.filter((mt) => {
             var _a, _b;
             return ((_b = (_a = mt.modifier) === null || _a === void 0 ? void 0 : _a.attrs) === null || _b === void 0 ? void 0 : _b.type) === 'SmoGraceNote' && sel.selection && mt.selection &&
                 selections_1.SmoSelector.sameNote(mt.selection.selector, sel.selection.selector);
@@ -12960,6 +13501,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!leftSel) {
             console.warn('bad selector in _growGraceNoteSelections');
         }
+        leftSel.box = (_a = leftSel.box) !== null && _a !== void 0 ? _a : common_1.SvgBox.default;
         this.modifierSelections.push(leftSel);
         this._highlightModifier();
     }
@@ -13314,18 +13856,15 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         this.idleTimer = Date.now();
-        if (this.modifierSuggestion >= 0) {
+        if (this.modifierSuggestion) {
             if (this.suggestFadeTimer) {
                 clearTimeout(this.suggestFadeTimer);
                 this.suggestFadeTimer = null;
             }
             this.modifierIndex = -1;
-            const selToAdd = this.modifierTabs[this.modifierSuggestion];
-            if (!selToAdd) {
-                console.warn('bad modifier selection in selectSuggestion');
-            }
-            this.modifierSelections = [selToAdd];
-            this.modifierSuggestion = -1;
+            this.modifierSelections = [this.modifierSuggestion];
+            this.modifierSuggestion = null;
+            this.createLocalModifiersFromModifierTabs(this.modifierSelections);
             // If we selected due to a mouse click, move the selection to the
             // selected modifier
             this._highlightModifier();
@@ -13362,10 +13901,15 @@ class SuiTracker extends mapper_1.SuiMapper {
             this.selections[0].selector.pitches = [this.pitchIndex];
         }
         else {
-            this.selections = [this.suggestion];
+            const selection = selections_1.SmoSelection.noteFromSelector(this.score, this.suggestion.selector);
+            if (selection) {
+                selection.box = JSON.parse(JSON.stringify(this.suggestion.box));
+                selection.scrollBox = JSON.parse(JSON.stringify(this.suggestion.scrollBox));
+                this.selections = [selection];
+            }
         }
-        if (preselected && this.modifierTabs.length) {
-            const mods = this.modifierTabs.filter((mm) => mm.selection && selections_1.SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
+        if (preselected && this.modifierSelections.length) {
+            const mods = this.modifierSelections.filter((mm) => mm.selection && selections_1.SmoSelector.sameNote(mm.selection.selector, this.selections[0].selector));
             if (mods.length) {
                 const modToAdd = mods[0];
                 if (!modToAdd) {
@@ -13388,8 +13932,11 @@ class SuiTracker extends mapper_1.SuiMapper {
         const tracker = this;
         this.suggestFadeTimer = setTimeout(() => {
             if (tracker.containsArtifact()) {
-                svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['suggestion']);
-                tracker.modifierSuggestion = -1;
+                if (this.strokeMemory['suggestion']) {
+                    svgHelpers_1.SvgHelpers.eraseOutline(this.strokeMemory['suggestion'].svg, SuiTracker.strokes['suggestion']);
+                    delete this.strokeMemory['suggestion'];
+                }
+                tracker.modifierSuggestion = null;
             }
         }, 1000);
     }
@@ -13397,24 +13944,35 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!artifact.box) {
             return;
         }
-        this.modifierSuggestion = artifact.index;
+        this.modifierSuggestion = artifact;
         this._drawRect(artifact.box, 'suggestion');
         this._setFadeTimer();
     }
     _setArtifactAsSuggestion(artifact) {
-        const sameSel = this.selections.find((ss) => selections_1.SmoSelector.sameNote(ss.selector, artifact.selector));
+        let sameSel = null;
+        let i = 0;
+        for (i = 0; i < this.selections.length; ++i) {
+            const ss = this.selections[i];
+            if (ss && selections_1.SmoSelector.sameNote(ss.selector, artifact.selector)) {
+                sameSel = ss;
+                break;
+            }
+        }
         if (sameSel || !artifact.box) {
             return;
         }
-        this.modifierSuggestion = -1;
+        this.modifierSuggestion = null;
         this.suggestion = artifact;
         this._drawRect(artifact.box, 'suggestion');
         this._setFadeTimer();
     }
     eraseAllSelections() {
         Object.keys(SuiTracker.strokes).forEach((key) => {
-            svgHelpers_1.SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes[key]);
+            if (this.strokeMemory[key]) {
+                svgHelpers_1.SvgHelpers.eraseOutline(this.strokeMemory[key].svg, SuiTracker.strokes[key]);
+            }
         });
+        this.strokeMemory = {};
     }
     _highlightModifier() {
         let box = null;
@@ -13443,8 +14001,8 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         const headEl = heads[index];
-        const box = svgHelpers_1.SvgHelpers.smoBox(headEl.getBBox());
-        // const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState));
+        const pageContext = this.renderer.pageMap.getRendererFromModifier(note);
+        const box = pageContext.offsetBbox(headEl);
         this._drawRect(box, 'staffModifier');
     }
     _highlightActiveVoice(selection) {
@@ -13531,8 +14089,15 @@ class SuiTracker extends mapper_1.SuiMapper {
     }
     _suggestionParameters(box, strokeName) {
         const stroke = SuiTracker.strokes[strokeName];
+        let testBox = svgHelpers_1.SvgHelpers.smoBox(box);
+        let context = this.renderer.pageMap.getRenderer(testBox);
+        if (!context) {
+            context = this.renderer.pageMap.getRendererForPage(0);
+        }
+        testBox.y -= context.box.y;
+        this.strokeMemory[strokeName] = context;
         return {
-            context: this.renderer.context, box, classes: '',
+            context: context, box: testBox, classes: '',
             stroke, scroll: this.scroller.scrollState, clientCoordinates: false
         };
     }
@@ -13832,6 +14397,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifie
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const VF = eval('Vex.Flow');
 /**
@@ -13971,7 +14537,7 @@ class VxMeasure {
             return;
         }
         const vexL = new VF.Annotation(text); // .setReportWidth(lyric.adjustNoteWidth);
-        vexL.setAttribute(lyric.attrs.id); //
+        vexL.setAttribute('id', lyric.attrs.id); //
         // If we adjusted this note for the lyric, adjust the lyric as well.
         vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
         vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
@@ -13983,6 +14549,7 @@ class VxMeasure {
     }
     _addChordChangeToNote(vexNote, lyric) {
         const cs = new VF.ChordSymbol();
+        cs.setAttribute('id', lyric.attrs.id);
         const blocks = lyric.getVexChordBlocks();
         blocks.forEach((block) => {
             if (block.glyph) {
@@ -14174,20 +14741,22 @@ class VxMeasure {
         var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
         // the -3 is copied from vexflow textDynamics
         var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
-        var group = this.context.openGroup();
+        var group = this.context.getContext().openGroup();
         group.classList.add(textObj.attrs.id + '-' + smoNote.attrs.id);
         group.classList.add(textObj.attrs.id);
         textObj.text.split('').forEach((ch) => {
             const glyphCode = VF.TextDynamics.GLYPHS[ch];
             if (glyphCode) {
                 const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
-                glyph.render(this.context, x, y);
+                glyph.render(this.context.getContext(), x, y);
                 x += VF.TextDynamics.GLYPHS[ch].width;
+                const metrics = glyph.getMetrics();
+                textObj.logicalBox = svgHelpers_1.SvgHelpers.boxPoints(x, y + this.context.box.y, metrics.width, metrics.height);
             }
         });
         textObj.element = group;
         this.modifiersToBox.push(textObj);
-        this.context.closeGroup();
+        this.context.getContext().closeGroup();
     }
     renderDynamics() {
         this.smoMeasure.voices.forEach((voice) => {
@@ -14310,7 +14879,10 @@ class VxMeasure {
         else {
             this.stave.setBegBarType(sb.toVexBarline());
         }
-        if (eb.barline !== measureModifiers_1.SmoBarline.barlines.singleBar) {
+        if (this.smoMeasure.svg.multimeasureLength > 0 && !this.smoMeasure.svg.hideMultimeasure) {
+            this.stave.setEndBarType(measureModifiers_1.SmoBarline.toVexBarline[this.smoMeasure.svg.multimeasureEndBarline]);
+        }
+        else if (eb.barline !== measureModifiers_1.SmoBarline.barlines.singleBar) {
             this.stave.setEndBarType(eb.toVexBarline());
         }
         if (sym && sym.symbol !== measureModifiers_1.SmoRepeatSymbol.symbols.None) {
@@ -14341,7 +14913,7 @@ class VxMeasure {
         if (tempo && this.smoMeasure.svg.forceTempo) {
             this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
             const vexTempo = this.stave.modifiers.find((mod) => mod.attrs.type === 'StaveTempo');
-            vexTempo.font = { family: ssp_serif_metrics_1.SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
+            vexTempo.font = { family: ssp_serif_metrics_1.SourceSerifProFont.fontFamily, size: 13, weight: 'bold' };
         }
     }
     /**
@@ -14358,10 +14930,11 @@ class VxMeasure {
         const key = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
         const canceledKey = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
         const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft, { font: { family: ssp_sans_metrics_1.SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
+        const staffY = this.smoMeasure.staffY - this.context.box.y;
+        this.stave = new VF.Stave(staffX, staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft, { font: { family: ssp_sans_metrics_1.SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
         // If there is padLeft, draw an invisible box so the padding is included in the measure box
         if (this.smoMeasure.format.padLeft) {
-            this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.format.padLeft, 50, {
+            this.context.getContext().rect(this.smoMeasure.staffX, staffY, this.smoMeasure.format.padLeft, 50, {
                 fill: 'none', 'stroke-width': 1, stroke: 'white'
             });
         }
@@ -14392,7 +14965,7 @@ class VxMeasure {
             this.stave.addTimeSignature(tsString);
         }
         // Connect it to the rendering context and draw!
-        this.stave.setContext(this.context);
+        this.stave.setContext(this.context.getContext());
         this.createMeasureModifiers();
         this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
         this.createCollisionTickmap();
@@ -14415,7 +14988,6 @@ class VxMeasure {
             }
         }
         // Need to format for x position, then set y position before drawing dynamics.
-        let proportion = this.smoMeasure.format.proportionality;
         this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
         this.voiceAr.forEach((voice) => {
             this.formatter.joinVoices([voice]);
@@ -14431,7 +15003,7 @@ class VxMeasure {
     format(voices) {
         if (this.smoMeasure.svg.multimeasureLength > 0) {
             this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
-            this.multimeasureRest.setContext(this.context);
+            this.multimeasureRest.setContext(this.context.getContext());
             this.multimeasureRest.setStave(this.stave);
             return;
         }
@@ -14444,25 +15016,25 @@ class VxMeasure {
      * render is called after format.  Actually draw the things.
      */
     render() {
-        var group = this.context.openGroup();
+        var group = this.context.getContext().openGroup();
         this.smoMeasure.svg.element = group;
         var mmClass = this.smoMeasure.getClassId();
         var j = 0;
-        const timestamp = new Date().valueOf();
         try {
             // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
             group.classList.add(this.smoMeasure.attrs.id);
             group.classList.add(mmClass);
             group.id = this.smoMeasure.attrs.id;
             this.stave.draw();
+            this.smoMeasure.svg.element = group;
             for (j = 0; j < this.voiceAr.length; ++j) {
-                this.voiceAr[j].draw(this.context, this.stave);
+                this.voiceAr[j].draw(this.context.getContext(), this.stave);
             }
             this.vexBeamGroups.forEach((b) => {
-                b.setContext(this.context).draw();
+                b.setContext(this.context.getContext()).draw();
             });
             this.vexTuplets.forEach((tuplet) => {
-                tuplet.setContext(this.context).draw();
+                tuplet.setContext(this.context.getContext()).draw();
             });
             if (this.multimeasureRest) {
                 this.multimeasureRest.draw();
@@ -14470,13 +15042,13 @@ class VxMeasure {
             // this._updateLyricDomSelectors();
             this.renderDynamics();
             // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
-            this.context.closeGroup();
+            this.context.getContext().closeGroup();
             // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
             this.rendered = true;
         }
         catch (exc) {
             console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
-            this.context.closeGroup();
+            this.context.getContext().closeGroup();
         }
     }
 }
@@ -14572,7 +15144,7 @@ class VxSystem {
             const chords = note.getLyricForVerse(i, noteModifiers_1.SmoLyric.parsers.chord);
             chords.forEach((bchord) => {
                 const chord = bchord;
-                const dom = $(this.context.svg).find(chord.selector)[0];
+                const dom = this.context.svg.getElementById('vf-' + chord.attrs.id);
                 if (dom) {
                     dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
                 }
@@ -14673,8 +15245,8 @@ class VxSystem {
                 });
             });
             lyrics.forEach((lyric) => {
-                const dom = $(this.context.svg).find(lyric.selector)[0];
-                if (typeof (dom) !== 'undefined') {
+                const dom = this.context.svg.getElementById('vf-' + lyric.attrs.id);
+                if (dom) {
                     dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
                     // Keep track of lyrics that are 'dash'
                     if (lyric.isDash()) {
@@ -14683,7 +15255,7 @@ class VxSystem {
                 }
             });
             lyricHyphens.forEach((lyric) => {
-                const parent = $(this.context.svg).find(lyric.selector)[0];
+                const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
                 if (parent && lyric.logicalBox !== null) {
                     const text = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'text');
                     text.textContent = '-';
@@ -14695,7 +15267,7 @@ class VxSystem {
                 }
             });
             lyricsDash.forEach((lyric) => {
-                const parent = $(this.context.svg).find(lyric.selector)[0];
+                const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
                 if (parent && lyric.logicalBox !== null) {
                     const line = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'line');
                     const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
@@ -14708,8 +15280,12 @@ class VxSystem {
                     line.setAttributeNS('', 'fill', 'none');
                     line.setAttributeNS('', 'stroke', '#999999');
                     parent.appendChild(line);
-                    const text = $(this.context.svg).find(lyric.selector).find('text')[0];
-                    text.setAttributeNS('', 'fill', '#fff');
+                    const texts = parent.getElementsByTagName('text');
+                    // hide hyphen and replace with dash
+                    if (texts && texts.length) {
+                        const text = texts[0];
+                        text.setAttributeNS('', 'fill', '#fff');
+                    }
                 }
             });
         }
@@ -14733,16 +15309,22 @@ class VxSystem {
         // if it is split between lines, render one artifact for each line, with a common class for
         // both if it is removed.
         if (vxStart) {
-            $(this.context.svg).find('g.' + modifier.attrs.id).remove();
+            const toRemove = this.context.svg.getElementById('vf-' + modifier.attrs.id);
+            if (toRemove) {
+                toRemove.remove();
+            }
         }
         const artifactId = modifier.attrs.id + '-' + this.lineIndex;
-        const group = this.context.openGroup();
+        const group = this.context.getContext().openGroup('slur', artifactId);
         group.classList.add(modifier.attrs.id);
-        group.classList.add(artifactId);
+        const measureMod = 'mod-' + smoStart.selector.staff + '-' + smoStart.selector.measure;
+        const staffMod = 'mod-' + smoStart.selector.staff;
+        group.classList.add(measureMod);
+        group.classList.add(staffMod);
         if (modifier.ctor === 'SmoStaffHairpin') {
             const hp = modifier;
             if (!vxStart && !vxEnd) {
-                this.context.closeGroup();
+                this.context.getContext().closeGroup();
             }
             vxStart = setSameIfNull(vxStart, vxEnd);
             vxEnd = setSameIfNull(vxEnd, vxStart);
@@ -14756,7 +15338,7 @@ class VxSystem {
                 left_shift_px: hp.xOffsetLeft,
                 right_shift_px: hp.xOffsetRight
             });
-            hairpin.setContext(this.context).setPosition(hp.position).draw();
+            hairpin.setContext(this.context.getContext()).setPosition(hp.position).draw();
         }
         else if (modifier.ctor === 'SmoSlur') {
             const startNote = smoStart.note;
@@ -14785,7 +15367,7 @@ class VxSystem {
                 position: slur.position,
                 position_end: slur.position_end
             });
-            curve.setContext(this.context).draw();
+            curve.setContext(this.context.getContext()).draw();
         }
         else if (modifier.ctor === 'SmoTie') {
             const ctie = modifier;
@@ -14808,7 +15390,7 @@ class VxSystem {
                     }
                 });
                 Vex.Merge(tie.render_options, ctie.vexOptions);
-                tie.setContext(this.context).draw();
+                tie.setContext(this.context.getContext()).draw();
             }
         }
         else if (modifier.ctor === 'SmoStaffTextBracket') {
@@ -14823,16 +15405,17 @@ class VxSystem {
                 const bracket = new VF.TextBracket({
                     start: vxStart, stop: vxEnd, text: smoBracket.text, superscript: smoBracket.superscript, position: smoBracket.position
                 });
-                bracket.setLine(smoBracket.line).setContext(this.context).draw();
+                bracket.setLine(smoBracket.line).setContext(this.context.getContext()).draw();
             }
         }
-        this.context.closeGroup();
+        this.context.getContext().closeGroup();
         if (xoffset) {
-            const slurBox = $('.' + artifactId)[0];
-            svgHelpers_1.SvgHelpers.translateElement(slurBox, xoffset, 0);
+            const slurBox = this.context.svg.getElementById('vf-' + artifactId);
+            if (slurBox) {
+                svgHelpers_1.SvgHelpers.translateElement(slurBox, xoffset, 0);
+            }
         }
         modifier.element = group;
-        // modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
     }
     renderEndings(scroller) {
         let j = 0;
@@ -14855,14 +15438,14 @@ class VxSystem {
                     $(this.context.svg).find('g.' + ending.attrs.id).remove();
                 }
                 if ((ending.startBar <= mix) && (ending.endBar >= mix) && vxMeasure.stave !== null) {
-                    const group = this.context.openGroup(null, ending.attrs.id);
+                    const group = this.context.getContext().openGroup(null, ending.attrs.id);
                     group.classList.add(ending.attrs.id);
                     group.classList.add(ending.endingId);
                     const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
                     const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
-                    vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
-                    this.context.closeGroup();
-                    ending.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+                    vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+                    this.context.getContext().closeGroup();
+                    ending.logicalBox = this.context.offsetBbox(group);
                     if (!pushed) {
                         voAr.push({ smoMeasure, ending });
                         pushed = true;
@@ -14963,7 +15546,7 @@ class VxSystem {
         const renderedConnection = {};
         if (systemIndex === 0 && lastStaff) {
             $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
-            const group = this.context.openGroup();
+            const group = this.context.getContext().openGroup();
             group.classList.add('lineBracket-' + this.lineIndex);
             group.classList.add('lineBracket');
             this.vxMeasures.forEach((vv) => {
@@ -14975,16 +15558,16 @@ class VxSystem {
                     if (startSel && endSel) {
                         const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
                             .setType(systemGroup.leftConnectorVx());
-                        c1.setContext(this.context).draw();
+                        c1.setContext(this.context.getContext()).draw();
                         brackets = true;
                     }
                 }
             });
             if (!brackets && this.vxMeasures.length > 1) {
                 const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave, VF.StaveConnector.type.SINGLE_LEFT);
-                c2.setContext(this.context).draw();
+                c2.setContext(this.context.getContext()).draw();
             }
-            this.context.closeGroup();
+            this.context.getContext().closeGroup();
         }
         else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
             if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
@@ -14993,13 +15576,13 @@ class VxSystem {
                     vv.selection.selector.measure === vxMeasure.selection.selector.measure);
                 if (endMeasure && startMeasure) {
                     $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-                    const group = this.context.openGroup();
+                    const group = this.context.getContext().openGroup();
                     group.classList.add('endBracket-' + this.lineIndex);
                     group.classList.add('endBracket');
                     const c2 = new VF.StaveConnector(startMeasure.stave, endMeasure.stave)
                         .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-                    c2.setContext(this.context).draw();
-                    this.context.closeGroup();
+                    c2.setContext(this.context.getContext()).draw();
+                    this.context.getContext().closeGroup();
                 }
             }
         }
@@ -15173,7 +15756,6 @@ class SmoMeasure {
             logicalBox: {
                 x: 0, y: 0, width: 0, height: 0
             },
-            renderedBox: null,
             yTop: 0,
             adjX: 0,
             adjRight: 0,
@@ -15187,6 +15769,7 @@ class SmoMeasure {
             forceTempo: false,
             hideMultimeasure: false,
             multimeasureLength: 0,
+            multimeasureEndBarline: measureModifiers_1.SmoBarline.barlines['singleBar'],
             element: null
         };
         const defaults = SmoMeasure.defaults;
@@ -15498,6 +16081,39 @@ class SmoMeasure {
     static get emptyMeasureNoteType() {
         return SmoMeasure._emptyMeasureNoteType;
     }
+    static timeSignatureNotes(timeSignature, clef) {
+        const pitch = SmoMeasure.defaultPitchForClef[clef];
+        const maxTicks = music_1.SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
+        const noteTick = 8192 / (timeSignature.beatDuration / 2);
+        let ticks = 0;
+        let beamBeats = 2;
+        if (timeSignature.beatDuration === 8 && (timeSignature.actualBeats % 3 === 0 || timeSignature.actualBeats % 2 !== 0)) {
+            beamBeats = 3;
+        }
+        if (timeSignature.beatDuration === 16) {
+            beamBeats = 4;
+        }
+        const pnotes = [];
+        while (ticks < maxTicks) {
+            const nextNote = note_1.SmoNote.defaults;
+            nextNote.pitches = [JSON.parse(JSON.stringify(pitch))];
+            nextNote.noteType = 'r';
+            nextNote.ticks.numerator = noteTick;
+            pnotes.push(new note_1.SmoNote(nextNote));
+            ticks += noteTick;
+        }
+        if (timeSignature.beatDuration === 8 && (timeSignature.actualBeats % 3 === 0 || timeSignature.actualBeats % 2 !== 0)) {
+            let ix = 0;
+            pnotes.forEach((pnote) => {
+                if ((ix + 1) % 3 === 0) {
+                    pnote.endBeam = true;
+                }
+                pnote.beamBeats = 2048 * 3;
+                ix += 1;
+            });
+        }
+        return pnotes;
+    }
     /**
      * Get a measure full of default notes for a given timeSignature/clef.
      * returns 8th notes for triple-time meters, etc.
@@ -15505,54 +16121,7 @@ class SmoMeasure {
      * @returns
      */
     static getDefaultNotes(params) {
-        let beamBeats = 0;
-        let beats = 0;
-        let i = 0;
-        let tripleTime = false;
-        let ticks = {
-            numerator: SmoMeasure.defaultDupleDuration,
-            denominator: 1,
-            remainder: 0
-        };
-        if (params === null) {
-            params = SmoMeasure.defaults;
-        }
-        if (!params.timeSignature) {
-            params.timeSignature = SmoMeasure.timeSignatureDefault;
-        }
-        params.clef = params.clef ? params.clef : 'treble';
-        beamBeats = 4096;
-        beats = params.timeSignature.actualBeats;
-        if (params.timeSignature.beatDuration === 8) {
-            ticks = {
-                numerator: 2048,
-                denominator: 1,
-                remainder: 0
-            };
-            if (params.timeSignature.actualBeats % 3 === 0) {
-                tripleTime = true;
-                ticks.numerator = SmoMeasure.defaultTripleDuration;
-                beats = params.timeSignature.actualBeats / 3;
-            }
-            beamBeats = 2048 * 3;
-        }
-        const pitches = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
-        const rv = [];
-        // Treat 2/2 like 4/4 time.
-        if (params.timeSignature.beatDuration === 2 || ticks.numerator === 2048 && !tripleTime) {
-            beats = beats * 2;
-        }
-        for (i = 0; i < beats; ++i) {
-            const defs = note_1.SmoNote.defaults;
-            defs.pitches = [pitches];
-            defs.noteType = SmoMeasure.emptyMeasureNoteType;
-            defs.clef = params.clef;
-            defs.noteType = SmoMeasure.emptyMeasureNoteType;
-            defs.ticks = ticks;
-            const note = new note_1.SmoNote(defs);
-            rv.push(note);
-        }
-        return rv;
+        return SmoMeasure.timeSignatureNotes(new measureModifiers_1.TimeSignature(params.timeSignature), params.clef);
     }
     /**
      * When creating a new measure, the 'default' settings can vary depending on
@@ -16255,7 +16824,6 @@ const VF = eval('Vex.Flow');
  */
 class SmoMeasureModifierBase {
     constructor(ctor) {
-        this.renderedBox = null;
         this.logicalBox = null;
         this.ctor = ctor;
         this.attrs = {
@@ -16271,7 +16839,7 @@ class SmoMeasureModifierBase {
 }
 exports.SmoMeasureModifierBase = SmoMeasureModifierBase;
 exports.SmoMeasureFormatNumberKeys = ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
-exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
+exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
 /**
  * Measure format holds parameters about the automatic formatting of the measure itself, such as the witch and
  * how the durations are proportioned.  Note that measure formatting is also controlled by the justification
@@ -16286,6 +16854,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         this.systemBreak = false;
         this.pageBreak = false;
         this.restBreak = false;
+        this.forceRest = false;
         this.padLeft = 0;
         this.padAllInSystem = true;
         this.autoJustify = true;
@@ -16299,7 +16868,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         });
     }
     static get attributes() {
-        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak'];
+        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak', 'forceRest'];
     }
     static get formatAttributes() {
         return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
@@ -16331,6 +16900,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
             systemBreak: false,
             pageBreak: false,
             restBreak: false,
+            forceRest: false,
             padLeft: 0,
             padAllInSystem: true,
             autoJustify: true,
@@ -16507,6 +17077,7 @@ class SmoVolta extends SmoMeasureModifierBase {
         this.endingId = null;
         this.startSelector = null;
         this.endSelector = null;
+        this.elements = [];
         serializationHelpers_1.smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
         serializationHelpers_1.smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
     }
@@ -18497,7 +19068,6 @@ class SmoNote {
         this.renderId = null;
         this.keySignature = 'c';
         this.logicalBox = null;
-        this.renderedBox = null;
         this.isCue = false;
         this.accidentalsRendered = []; // set by renderer if accidental is to display
         const defs = SmoNote.defaults;
@@ -19080,7 +19650,6 @@ const VF = eval('Vex.Flow');
  */
 class SmoNoteModifierBase {
     constructor(ctor) {
-        this.renderedBox = null;
         this.logicalBox = null;
         this.element = null;
         this.attrs = {
@@ -20348,32 +20917,40 @@ class SmoScore {
     }
     /**
      * determine if the measure at this index could be a multi-measure rest
-     * @param measureIndex
+     * @param measureIndex - the measure index we are considering to add
+     * @param start - the measure index would be the start of the rest
      * @returns
      */
-    isMultimeasureRest(measureIndex) {
+    isMultimeasureRest(measureIndex, start, forceRest) {
         let i = 0;
         for (i = 0; i < this.staves.length; ++i) {
-            if (!this.staves[i].isRest(measureIndex)) {
+            if (!forceRest && !this.staves[i].isRest(measureIndex)) {
                 return false;
             }
             if (this.staves[i].getVoltasForMeasure(measureIndex).length > 0) {
                 return false;
             }
-            if (this.staves[i].isRepeat(measureIndex)) {
+            if (!start && measureIndex > 0 && this.staves[i].isRepeat(measureIndex - 1)) {
                 return false;
             }
             if (this.staves[i].isRehearsal(measureIndex)) {
                 return false;
             }
-            if (this.staves[i].measureInstrumentMap[measureIndex]) {
-                return false;
-            }
-            if (this.staves[i].keySignatureMap[measureIndex]) {
+            // instrument change other than the initial measure
+            if (this.staves[i].measureInstrumentMap[measureIndex] && i > 0) {
                 return false;
             }
         }
-        const measure = this.staves[0].measures[measureIndex];
+        if (measureIndex > 0) {
+            const measure = this.staves[0].measures[measureIndex];
+            const prev = this.staves[0].measures[measureIndex - 1];
+            if (!start && !measureModifiers_1.TimeSignature.equal(measure.timeSignature, prev.timeSignature)) {
+                return false;
+            }
+            if (!start && measure.keySignature !== prev.keySignature) {
+                return false;
+            }
+        }
         return true;
     }
     /**
@@ -20737,14 +21314,12 @@ const VF = eval('Vex.Flow');
  * Base class for all {@link SmoScore} modifiers.
  * It is used to de/serialize the objects.
  * @param ctor constructor for derived class
- * @param renderedBox bounding box in client coordinates, if rendered
  * @param logicalBox bounding box in SVG coordinates, if rendered
  * @param attrs object identification
  * @category SmoModifier
  */
 class SmoScoreModifierBase {
     constructor(ctor) {
-        this.renderedBox = null;
         this.logicalBox = null;
         this.ctor = ctor;
         this.attrs = {
@@ -21369,7 +21944,7 @@ class SmoTextGroup extends scoreModifiers_1.SmoScoreModifierBase {
         this.attachToSelector = false;
         this.musicXOffset = 0;
         this.musicYOffset = 0;
-        this.element = null;
+        this.elements = [];
         this.textBlocks = [];
         this.edited = false; // indicates not edited this session
         this.skipRender = false; // don't render if it is being edited
@@ -21545,6 +22120,10 @@ class SmoTextGroup extends scoreModifiers_1.SmoScoreModifierBase {
                 xx.text = xx.text.replace('@@@', pages.toString()); /// page number
                 xx.y += pageHeight * ix;
             });
+            if (tg.logicalBox) {
+                ngroup.logicalBox = JSON.parse(JSON.stringify(tg.logicalBox));
+                ngroup.logicalBox.y += pageHeight * i;
+            }
             rv.push(ngroup);
         }
         return rv;
@@ -21669,7 +22248,7 @@ exports.SmoTextGroup = SmoTextGroup;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTie = exports.SmoSlur = exports.SlurNumberParams = exports.SmoStaffTextBracket = exports.SmoTextBracketNumberTypes = exports.SmoTextBracketStringTypes = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
+exports.SmoTie = exports.SmoSlur = exports.SlurNumberParams = exports.SmoStaffTextBracket = exports.SmoTextBracketNumberTypes = exports.SmoTextBracketStringTypes = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.SmoOscillatorInfoAllTypes = exports.StaffModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -21684,7 +22263,6 @@ const VF = eval('Vex.Flow');
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
  * @param ctor constructor for derived class
- * @param renderedBox bounding box in client coordinates, if rendered
  * @param logicalBox bounding box in SVG coordinates, if rendered
  * @param attrs object identification
  * @param startSelector where the modifier starts
@@ -21696,7 +22274,6 @@ class StaffModifierBase {
         this.associatedStaff = 0;
         this.startSelector = selections_1.SmoSelector.default;
         this.endSelector = selections_1.SmoSelector.default;
-        this.renderedBox = null;
         this.logicalBox = null;
         this.element = null;
         this.ctor = ctor;
@@ -21707,13 +22284,19 @@ class StaffModifierBase {
     }
     static deserialize(params) {
         const ctor = eval('globalThis.Smo.' + params.ctor);
+        const fixInstrument = params;
+        if (fixInstrument.subFamily) {
+            fixInstrument.instrument = fixInstrument.subFamily;
+        }
         const rv = new ctor(params);
         return rv;
     }
 }
 exports.StaffModifierBase = StaffModifierBase;
+exports.SmoOscillatorInfoAllTypes = ['minDuration', 'maxDuration', 'dynamic', 'nativeFrequency', 'realOvertones', 'imaginaryOvertones', 'sample', 'family',
+    'waveform', 'sustain', 'options', 'instrument'];
 exports.SmoInstrumentNumParams = ['keyOffset', 'midichannel', 'midiport'];
-exports.SmoInstrumentStringParams = ['instrumentName', 'abbreviation', 'family', 'subFamily'];
+exports.SmoInstrumentStringParams = ['instrumentName', 'abbreviation', 'family', 'instrument'];
 /**
  * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
  * and thus contain multiple instruments at different points in the score.
@@ -21738,7 +22321,7 @@ class SmoInstrument extends StaffModifierBase {
         }
         this.instrumentName = name;
         this.family = params.family;
-        this.subFamily = params.subFamily;
+        this.instrument = params.instrument;
         this.keyOffset = params.keyOffset;
         this.clef = params.clef;
         this.midiport = params.midiport;
@@ -21747,7 +22330,7 @@ class SmoInstrument extends StaffModifierBase {
         this.endSelector = params.endSelector;
     }
     static get attributes() {
-        return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation', 'subFamily', 'family'];
+        return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation', 'instrument', 'family'];
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
@@ -21756,11 +22339,27 @@ class SmoInstrument extends StaffModifierBase {
             instrumentName: '',
             abbreviation: '',
             family: 'keyboard',
-            subFamily: 'piano',
+            instrument: 'piano',
             midichannel: 0,
             midiport: 0,
             startSelector: selections_1.SmoSelector.default,
             endSelector: selections_1.SmoSelector.default
+        }));
+    }
+    static get defaultOscillatorParam() {
+        return JSON.parse(JSON.stringify({
+            waveform: 'sample',
+            sustain: 'percussive',
+            realOvertones: [],
+            imaginaryOvertones: [],
+            sample: null,
+            family: 'none',
+            instrument: 'none',
+            nativeFrequency: 440,
+            dynamic: 100,
+            options: [],
+            minDuration: 0,
+            maxDuration: 0
         }));
     }
     serialize() {
@@ -22387,7 +22986,7 @@ class SmoSystemStaff {
         const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);
         ar.forEach((entry) => {
             let i = entry.instrument.startSelector.measure;
-            for (i; i <= entry.instrument.endSelector.measure; ++i) {
+            for (i; i <= entry.instrument.endSelector.measure && i < this.measures.length; ++i) {
                 const measure = this.measures[i];
                 const concertKey = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
                 const targetKey = music_1.SmoMusic.vexKeySigWithOffset(concertKey, entry.instrument.keyOffset);
@@ -27536,6 +28135,7 @@ class PasteBuffer {
                 nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
                 nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
                 nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
+                nmeasure.svg.element = measure.svg.element;
             }
             ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
                 nmeasure[flag] = measure.svg[flag];
@@ -27696,11 +28296,9 @@ class SmoOperation {
                 selectors.push(measureSel);
             }
         });
-        const tsTicks = music_1.SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
         selectors.forEach((selector) => {
             var _a;
             const params = {};
-            const voices = [];
             const rowSelection = selections_1.SmoSelection.measureSelection(score, selector.staff, selector.measure);
             let nm = {};
             const attrs = measure_1.SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
@@ -27721,34 +28319,11 @@ class SmoOperation {
                     nm[attr] = rowSelection.measure.svg[attr];
                 });
                 ticks = 0;
-                proto.voices.forEach((voice) => {
-                    const nvoice = [];
-                    for (i = 0; i < voice.notes.length; ++i) {
-                        const pnote = voice.notes[i];
-                        const nnote = note_1.SmoNote.deserialize(pnote.serialize());
-                        if (ticks + pnote.tickCount <= tsTicks) {
-                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks));
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        }
-                        else {
-                            const remain = tsTicks - ticks;
-                            nnote.ticks = { numerator: remain, denominator: 1, remainder: 0 };
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        }
-                        if (ticks >= tsTicks) {
-                            break;
-                        }
-                    }
-                    if (ticks < tsTicks) {
-                        const adjNote = note_1.SmoNote.cloneWithDuration(nvoice[nvoice.length - 1], { numerator: tsTicks - ticks, denominator: 1, remainder: 0 });
-                        nvoice.push(adjNote);
-                    }
-                    voices.push({ notes: nvoice });
-                });
+                nm.voices = [{ notes: measure_1.SmoMeasure.timeSignatureNotes(timeSignature, params.clef) }];
             }
-            nm.voices = voices;
+            const original = score.staves[selector.staff].measures[selector.measure];
+            // Keep track of original element so it can be replaced.
+            nm.svg.element = original.svg.element;
             score.replaceMeasure(selector, nm);
         });
     }
@@ -28588,16 +29163,19 @@ class SmoOperation {
             return;
         }
         while (i < measureCount) {
-            if (score.isMultimeasureRest(i)) {
+            let forceRest = score.staves[0].measures[i].format.forceRest;
+            if (score.isMultimeasureRest(i, true, forceRest)) {
                 for (j = i + 1; j < measureCount; ++j) {
-                    if (!score.isMultimeasureRest(j)) {
+                    const restBreak = score.staves[0].measures[j].format.restBreak;
+                    forceRest = score.staves[0].measures[j].format.forceRest;
+                    if (!score.isMultimeasureRest(j, false, forceRest) || restBreak) {
                         break;
                     }
                 }
                 if (j - i >= 2) {
                     measureRanges[i] = j;
                 }
-                i = j + 1;
+                i = j;
             }
             else {
                 const startMeasure = i;
@@ -28611,7 +29189,12 @@ class SmoOperation {
         multiKeys.forEach((key) => {
             const endMeasure = measureRanges[key];
             score.staves.forEach((staff) => {
-                staff.measures[key].svg.multimeasureLength = endMeasure - key;
+                const mmLength = endMeasure - key;
+                const svg = staff.measures[key].svg;
+                svg.multimeasureLength = mmLength;
+                if (svg.multimeasureLength > 1) {
+                    svg.multimeasureEndBarline = staff.measures[endMeasure - 1].getEndBarline().barline;
+                }
                 staff.measures[key].svg.hideMultimeasure = false;
                 for (i = key + 1; i < endMeasure; ++i) {
                     staff.measures[i].svg.hideMultimeasure = true;
@@ -28750,7 +29333,6 @@ class SmoSelection {
             pitches: []
         };
         this._pitches = [];
-        this.type = null;
         this.box = null;
         this.scrollBox = null;
         this.selector = {
@@ -38239,7 +38821,7 @@ class SuiDragText extends baseComponent_1.SuiComponentBase {
         $('body').addClass('text-move');
         this.session = new textEdit_1.SuiDragSession({
             textGroup: this.dialog.modifier,
-            context: this.view.renderer.context,
+            context: this.view.renderer.pageMap,
             scroller: this.view.tracker.scroller
         });
         $(this._getInputElement()).find('label').text(this.altLabel);
@@ -39342,13 +39924,13 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
     }
     _renderInactiveBlocks() {
         const modifier = this.value;
-        const context = this.view.renderer.context;
+        const context = this.view.renderer.pageMap.getRendererFromModifier(this.value).getContext();
         context.save();
         context.setFillStyle('#ddd');
         modifier.textBlocks.forEach((block) => {
             const st = block.text;
             if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
-                const svgText = textRender_1.SuiInlineText.fromScoreText(st, context, this.scroller);
+                const svgText = textRender_1.SuiInlineText.fromScoreText(st, context, this.view.renderer.pageMap, this.scroller);
                 if (st.logicalBox) {
                     svgText.startX += st.logicalBox.x - st.x;
                     svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
@@ -39366,7 +39948,8 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
         $(this._getInputElement()).find('label').text(this.altLabel);
         const modifier = this.value;
         modifier.skipRender = true;
-        $(this.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
+        let pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.value);
+        $(pageContext.svg).find('#' + modifier.attrs.id).remove();
         this._renderInactiveBlocks();
         const ul = modifier.ul();
         // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
@@ -40213,7 +40796,8 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
             this.positionGlobally();
             return;
         }
-        const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.view.renderer.svg, this.modifier.logicalBox, this.scroller.scrollState));
+        const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.modifier);
+        const screenBox = this.view.renderer.pageMap.svgToClient(this.modifier.logicalBox);
         this.position(screenBox);
     }
     // ### positionGlobally
@@ -40227,7 +40811,7 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     positionFromSelection() {
         const note = this.view.tracker.selections[0].note;
         if (note && note.logicalBox) {
-            const screenBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.view.renderer.svg, note.logicalBox, this.scroller.scrollState));
+            const screenBox = this.view.renderer.pageMap.svgToClient(note.logicalBox);
             this.position(screenBox);
         }
     }
@@ -40364,6 +40948,9 @@ class SuiDynamicDialogAdapter extends adapter_1.SuiComponentAdapter {
     commit() { }
     get xOffset() {
         return this.modifier.xOffset;
+    }
+    remove() {
+        this.view.removeDynamic(this.modifier);
     }
     set xOffset(value) {
         this.modifier.xOffset = value;
@@ -41471,10 +42058,10 @@ class SuiInstrumentAdapter extends adapter_1.SuiComponentAdapter {
         return this.instrument.instrumentName;
     }
     get subFamily() {
-        return this.instrument.subFamily;
+        return this.instrument.instrument;
     }
     set subFamily(value) {
-        this.writeStringParam('subFamily', value);
+        this.writeStringParam('instrument', value);
     }
     set instrumentName(value) {
         this.writeStringParam('instrumentName', value);
@@ -41567,6 +42154,9 @@ SuiInstrumentDialog.dialogElements = {
                 }, {
                     value: 'pad',
                     label: 'Synth Pad'
+                }, {
+                    value: 'none',
+                    label: 'None'
                 }]
         }, {
             smoName: 'clef',
@@ -41867,9 +42457,9 @@ class SuiLyricDialog extends dialog_1.SuiDialogBase {
         var _a, _b;
         const selection = (_a = this.lyricEditorCtrl.session) === null || _a === void 0 ? void 0 : _a.selection;
         const note = selection === null || selection === void 0 ? void 0 : selection.note;
-        const box = (_b = note === null || note === void 0 ? void 0 : note.renderedBox) !== null && _b !== void 0 ? _b : null;
+        const box = (_b = note === null || note === void 0 ? void 0 : note.logicalBox) !== null && _b !== void 0 ? _b : null;
         if (box) {
-            this.view.scroller.scrollVisibleBox(box);
+            this.view.scroller.scrollVisibleBox(this.view.renderer.pageMap.svgToClient(box));
         }
     }
     changed() {
@@ -42043,6 +42633,18 @@ class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
         }
         this.writeNumber('padLeft', value);
     }
+    get forceRest() {
+        return this.format.forceRest;
+    }
+    set forceRest(value) {
+        this.writeBoolean('forceRest', value);
+    }
+    get restBreak() {
+        return this.format.restBreak;
+    }
+    set restBreak(value) {
+        this.writeBoolean('restBreak', value);
+    }
     get customStretch() {
         return this.format.customStretch;
     }
@@ -42110,6 +42712,14 @@ SuiMeasureDialog.dialogElements = {
             smoName: 'autoJustify',
             control: 'SuiToggleComponent',
             label: 'Justify Columns'
+        }, {
+            smoName: 'restBreak',
+            control: 'SuiToggleComponent',
+            label: 'Break Multimeasure Rest in Part'
+        }, {
+            smoName: 'forceRest',
+            control: 'SuiToggleComponent',
+            label: 'Force Multimeasure Rest'
         }, {
             smoName: 'systemBreak',
             control: 'SuiToggleComponent',
@@ -43647,7 +44257,10 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
             const textParams = scoreText_1.SmoScoreText.defaults;
             textParams.position = scoreText_1.SmoScoreText.positions.custom;
             const newText = new scoreText_1.SmoScoreText(textParams);
-            newText.y += tracker.scroller.scrollState.y;
+            // convert scroll from screen coord to svg coord
+            const svgScroll = tracker.renderer.pageMap.clientToSvg(svgHelpers_1.SvgHelpers.smoBox(tracker.scroller.scrollState));
+            newText.y += svgScroll.y;
+            newText.x += svgScroll.x;
             if (tracker.selections.length > 0) {
                 const sel = tracker.selections[0].measure.svg;
                 if (typeof (sel.logicalBox) !== 'undefined') {
@@ -43728,7 +44341,9 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         this.highlightActiveRegion();
     }
     display() {
-        this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
+        const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+        const svg = pageContext.svg;
+        this.textElement = $(svg).find('.' + this.modifier.attrs.id)[0];
         $('body').addClass('showAttributeDialog');
         $('body').addClass('textEditor');
         this.applyDisplayOptions();
@@ -43823,13 +44438,15 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         this.backup = this.modifier.serialize();
     }
     highlightActiveRegion() {
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
+        const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+        const svg = pageContext.svg;
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
         if (this.activeScoreText.logicalBox) {
             const stroke = textEdit_1.SuiTextEditor.strokes['text-highlight'];
             const outline = {
-                context: this.view.renderer.context,
+                context: pageContext,
                 clientCoordinates: false,
                 classes: '',
                 stroke,
@@ -43892,13 +44509,15 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         if (this.mouseClickHandler) {
             this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
         }
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-drag']);
+        const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
+        const svg = pageContext.svg;
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['text-drag']);
         $('body').find('g.vf-text-highlight').remove();
         // Hack - this comes from SuiInlineText and SuiTextEdit.
         $('body').find('g.sui-inline-edit').remove();
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['text-highlight']);
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['text-suggestion']);
+        svgHelpers_1.SvgHelpers.eraseOutline(svg, textEdit_1.SuiTextEditor.strokes['inactive-text']);
         $('body').removeClass('showAttributeDialog');
         $('body').removeClass('textEditor');
         this.complete();
@@ -44351,6 +44970,9 @@ SuiTimeSignatureDialog.dialogElements = {
             control: 'SuiDropdownComponent',
             label: 'Beat Value',
             options: [{
+                    value: 16,
+                    label: '16',
+                }, {
                     value: 8,
                     label: '8',
                 }, {
@@ -52246,6 +52868,16 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
                     defs.push(item);
                 }
             }
+            else if (item.value === 'editPart') {
+                if (this.view.isPartExposed() === false) {
+                    // TODO: use language-specific text for both of these
+                    item.text = 'Edit Part';
+                }
+                else {
+                    item.text = 'Part Properties';
+                }
+                defs.push(item);
+            }
             else {
                 defs.push(item);
             }
@@ -52550,7 +53182,7 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 keyOffset: 0,
                 abbreviation: 'treble',
                 family: 'keyboard',
-                subFamily: 'piano',
+                instrument: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'treble',
@@ -52562,7 +53194,7 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 keyOffset: 0,
                 abbreviation: 'treble',
                 family: 'keyboard',
-                subFamily: 'piano',
+                instrument: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'bass',
@@ -52573,7 +53205,7 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 instrumentName: 'Alto Clef Staff',
                 keyOffset: 0,
                 family: 'keyboard',
-                subFamily: 'piano',
+                instrument: 'piano',
                 abbreviation: 'treble',
                 midichannel: 0,
                 midiport: 0,
@@ -52586,7 +53218,7 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 keyOffset: 0,
                 abbreviation: 'treble',
                 family: 'keyboard',
-                subFamily: 'piano',
+                instrument: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'tenor',
@@ -52598,7 +53230,7 @@ class SuiStaffMenu extends menu_1.SuiMenuBase {
                 keyOffset: 0,
                 abbreviation: 'treble',
                 family: 'keyboard',
-                subFamily: 'piano',
+                instrument: 'piano',
                 midichannel: 0,
                 midiport: 0,
                 clef: 'percussion',
@@ -55306,7 +55938,7 @@ function createLoadTests() {
         yield view.renderPromise();
         QUnit.test('loaded', assert => {
             assert.equal(view.score.staves[0].measures.length, 17);
-            assert.equal($('#boo .vf-lyric').length, 82);
+            assert.equal($('#boo .vf-annotation').length, 82);
         });
         const xml = smoToXml_1.SmoToXml.convert(view.score);
         const newScore = xmlToSmo_1.XmlToSmo.convert(xml);
