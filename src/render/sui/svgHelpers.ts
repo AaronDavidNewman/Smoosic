@@ -2,7 +2,6 @@
 // Copyright (c) Aaron David Newman 2021.
 
 import { Transposable, SvgBox, SvgPoint } from '../../smo/data/common';
-import { SmoSelection } from '../../smo/xform/selections';
 import { SvgPage } from './svgPageMap';
 
 declare var $: any;

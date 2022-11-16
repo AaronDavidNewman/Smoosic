@@ -64,37 +64,36 @@ export class SuiScroller {
     this.deferUpdateDebug();
   }
 
-  // ### scrollVisible
-  // Scroll such that the box is fully visible, if possible (if it is
-  // not larger than the screen)
-  scrollVisibleBox(box: SvgBox) {
+  /**
+   * Scroll such that the box is fully visible, if possible (if it is
+   * not larger than the screen) 
+   **/
+   scrollVisibleBox(box: SvgBox) {
     let yoff = 0;
     let xoff = 0;
-    // Since the pages will all be the same dimensions, any page svg should work here.
+    // offset is added to client coordinates but we subtract it out b/c
+    // the scroll region 0,0 and svg 0,0 are the same
+    const offset = this.svgPages.svgToClient(SvgBox.default);
     const screenBox = this.svgPages.svgToClient(box);
-    const offset = this.svgPages.svgToClient(SvgHelpers.boxPoints(0,0,1,1));
+    screenBox.x -= offset.x;
+    screenBox.y -= offset.y
     const scrollState = this.scrollState;
-    const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height + offset.y;
-    const scrollUp = () => screenBox.y < scrollState.y + offset.y;
-    const scrollLeft = () => screenBox.x < scrollState.x + offset.x;
-    const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width + offset.x;
-    const vScrollAmt = () => this.viewport.height > screenBox.height ? (this.viewport.height - screenBox.height - 30) : this.viewport.height;
-    const hScrollAmt = () => this.viewport.width > screenBox.width ? (this.viewport.width - screenBox.width - 30) : this.viewport.width;
-    while (scrollUp()) {
-      yoff -= vScrollAmt();
-      screenBox.y += vScrollAmt();
+    const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + (this.viewport.height - this.viewport.y);
+    const scrollUp = () => screenBox.y < scrollState.y;
+    const scrollLeft = () => screenBox.x < scrollState.x;
+    const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + (this.viewport.width - this.viewport.x);
+    // Math: make sure we don't scroll down if scrollUp is indicated, etc.
+    if (scrollUp()) {
+      yoff = Math.min(screenBox.y - scrollState.y, 0);
     } 
-    while (scrollDown()) {
-      yoff += vScrollAmt();
-      screenBox.y -= vScrollAmt();
+    if (scrollDown()) {
+      yoff = Math.max(screenBox.y - (scrollState.y - screenBox.height), 0);
     }
-    while (scrollLeft()) {
-      xoff -= hScrollAmt(); 
-      screenBox.x += hScrollAmt();
+    if (scrollLeft()) {
+      xoff = Math.min(screenBox.x - scrollState.x, 0);
     }
-    while (scrollRight()) {
-      xoff += hScrollAmt();
-      screenBox.x -= hScrollAmt();
+    if (scrollRight()) {
+      xoff = Math.max(screenBox.x - (scrollState.x - screenBox.height), 0);
     }
     this.scrollOffset(xoff, yoff);
 }

@@ -146,9 +146,6 @@ export class SuiRenderState {
     const page = measure.svg.pageIndex;
     this.renderer.clearRenderedPage(page);
   }
-  remapAll() {
-    this.setRefresh();
-  }
   get renderStateClean() {
     return this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false;
   }

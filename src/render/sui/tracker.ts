@@ -120,7 +120,7 @@ export class SuiTracker extends SuiMapper {
       ctx.closeGroup();
       ctx.restore();
       layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
-      this.scroller.scrollVisibleBox(measure.svg.logicalBox);        
+      this.scroller.scrollVisibleBox(zmeasureSel.measure.svg.logicalBox);        
     }
   }
 
