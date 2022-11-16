@@ -170,8 +170,10 @@ export class VxSystem {
             this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll: SmoLyric) => {
               const hasLyric = ll.getText().length > 0 || ll.isHyphenated();
-              if (hasLyric && !lyricVerseMap[ll.verse]) {
+              if (hasLyric && ll.logicalBox && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
+              }else if (hasLyric && !ll.logicalBox) {
+                console.warn(`unrendered lyric for note ${note.attrs.id} measure ${smoMeasure.measureNumber.staffId}-${smoMeasure.measureNumber.measureIndex}`);
               }
               if (hasLyric && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);

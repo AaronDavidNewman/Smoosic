@@ -67,8 +67,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altGroup = this.storeScore.textGroups[index];
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
       UndoBuffer.bufferSubtypes.REMOVE);
+    textGroup.elements.forEach((el) => el.remove());
+    textGroup.elements = [];
     const isPartExposed = this.isPartExposed();
-    if (!isPartExposed) {
+    if (!isPartExposed && altGroup) {
       SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
         UndoBuffer.bufferSubtypes.REMOVE);
     } else {
