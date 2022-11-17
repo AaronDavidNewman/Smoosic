@@ -17,10 +17,10 @@
 				"name": "Plena para Tres Niños",
 				"composer": "Aaron Newman",
 				"tags": [
-					"smoosic","arrangments","big band"
+					"smoosic","arrangments","bigband"
 				]
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/bigband/plena.json"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/bigband/Plena.json"
 		}	,
 		{
 			"format": "smoosic",
@@ -31,7 +31,7 @@
 					"bigband", "arrangement"
 				]
 			},
-      "url": "https://aarondavidnewman.github.io/Smoosic/release/library/bigband/bilongo.json"
+      "url": "https://aarondavidnewman.github.io/Smoosic/release/library/bigband/Bilongo-Mandinga.json"
     }
 	]
 }
