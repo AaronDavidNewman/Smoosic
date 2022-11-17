@@ -90,17 +90,12 @@ export abstract class SuiScoreView {
    */
   refreshViewport(): Promise<any> {
     this.renderer.preserveScroll();
-    this.renderer.setViewport(true);
+    this.renderer.setViewport();
     this.renderer.setRefresh();
     return this.renderer.renderPromise();
   }
-  rerenderAll(): Promise<any> {
-    this.renderer.rerenderAll();
-    return this.renderer.updatePromise();
-  }
-
   /**
-   * 
+   * This is used in some Smoosic demos and pens.
    * @param action any action, but most usefully a SuiScoreView method
    * @param repetition number of times to repeat, waiting on render promise between
    * if not specified, defaults to 1
@@ -125,8 +120,11 @@ export abstract class SuiScoreView {
     return promise;
   }
 
-  // ### _getEquivalentSelections
-  // The plural form of _getEquivalentSelection
+  /**
+   * The plural form of _getEquivalentSelection
+   * @param selections 
+   * @returns 
+   */
   _getEquivalentSelections(selections: SmoSelection[]): SmoSelection[] {
     const rv: SmoSelection[] = [];
     selections.forEach((selection) => {
@@ -137,6 +135,12 @@ export abstract class SuiScoreView {
     });
     return rv;
   }
+  /**
+   * A staff modifier has changed, create undo operations for the measures affected
+   * @param label 
+   * @param staffModifier 
+   * @param subtype 
+   */
   _undoStaffModifier(label: string, staffModifier: StaffModifierBase, subtype: number) {
     const copy = StaffModifierBase.deserialize(staffModifier.serialize());
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
@@ -146,8 +150,9 @@ export abstract class SuiScoreView {
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
       copy.serialize(), subtype);
   }
-  // ### getFocusedPage
-  // Return the index of the page that is in the center of the client screen.
+  /** 
+   * Return the index of the page that is in the center of the client screen.
+   */
   getFocusedPage(): number {
     if (this.score.layoutManager === undefined) {
       return 0;
@@ -160,53 +165,29 @@ export abstract class SuiScoreView {
     const pt = this.renderer.pageMap.svgToClient(SvgHelpers.smoBox({ x: lw, y: lh }));
     return Math.round(midY / pt.y);
   }
-  // ### _undoRectangle
-  // Create a rectangle undo, like a multiple columns but not necessarily the whole
-  // score.
-  _undoRectangle(label: string, startSelector: SmoSelector, endSelector: SmoSelector, score: SmoScore, undoBuffer: UndoBuffer) {
-    undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, SmoSelector.default, { score, topLeft: startSelector, bottomRight: endSelector },
-      UndoBuffer.bufferSubtypes.NONE);
-  }
+  /**
+   * Create a rectangle undo, like a multiple columns but not necessarily the whole
+   * score.
+   */
   _undoColumn(label: string, measureIndex: number) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.score, measureIndex },
       UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.storeScore, measureIndex }, UndoBuffer.bufferSubtypes.NONE);
   }
+  /**
+   * Score preferences don't affect the display, but they do have an undo
+   * @param label 
+   */
   _undoScorePreferences(label: string) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.score, UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.storeScore, UndoBuffer.bufferSubtypes.NONE);
   }
-  // ### _getRectangleFromStaffGroup
-  // For selections that affect a system of staves, find the rectangle based on one of the
-  // staves and return the selectors.
-  _getRectangleFromStaffGroup(selection: SmoSelection, staffMap: number[]): { startSelector: SmoSelector, endSelector: SmoSelector } {
-    const startSelector: SmoSelector = SmoSelector.default;
-    let endSelector: SmoSelector = SmoSelector.default;;
-    let staffFilter = [];
-    const sygrp = this.score.getSystemGroupForStaff(selection);
-    if (sygrp) {
-      startSelector.staff = sygrp.startSelector.staff;
-      startSelector.measure = selection.selector.measure;
-      endSelector.staff = sygrp.endSelector.staff;
-      endSelector.measure = selection.selector.measure;
-      // Because of the staff map, some staves may not be in the view,
-      // so only include staves actually in the map.
-      // staffFilter is all the staves eligible for the group in the view.
-      staffFilter = staffMap.filter((map) => map >= sygrp.startSelector.staff && map <= sygrp.endSelector.staff);
-      // min is start staff
-      startSelector.staff = staffFilter.reduce((a, b) => a < b ? a : b);
-      // max is end staff
-      endSelector.staff = staffFilter.reduce((a, b) => a > b ? a : b);
-    } else {
-      startSelector.staff = selection.selector.staff;
-      startSelector.measure = selection.selector.measure;
-      endSelector = JSON.parse(JSON.stringify(startSelector));
-    }
-    return { startSelector, endSelector };
-  }
-
-  // ### _undoTrackerSelections
-  // Add to the undo buffer the current set of measures selected.
+  
+  /**
+   * Add to the undo buffer the current set of measures selected.
+   * @param label 
+   * @returns 
+   */
   _undoTrackerMeasureSelections(label: string): SmoSelection[] {
     const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     measureSelections.forEach((measureSelection) => {
@@ -220,8 +201,9 @@ export abstract class SuiScoreView {
     });
     return measureSelections;
   }
-  // ### _undoFirstMeasureSelection
-  // operation that only affects the first selection.  Setup undo for the measure
+  /**
+   * operation that only affects the first selection.  Setup undo for the measure
+   */
   _undoFirstMeasureSelection(label: string): SmoSelection {
     const sel = this.tracker.selections[0];
     const equiv = this._getEquivalentSelection(sel);
@@ -233,6 +215,11 @@ export abstract class SuiScoreView {
     }
     return sel;
   }
+  /**
+   * Add the selection to the undo buffer
+   * @param label 
+   * @param selection 
+   */
   _undoSelection(label: string, selection: SmoSelection) {
     const equiv = this._getEquivalentSelection(selection);
     if (equiv !== null) {
@@ -244,6 +231,11 @@ export abstract class SuiScoreView {
         UndoBuffer.bufferSubtypes.NONE);
     }
   }
+  /**
+   * Add multiple selections to the undo buffer as a group
+   * @param label 
+   * @param selections 
+   */
   _undoSelections(label: string, selections: SmoSelection[]) {
     this.undoBuffer.grouping = true;
     this.storeUndo.grouping = true;
@@ -254,8 +246,9 @@ export abstract class SuiScoreView {
     this.storeUndo.grouping = false;
   }
 
-  // ###_renderChangedMeasures
-  // Update renderer for measures that have changed
+  /** 
+   * Update renderer for measures that have changed
+  */
   _renderChangedMeasures(measureSelections: SmoSelection[]) {
     if (!Array.isArray(measureSelections)) {
       measureSelections = [measureSelections];
@@ -264,29 +257,51 @@ export abstract class SuiScoreView {
       this.renderer.addToReplaceQueue(measureSelection);
     });
   }
+  /**
+   * Update renderer for some columns
+   * @param fromSelector 
+   * @param toSelector 
+   */
   _renderRectangle(fromSelector: SmoSelector, toSelector: SmoSelector) {
-    this._getRectangleSelections(fromSelector, toSelector, this.score).forEach((s) => {
+    this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
       this.renderer.addToReplaceQueue(s);
     });
   }
 
-  // ###_renderChangedMeasures
-  // Setup undo for operation that affects the whole score
+  /**
+   * Setup undo for operation that affects the whole score
+   * @param label 
+   */
   _undoScore(label: string) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, SmoSelector.default, this.score,
       UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, SmoSelector.default, this.storeScore,
       UndoBuffer.bufferSubtypes.NONE);
   }
+  /**
+   * Get the selector from this.storeScore that maps to the displayed selector from this.score
+   * @param selector 
+   * @returns 
+   */
   _getEquivalentSelector(selector: SmoSelector) {
     const rv = JSON.parse(JSON.stringify(selector));
     rv.staff = this.staffMap[selector.staff];
     return rv;
   }
+  /**
+   * Get the equivalent staff id from this.storeScore that maps to the displayed selector from this.score
+   * @param staffId 
+   * @returns 
+   */
   _getEquivalentStaff(staffId: number) {
     return this.staffMap[staffId];
   }
-  _getEquivalentSelection(selection: SmoSelection): SmoSelection | null {
+  /**
+   * Get the equivalent selection from this.storeScore that maps to the displayed selection from this.score
+   * @param selection 
+   * @returns 
+   */
+   _getEquivalentSelection(selection: SmoSelection): SmoSelection | null {
     try {
       if (typeof (selection.selector.tick) === 'undefined') {
         return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
@@ -303,7 +318,12 @@ export abstract class SuiScoreView {
     }
   }
 
-  _getEquivalentGraceNote(selection: SmoSelection, gn: SmoGraceNote): SmoGraceNote {
+  /**
+   * Get the equivalent selection from this.storeScore that maps to the displayed selection from this.score
+   * @param selection 
+   * @returns 
+   */
+   _getEquivalentGraceNote(selection: SmoSelection, gn: SmoGraceNote): SmoGraceNote {
     if (selection.note !== null) {
       const rv = selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
       if (rv) {
@@ -312,13 +332,20 @@ export abstract class SuiScoreView {
     }
     return gn;
   }
-  _getRectangleSelections(startSelector: SmoSelector, endSelector: SmoSelector, score: SmoScore): SmoSelection[] {
+  /**
+   * Get the rectangle of selections indicated by the parameters from the score
+   * @param startSelector 
+   * @param endSelector 
+   * @param score 
+   * @returns 
+   */
+  _getRectangleSelections(startSelector: SmoSelector, endSelector: SmoSelector): SmoSelection[] {
     const rv: SmoSelection[] = [];
     let i = 0;
     let j = 0;
     for (i = startSelector.staff; i <= endSelector.staff; i++) {
       for (j = startSelector.measure; j <= endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(score, i, j);
+        const target = SmoSelection.measureSelection(this.score, i, j);
         if (target !== null) {
           rv.push(target);
         }
@@ -326,15 +353,18 @@ export abstract class SuiScoreView {
     }
     return rv;
   }
-  // ### groupUndo
-  // Indicate we want to group the undo operations into one undo
+  /**
+   * set the grouping flag for undo operations
+   * @param val 
+   */
   groupUndo(val: boolean) {
     this.undoBuffer.grouping = val;
     this.storeUndo.grouping = val;
   }
 
-  // ### defaultStaffMap
-  // Show all staves, 1:1 mapping of view score staff to stored score staff
+  /**
+   * Show all staves, 1:1 mapping of view score staff to stored score staff
+   */
   get defaultStaffMap(): number[] {
     let i = 0;
     const rv: number[] = [];
@@ -343,15 +373,22 @@ export abstract class SuiScoreView {
     }
     return rv;
   }
+  /**
+   * Bootstrapping function, creates the renderer and associated timers
+   */
   startRenderingEngine() {
     if (!this.renderer.score) {
       // If the score is transposing, hide the instrument xpose settings
       this._setTransposing();
       this.renderer.score = this.score;
-      this.renderer.setViewport(true);
+      this.renderer.setViewport();
     }
     this.renderer.startDemon();
   }
+  /**
+   * Gets the current mapping of displayed staves to score staves (this.storeScore)
+   * @returns 
+   */
   getView(): ViewMapEntry[] {
     const rv = [];
     let i = 0;
@@ -361,6 +398,9 @@ export abstract class SuiScoreView {
     }
     return rv;
   }
+  /**
+   * Update the staff ID when the view changes
+   */
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
       if (!this.isPartExposed()) {
@@ -389,12 +429,17 @@ export abstract class SuiScoreView {
     }
     this.setView(exposeMap);
   }
-  isStaffVisible(staffId: number): boolean {
-    return this.staffMap.findIndex((x) => x === staffId) >= 0;
-  }
+  /**
+   * Indicates if the score is displaying in part-mode vs. score mode.
+   * @returns 
+   */
   isPartExposed(): boolean {
     return this.score.isPartExposed() && this.score.staves.length !== this.storeScore.staves.length;
   }
+  /**
+   * Parts have different formatting options from the parent score, indluding layout.  Reset
+   * them when exposing a part.
+   */
   _mapPartFormatting() {
     this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
     let replacedText = false;
@@ -411,9 +456,9 @@ export abstract class SuiScoreView {
     });
   }
 
-  // ### setView
-  // Send a list of rows with a 'show' boolean in each, we display that line
-  // in the staff and hide the rest
+  /**
+   * Update the list of staves in the score that are displayed.
+  */
   setView(rows: ViewMapEntry[]) {
     let i = 0;
     const any = rows.find((row) => row.show === true);
@@ -454,18 +499,22 @@ export abstract class SuiScoreView {
         staff.partInfo.displayCues = staff.partInfo.cueInScore;
       });
     }
-    this.renderer.setViewport(true);
+    this.renderer.setViewport();
   }
-  // ### viewAll
-  // view all the staffs in score mode.
+  /**
+   * view all the staffs in score mode.
+   */
   viewAll() {
     this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this._setTransposing();
     this.renderer.score = this.score;
-    this.renderer.setViewport(true);
+    this.renderer.setViewport();
   }
+  /**
+   * Update score based on transposing flag.
+   */
   _setTransposing() {
     if (!this.isPartExposed()) {
       const xpose = this.score.preferences?.transposingScore;
@@ -475,13 +524,16 @@ export abstract class SuiScoreView {
     }
   }
 
-  // ### changeScore
-  // Update the view after loading or restoring a completely new score
+  /**
+   * Update the view after loading or restoring a completely new score
+   * @param score 
+   * @returns 
+   */
   changeScore(score: SmoScore) {
     this._undoScore('load new score');
     SuiAudioPlayer.stopPlayer();
     this.renderer.score = score;
-    this.renderer.setViewport(true);
+    this.renderer.setViewport();
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
     // If the score is non-transposing, hide the instrument xpose settings
@@ -491,9 +543,11 @@ export abstract class SuiScoreView {
     return this.renderPromise();
   }
 
-  // ### undo
-  // for the view score, we the renderer decides what to render
-  // depending on what is undone.
+  /**
+   * for the view score, the renderer decides what to render
+   * depending on what is undone.
+   * @returns 
+   */
   undo() {
     if (!this.renderer.score) {
       return;

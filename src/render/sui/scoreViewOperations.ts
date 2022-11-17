@@ -122,24 +122,23 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param url where to find the xml file
    * @returns 
    */
-  loadRemoteXml(url: string): Promise<any> {
+  async loadRemoteXml(url: string): Promise<any> {
     const req = new SuiXhrLoader(url);
     const self = this;
     // Shouldn't we return promise of actually displaying the score?
-    return req.loadAsync().then(() => {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = XmlToSmo.convert(xml);
-      score.layoutManager!.zoomToWidth($('body').width());
-      self.changeScore(score);
-    });
+    await req.loadAsync();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(req.value, 'text/xml');
+    const score = XmlToSmo.convert(xml);
+    score.layoutManager!.zoomToWidth($('body').width());
+    self.changeScore(score);
   }
   /**
    * load a remote score in SMO format
    * @param url url to find the score
    * @returns 
    */
-  loadRemoteJson(url: string) : Promise<any> {
+  async loadRemoteJson(url: string) : Promise<any> {
     const req = new SuiXhrLoader(url);
     const self = this;
     return req.loadAsync().then(() => {
@@ -168,7 +167,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   /**
-   * Global settings that control how the score editor  behaves
+   * Global settings that control how the score editor behaves
    * @param pref 
    * @returns 
    */

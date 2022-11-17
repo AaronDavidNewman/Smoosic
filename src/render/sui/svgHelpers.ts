@@ -172,7 +172,7 @@ export class SvgHelpers {
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
   static updateArtifactBox(context: SvgPage, element: SVGSVGElement | undefined, artifact: Transposable) {
-    if (typeof (element) === 'undefined') {
+    if (!element) {
       console.log('updateArtifactBox: undefined element!');
       return;
     }

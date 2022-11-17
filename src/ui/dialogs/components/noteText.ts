@@ -265,11 +265,8 @@ export class SuiChordComponent extends SuiNoteTextComponent {
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
-    const render = () => {
-      this.view.renderer.setRefresh();
-    };
     if (this.session) {
-      this.session.stopSession().then(render);
+      this.session.stopSession();
     }
     $('body').removeClass('text-edit');
   }

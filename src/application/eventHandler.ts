@@ -124,7 +124,7 @@ export class SuiEventHandler implements ModalEventHandler {
       console.log('resizing');
       self.resizing = false;
       self.piano!.handleResize();
-      self.view.renderer.rerenderAll();
+      self.view.refreshViewport();
     }, 1);
   }
 

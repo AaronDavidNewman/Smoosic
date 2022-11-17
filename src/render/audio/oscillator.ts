@@ -404,7 +404,7 @@ export class SuiSampler extends SuiOscillator {
       const sampleInfo = SuiSampleMedia.sampleOscMap[this.instrument];
       if (sampleInfo.length) {
         if (sampleInfo[0].sustain === 'sustained') {
-          // this.attack = 0.1 * this.duration;
+          this.attack = 0.1 * this.duration;
         }
       }
     }

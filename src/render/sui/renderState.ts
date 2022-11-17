@@ -269,14 +269,14 @@ export class SuiRenderState {
    * @param reset whether to re-render the entire SVG DOM
    * @returns 
    */
-  setViewport(reset: boolean) {
+  setViewport() {
     if (!this.score || !this.renderer) {
       return;
     }
-    this.renderer.setViewport(reset);
+    this.renderer.setViewport();
     this.score!.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
-        if (measure.svg.logicalBox && reset) {
+        if (measure.svg.logicalBox) {
           measure.svg.history = ['reset'];
         }
       });
@@ -293,7 +293,7 @@ export class SuiRenderState {
     this._backupZoomScale = layout.zoomScale;
     layout.zoomScale = 1.0;
     layoutMgr.updateGlobalLayout(layout);
-    this.setViewport(true);
+    this.setViewport();
     this.setRefresh();
 
     const promise = new Promise<void>((resolve) => {
@@ -320,7 +320,7 @@ export class SuiRenderState {
     const layout = this.score!.layoutManager!.getGlobalLayout();
     layout.zoomScale = this._backupZoomScale;
     this.score!.layoutManager!.updateGlobalLayout(layout);
-    this.setViewport(true);
+    this.setViewport();
     this.setRefresh();
   }
 
@@ -369,7 +369,7 @@ export class SuiRenderState {
     this.renderer.score = score;
     this.notifyFontChange();
     // if (shouldReset) {
-    this.setViewport(true);
+    this.setViewport();
     if (this.measureMapper) {
       this.measureMapper.loadScore();
     }
@@ -427,7 +427,7 @@ export class SuiRenderState {
   }
   render() {
     if (this._resetViewport) {
-      this.setViewport(true);
+      this.setViewport();
       this._resetViewport = false;
     }
     try {

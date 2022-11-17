@@ -49,8 +49,7 @@ export class SuiScoreRender {
     this.elementId = params.elementId;
     this.score = params.score;
     this.vexContainers = new SvgPageMap(this.score.layoutManager!.globalLayout, this.elementId, this.score.layoutManager!.pageLayouts);
-    this.vexContainers.createRenderers();
-    this.setViewport(true);
+    this.setViewport();
   }
   elementId: any;
   startRenderTime: number = 0;
@@ -168,7 +167,7 @@ export class SuiScoreRender {
   }
   // ### _setViewport
   // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  setViewport(reset: boolean) {
+  setViewport() {
     if (this.score === null) {
       return;
     }
@@ -600,7 +599,7 @@ export class SuiScoreRender {
     this.formatter = formatter;
     formatter.layout();    
     if (this.formatter.trimPages(startPageCount)) {
-      this.setViewport(true);
+      this.setViewport();
     }
     this.measuresToMap = [];
     this.lyricsToOffset = new Map();

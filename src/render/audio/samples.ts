@@ -109,11 +109,19 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-violinshort-e6',
+      sample: 'sample-violinshort-c4',
       family: 'strings',
       instrument: 'violin',
       minDuration: 0,
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-violinshort-b5',
+      family: 'strings',
+      instrument: 'violin',
+      minDuration: 0,
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'n', octave: 6 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
@@ -121,7 +129,7 @@ export class SuiSampleMedia {
       family: 'strings',
       instrument: 'violin',
       minDuration: 0,
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
@@ -224,6 +232,7 @@ export class SuiSampleMedia {
       family: 'synth',
       instrument: 'pad',
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
+      dynamic: 100
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
@@ -231,6 +240,7 @@ export class SuiSampleMedia {
       family: 'synth',
       instrument: 'pad',
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100
     });
     const instrumentMap = Object.keys(SuiSampleMedia.sampleOscMap);
     instrumentMap.forEach((instrumentKey) => {

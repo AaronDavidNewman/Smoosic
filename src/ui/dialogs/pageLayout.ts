@@ -100,7 +100,7 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
       // Avoid multiple page rerender...
       this.view._setPageLayout(this.backup[i], i);
     }
-    this.view.rerenderAll();
+    this.view.refreshViewport();
   }
   commit() { }
 

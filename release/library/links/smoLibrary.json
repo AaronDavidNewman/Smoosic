@@ -24,6 +24,12 @@
 				"name": "Soprano Art Songs"
 			}
 		},{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/bigband/bigband.json",
+			"format": "library",
+			"metadata": {
+				"name": "Big Band charts (new!)"
+			}
+		}, {
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/trumpet.json",
 			"format": "library",
 			"metadata": {
@@ -34,7 +40,7 @@
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/messiah.json",
 			"format": "library",
 			"metadata": {
-				"name": "Handels Messiah"
+				"name": "Handel's Messiah"
 			}
 		},
     {
