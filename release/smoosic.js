@@ -775,7 +775,7 @@ class SuiEventHandler {
             console.log('resizing');
             self.resizing = false;
             self.piano.handleResize();
-            self.view.renderer.rerenderAll();
+            self.view.refreshViewport();
         }, 1);
     }
     createModifierDialog(modifierSelection) {
@@ -4147,7 +4147,7 @@ class SuiSampler extends SuiOscillator {
             const sampleInfo = samples_1.SuiSampleMedia.sampleOscMap[this.instrument];
             if (sampleInfo.length) {
                 if (sampleInfo[0].sustain === 'sustained') {
-                    // this.attack = 0.1 * this.duration;
+                    this.attack = 0.1 * this.duration;
                 }
             }
         }
@@ -4704,11 +4704,19 @@ class SuiSampleMedia {
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-violinshort-e6',
+            sample: 'sample-violinshort-c4',
             family: 'strings',
             instrument: 'violin',
             minDuration: 0,
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-violinshort-b5',
+            family: 'strings',
+            instrument: 'violin',
+            minDuration: 0,
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'n', octave: 6 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -4716,7 +4724,7 @@ class SuiSampleMedia {
             family: 'strings',
             instrument: 'violin',
             minDuration: 0,
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 6 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -4819,6 +4827,7 @@ class SuiSampleMedia {
             family: 'synth',
             instrument: 'pad',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
+            dynamic: 100
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -4826,6 +4835,7 @@ class SuiSampleMedia {
             family: 'synth',
             instrument: 'pad',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            dynamic: 100
         });
         const instrumentMap = Object.keys(SuiSampleMedia.sampleOscMap);
         instrumentMap.forEach((instrumentKey) => {
@@ -6921,9 +6931,6 @@ class SuiRenderState {
         const page = measure.svg.pageIndex;
         this.renderer.clearRenderedPage(page);
     }
-    remapAll() {
-        this.setRefresh();
-    }
     get renderStateClean() {
         return this.passState === SuiRenderState.passStates.clean && this.renderer.backgroundRender === false;
     }
@@ -7046,14 +7053,14 @@ class SuiRenderState {
      * @param reset whether to re-render the entire SVG DOM
      * @returns
      */
-    setViewport(reset) {
+    setViewport() {
         if (!this.score || !this.renderer) {
             return;
         }
-        this.renderer.setViewport(reset);
+        this.renderer.setViewport();
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
-                if (measure.svg.logicalBox && reset) {
+                if (measure.svg.logicalBox) {
                     measure.svg.history = ['reset'];
                 }
             });
@@ -7070,7 +7077,7 @@ class SuiRenderState {
         this._backupZoomScale = layout.zoomScale;
         layout.zoomScale = 1.0;
         layoutMgr.updateGlobalLayout(layout);
-        this.setViewport(true);
+        this.setViewport();
         this.setRefresh();
         const promise = new Promise((resolve) => {
             const poll = () => {
@@ -7096,7 +7103,7 @@ class SuiRenderState {
         const layout = this.score.layoutManager.getGlobalLayout();
         layout.zoomScale = this._backupZoomScale;
         this.score.layoutManager.updateGlobalLayout(layout);
-        this.setViewport(true);
+        this.setViewport();
         this.setRefresh();
     }
     setPassState(st, location) {
@@ -7142,7 +7149,7 @@ class SuiRenderState {
         this.renderer.score = score;
         this.notifyFontChange();
         // if (shouldReset) {
-        this.setViewport(true);
+        this.setViewport();
         if (this.measureMapper) {
             this.measureMapper.loadScore();
         }
@@ -7197,7 +7204,7 @@ class SuiRenderState {
     }
     render() {
         if (this._resetViewport) {
-            this.setViewport(true);
+            this.setViewport();
             this._resetViewport = false;
         }
         try {
@@ -7269,8 +7276,7 @@ class SuiScoreRender {
         this.elementId = params.elementId;
         this.score = params.score;
         this.vexContainers = new svgPageMap_1.SvgPageMap(this.score.layoutManager.globalLayout, this.elementId, this.score.layoutManager.pageLayouts);
-        this.vexContainers.createRenderers();
-        this.setViewport(true);
+        this.setViewport();
     }
     get autoAdjustRenderTime() {
         return this._autoAdjustRenderTime;
@@ -7371,7 +7377,7 @@ class SuiScoreRender {
     }
     // ### _setViewport
     // Create (or recrate) the svg viewport, considering the dimensions of the score.
-    setViewport(reset) {
+    setViewport() {
         if (this.score === null) {
             return;
         }
@@ -7789,7 +7795,7 @@ class SuiScoreRender {
         this.formatter = formatter;
         formatter.layout();
         if (this.formatter.trimPages(startPageCount)) {
-            this.setViewport(true);
+            this.setViewport();
         }
         this.measuresToMap = [];
         this.lyricsToOffset = new Map();
@@ -7876,16 +7882,12 @@ class SuiScoreView {
      */
     refreshViewport() {
         this.renderer.preserveScroll();
-        this.renderer.setViewport(true);
+        this.renderer.setViewport();
         this.renderer.setRefresh();
         return this.renderer.renderPromise();
     }
-    rerenderAll() {
-        this.renderer.rerenderAll();
-        return this.renderer.updatePromise();
-    }
     /**
-     *
+     * This is used in some Smoosic demos and pens.
      * @param action any action, but most usefully a SuiScoreView method
      * @param repetition number of times to repeat, waiting on render promise between
      * if not specified, defaults to 1
@@ -7910,8 +7912,11 @@ class SuiScoreView {
         });
         return promise;
     }
-    // ### _getEquivalentSelections
-    // The plural form of _getEquivalentSelection
+    /**
+     * The plural form of _getEquivalentSelection
+     * @param selections
+     * @returns
+     */
     _getEquivalentSelections(selections) {
         const rv = [];
         selections.forEach((selection) => {
@@ -7922,6 +7927,12 @@ class SuiScoreView {
         });
         return rv;
     }
+    /**
+     * A staff modifier has changed, create undo operations for the measures affected
+     * @param label
+     * @param staffModifier
+     * @param subtype
+     */
     _undoStaffModifier(label, staffModifier, subtype) {
         const copy = staffModifiers_1.StaffModifierBase.deserialize(staffModifier.serialize());
         copy.startSelector = this._getEquivalentSelector(copy.startSelector);
@@ -7929,8 +7940,9 @@ class SuiScoreView {
         this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, staffModifier.serialize(), subtype);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, copy.serialize(), subtype);
     }
-    // ### getFocusedPage
-    // Return the index of the page that is in the center of the client screen.
+    /**
+     * Return the index of the page that is in the center of the client screen.
+     */
     getFocusedPage() {
         if (this.score.layoutManager === undefined) {
             return 0;
@@ -7943,52 +7955,27 @@ class SuiScoreView {
         const pt = this.renderer.pageMap.svgToClient(svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }));
         return Math.round(midY / pt.y);
     }
-    // ### _undoRectangle
-    // Create a rectangle undo, like a multiple columns but not necessarily the whole
-    // score.
-    _undoRectangle(label, startSelector, endSelector, score, undoBuffer) {
-        undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.RECTANGLE, selections_1.SmoSelector.default, { score, topLeft: startSelector, bottomRight: endSelector }, undo_1.UndoBuffer.bufferSubtypes.NONE);
-    }
+    /**
+     * Create a rectangle undo, like a multiple columns but not necessarily the whole
+     * score.
+     */
     _undoColumn(label, measureIndex) {
         this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.COLUMN, selections_1.SmoSelector.default, { score: this.score, measureIndex }, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.COLUMN, selections_1.SmoSelector.default, { score: this.storeScore, measureIndex }, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
+    /**
+     * Score preferences don't affect the display, but they do have an undo
+     * @param label
+     */
     _undoScorePreferences(label) {
         this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, selections_1.SmoSelector.default, this.score, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, selections_1.SmoSelector.default, this.storeScore, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
-    // ### _getRectangleFromStaffGroup
-    // For selections that affect a system of staves, find the rectangle based on one of the
-    // staves and return the selectors.
-    _getRectangleFromStaffGroup(selection, staffMap) {
-        const startSelector = selections_1.SmoSelector.default;
-        let endSelector = selections_1.SmoSelector.default;
-        ;
-        let staffFilter = [];
-        const sygrp = this.score.getSystemGroupForStaff(selection);
-        if (sygrp) {
-            startSelector.staff = sygrp.startSelector.staff;
-            startSelector.measure = selection.selector.measure;
-            endSelector.staff = sygrp.endSelector.staff;
-            endSelector.measure = selection.selector.measure;
-            // Because of the staff map, some staves may not be in the view,
-            // so only include staves actually in the map.
-            // staffFilter is all the staves eligible for the group in the view.
-            staffFilter = staffMap.filter((map) => map >= sygrp.startSelector.staff && map <= sygrp.endSelector.staff);
-            // min is start staff
-            startSelector.staff = staffFilter.reduce((a, b) => a < b ? a : b);
-            // max is end staff
-            endSelector.staff = staffFilter.reduce((a, b) => a > b ? a : b);
-        }
-        else {
-            startSelector.staff = selection.selector.staff;
-            startSelector.measure = selection.selector.measure;
-            endSelector = JSON.parse(JSON.stringify(startSelector));
-        }
-        return { startSelector, endSelector };
-    }
-    // ### _undoTrackerSelections
-    // Add to the undo buffer the current set of measures selected.
+    /**
+     * Add to the undo buffer the current set of measures selected.
+     * @param label
+     * @returns
+     */
     _undoTrackerMeasureSelections(label) {
         const measureSelections = selections_1.SmoSelection.getMeasureList(this.tracker.selections);
         measureSelections.forEach((measureSelection) => {
@@ -8000,8 +7987,9 @@ class SuiScoreView {
         });
         return measureSelections;
     }
-    // ### _undoFirstMeasureSelection
-    // operation that only affects the first selection.  Setup undo for the measure
+    /**
+     * operation that only affects the first selection.  Setup undo for the measure
+     */
     _undoFirstMeasureSelection(label) {
         const sel = this.tracker.selections[0];
         const equiv = this._getEquivalentSelection(sel);
@@ -8011,6 +7999,11 @@ class SuiScoreView {
         }
         return sel;
     }
+    /**
+     * Add the selection to the undo buffer
+     * @param label
+     * @param selection
+     */
     _undoSelection(label, selection) {
         const equiv = this._getEquivalentSelection(selection);
         if (equiv !== null) {
@@ -8018,6 +8011,11 @@ class SuiScoreView {
             this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
         }
     }
+    /**
+     * Add multiple selections to the undo buffer as a group
+     * @param label
+     * @param selections
+     */
     _undoSelections(label, selections) {
         this.undoBuffer.grouping = true;
         this.storeUndo.grouping = true;
@@ -8027,8 +8025,9 @@ class SuiScoreView {
         this.undoBuffer.grouping = false;
         this.storeUndo.grouping = false;
     }
-    // ###_renderChangedMeasures
-    // Update renderer for measures that have changed
+    /**
+     * Update renderer for measures that have changed
+    */
     _renderChangedMeasures(measureSelections) {
         if (!Array.isArray(measureSelections)) {
             measureSelections = [measureSelections];
@@ -8037,25 +8036,47 @@ class SuiScoreView {
             this.renderer.addToReplaceQueue(measureSelection);
         });
     }
+    /**
+     * Update renderer for some columns
+     * @param fromSelector
+     * @param toSelector
+     */
     _renderRectangle(fromSelector, toSelector) {
-        this._getRectangleSelections(fromSelector, toSelector, this.score).forEach((s) => {
+        this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
             this.renderer.addToReplaceQueue(s);
         });
     }
-    // ###_renderChangedMeasures
-    // Setup undo for operation that affects the whole score
+    /**
+     * Setup undo for operation that affects the whole score
+     * @param label
+     */
     _undoScore(label) {
         this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE, selections_1.SmoSelector.default, this.score, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE, selections_1.SmoSelector.default, this.storeScore, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
+    /**
+     * Get the selector from this.storeScore that maps to the displayed selector from this.score
+     * @param selector
+     * @returns
+     */
     _getEquivalentSelector(selector) {
         const rv = JSON.parse(JSON.stringify(selector));
         rv.staff = this.staffMap[selector.staff];
         return rv;
     }
+    /**
+     * Get the equivalent staff id from this.storeScore that maps to the displayed selector from this.score
+     * @param staffId
+     * @returns
+     */
     _getEquivalentStaff(staffId) {
         return this.staffMap[staffId];
     }
+    /**
+     * Get the equivalent selection from this.storeScore that maps to the displayed selection from this.score
+     * @param selection
+     * @returns
+     */
     _getEquivalentSelection(selection) {
         try {
             if (typeof (selection.selector.tick) === 'undefined') {
@@ -8071,6 +8092,11 @@ class SuiScoreView {
             return null;
         }
     }
+    /**
+     * Get the equivalent selection from this.storeScore that maps to the displayed selection from this.score
+     * @param selection
+     * @returns
+     */
     _getEquivalentGraceNote(selection, gn) {
         if (selection.note !== null) {
             const rv = selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
@@ -8080,13 +8106,20 @@ class SuiScoreView {
         }
         return gn;
     }
-    _getRectangleSelections(startSelector, endSelector, score) {
+    /**
+     * Get the rectangle of selections indicated by the parameters from the score
+     * @param startSelector
+     * @param endSelector
+     * @param score
+     * @returns
+     */
+    _getRectangleSelections(startSelector, endSelector) {
         const rv = [];
         let i = 0;
         let j = 0;
         for (i = startSelector.staff; i <= endSelector.staff; i++) {
             for (j = startSelector.measure; j <= endSelector.measure; j++) {
-                const target = selections_1.SmoSelection.measureSelection(score, i, j);
+                const target = selections_1.SmoSelection.measureSelection(this.score, i, j);
                 if (target !== null) {
                     rv.push(target);
                 }
@@ -8094,14 +8127,17 @@ class SuiScoreView {
         }
         return rv;
     }
-    // ### groupUndo
-    // Indicate we want to group the undo operations into one undo
+    /**
+     * set the grouping flag for undo operations
+     * @param val
+     */
     groupUndo(val) {
         this.undoBuffer.grouping = val;
         this.storeUndo.grouping = val;
     }
-    // ### defaultStaffMap
-    // Show all staves, 1:1 mapping of view score staff to stored score staff
+    /**
+     * Show all staves, 1:1 mapping of view score staff to stored score staff
+     */
     get defaultStaffMap() {
         let i = 0;
         const rv = [];
@@ -8110,15 +8146,22 @@ class SuiScoreView {
         }
         return rv;
     }
+    /**
+     * Bootstrapping function, creates the renderer and associated timers
+     */
     startRenderingEngine() {
         if (!this.renderer.score) {
             // If the score is transposing, hide the instrument xpose settings
             this._setTransposing();
             this.renderer.score = this.score;
-            this.renderer.setViewport(true);
+            this.renderer.setViewport();
         }
         this.renderer.startDemon();
     }
+    /**
+     * Gets the current mapping of displayed staves to score staves (this.storeScore)
+     * @returns
+     */
     getView() {
         const rv = [];
         let i = 0;
@@ -8128,6 +8171,9 @@ class SuiScoreView {
         }
         return rv;
     }
+    /**
+     * Update the staff ID when the view changes
+     */
     setMappedStaffIds() {
         this.score.staves.forEach((staff) => {
             if (!this.isPartExposed()) {
@@ -8157,12 +8203,17 @@ class SuiScoreView {
         }
         this.setView(exposeMap);
     }
-    isStaffVisible(staffId) {
-        return this.staffMap.findIndex((x) => x === staffId) >= 0;
-    }
+    /**
+     * Indicates if the score is displaying in part-mode vs. score mode.
+     * @returns
+     */
     isPartExposed() {
         return this.score.isPartExposed() && this.score.staves.length !== this.storeScore.staves.length;
     }
+    /**
+     * Parts have different formatting options from the parent score, indluding layout.  Reset
+     * them when exposing a part.
+     */
     _mapPartFormatting() {
         this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
         let replacedText = false;
@@ -8178,9 +8229,9 @@ class SuiScoreView {
             }
         });
     }
-    // ### setView
-    // Send a list of rows with a 'show' boolean in each, we display that line
-    // in the staff and hide the rest
+    /**
+     * Update the list of staves in the score that are displayed.
+    */
     setView(rows) {
         let i = 0;
         const any = rows.find((row) => row.show === true);
@@ -8222,18 +8273,22 @@ class SuiScoreView {
                 staff.partInfo.displayCues = staff.partInfo.cueInScore;
             });
         }
-        this.renderer.setViewport(true);
+        this.renderer.setViewport();
     }
-    // ### viewAll
-    // view all the staffs in score mode.
+    /**
+     * view all the staffs in score mode.
+     */
     viewAll() {
         this.score = score_1.SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this._setTransposing();
         this.renderer.score = this.score;
-        this.renderer.setViewport(true);
+        this.renderer.setViewport();
     }
+    /**
+     * Update score based on transposing flag.
+     */
     _setTransposing() {
         var _a;
         if (!this.isPartExposed()) {
@@ -8243,13 +8298,16 @@ class SuiScoreView {
             }
         }
     }
-    // ### changeScore
-    // Update the view after loading or restoring a completely new score
+    /**
+     * Update the view after loading or restoring a completely new score
+     * @param score
+     * @returns
+     */
     changeScore(score) {
         this._undoScore('load new score');
         player_1.SuiAudioPlayer.stopPlayer();
         this.renderer.score = score;
-        this.renderer.setViewport(true);
+        this.renderer.setViewport();
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(score.serialize()));
         this.score = score;
         // If the score is non-transposing, hide the instrument xpose settings
@@ -8258,9 +8316,11 @@ class SuiScoreView {
         this.setMappedStaffIds();
         return this.renderPromise();
     }
-    // ### undo
-    // for the view score, we the renderer decides what to render
-    // depending on what is undone.
+    /**
+     * for the view score, the renderer decides what to render
+     * depending on what is undone.
+     * @returns
+     */
     undo() {
         if (!this.renderer.score) {
             return;
@@ -8281,9 +8341,18 @@ SuiScoreView.Instance = null;
 /*!***********************************************!*\
   !*** ./src/render/sui/scoreViewOperations.ts ***!
   \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreViewOperations = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
@@ -8345,8 +8414,10 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
         const altGroup = this.storeScore.textGroups[index];
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+        textGroup.elements.forEach((el) => el.remove());
+        textGroup.elements = [];
         const isPartExposed = this.isPartExposed();
-        if (!isPartExposed) {
+        if (!isPartExposed && altGroup) {
             undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
         }
         else {
@@ -8397,10 +8468,11 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     loadRemoteXml(url) {
-        const req = new xhrLoader_1.SuiXhrLoader(url);
-        const self = this;
-        // Shouldn't we return promise of actually displaying the score?
-        return req.loadAsync().then(() => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const req = new xhrLoader_1.SuiXhrLoader(url);
+            const self = this;
+            // Shouldn't we return promise of actually displaying the score?
+            yield req.loadAsync();
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
             const score = xmlToSmo_1.XmlToSmo.convert(xml);
@@ -8414,11 +8486,13 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     loadRemoteJson(url) {
-        const req = new xhrLoader_1.SuiXhrLoader(url);
-        const self = this;
-        return req.loadAsync().then(() => {
-            const score = score_1.SmoScore.deserialize(req.value);
-            self.changeScore(score);
+        return __awaiter(this, void 0, void 0, function* () {
+            const req = new xhrLoader_1.SuiXhrLoader(url);
+            const self = this;
+            return req.loadAsync().then(() => {
+                const score = score_1.SmoScore.deserialize(req.value);
+                self.changeScore(score);
+            });
         });
     }
     /**
@@ -8443,7 +8517,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     /**
-     * Global settings that control how the score editor  behaves
+     * Global settings that control how the score editor behaves
      * @param pref
      * @returns
      */
@@ -10108,37 +10182,36 @@ class SuiScroller {
         this.netScroll.y = this._scroll.y = y;
         this.deferUpdateDebug();
     }
-    // ### scrollVisible
-    // Scroll such that the box is fully visible, if possible (if it is
-    // not larger than the screen)
+    /**
+     * Scroll such that the box is fully visible, if possible (if it is
+     * not larger than the screen)
+     **/
     scrollVisibleBox(box) {
         let yoff = 0;
         let xoff = 0;
-        // Since the pages will all be the same dimensions, any page svg should work here.
+        // offset is added to client coordinates but we subtract it out b/c
+        // the scroll region 0,0 and svg 0,0 are the same
+        const offset = this.svgPages.svgToClient(common_1.SvgBox.default);
         const screenBox = this.svgPages.svgToClient(box);
-        const offset = this.svgPages.svgToClient(svgHelpers_1.SvgHelpers.boxPoints(0, 0, 1, 1));
+        screenBox.x -= offset.x;
+        screenBox.y -= offset.y;
         const scrollState = this.scrollState;
-        const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height + offset.y;
-        const scrollUp = () => screenBox.y < scrollState.y + offset.y;
-        const scrollLeft = () => screenBox.x < scrollState.x + offset.x;
-        const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width + offset.x;
-        const vScrollAmt = () => this.viewport.height > screenBox.height ? (this.viewport.height - screenBox.height - 30) : this.viewport.height;
-        const hScrollAmt = () => this.viewport.width > screenBox.width ? (this.viewport.width - screenBox.width - 30) : this.viewport.width;
-        while (scrollUp()) {
-            yoff -= vScrollAmt();
-            screenBox.y += vScrollAmt();
+        const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + (this.viewport.height - this.viewport.y);
+        const scrollUp = () => screenBox.y < scrollState.y;
+        const scrollLeft = () => screenBox.x < scrollState.x;
+        const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + (this.viewport.width - this.viewport.x);
+        // Math: make sure we don't scroll down if scrollUp is indicated, etc.
+        if (scrollUp()) {
+            yoff = Math.min(screenBox.y - scrollState.y, 0);
         }
-        while (scrollDown()) {
-            yoff += vScrollAmt();
-            screenBox.y -= vScrollAmt();
+        if (scrollDown()) {
+            yoff = Math.max(screenBox.y - (scrollState.y - screenBox.height), 0);
         }
-        while (scrollLeft()) {
-            xoff -= hScrollAmt();
-            screenBox.x += hScrollAmt();
+        if (scrollLeft()) {
+            xoff = Math.min(screenBox.x - scrollState.x, 0);
         }
-        while (scrollRight()) {
-            xoff += hScrollAmt();
-            screenBox.x -= hScrollAmt();
+        if (scrollRight()) {
+            xoff = Math.max(screenBox.x - (scrollState.x - screenBox.height), 0);
         }
         this.scrollOffset(xoff, yoff);
     }
@@ -10321,7 +10394,7 @@ class SvgHelpers {
     // update the note geometry based on current viewbox conditions.
     // This may not be the appropriate place for this...maybe in layout
     static updateArtifactBox(context, element, artifact) {
-        if (typeof (element) === 'undefined') {
+        if (!element) {
             console.log('updateArtifactBox: undefined element!');
             return;
         }
@@ -13387,7 +13460,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             ctx.closeGroup();
             ctx.restore();
             layoutDebug_1.layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
-            this.scroller.scrollVisibleBox(measure.svg.logicalBox);
+            this.scroller.scrollVisibleBox(zmeasureSel.measure.svg.logicalBox);
         }
     }
     getSelectedModifier() {
@@ -15203,8 +15276,11 @@ class VxSystem {
                         this._updateChordOffsets(note);
                         note.getTrueLyrics().forEach((ll) => {
                             const hasLyric = ll.getText().length > 0 || ll.isHyphenated();
-                            if (hasLyric && !lyricVerseMap[ll.verse]) {
+                            if (hasLyric && ll.logicalBox && !lyricVerseMap[ll.verse]) {
                                 lyricVerseMap[ll.verse] = [];
+                            }
+                            else if (hasLyric && !ll.logicalBox) {
+                                console.warn(`unrendered lyric for note ${note.attrs.id} measure ${smoMeasure.measureNumber.staffId}-${smoMeasure.measureNumber.measureIndex}`);
                             }
                             if (hasLyric && ll.logicalBox) {
                                 lyricVerseMap[ll.verse].push(ll);
@@ -39371,11 +39447,8 @@ class SuiChordComponent extends SuiNoteTextComponent {
         $(this._getInputElement()).find('label').text(this.label);
         const button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-        const render = () => {
-            this.view.renderer.setRefresh();
-        };
         if (this.session) {
-            this.session.stopSession().then(render);
+            this.session.stopSession();
         }
         $('body').removeClass('text-edit');
     }
@@ -42856,7 +42929,7 @@ class SuiPageLayoutAdapter extends adapter_1.SuiComponentAdapter {
             // Avoid multiple page rerender...
             this.view._setPageLayout(this.backup[i], i);
         }
-        this.view.rerenderAll();
+        this.view.refreshViewport();
     }
     commit() { }
 }
