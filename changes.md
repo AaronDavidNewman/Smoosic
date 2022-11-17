@@ -2,6 +2,23 @@
 
 
 ## Changes to Smoosic
+### November, 2022
+Where to start...Smoosic has been disassembled and reassembled multiple times.  A project like this is never 'complete', but pretty much everything that I intended to do with Smoosic is now working, to some extent:
+
+* scores with part extraction
+* playback with instruments and samples
+* real-time editing, even for large scores
+* MIDI and MusicXML import and export has been enhanced.  You can now export from Smoosic and import into MuseScore and vise-versa.
+* dynamic music library with links to scores, tags etc.  Inspired by iRealPro app 'ireal' format
+* library mode for custom applications
+
+I have rewritten the SVG rendering so that each page is its own SVG element (Renderer context, in VexFlow terminology).  This allows us to edit large scores more quickly, since each SVG element is smaller.  The renderer will only update pages that have changed music.
+
+I added basic part features like transposing score, part-specific text, multi-measure rests.
+
+Music playback is sample-based.  Original samples come from [Electronic Music Studios](https://theremin.music.uiowa.edu/MIS.html) and [Sonatina Symphonic Orchestra](https://github.com/peastman/sso/tree/master/Sonatina%20Symphonic%20Orchestra).
+
+
 ### May 1 2022
 Change to the way proportionality (softmax) is computed:
 
