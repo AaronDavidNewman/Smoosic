@@ -1,17 +1,26 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { buildDom, createTopDomContainer } from "../common/htmlHelpers";
-export class Qwerty {
-  static get navigationElements() {
+import { buildDom, createTopDomContainer, draggable } from "../common/htmlHelpers";
+import { KeyEvent } from '../smo/data/common';
 
-    var kbRows =
+export interface SuiKbRow {
+  row: string, shifted: string;
+};
+export interface SuiKbKey {
+  icon: string, text: string, shifted: string, classes: string, dataKey: string
+};
+declare var $: any;
+export class Qwerty {
+  static _shiftTime: number = 0;
+  static get navigationElements() {
+    const kbRows: SuiKbRow[] =
     [
       { row: '1234567890-=',shifted:'!@#$%^&*()_+'},
       { row: 'QWERTYUIOP[]',shifted:'QWERTYIOP{}'},
       { row:"ASDFGHJKL;'", shifted:'ASDFGHJKL:"'},
       { row:'ZXCVBNM,./',shifted:'ZXCVBNM<>?'}
     ];
-    var arrows = [
+    const arrows: SuiKbKey[] = [
       {icon: 'icon-arrow-left',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowLeft'},
       {icon: 'icon-arrow-right',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowRight'},
       {icon:'',text:'Space',classes:'wideKey',shifted:'',dataKey:'Space'},
@@ -20,28 +29,28 @@ export class Qwerty {
       {icon: '' ,text:'Ins', shifted:'',classes:'helpKey',dataKey:'Insert'},
       {icon: '' ,text:'Del', shifted:'',classes:'helpKey',dataKey:'Delete'}
     ];
-    var keyRows = {};
-    var labels = ['topNumbers','keys1','keys2','keys3','arrows'];
-    var j = 0;
+    let keyRows: Record<string, SuiKbKey[]> = {};
+    const labels: string[] = ['topNumbers','keys1','keys2','keys3','arrows'];
+    let j = 0;
 
     kbRows.forEach((kbRow) => {
       var str = kbRow.row;
       var shifted = kbRow.shifted;
-      var keys = [];
+      var keys: SuiKbKey[] = [];
       for (var i = 0;i < str.length;++i) {
         if (j === 2 && i === 0) {
-          keys.push({icon:'',text:'Shift',classes:'wideKey',dataKey:'shift'});
+          keys.push({icon:'',text:'Shift',shifted: '', classes:'wideKey',dataKey:'shift'});
         }
         if (j === 3 && i === 0) {
-          keys.push({icon:'',text:'Ctrl',classes:'wideKey',dataKey:'ctrl'});
-          keys.push({icon:'',text:'Alt',classes:'helpKey',dataKey:'alt'});
+          keys.push({icon:'', text:'Ctrl',shifted: '', classes:'wideKey', dataKey:'ctrl'});
+          keys.push({icon:'', text:'Alt', shifted: '',classes:'helpKey', dataKey:'alt'});
         }
-        keys.push({icon:'', text:str[i],shifted:shifted[i],classes:'helpKey',dataKey:str[i]});
+        keys.push({icon:'', text:str[i], shifted:shifted[i], classes:'helpKey', dataKey:str[i]});
       }
-      keyRows[labels[j]] = {id:labels[j],rows:keys};
+      keyRows[labels[j]] = keys;
       j += 1;
     });
-    keyRows[labels[j]] = {id:labels[j],rows:arrows};
+    keyRows[labels[j]] = arrows;
     return keyRows;
   }
   static flashShift() {
@@ -49,7 +58,7 @@ export class Qwerty {
       Qwerty._shiftTime = 0;
       setTimeout(function() {
         Qwerty.flashShift();
-      },1000);
+      }, 1000);
     } else {
       $('.kb-float').removeClass('shifted');
     }
@@ -68,6 +77,12 @@ export class Qwerty {
     $('#row-2').hide();
   }
 
+  static displayForNav() {
+    Qwerty.displayAll();
+    $('#row-0').hide();
+    $('#row-1').hide();
+  }
+
   static displayAll() {
     $('#row-0').show();
     $('#row-1').show();
@@ -76,7 +91,7 @@ export class Qwerty {
     $('#row-4').show();
   }
 
-  static _flashButton(key) {
+  static _flashButton(key: string) {
     var e = $('[data-key="'+key+'"]');
     if (!e.length) {
        e = $('[data-shift="'+key+'"]');
@@ -93,7 +108,7 @@ export class Qwerty {
   static get editingKeys()  {
     return ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Insert','Delete'];
   }
-  static handleKeyEvent(evdata) {
+  static handleKeyEvent(evdata: KeyEvent) {
     if (Qwerty.editingKeys.indexOf(evdata.code) >= 0) {
       Qwerty._flashButton(evdata.code);
     } else if (evdata.key.length === 1
@@ -118,10 +133,10 @@ export class Qwerty {
     }
   }
 
-  static _kbButton(buttons) {
+  static _kbButton(buttons: SuiKbKey[]) {
     var b = buildDom;
     var r = b('span').classes('keyContainer');
-    buttons.rows.forEach((button) => {
+    buttons.forEach((button) => {
       var text = button.text;
       var shiftedText = button.shifted ? button.shifted : text;
       r.append(b('span').classes(button.icon + ' ' + button.classes)
@@ -132,23 +147,21 @@ export class Qwerty {
     });
     return r;
   }
-  static _buttonBlock(buttons,id) {
+  static _buttonBlock(buttons: SuiKbKey[], id: string) {
     var b = buildDom;
     var r = b('div').classes('keyBlock').attr('id', id);
     r.append(Qwerty._kbButton(buttons));
     return r;
   }
 
-  static _buildElements(rows) {
-    var b = buildDom;
-    var r = b('div').classes('buttonLine')
+  static _buildElements(rows: Record<string, SuiKbKey[]>) {
+    const b = buildDom;
+    const r = b('div').classes('buttonLine')
       .append(b('span').classes('icon icon-move'));
-    var keys = Object.keys(rows);
-    var rowIx = 0;
-    keys.forEach((key) => {
-      var row = rows[key];
-      r.append(Qwerty._buttonBlock(row,'row-'+rowIx));
-      rowIx += 1;
+    const keys = Object.keys(rows);
+    keys.forEach((key, rowIx) => {
+      const row = rows[key];
+      r.append(Qwerty._buttonBlock(row, 'row-'+rowIx));
     });
     return r;
   }
@@ -161,7 +174,7 @@ export class Qwerty {
     r.append(Qwerty._buildElements(Qwerty.navigationElements));
     $('.qwertyKb').append(r.dom());
 
-    var cb = function (x, y) {}
+    var cb = function (x: any, y: any ) {}
     createTopDomContainer('.draganime');
     draggable({
       parent: $('.qwertyKb'),
@@ -171,6 +184,4 @@ export class Qwerty {
       moveParent: true
     });
   }
-
-
 }

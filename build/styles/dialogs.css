@@ -126,6 +126,8 @@ body.text-edit .buttonContainer.show-text-edit {
 
 body.showQwerty .qwertyKb {
   position: absolute;
+  top:0;
+  left: 0;
   z-index: 10;
   background : #eee;
 }
