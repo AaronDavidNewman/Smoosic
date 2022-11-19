@@ -126,6 +126,8 @@ body.text-edit .buttonContainer.show-text-edit {
 
 body.showQwerty .qwertyKb {
   position: absolute;
+  top:0;
+  left: 0;
   z-index: 10;
   background : #eee;
 }
@@ -547,6 +549,7 @@ body.splashScreen .bugDialog {
 /* change did not get propogated */
 body.showHelpDialog .helpDialog {
 	display:flex;
+  overflow: hidden;
 	background: #eef;
   flex: 1 0 100%;
   flex-flow:column wrap;
@@ -554,14 +557,16 @@ body.showHelpDialog .helpDialog {
 	margin: 8px;
 	padding: 10px;
 	border: 1px dashed #334;
+  position: absolute;
+  top:0;
+  left: 0;
+  z-index: 10;
+  max-width: 350px;
 	/* border-radius: 5px; */
 }
 
 .workspace {
   overflow:none;
-}
-body.showHelpDialog .workspace {
-  overflow:auto;
 }
 
 .helpLine {
@@ -588,7 +593,9 @@ body.showHelpDialog .workspace {
 .helpLine.showSection .help-content {
 	display:block;
 }
-
+.helpLine.showSection .help-content img {
+  width: 300px;
+}
 .helpLine.showSection .help-category-text {
   display:none;
 }

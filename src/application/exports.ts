@@ -28,7 +28,8 @@ import { RibbonButtons } from '../ui/buttons/ribbon';
 import { simpleRibbonLayout } from '../ui/ribbonLayout/default/tabletRibbon';
 import { SimpleEventHandler, ModalEventHandler } from './common';
 // Language strings
-import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
+import { cardKeysHtmlEn, cardNotesHtmlEn, cardPitchesHtmlEn, cardPitches2HtmlEn, cardDurationsHtmlEn, cardDurations2HtmlEn,
+  cardSelectionsHtmlEn, cardSelections2HtmlEn, cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
 
 // ui dialogs and menus
@@ -218,7 +219,8 @@ export const Smo = {
     SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap
     // strings
-    quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen,
+    cardKeysHtmlEn, cardNotesHtmlEn, cardPitchesHtmlEn, cardPitches2HtmlEn, cardDurationsHtmlEn, cardDurations2HtmlEn,
+  cardSelectionsHtmlEn, cardSelections2HtmlEn, cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn,
     quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar
     ,getClass,
     createLoadTests,

@@ -221,7 +221,7 @@ export class SmoTranslator {
 export class SmoLanguage {
   static getHelpFile(category: any) {
     // TODO: how to express language if it is not part of the config?
-    return eval('globalThis.Smo.' + category + 'en');
+    return eval('globalThis.Smo.' + category + 'En');
   }
   static get en(): LanguageTranslation {
     const strings: TranslationStrings = JSON.parse(smoLanguageStringEn) as TranslationStrings;

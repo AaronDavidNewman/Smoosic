@@ -46,6 +46,10 @@ export interface EventHandlerParams {
 export class SuiEventHandler implements ModalEventHandler {
   static reentry: boolean = false;
   static keyboardUi: Qwerty;
+  static showQwerty() {
+    SuiEventHandler.keyboardUi = Qwerty;
+    Qwerty.displayKb();
+  }
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
@@ -59,7 +63,7 @@ export class SuiEventHandler implements ModalEventHandler {
   keyHandlerObj: any = null;
   menus: SuiMenuManager;
   piano: SuiPiano | null = null;
-  exhandler: SuiExceptionHandler;
+  exhandler: SuiExceptionHandler;  
   constructor(params: EventHandlerParams) {
     (globalThis as any).SuiEventHandlerInstance = this;
 

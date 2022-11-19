@@ -12,11 +12,13 @@ export interface SuiKbKey {
 declare var $: any;
 export class Qwerty {
   static _shiftTime: number = 0;
+  static displayed: boolean = false;
+  static created: boolean = false;
   static get navigationElements() {
     const kbRows: SuiKbRow[] =
     [
       { row: '1234567890-=',shifted:'!@#$%^&*()_+'},
-      { row: 'QWERTYUIOP[]',shifted:'QWERTYIOP{}'},
+      { row: 'QWERTYUIOP[]',shifted:'QWERTYUIOP{}'},
       { row:"ASDFGHJKL;'", shifted:'ASDFGHJKL:"'},
       { row:'ZXCVBNM,./',shifted:'ZXCVBNM<>?'}
     ];
@@ -27,7 +29,8 @@ export class Qwerty {
       {icon: 'icon-arrow-up',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowUp'},
       {icon: 'icon-arrow-down' ,text:'', shifted:'',classes:'helpKey',dataKey:'ArrowDown'},
       {icon: '' ,text:'Ins', shifted:'',classes:'helpKey',dataKey:'Insert'},
-      {icon: '' ,text:'Del', shifted:'',classes:'helpKey',dataKey:'Delete'}
+      {icon: '' ,text:'Del', shifted:'',classes:'helpKey',dataKey:'Delete'},
+      {icon: '' ,text:'Enter', shifted:'',classes:'wideKey',dataKey:'Enter'}
     ];
     let keyRows: Record<string, SuiKbKey[]> = {};
     const labels: string[] = ['topNumbers','keys1','keys2','keys3','arrows'];
@@ -119,6 +122,9 @@ export class Qwerty {
     if (evdata.code === 'Space') {
       Qwerty._flashButton('Space');
     }
+    if (evdata.code === 'Enter') {
+      Qwerty._flashButton('Enter');
+    }
     if (evdata.ctrlKey) {
       Qwerty._flashButton('ctrl');
     }
@@ -165,7 +171,16 @@ export class Qwerty {
     });
     return r;
   }
+  static hideKb() {
+    $('body').removeClass('showQwerty');
+    Qwerty.displayed = false;
+  }
   static displayKb() {
+    if (Qwerty.created) {
+      $('body').addClass('showQwerty');
+      Qwerty.displayed = true;
+      return;
+    }
     createTopDomContainer('.qwertyKb');
     $('body').addClass('showQwerty');
     $('.qwertyKb').html('');
@@ -183,5 +198,7 @@ export class Qwerty {
       cb: cb,
       moveParent: true
     });
+    Qwerty.displayed = true;
+    Qwerty.created = true;
   }
 }
