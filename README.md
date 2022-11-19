@@ -1,6 +1,6 @@
 <sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
 
-![](https://imgur.com/quur6md.png)
+![](https://imgur.com/jJ5utJm.gif)
 
 # What is Smoosic?
 We are approaching Smoosic 1.0 status!  Many of the things I wanted to do with Smoosic are working to some extent.
