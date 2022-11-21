@@ -116,7 +116,7 @@ import { SuiOscillator, SuiSampler, SuiReverb } from '../render/audio/oscillator
 import { SuiSampleMedia } from '../render/audio/samples';
 
 // SMO object model
-import { SmoScore } from '../smo/data/score';
+import { SmoScore, engravingFontType, engravingFontTypes, isEngravingFont } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -194,6 +194,7 @@ export const Smo = {
 
     // Smo Music Objects
     SmoScore,
+    engravingFontTypes, isEngravingFont,
     XmlToSmo,
     SmoToXml,
     MidiToSmo,

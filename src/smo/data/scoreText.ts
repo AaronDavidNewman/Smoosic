@@ -248,7 +248,11 @@ export interface SmoTextGroupParams {
   blocks: SmoTextBlock[]
 }
 
+/**
+ * Suggestion for text purpose, maybe used to find a match..maybe not used at all
+ */
 export type SmoTextGroupPurpose = 'NONE' |'TITLE' | 'SUBTITLE' | 'COMPOSER' | 'COPYRIGHT';
+
 /**
  * A grouping of text that can be used as a block for
  * justification, alignment etc.

@@ -32,8 +32,15 @@ export interface FontPurpose {
   custom: boolean
 }
 
+/**
+ * List of engraving fonts available in Smoosic
+ */
 export type engravingFontType =  'Bravura' |  'Gonville' | 'Petaluma' | 'Leland';
+/**
+ * Arrary of engraving fonts available in Smoosic
+ */
 export const engravingFontTypes: engravingFontType[] = ['Bravura', 'Gonville', 'Petaluma', 'Leland'];
+
 export function isEngravingFont(et: engravingFontType | string): et is engravingFontType {
   return (engravingFontTypes as any[]).indexOf(et) >= 0;
 }

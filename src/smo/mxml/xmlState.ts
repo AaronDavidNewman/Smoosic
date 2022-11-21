@@ -36,6 +36,9 @@ export interface XmlSystemInfo {
 export interface XmlStaffGroupInfo {
   start: number, length: number
 }
+/**
+ * Wedge is a hairpin/cresc.
+ */
 export interface XmlWedgeInfo {
   type: string
 }

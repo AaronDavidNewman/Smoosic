@@ -52,6 +52,9 @@ export abstract class StaffModifierBase implements SmoModifierBase {
 export type SoundSustain = 'percussive' | 'sustained';
 export type oscillatorType = 'sample' | 'sine' | 'sawtooth' | 'square' | 'triangle' | 'custom';
 export type oscillatorOptions = 'plucked' | 'bowed' | 'muted' | 'accented' | 'frequency-sweep' | 'na';
+/**
+ * Parameters of an instrument used to create audio nodes
+ */
 export interface SmoOscillatorInfo {
   waveform: oscillatorType,
   sustain: SoundSustain,

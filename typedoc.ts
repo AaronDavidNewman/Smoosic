@@ -37,6 +37,7 @@ export * from './src/smo/data/note';
 export * from './src/smo/data/noteModifiers';
 export * from './src/smo/data/partInfo';
 export * from './src/smo/data/score';
+export * from './src/smo/data/scoreText';
 export * from './src/smo/data/scoreModifiers';
 export * from './src/smo/data/staffModifiers';
 export * from './src/smo/data/systemStaff';

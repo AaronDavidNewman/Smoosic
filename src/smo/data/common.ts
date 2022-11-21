@@ -160,6 +160,9 @@ export interface SmoModifierBase {
     attrs: SmoAttrs
 }
 
+/**
+ * Renderable is just a thing that has a bounding box
+ */
 export interface Renderable {
     logicalBox: SvgBox | null | undefined
 }

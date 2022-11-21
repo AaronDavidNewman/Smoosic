@@ -8,11 +8,19 @@ import { SmoSelector } from '../../smo/xform/selections';
 import { SmoTie } from '../../smo/data/staffModifiers';
 import { SmoAudioPitch } from '../../smo/data/music';
 
+/**
+ * Create audio player for the score from the start point
+ * @category SuiAudio
+ */
 export interface SuiAudioPlayerParams {
   startIndex: number,
   tracker: SuiTracker,
   score: SmoScore
 }
+/**
+ * Parameters used to create just-in-time oscillators
+ * @category SuiAudio
+ */
 export interface SoundParams {
   frequencies: number[],
   duration: number,
@@ -23,11 +31,19 @@ export interface SoundParams {
   instrument: string,
   selector: SmoSelector
 }
-export interface SoundParamMeasureLink {
+/**
+ * A list of sound parameters for just-in-time oscillator creation
+ * @category SuiAudio
+ */
+ export interface SoundParamMeasureLink {
   soundParams: Record<number, SoundParams[]>,
   endTicks: number,
   next: SoundParamMeasureLink | null
 }
+/**
+ * A set of oscillators to be played at a certain time.
+ * @category SuiAudio
+ */
 export interface CuedAudioContext {
   oscs: SuiOscillator[],
   playMeasureIndex: number,
@@ -37,6 +53,11 @@ export interface CuedAudioContext {
   durationPct: number,
   selector: SmoSelector
 }
+/**
+ * A list of oscillators.  We keep them in a list until played so we 
+ * can GC them if playing is cancelled
+ * @category SuiAudio
+ */
 export interface CuedAudioLink {
   sound: CuedAudioContext;
   next: CuedAudioLink | null;
@@ -44,6 +65,7 @@ export interface CuedAudioLink {
 /**
  * Maintain a list of buffers ready to play, since this is a 
  * system resource.
+ * @category SuiAudio
  */
 export class CuedAudioContexts {
   soundHead: CuedAudioLink | null = null;
@@ -90,8 +112,10 @@ export class CuedAudioContexts {
     this.complete = false;
   }
 }
-// ## SuiAudioPlayer
-// Play the music, ja!
+/**
+ * Play the music, ja!
+ * @category SuiAudio
+ */
 export class SuiAudioPlayer {
   static _playing: boolean = false;
   static instanceId: number = 0;

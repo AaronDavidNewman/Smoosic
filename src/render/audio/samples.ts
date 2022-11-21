@@ -5,7 +5,11 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoOscillatorInfo, SmoInstrument, SmoOscillatorInfoAllTypes,
   SmoOscillatorInfoNumberType, SmoOscillatorInfoNumberArType, SmoOscillatorInfoStringType, SmoOscillatorInfoStringNullType,
   SmoOscillatorInfoWaveformType, SmoOscillatorInfoSustainType, SmoOscillatorInfoOptionsType } from '../../smo/data/staffModifiers';
-export interface SampleChooserParams {
+/**
+ * A set of parameters from the instrument interface used to create audio from samples.
+ * @category SuiAudio
+ */
+  export interface SampleChooserParams {
   family?: string,
   instrument: string,
   frequency: number,
@@ -13,17 +17,35 @@ export interface SampleChooserParams {
   gain: number,
   articulation?: string
 }
+/**
+ * A function prototype that chooses from among samples to return the correct one for that note
+ */
 export type SampleChooser = (params: SampleChooserParams, samples: SmoOscillatorInfo[]) => AudioSample | null;
+/**
+ * A specific audio sample that can be converted into an audio node
+ * @category SuiAudio
+ */
 export interface AudioSample {
   sample: AudioBuffer,
   frequency: number,
   patch: string
 }
+/**
+ * Interface for a chooser function and a set of samples
+ * @category SuiAudio
+ */
 export interface InstrumentSampleChooser {
   instrument: string,
   sampleChooser: SampleChooser,
   samples: SmoOscillatorInfo[]
 }
+/**
+ * For instruments like violin that require different samples depending on note duration
+ * @param params 
+ * @param samples 
+ * @returns 
+ * @category SuiAudio
+ */
 export const sampleFromMinDuration = (params: SampleChooserParams, samples: SmoOscillatorInfo[]): AudioSample | null => {
   const longSamples = samples.filter((ss) => ss.minDuration < params.duration && ss.minDuration > 0);
   if (longSamples.length) {
@@ -32,6 +54,13 @@ export const sampleFromMinDuration = (params: SampleChooserParams, samples: SmoO
   return sampleFromFrequency(params, samples.filter((ss) => ss.minDuration ===  0));
 }
 
+/**
+ * Give a set of samples, return the one that closest matches the frequency
+ * @param params 
+ * @param samples 
+ * @returns 
+ * @category SuiAudio
+*/
 export const sampleFromFrequency = (params: SampleChooserParams, samples: SmoOscillatorInfo[]): AudioSample | null => {
   let min = 9999;
   let rv: AudioSample | null = null;
@@ -54,6 +83,10 @@ export const sampleFromFrequency = (params: SampleChooserParams, samples: SmoOsc
   }
   return rv;
 }
+/**
+ * Logic to create audio nodes out of HTML5 media elements
+ * @category SuiAudio
+ */
 export class SuiSampleMedia {
   static sampleFiles: SmoOscillatorInfo[] = [];
   static sampleBufferMap: Record<string, AudioBuffer> = {};

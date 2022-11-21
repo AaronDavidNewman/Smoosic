@@ -10,6 +10,10 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoOscillatorInfo } from '../../smo/data/staffModifiers';
 import { SuiSampleMedia, AudioSample } from './samples';
 
+/**
+ * Create audio reverb node.
+ * @category SuiAudio
+ */
 export class SuiReverb {
   static get defaults() {
     return { length: 0.2, decay: 2 };
@@ -66,10 +70,17 @@ export class SuiReverb {
   }
 }
 
+/**
+ * Audio custom osc node.  Not used much.
+ */
 export interface WaveTable {
   real: number[],
   imaginary: number[]
 }
+/**
+ * Parameters to create an oscillator for a single note of music
+ * @category SuiAudio
+ */
 export interface SuiOscillatorParams {
   duration: number,
   frequency: number,
@@ -107,6 +118,7 @@ export const SynthWavetable: WaveTable = {
 /**
  * Simple waveform synthesizer thing that plays notes.  Oscillator works in either
  * analog synthisizer or sampler mode.
+ * @category SuiAudio
  */
 export abstract class SuiOscillator {
   static audio: AudioContext = new AudioContext();
@@ -372,6 +384,7 @@ export abstract class SuiOscillator {
 }
 /**
  * An audio output that uses browser audio api OscillatorNode as a sound source
+ * @category SuiAudio
  */
 export class SuiWavetable extends SuiOscillator {
   createAudioNode(): AudioScheduledSourceNode {
