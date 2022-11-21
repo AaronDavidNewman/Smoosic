@@ -31,6 +31,10 @@ export interface VexTextFont {
   setFontSize(fontSize: number): void,
   getGlyphMetrics(ch: string): VexTextFontMetrics
 }
+/**
+ * parameters to render text
+ * @category SuiParameters
+ */
 export interface SuiInlineTextParams {
   fontFamily: string,
   fontWeight: string,
@@ -43,6 +47,11 @@ export interface SuiInlineTextParams {
   context: SvgPage,
   pageMap: SvgPageMap
 }
+/**
+ * metrics for a single line of text.  A textGroup can be composed
+ * of multiple inline blocks.
+ * @category SuiParameters
+ */
 export interface SuiInlineBlock {
   symbolType: number,
   textType: number,

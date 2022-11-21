@@ -1563,65 +1563,69 @@ export var cardKeysHtmlEn = `
 `;
 
 export var cardNotesHtmlEn = `
-      <h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
-  <p>The keys a-g on the computer keyboard will enter a corresponding note, A-G, on the staff (Most key commands in Smoosic have a mnemonic device).  The default behavior is for the cursor to advance when a note is entered in this way.  (This can be overridden in the &#39;Score Preferences&#39; dialog). You navigate to the notes using the keyboard navigation arrows.</p>
-  <p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
+<h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
+<p>Most key commands in Smoosic have a mnemonic device.  The keys <strong>a-g</strong> on the computer keyboard will enter a corresponding note, A-G, on the staff.  The default behavior is for the cursor to advance when a note is entered in this way.  This can be overridden in the &#39;Score Preferences&#39; dialog. You navigate to the notes using the keyboard navigation arrows.</p>
+<p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
 `;
 
 export const cardPitchesHtmlEn = `
 <h3 id="pitches-part-1">Pitches part 1</h3>
-<p>You change notes chromatically using &#39;-&#39; and &#39;=&#39; key.  You can change the octave using the &#39;_&#39; (underscore) and &#39;+&#39; (plus) keys.   The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the &#39;Shift-E&#39; (mnemonic: E for enharmonic - get it?).  And Shift-F gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
+<p>You change notes chromatically using <strong>-</strong> and <strong>=</strong> key.  You can change the octave using the <strong>_</strong> (underscore) and <strong>+</strong> (plus) keys.   The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the <strong>Shift+E</strong> (mnemonic: E for enharmonic - get it?).  And <strong>Shift+F</strong> gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
 <p><img src="https://imgur.com/1tC94sV.gif" alt=""></p>
 `;
 
 export const cardPitches2HtmlEn = `
 <h3 id="pitches-part-2-chords">Pitches part 2 - Chords</h3>
-<p>You can create chords and intervals using the number keys along the top of the keyboard.  The &#39;3&#39; key makes a third, the &#39;4&#39; key a fourth, and so on.  Shift+number gives you the interval down.</p>
-<p>You can toggle selection to individual pitches by using &#39;Shift&#39;-&#39;Up&#39;. So to create a Gm chord, starting with G, hit &#39;3&#39; for the &#39;B&#39;, &#39;3&#39; for the &#39;D&#39;, and then &#39;Shift-up&#39;, then &#39;-&#39; to lower the pitch.</p>
+<p>You can create chords and intervals using the number keys along the top of the keyboard.  The <strong>3</strong> key makes a third, the <strong>4</strong> key a fourth, and so on.  <strong>Shift+3</strong> gives you the 3rd below.</p>
+<p>You can toggle selection to individual pitches by using <strong>Shift+UpArrow</strong>. So to create a G triad, starting with <strong>g</strong>, hit <strong>3</strong> for the &#39;B&#39;, <strong>3</strong> again for the &#39;D&#39;.  So far, we have G major.  To lower the 3rd, <strong>Shift+up</strong> to select the &#39;B&#39;, then <strong>-</strong> to lower the pitch.</p>
 <p><img src="https://imgur.com/NGXRJQZ.gif" alt=""></p>
 `;
 
 export const cardDurationsHtmlEn = `
 <h3 id="duration">Duration</h3>
 <p>Changing duration is a little different in Smoosic than other programs.  Rather than selecting a duration (quarter note, etc.), you change (increase/decrease) the duration of existing notes.</p>
-<p>You can change the length of notes using the &#39;,&#39; and &#39;.&#39; (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 5/4 for the second dot, if you like to think of it that way) or remove a dot, using the &#39;&gt;&#39; and &#39;&lt;&#39;.  The mnemonic device for these is &#39;&gt;&#39; makes note duration greater.  &#39;&lt;&#39; makes note duration...less.  (On most QWERTY keyboards, comma shifted is &#39;&lt;&#39; and period shifted is &#39;&gt;&#39;).</p>
+<p>You can change the length of notes using the <strong>,</strong> and <strong>.</strong> (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 5/4 for the second dot, if you like to think of it that way) or remove a dot, using the <strong>&gt;</strong> (<strong>Shift+,</strong>) and <strong>,</strong>.  The mnemonic device for these is <strong>&gt;</strong> makes note duration greater. <strong>&lt;</strong>  makes note duration less.  (On most QWERTY keyboards, comma shifted is <strong>&lt;</strong> and period shifted is <strong>&gt;</strong>).</p>
 <p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
 `;
 
 export const cardDurations2HtmlEn = `
 <h3 id="duration-part-2-tuplets">Duration part 2: Tuplets</h3>
-<p>You can create tuplets from the keyboard by typing Ctrl-3, Ctrl-5 or Ctrl-7 for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys &#39;-&#39; (minus) and &#39;=&#39; (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by Ctrl-0.</p>
+<p>You can create tuplets from the keyboard by typing <strong>Ctrl+3</strong>, <strong>Ctrl+5</strong> or <strong>Ctrl+7</strong> for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys <strong>-</strong> (minus) and <strong>=</strong> (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by <strong>Ctrl+0</strong>.</p>
 <p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>
 `;
 
 export const cardSelectionsHtmlEn = ` <h3 id="selections-part-1">Selections part 1</h3>
+<h3 id="selections-part-1">Selections part 1</h3>
+<p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move left, <strong>←</strong> to move right.   <strong>Shift+→</strong> expands the selection left, etc. </p>
 <p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had.  You can use the cursor navigation keys to move to a specific selected note.</p>
+<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.</p>
+<p>You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
+
 `;
 
 export const cardSelections2HtmlEn = ` 
 <h3 id="selections-part-2-modifier-selections">Selections part 2: Modifier selections</h3>
-<p>Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39;.  This will move the selected between modifiers that apply to that note.</p>
-<p>You can also select modifiers with the mouse. </p>
+<p>A modifier is anythying that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
+<p>You can also select modifiers with the mouse.</p>
 <p>Once selected, you can bring up the modifier dialog by hitting &#39;Enter&#39;.</p>
 <p><img src="https://imgur.com/rhOyIKD.gif" alt=""></p>
 `;
 export const cardToggleArticulationHtmlEn = `
 <h3 id="toggle-modifiers-articulations-">Toggle modifiers (articulations)</h3>
-<p>The keys &#39;h&#39;, &#39;i&#39;, &#39;j&#39;, and &#39;k&#39; bring up articulations that aren&#39;t selectable, but are placed on the note automatically.  You can toggle position and on/off by repeating the key.</p>
+<p>Some modifiers, such as articulations, aren&#39;t selectable.  The keys <strong>h</strong>, <strong>i</strong>, <strong>j</strong>, and <strong>k</strong> bring up articulations that aren&#39;t selectable, but are placed on the note automatically.  You can toggle position and on/off by repeating the key.</p>
 <p>Additional articulations are available from the of articulation button group.</p>
-<p>You can customize the articulations selected by the key bindings by changing the <code>ui/keyBindings/editorKeys.ts</code> file, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project.</p>
+<p>You can customize the articulations selected by the key bindings by changing the <code>ui/keyBindings/editorKeys.ts</code> file, or by providing your own bindings.  See the <code>custom-keybinding.html</code> example in the project.</p>
 <p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>
 `;
 
 export const cardToggleBeamsAndStemsHtmlEn = `
 <h3 id="beams-and-stems-part-1-direction">Beams and Stems part 1: Direction</h3>
-<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing &#39;Shift-B&#39;.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.   </p>
+<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.   </p>
 <p><img src="https://imgur.com/itUMVBF.gif" alt=""></p>
 `;
 export const cardToggleBeamsAndStems2HtmlEn = `
 <h3 id="beams-and-stems-part-1-beam-groups">Beams and Stems part 1: Beam Groups</h3>
 <p>By default, notes are auto-beamed so that a 1/4 note is beamed.  So 1/8 notes in 4/4 time will be beamed in 2&#39;s, 16th notes in 4&#39;s etc.  In triple time (e.g. 6/8, 9/8), 1/8 notes are beamed in 3&#39;s.  You can change this default in the Score Preferences.</p>
-<p>You can split a beam at any point using the &#39;x&#39; key.  You can create your own set of beamed notes by selecting the notes and typing &#39;Shift-X&#39;.  Only notes &lt; 1/4 can be beamed.</p>
+<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing &#39;Shift-X&#39;.  Only notes with 1/8 note duration or less can be beamed.</p>
 <p><img src="https://imgur.com/wZmXKq8.gif" alt=""></p>
 `;

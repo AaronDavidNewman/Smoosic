@@ -571,6 +571,11 @@ body.showHelpDialog .helpDialog {
 .helpDialog.card-view .help-category-button {
   display: none;
 }
+.helpDialog .helpLine strong {
+  background: rgba(128,216,128);
+  font-size: 1.3em;
+  padding: 0 3px;
+}
 .helpDialog.card-view {
   box-shadow: 0 0 9px rgba(127, 127, 127, 0.3);
 }
@@ -580,7 +585,7 @@ body.showHelpDialog .helpDialog {
 .helpDialog.card-view .helpLine button.prev-topic {
   position: absolute;
   left:5px;
-  bottom: 0;
+  bottom: 5px;
   text-align: right;
 }
 .helpDialog.card-view .helpLine button {
@@ -590,7 +595,7 @@ body.showHelpDialog .helpDialog {
 .helpDialog.card-view .helpLine button.next-topic {
   position: absolute;
   right:5px;
-  bottom: 0;
+  bottom: 5px;
   text-align: left;
 }
 .helpDialog.card-view .helpLine button.next-topic span.icon {

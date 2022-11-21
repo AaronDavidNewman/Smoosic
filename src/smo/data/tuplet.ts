@@ -12,6 +12,7 @@ import { SmoAttrs, Clef } from './common';
 const VF = eval('Vex.Flow');
 
 /**
+ * Parameters for tuplet construction
  * @category SmoParameters
  */
 export interface SmoTupletParams {

@@ -169,6 +169,7 @@ export class SuiLayoutFormatter {
     let isPickup = false;
     // Keep running tab of accidental widths for justification
     const contextMap: Record<number, SuiTickContext> = {};
+    let forceClefCount = 0;
     measures.forEach((measure) => {
       SmoBeamer.applyBeams(measure);
       voiceCount += measure.voices.length;
@@ -192,6 +193,9 @@ export class SuiLayoutFormatter {
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.clef;
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
+      if (measure.svg.forceClef) {
+        forceClefCount += 1;
+      }
 
       // calculate vertical offsets from the baseline
       const offsets = this.estimateMeasureHeight(measure);
@@ -206,7 +210,14 @@ export class SuiLayoutFormatter {
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
-
+    if (forceClefCount > 0 && forceClefCount < measures.length) {
+      measures.forEach((mm) => {
+        // If there are other clefs in this column, compensate for the width here.
+        if (!mm.svg.forceClef) {
+          mm.svg.adjX += vexGlyph.width(vexGlyph.clef('treble'));
+        }
+      });
+    }
     // justify this column to the maximum width.
     const startX = measures[0].staffX;
     const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
