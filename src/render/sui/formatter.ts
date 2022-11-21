@@ -23,6 +23,10 @@ export interface SuiTickContext {
   widths: number[],
   tickCounts: number[]
 }
+/**
+ * Estimated x, y position of the measure
+ * @category SuiRender
+ */
 export interface MeasureEstimate {
   measures: SmoMeasure[], x: number, y: number
 }
@@ -30,12 +34,19 @@ export interface LineRender {
   systems: Record<number, SmoMeasure[]>
 }
 
+/**
+ * Keep track of start/end measures on a page.  If the page
+ * content doesn't change, and the measures don't change, we don't
+ * need to re-render the content
+ * @catgegory SuiRender
+ */
 export interface RenderedPage {
   startMeasure: number,
   endMeasure: number
 }
 /**
  * Utilities for estimating measure/system/page width and height
+ * @category SuiRender
  */
 export class SuiLayoutFormatter {
   score: SmoScore;

@@ -21,6 +21,10 @@ import { SuiAudioPlayer } from '../audio/player';
 
 declare var $: any;
 
+/**
+ * Indicates a stave is/is not displayed in the score
+ * @category SuiRender
+ */
 export interface ViewMapEntry {
   show: boolean;
 }

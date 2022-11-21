@@ -34,6 +34,7 @@ import { SuiEventHandler } from './eventHandler';
 import { KeyBinding, ModalEventHandlerProxy } from './common';
 import { SmoMeasure } from '../../typedoc';
 import { getDomContainer } from '../common/htmlHelpers';
+import { SuiHelp } from '../ui/help';
 
 declare var $: any;
 
@@ -217,6 +218,7 @@ export class SuiApplication {
         this.score = this._tryParse(localScore);
       } else {
         this.score = SmoScore.getDefaultScore(SmoScore.defaults, null);
+        SuiHelp.displayHelp();
       }
     }
     return PromiseHelpers.emptyPromise();
@@ -277,8 +279,6 @@ export class SuiApplication {
     const eventSource = new BrowserEventSource(); // events come from the browser UI.
     const undoBuffer = viewObj.undoBuffer;
     const completeNotifier = new ModalEventHandlerProxy(eventSource);
-    // hack...this is set up in UiDom.  Should menu manager just make it?
-    // const menuContainer = $('.menuContainer')[0] as HTMLElement;
     const menus = new SuiMenuManager({
       view, eventSource, completeNotifier, undoBuffer
     });

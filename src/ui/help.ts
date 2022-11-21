@@ -9,9 +9,17 @@ export interface HtmlHelpBlock {
   html: string,
   index: number
 }
+export type HelpMode = 'cards' | 'expand';
 export class SuiHelp {
+  static helpMode: HelpMode = 'cards';
+  static created = false;
+  static currentCard: number = 0;
   static displayHelp() {
     $('body').addClass('showHelpDialog');
+    if (!SuiHelp.created) {
+      createTopDomContainer('helpDialog');
+      SuiHelp.created = true;
+    }
     $('.helpDialog').html('');
     $('.helpDialog').append(SuiHelp.closeButton.dom());
     SuiHelp.helpHtml.forEach((cat, catIx) => {
@@ -38,6 +46,36 @@ export class SuiHelp {
       cb,
       moveParent: true
     });
+    SuiHelp.setCards();
+  }
+  static setCards() {
+    $('.helpDialog').addClass('card-view');
+    const lines = $('.helpDialog .helpLine');
+    const numLines = $(lines).length;
+    $(lines).each((ix: number, line: any) => {
+      const lineno = parseInt($(line).attr('data-index'));
+      if (lineno !== SuiHelp.currentCard) {
+        $(line).addClass('hide');
+      } else {
+        $(line).removeClass('hide');
+        const prevButton = $(line).find('button.prev-topic');
+        const nextButton = $(line).find('button.next-topic');
+        if (lineno === numLines - 1) {
+          $(nextButton).addClass('hide');
+        }
+        if (lineno === 0) {
+          $(prevButton).addClass('hide');
+        }
+        $(prevButton).off('click').on('click', () => {
+          SuiHelp.currentCard = (SuiHelp.currentCard + (numLines - 1)) % numLines;
+          SuiHelp.setCards();
+        });
+        $(nextButton).off('click').on('click', () => {
+          SuiHelp.currentCard = (SuiHelp.currentCard + 1) % numLines;
+          SuiHelp.setCards();
+        });
+      }
+    });
   }
 
   static get closeButton() {
@@ -54,8 +92,15 @@ export class SuiHelp {
         .append(b('button')
           .append(b('span').classes('icon icon-plus')).classes('help-title')
           .append(b('span').classes('help-category-text').text(helps.title))))
-      .append(b('div').classes('help-content').html(helps.html));
-
+      .append(b('h3').text(helps.title))          
+      .append(b('div').classes('help-content').html(helps.html))      
+      .append(b('div').classes('button-container')
+        .append(b('button').classes('prev-topic')
+          .append(b('span').classes('icon icon-arrow-left'))
+          .append(b('span').classes('prev-topic-text').text('Previous Topic')))
+        .append(b('button').classes('next-topic')
+          .append(b('span').classes('next-topic-text').text('Next Topic'))
+          .append(b('span').classes(' icon icon-arrow-right'))));
     return r;
   }
 

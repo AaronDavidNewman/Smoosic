@@ -36,8 +36,7 @@ export class SuiDom {
     }
     var b = buildDom;
     var r = b('div').classes('dom-container')
-      .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')
-        .append(b('div').classes('helpDialog'))
+      .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')        
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('piano-container')

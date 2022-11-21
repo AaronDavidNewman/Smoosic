@@ -97,6 +97,11 @@ export interface VexNoteValue {
   root_index: number,
   int_val: number
 };
+/**
+ * Describe the music theory role of an accidental vs. the key signature. 
+ * Used to determine default enharmonic spelling.
+ * @category SmoUtilities
+ */
 export interface KeySignatureRole {
   letter: PitchLetter,
   accidental: string,

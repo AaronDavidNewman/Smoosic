@@ -12,7 +12,7 @@ import { SmoAttrs, Clef } from './common';
 const VF = eval('Vex.Flow');
 
 /**
- * @category SmoParams
+ * @category SmoParameters
  */
 export interface SmoTupletParams {
   notes: SmoNote[],
@@ -26,6 +26,10 @@ export interface SmoTupletParams {
   startIndex: number
 }
 
+/**
+ * A tuplet is a container for notes within a measure
+ * @category SmoObject
+ */
 export class SmoTuplet {
   static get defaults(): SmoTupletParams {
     return JSON.parse(JSON.stringify({

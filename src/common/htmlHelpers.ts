@@ -115,7 +115,8 @@ export class InputTrapper {
       if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') {
         ;
       } else if ($(node).attr('id') === this.parentId ||
-        $(node).attr('id') === this.id) {
+        $(node).attr('id') === this.id || 
+        $(node).hasClass('helpDialog')) {  // help dialog can be shown with modal dialog
           ;
       } else {
         var hidden = $(node).attr('aria-hidden');
@@ -131,6 +132,8 @@ export class InputTrapper {
       elements.forEach((element: any) => {
         var tagName = $(element)[0].tagName;
         if ($(element).attr('id') === this.id) {
+          ;
+        } else if ($(element).closest('.helpDialog').length) {
           ;
         } else if ($(element).prop('disabled')) {
           ;

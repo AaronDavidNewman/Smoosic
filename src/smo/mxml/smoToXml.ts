@@ -25,8 +25,9 @@ interface SlurXml {
 }
 /**
  * Keep state of the xml document as we are generating it
+ * @category SmoToXml
  */
-interface SmoState {
+export interface SmoState {
   divisions: number,
   measureNumber: number,
   measureIndex: number,
