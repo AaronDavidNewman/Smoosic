@@ -7,7 +7,7 @@
 		exports["Smo"] = factory();
 	else
 		root["Smo"] = factory();
-})(this, function() {
+})(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
@@ -52,6 +52,7 @@ const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/applicat
 const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
 const typedoc_1 = __webpack_require__(/*! ../../typedoc */ "./typedoc.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.ts");
 const VF = eval('Vex.Flow');
 /**
  * Parse query string for application
@@ -205,6 +206,7 @@ class SuiApplication {
             }
             else {
                 this.score = score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, null);
+                help_1.SuiHelp.displayHelp();
             }
         }
         return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -267,8 +269,6 @@ class SuiApplication {
         const eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
         const undoBuffer = viewObj.undoBuffer;
         const completeNotifier = new common_1.ModalEventHandlerProxy(eventSource);
-        // hack...this is set up in UiDom.  Should menu manager just make it?
-        // const menuContainer = $('.menuContainer')[0] as HTMLElement;
         const menus = new manager_1.SuiMenuManager({
             view, eventSource, completeNotifier, undoBuffer
         });
@@ -652,7 +652,6 @@ class SuiDom {
         var b = htmlHelpers_1.buildDom;
         var r = b('div').classes('dom-container')
             .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')
-            .append(b('div').classes('helpDialog'))
             .append(b('div').classes('control-bar')
             .append(b('div').classes('titleText').text('Smoosic'))
             .append(b('div').classes('piano-container')
@@ -692,10 +691,10 @@ exports.SuiDom = SuiDom;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiEventHandler = void 0;
 const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
-const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
+const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.ts");
 const factory_1 = __webpack_require__(/*! ../ui/dialogs/factory */ "./src/ui/dialogs/factory.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
-const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
+const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.ts");
 const tracker_1 = __webpack_require__(/*! ../render/sui/tracker */ "./src/render/sui/tracker.ts");
 const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
 const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
@@ -734,6 +733,10 @@ class SuiEventHandler {
         this.bindEvents();
         this.bindResize();
         this.createPiano();
+    }
+    static showQwerty() {
+        SuiEventHandler.keyboardUi = qwerty_1.Qwerty;
+        qwerty_1.Qwerty.displayKb();
     }
     static get scrollable() {
         return '.musicRelief';
@@ -951,10 +954,10 @@ exports.Smo = void 0;
 const application_1 = __webpack_require__(/*! ./application */ "./src/application/application.ts");
 const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
 const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
-const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
+const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
-const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
+const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.ts");
 const articulation_1 = __webpack_require__(/*! ../ui/buttons/articulation */ "./src/ui/buttons/articulation.ts");
 const beam_1 = __webpack_require__(/*! ../ui/buttons/beam */ "./src/ui/buttons/beam.ts");
 const chord_1 = __webpack_require__(/*! ../ui/buttons/chord */ "./src/ui/buttons/chord.ts");
@@ -1149,7 +1152,8 @@ exports.Smo = {
     SmoSelection: selections_1.SmoSelection, SmoSelector: selections_1.SmoSelector, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex, SmoOperation: operations_1.SmoOperation,
     // new score bootstrap
     // strings
-    quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
+    cardKeysHtmlEn: language_en_1.cardKeysHtmlEn, cardNotesHtmlEn: language_en_1.cardNotesHtmlEn, cardPitchesHtmlEn: language_en_1.cardPitchesHtmlEn, cardPitches2HtmlEn: language_en_1.cardPitches2HtmlEn, cardDurationsHtmlEn: language_en_1.cardDurationsHtmlEn, cardDurations2HtmlEn: language_en_1.cardDurations2HtmlEn,
+    cardSelectionsHtmlEn: language_en_1.cardSelectionsHtmlEn, cardSelections2HtmlEn: language_en_1.cardSelections2HtmlEn, cardToggleArticulationHtmlEn: language_en_1.cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn: language_en_1.cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn: language_en_1.cardToggleBeamsAndStems2HtmlEn,
     quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
     getClass,
     createLoadTests: file_load_1.createLoadTests,
@@ -1459,7 +1463,8 @@ class InputTrapper {
                 ;
             }
             else if ($(node).attr('id') === this.parentId ||
-                $(node).attr('id') === this.id) {
+                $(node).attr('id') === this.id ||
+                $(node).hasClass('helpDialog')) { // help dialog can be shown with modal dialog
                 ;
             }
             else {
@@ -1475,6 +1480,9 @@ class InputTrapper {
             elements.forEach((element) => {
                 var tagName = $(element)[0].tagName;
                 if ($(element).attr('id') === this.id) {
+                    ;
+                }
+                else if ($(element).closest('.helpDialog').length) {
                     ;
                 }
                 else if ($(element).prop('disabled')) {
@@ -4991,6 +4999,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data//measureModifi
 const VF = eval('Vex.Flow');
 /**
  * Utilities for estimating measure/system/page width and height
+ * @category SuiRender
  */
 class SuiLayoutFormatter {
     constructor(score, svg, renderedPages) {
@@ -5104,6 +5113,7 @@ class SuiLayoutFormatter {
         let isPickup = false;
         // Keep running tab of accidental widths for justification
         const contextMap = {};
+        let forceClefCount = 0;
         measures.forEach((measure) => {
             beamers_1.SmoBeamer.applyBeams(measure);
             voiceCount += measure.voices.length;
@@ -5126,6 +5136,9 @@ class SuiLayoutFormatter {
             s.timeSigLast = measureToLeft.timeSignature;
             s.clefLast = measureToLeft.clef;
             this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
+            if (measure.svg.forceClef) {
+                forceClefCount += 1;
+            }
             // calculate vertical offsets from the baseline
             const offsets = this.estimateMeasureHeight(measure);
             measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
@@ -5138,6 +5151,14 @@ class SuiLayoutFormatter {
             maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
             rowInSystem += 1;
         });
+        if (forceClefCount > 0 && forceClefCount < measures.length) {
+            measures.forEach((mm) => {
+                // If there are other clefs in this column, compensate for the width here.
+                if (!mm.svg.forceClef) {
+                    mm.svg.adjX += glyphDimensions_1.vexGlyph.width(glyphDimensions_1.vexGlyph.clef('treble'));
+                }
+            });
+        }
         // justify this column to the maximum width.
         const startX = measures[0].staffX;
         const adjX = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
@@ -23409,6 +23430,10 @@ const note_1 = __webpack_require__(/*! ./note */ "./src/smo/data/note.ts");
 const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const noteModifiers_1 = __webpack_require__(/*! ./noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const VF = eval('Vex.Flow');
+/**
+ * A tuplet is a container for notes within a measure
+ * @category SmoObject
+ */
 class SmoTuplet {
     constructor(params) {
         this.numNotes = 3;
@@ -37654,7 +37679,7 @@ const tempo_1 = __webpack_require__(/*! ../dialogs/tempo */ "./src/ui/dialogs/te
 const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
 const collapsable_1 = __webpack_require__(/*! ./collapsable */ "./src/ui/buttons/collapsable.ts");
 const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
-const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
+const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.ts");
 exports.SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
 function isModalButtonType(but) {
     return exports.SuiModalButtonStrings.indexOf(but) >= 0;
@@ -44319,7 +44344,7 @@ const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ ".
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const textEdit_1 = __webpack_require__(/*! ../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
-const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
+const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.ts");
 class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         let edited = false;
@@ -45714,9 +45739,9 @@ exports.SuiXhrLoader = SuiXhrLoader;
 
 /***/ }),
 
-/***/ "./src/ui/help.js":
+/***/ "./src/ui/help.ts":
 /*!************************!*\
-  !*** ./src/ui/help.js ***!
+  !*** ./src/ui/help.ts ***!
   \************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -45730,12 +45755,16 @@ const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/lan
 class SuiHelp {
     static displayHelp() {
         $('body').addClass('showHelpDialog');
+        if (!SuiHelp.created) {
+            (0, htmlHelpers_1.createTopDomContainer)('helpDialog');
+            SuiHelp.created = true;
+        }
         $('.helpDialog').html('');
-        SuiHelp.helpHtml.forEach((cat) => {
+        $('.helpDialog').append(SuiHelp.closeButton.dom());
+        SuiHelp.helpHtml.forEach((cat, catIx) => {
             const r = SuiHelp._buildElements(cat);
             $('.helpDialog').append(r.dom());
         });
-        $('.helpDialog').append(SuiHelp.closeButton.dom());
         $('button.help-title').off('click').on('click', (ev) => {
             $(ev.currentTarget).closest('div.helpLine').toggleClass('showSection');
             $(ev.currentTarget).find('span.icon').toggleClass('icon-plus');
@@ -45747,33 +45776,95 @@ class SuiHelp {
         });
         const wsh = window.innerHeight;
         $('.workspace').css('height', '' + wsh + 'px');
+        const cb = () => { };
+        (0, htmlHelpers_1.createTopDomContainer)('.draganime');
+        (0, htmlHelpers_1.draggable)({
+            parent: $('.helpDialog'),
+            handle: $('.helpDialog').find('.icon-move'),
+            animateDiv: '.draganime',
+            cb,
+            moveParent: true
+        });
+        SuiHelp.setCards();
+    }
+    static setCards() {
+        $('.helpDialog').addClass('card-view');
+        const lines = $('.helpDialog .helpLine');
+        const numLines = $(lines).length;
+        $(lines).each((ix, line) => {
+            const lineno = parseInt($(line).attr('data-index'));
+            if (lineno !== SuiHelp.currentCard) {
+                $(line).addClass('hide');
+            }
+            else {
+                $(line).removeClass('hide');
+                const prevButton = $(line).find('button.prev-topic');
+                const nextButton = $(line).find('button.next-topic');
+                if (lineno === numLines - 1) {
+                    $(nextButton).addClass('hide');
+                }
+                if (lineno === 0) {
+                    $(prevButton).addClass('hide');
+                }
+                $(prevButton).off('click').on('click', () => {
+                    SuiHelp.currentCard = (SuiHelp.currentCard + (numLines - 1)) % numLines;
+                    SuiHelp.setCards();
+                });
+                $(nextButton).off('click').on('click', () => {
+                    SuiHelp.currentCard = (SuiHelp.currentCard + 1) % numLines;
+                    SuiHelp.setCards();
+                });
+            }
+        });
     }
     static get closeButton() {
         const b = htmlHelpers_1.buildDom;
-        const r = b('div').classes('help-closer').append(b('button').classes('icon-cross close'));
+        const r = b('div').append(b('span').classes('icon icon-move')).append('div').classes('help-closer').append(b('button').classes('icon-cross close'));
         return r;
     }
     static _buildElements(helps) {
         const b = htmlHelpers_1.buildDom;
-        const r = b('div').classes('helpLine')
+        const r = b('div').classes('helpLine').attr('data-index', helps.index.toString())
             .append(b('div').classes('help-category-button')
             .append(b('button')
             .append(b('span').classes('icon icon-plus')).classes('help-title')
             .append(b('span').classes('help-category-text').text(helps.title))))
-            .append(b('div').classes('help-content').html(helps.html));
+            .append(b('h3').text(helps.title))
+            .append(b('div').classes('help-content').html(helps.html))
+            .append(b('div').classes('button-container')
+            .append(b('button').classes('prev-topic')
+            .append(b('span').classes('icon icon-arrow-left'))
+            .append(b('span').classes('prev-topic-text').text('Previous Topic')))
+            .append(b('button').classes('next-topic')
+            .append(b('span').classes('next-topic-text').text('Next Topic'))
+            .append(b('span').classes(' icon icon-arrow-right'))));
         return r;
     }
     static get helpHtml() {
-        return [
-            { title: 'Quick Start', html: language_1.SmoLanguage.getHelpFile('quickStartHtml') },
-            { title: 'Selections and Selecting Things', html: language_1.SmoLanguage.getHelpFile('selectionHtml') },
-            { title: 'Entering Music (Pitches)', html: language_1.SmoLanguage.getHelpFile('enterPitchesHtml') },
-            { title: 'Entering Music (Durations)', html: language_1.SmoLanguage.getHelpFile('enterDurationsHtml') },
-            { title: 'Working with Text, Lyrics, Chords', html: language_1.SmoLanguage.getHelpFile('workingWithText') }
+        const cards = [
+            { title: 'Keys', html: language_1.SmoLanguage.getHelpFile('cardKeysHtml') },
+            { title: 'Entering Notes', html: language_1.SmoLanguage.getHelpFile('cardNotesHtml') },
+            { title: 'Changing Pitches', html: language_1.SmoLanguage.getHelpFile('cardPitchesHtml') },
+            { title: 'Changing Pitches 2', html: language_1.SmoLanguage.getHelpFile('cardPitches2Html') },
+            { title: 'Changing Duration', html: language_1.SmoLanguage.getHelpFile('cardDurationsHtml') },
+            { title: 'Changing Duration 2', html: language_1.SmoLanguage.getHelpFile('cardDurations2Html') },
+            { title: 'Selecting things - notes', html: language_1.SmoLanguage.getHelpFile('cardSelectionsHtml') },
+            { title: 'Selecting things - modifiers', html: language_1.SmoLanguage.getHelpFile('cardSelections2Html') },
+            { title: 'Articulations', html: language_1.SmoLanguage.getHelpFile('cardToggleArticulationHtml') },
+            { title: 'Beams and Stems', html: language_1.SmoLanguage.getHelpFile('cardToggleBeamsAndStemsHtml') },
+            { title: 'Beams and Stems 2', html: language_1.SmoLanguage.getHelpFile('cardToggleBeamsAndStems2Html') },
         ];
+        const blocks = [];
+        cards.forEach((card, cardIx) => {
+            blocks.push(Object.assign({ index: cardIx }, card));
+        });
+        return blocks;
     }
 }
 exports.SuiHelp = SuiHelp;
+SuiHelp.helpMode = 'cards';
+SuiHelp.created = false;
+SuiHelp.currentCard = 0;
 
 
 /***/ }),
@@ -45986,7 +46077,7 @@ SmoTranslator.menus = [];
 class SmoLanguage {
     static getHelpFile(category) {
         // TODO: how to express language if it is not part of the config?
-        return eval('globalThis.Smo.' + category + 'en');
+        return eval('globalThis.Smo.' + category + 'En');
     }
     static get en() {
         const strings = JSON.parse(language_en_1.smoLanguageStringEn);
@@ -49225,7 +49316,7 @@ exports.smoLanguageStringDe = `{
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.workingWithTexten = exports.enterPitchesHtmlen = exports.enterDurationsHtmlen = exports.selectionHtmlen = exports.quickStartHtmlen = exports.smoLanguageStringEn = void 0;
+exports.cardToggleBeamsAndStems2HtmlEn = exports.cardToggleBeamsAndStemsHtmlEn = exports.cardToggleArticulationHtmlEn = exports.cardSelections2HtmlEn = exports.cardSelectionsHtmlEn = exports.cardDurations2HtmlEn = exports.cardDurationsHtmlEn = exports.cardPitches2HtmlEn = exports.cardPitchesHtmlEn = exports.cardNotesHtmlEn = exports.cardKeysHtmlEn = exports.smoLanguageStringEn = void 0;
 exports.smoLanguageStringEn = `{
     "dialogs": [
      {
@@ -50780,101 +50871,73 @@ exports.smoLanguageStringEn = `{
      }
     ]
    }`;
-exports.quickStartHtmlen = `
-    <h3 id="quick-start-guide">Quick start guide</h3>
-<p>If you don&#39;t like to read instructions, this cook&#39;s tour of Smoosic was made for you.</p>
-<ul>
-<li><p>One of buttons on the left is called &#39;File&#39;.  Click on it. The menu items before &#39;cancel&#39; are pre-canned projects that you can use as a template to get you started.</p>
-</li>
-<li><p>The cursor keys will navigate you to the different notes.</p>
-</li>
-<li><p>Letters a-g on the computer keyboard change the note to those pitches</p>
-</li>
-<li><p>&#39;Insert&#39; adds a new, blank measure.</p>
-</li>
-<li><p>The ribbon of thick blue buttons on the top expand to button groups, that contain most of the functionality of Smoosic.  </p>
-</li>
-<li><p>The buttons on the left bring up menus or dialogs that do basically what the buttons say.</p>
-</li>
-<li><p>There are a few &#39;instant gratification&#39; buttons for playing the music, refreshing the screen or changing the zoom level on the left part of the ribbon.</p>
-</li>
-<li><p>The piano tool is an alternate way of entering music, or can be dismissed by the close button in the lower left.</p>
-</li>
-</ul>
-<p><img src="https://imgur.com/nP16PMI.gif" alt="" width="640" height="480"></p>
+exports.cardKeysHtmlEn = `
+
+    <h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
+<p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.  </p>
+<p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.</p>
+<p><img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
 `;
-exports.selectionHtmlen = `
-<h3 id="selecting-things">Selecting things</h3>
-<p>Almost all operations in Smoosic act on the selected music.  You can select notes in different ways:</p>
-<ol>
-<li>with the computer mouse</li>
-<li>with the keyboard&#39;s navigation keys</li>
-<li>with the navigation keys on the ribbon</li>
-<li>with the piano tool, to some extent.</li>
-</ol>
-<p><img src="https://imgur.com/q1qK3Pn.gif" alt=""></p>
-<p>You can select multiple things with the keyboard navigation keys, by selecting &#39;shift-arrow&#39;, just like many applications.  There is a similar control for selection in the navigation ribbon.  Some operations, like changing pitch for instance, act on all the selected notes.</p>
-<p>Sometimes a selection of one line affects all the measures in that column (or all the measures of the system, if you like).  When you change the key, for instance, the selection determines where the key change starts.  If you have multiple measures selected, it applies to those measures, and then changes back to whatever it was before.</p>
-`;
-exports.enterDurationsHtmlen = `
-<p>Note duration in Smoosic is done by changing the duration of an existing note.  Usually, doubling the duration or cutting it in two, or adding a dot - duration to a note.  You can also create tuplets for uneven sets of notes (3, 5, or 7).</p>
-<p>There are actually 3 ways to do many duration operations - using the piano tool, using the computer keyboard, or using the button ribbon.  Like with many things, you should find entering duration using the keyboard fastest, once you have some experience with Smoosic.  But the ribbon or the </p>
-<h2 id="changing-note-length-with-the-keyboard">Changing note length with the keyboard</h2>
-<p>You can change the length of notes using the &#39;,&#39; and &#39;.&#39; (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 3/4 for the second dot, if you like to think of it that way) or remove a dot, using the &#39;&gt;&#39; and &#39;&lt;&#39;.  The mnemonic device for these is &#39;&gt;&#39; makes note duration greater.  &#39;&lt;&#39; makes note duration...less.  (On most QWERTY keyboards, comma shifted is &#39;&lt;&#39; and period shifted is &#39;&gt;&#39;).</p>
-<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-<p>Note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had.  You can use the cursor navigation keys to move to a specific selected note.</p>
-<p><img src="https://imgur.com/woMw4RH.gif" alt=""></p>
-<p>When you increase the length of a note, Smoosic always &#39;borrows&#39; from the next note in the measure that is eligible.  So when you double the length of the 8th note, it combines the 16th, and 2 32nd notes, and collapses them into a single quarter.  If Smoosic can&#39;t honor the request, it does nothing.  For instance, it can&#39;t remove the dot from a note with no dot, and it can&#39;t extend beyond the length of the measure.</p>
-<p>You can create tuplets from the keyboard by typing Ctrl-3, Ctrl-5 or Ctrl-7 for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys &#39;-&#39; (minus) and &#39;=&#39; (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by Ctrl-0.</p>
-<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>
-<h2 id="changing-note-length-with-piano-widget">Changing note length with piano widget</h2>
-<p>The piano widget is shown when the application starts, and can be restored from the left menu &#39;Piano&#39; button when closed.</p>
-<p>You can double or halve note duration, or add dot duration, to a note using the piano tool. </p>
-<p><img src="https://imgur.com/Rw4yDxP.gif" alt=""></p>
-<h2 id="changing-note-length-from-the-button-ribbon">Changing note length from the button ribbon</h2>
-<p>All the duration commands can be accomplished from the ribbon buttons.  </p>
-<p><img src="https://imgur.com/n9bmamg.gif" alt=""></p>
-<p>Note that the equivalent keyboard commands are also indicated on the right of each button, when it&#39;s available.  (there are only so many keys, so there are some ribbon buttons with no key shortcut). </p>
-`;
-exports.enterPitchesHtmlen = `
-<p>There are a few ways to enter notes in Smoosic.  You can click on the piano widget keys, or you can enter notes directly from the keyboard.</p>
-<h2 id="your-first-smoosical-notes">Your first Smoosical notes</h2>
+exports.cardNotesHtmlEn = `
 <h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
-<p>The keys a-g on the computer keyboard will enter a corresponding note, A-G, on the staff (Most key commands in Smoosic have a mnemonic device).  The default behavior is for the cursor to advance when a note is entered in this way.  (Future behavior, auto-advance can be overridden). You navigate to the notes using the keyboard navigation arrows.</p>
+<p>Most key commands in Smoosic have a mnemonic device.  The keys <strong>a-g</strong> on the computer keyboard will enter a corresponding note, A-G, on the staff.  The default behavior is for the cursor to advance when a note is entered in this way.  This can be overridden in the &#39;Score Preferences&#39; dialog. You navigate to the notes using the keyboard navigation arrows.</p>
 <p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
-<p>You change the octave from the keyboard using the &#39;_&#39; and &#39;+&#39; (underscore, aka shift-minus, and plus), and change notes chromatically using &#39;-&#39; and &#39;=&#39; key.  The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the &#39;Shift-E&#39; (mnemonic: E for enharmonic - get it?).  And Shift-F gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
-<p><img src="https://imgur.com/1tC94sV.gif" alt=""></p>
-<p>You can create chords and intervals using the number keys along the top of the keyboard.  The &#39;3&#39; key makes a third, the &#39;4&#39; key a fourth, and so on.  Shift+number gives you the interval down.</p>
-<p><img src="https://imgur.com/IwoeWi3.gif" alt=""></p>
-<p>Note that the interval starts from the highest note in the chord, for intervals going up, and the lowest note in the chord, for intervals going down.  You can select individual pitches in the chord using &#39;Shift-Up Arrow&#39; as shown.  This is similar to how modifiers like dynamics are selected.  Once you have the pitch selected, you can change it using the up-down commands shows above, or change the enharmonic spelling.</p>
-<p>There is currently no way to remove a single pitch from the chord.  If you want to collapse the chord, just type a letter a-g on the keyboard, and it will be replaced with a single note.</p>
-<h3 id="notes-from-the-piano-tool">Notes from the piano tool</h3>
-<p>You can also add notes to your score with the piano tool, by clicking on the corresponding notes.</p>
-<p><img src="https://imgur.com/MOMlIg3.gif" alt=""></p>
-<p>Clicking on the piano gives the selected note the piano pitch.  The octave of the note is based on the clef, so for treble clef, the &#39;C&#39; is middle &#39;C&#39;.  You can change the octave of the note, and move the pitch up and down.  The top buttons affect the pitch, and the bottom buttons navigate or change the length of the note.  Clicking on the chord button acts like a &#39;sustain&#39; that puts additional notes in chords.</p>
-<p>Everything that can be done from the piano widget, and most things in Smoosic generally, can be done more efficiently with keyboard commands. Once you are comfortable with the computer keyboard, you can free up some screen real-estate by closing the piano widget (cross control in lower left).  You can bring it up again with the piano menu button on the left.</p>
 `;
-exports.workingWithTexten = `
-<h2 id="text-modes-in-smoosic">Text Modes in Smoosic</h2>
-<p>Working with text in Smoosic is slightly different experience than editing music notation.  While you are entering, moving. or resizing the text, normal navigation with the cursor keys and music entry is suspended, and only the text you are working with is fully visible.  There is a dialog box with a few limited options, such as exiting text-entry mode.  This is true of text block, lyrics, and chords.  Once you finish entering the text, you get a different dialog box similar to the one you can use to edit modifiers such as slurs, crescendos, etc.</p>
-<p><img src="https://imgur.com/EKDIUi5.png" alt=""></p>
-<h2 id="text-blocks">Text Blocks</h2>
-<p>Text blocks, also called &#39;Score text&#39; because it is not tied to a musical element, is free-form text that can be placed anywhere.  It can be used for titles, credits, etc.  It can also be set up for pagination using escape sequences. <strong>**</strong>  Unicode characters are also allowed.</p>
-<p>You create a text block by selecting the big &#39;T&#39; on the text ribbon, with the cursor symbol (diagram).  You enter the text as you like it (only a single line is supported right now, if you want multiple lines you have to stack them).  </p>
-<p><img src="https://imgur.com/kSMHoDl.png" alt=""></p>
-<h2 id="lyrics">Lyrics</h2>
-<p>Lyrics are entered by clicking on the lyrics button (do-re-mi).  Lyrics are entered per note.  When you hit space bar or - sign, the focus is advanced to the next note/lyric.  A &#39;-&#39; sign by itself in a lyric gives you a horizontal line.  When you want to leave lyric editing mode, just like other text entry modes, click on the &#39;Done editing&#39; button on the dialog. Note that the dialog can be moved around if it interferes with the music you are trying to edit.  (This is true of all dialog boxes in Smoosic.)  The final dialog box allows you to switch to a different verse.</p>
-<p><img src="https://imgur.com/FfKOUUQ.png" alt=""></p>
-<h2 id="chord-changes">Chord changes</h2>
-<p>Chord changes button is in the same ribbon group as lyrics, and the editing experience is pretty similar.  There are some magic key strokes:</p>
-<ul>
-<li>^ (shift-6) starts or ends superscript mode</li>
-<li>%  (shift-5) starts or ends subscript mode</li>
-<li>If you immediately follow subscript mode by superscript mode, the scripts are &#39;stacked&#39;.</li>
-<li>b, #, + , (, ) , &#39;/&#39; result in their respective symbols.</li>
-</ul>
-<p>Right now chord symbol entry is not too WYSIWYG - the actual chord rendering is done when the editing mode is done, which is a bit annoying.  I will be improving this as time goes on.</p>
-<p><img src="https://imgur.com/a2ldLDX" alt=""></p>`;
+exports.cardPitchesHtmlEn = `
+<h3 id="pitches-part-1">Pitches part 1</h3>
+<p>You change notes chromatically using <strong>-</strong> and <strong>=</strong> key.  You can change the octave using the <strong>_</strong> (underscore) and <strong>+</strong> (plus) keys.   The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the <strong>Shift+E</strong> (mnemonic: E for enharmonic - get it?).  And <strong>Shift+F</strong> gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
+<p><img src="https://imgur.com/1tC94sV.gif" alt=""></p>
+`;
+exports.cardPitches2HtmlEn = `
+<h3 id="pitches-part-2-chords">Pitches part 2 - Chords</h3>
+<p>You can create chords and intervals using the number keys along the top of the keyboard.  The <strong>3</strong> key makes a third, the <strong>4</strong> key a fourth, and so on.  <strong>Shift+3</strong> gives you the 3rd below.</p>
+<p>You can toggle selection to individual pitches by using <strong>Shift+UpArrow</strong>. So to create a G triad, starting with <strong>g</strong>, hit <strong>3</strong> for the &#39;B&#39;, <strong>3</strong> again for the &#39;D&#39;.  So far, we have G major.  To lower the 3rd, <strong>Shift+up</strong> to select the &#39;B&#39;, then <strong>-</strong> to lower the pitch.</p>
+<p><img src="https://imgur.com/NGXRJQZ.gif" alt=""></p>
+`;
+exports.cardDurationsHtmlEn = `
+<h3 id="duration">Duration</h3>
+<p>Changing duration is a little different in Smoosic than other programs.  Rather than selecting a duration (quarter note, etc.), you change (increase/decrease) the duration of existing notes.</p>
+<p>You can change the length of notes using the <strong>,</strong> and <strong>.</strong> (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 5/4 for the second dot, if you like to think of it that way) or remove a dot, using the <strong>&gt;</strong> (<strong>Shift+,</strong>) and <strong>,</strong>.  The mnemonic device for these is <strong>&gt;</strong> makes note duration greater. <strong>&lt;</strong>  makes note duration less.  (On most QWERTY keyboards, comma shifted is <strong>&lt;</strong> and period shifted is <strong>&gt;</strong>).</p>
+<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
+`;
+exports.cardDurations2HtmlEn = `
+<h3 id="duration-part-2-tuplets">Duration part 2: Tuplets</h3>
+<p>You can create tuplets from the keyboard by typing <strong>Ctrl+3</strong>, <strong>Ctrl+5</strong> or <strong>Ctrl+7</strong> for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys <strong>-</strong> (minus) and <strong>=</strong> (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by <strong>Ctrl+0</strong>.</p>
+<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>
+`;
+exports.cardSelectionsHtmlEn = ` <h3 id="selections-part-1">Selections part 1</h3>
+<h3 id="selections-part-1">Selections part 1</h3>
+<p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move left, <strong>←</strong> to move right.   <strong>Shift+→</strong> expands the selection left, etc. </p>
+<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
+<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.</p>
+<p>You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
+
+`;
+exports.cardSelections2HtmlEn = ` 
+<h3 id="selections-part-2-modifier-selections">Selections part 2: Modifier selections</h3>
+<p>A modifier is anythying that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
+<p>You can also select modifiers with the mouse.</p>
+<p>Once selected, you can bring up the modifier dialog by hitting &#39;Enter&#39;.</p>
+<p><img src="https://imgur.com/rhOyIKD.gif" alt=""></p>
+`;
+exports.cardToggleArticulationHtmlEn = `
+<h3 id="toggle-modifiers-articulations-">Toggle modifiers (articulations)</h3>
+<p>Some modifiers, such as articulations, aren&#39;t selectable.  The keys <strong>h</strong>, <strong>i</strong>, <strong>j</strong>, and <strong>k</strong> bring up articulations that aren&#39;t selectable, but are placed on the note automatically.  You can toggle position and on/off by repeating the key.</p>
+<p>Additional articulations are available from the of articulation button group.</p>
+<p>You can customize the articulations selected by the key bindings by changing the <code>ui/keyBindings/editorKeys.ts</code> file, or by providing your own bindings.  See the <code>custom-keybinding.html</code> example in the project.</p>
+<p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>
+`;
+exports.cardToggleBeamsAndStemsHtmlEn = `
+<h3 id="beams-and-stems-part-1-direction">Beams and Stems part 1: Direction</h3>
+<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.   </p>
+<p><img src="https://imgur.com/itUMVBF.gif" alt=""></p>
+`;
+exports.cardToggleBeamsAndStems2HtmlEn = `
+<h3 id="beams-and-stems-part-1-beam-groups">Beams and Stems part 1: Beam Groups</h3>
+<p>By default, notes are auto-beamed so that a 1/4 note is beamed.  So 1/8 notes in 4/4 time will be beamed in 2&#39;s, 16th notes in 4&#39;s etc.  In triple time (e.g. 6/8, 9/8), 1/8 notes are beamed in 3&#39;s.  You can change this default in the Score Preferences.</p>
+<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing &#39;Shift-X&#39;.  Only notes with 1/8 note duration or less can be beamed.</p>
+<p><img src="https://imgur.com/wZmXKq8.gif" alt=""></p>
+`;
 
 
 /***/ }),
@@ -53572,9 +53635,9 @@ SuiTimeSignatureMenu.defaults = {
 
 /***/ }),
 
-/***/ "./src/ui/qwerty.js":
+/***/ "./src/ui/qwerty.ts":
 /*!**************************!*\
-  !*** ./src/ui/qwerty.js ***!
+  !*** ./src/ui/qwerty.ts ***!
   \**************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -53584,44 +53647,47 @@ exports.Qwerty = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
+;
+;
 class Qwerty {
     static get navigationElements() {
-        var kbRows = [
+        const kbRows = [
             { row: '1234567890-=', shifted: '!@#$%^&*()_+' },
-            { row: 'QWERTYUIOP[]', shifted: 'QWERTYIOP{}' },
+            { row: 'QWERTYUIOP[]', shifted: 'QWERTYUIOP{}' },
             { row: "ASDFGHJKL;'", shifted: 'ASDFGHJKL:"' },
             { row: 'ZXCVBNM,./', shifted: 'ZXCVBNM<>?' }
         ];
-        var arrows = [
+        const arrows = [
             { icon: 'icon-arrow-left', text: '', shifted: '', classes: 'helpKey', dataKey: 'ArrowLeft' },
             { icon: 'icon-arrow-right', text: '', shifted: '', classes: 'helpKey', dataKey: 'ArrowRight' },
             { icon: '', text: 'Space', classes: 'wideKey', shifted: '', dataKey: 'Space' },
             { icon: 'icon-arrow-up', text: '', shifted: '', classes: 'helpKey', dataKey: 'ArrowUp' },
             { icon: 'icon-arrow-down', text: '', shifted: '', classes: 'helpKey', dataKey: 'ArrowDown' },
             { icon: '', text: 'Ins', shifted: '', classes: 'helpKey', dataKey: 'Insert' },
-            { icon: '', text: 'Del', shifted: '', classes: 'helpKey', dataKey: 'Delete' }
+            { icon: '', text: 'Del', shifted: '', classes: 'helpKey', dataKey: 'Delete' },
+            { icon: '', text: 'Enter', shifted: '', classes: 'wideKey', dataKey: 'Enter' }
         ];
-        var keyRows = {};
-        var labels = ['topNumbers', 'keys1', 'keys2', 'keys3', 'arrows'];
-        var j = 0;
+        let keyRows = {};
+        const labels = ['topNumbers', 'keys1', 'keys2', 'keys3', 'arrows'];
+        let j = 0;
         kbRows.forEach((kbRow) => {
             var str = kbRow.row;
             var shifted = kbRow.shifted;
             var keys = [];
             for (var i = 0; i < str.length; ++i) {
                 if (j === 2 && i === 0) {
-                    keys.push({ icon: '', text: 'Shift', classes: 'wideKey', dataKey: 'shift' });
+                    keys.push({ icon: '', text: 'Shift', shifted: '', classes: 'wideKey', dataKey: 'shift' });
                 }
                 if (j === 3 && i === 0) {
-                    keys.push({ icon: '', text: 'Ctrl', classes: 'wideKey', dataKey: 'ctrl' });
-                    keys.push({ icon: '', text: 'Alt', classes: 'helpKey', dataKey: 'alt' });
+                    keys.push({ icon: '', text: 'Ctrl', shifted: '', classes: 'wideKey', dataKey: 'ctrl' });
+                    keys.push({ icon: '', text: 'Alt', shifted: '', classes: 'helpKey', dataKey: 'alt' });
                 }
                 keys.push({ icon: '', text: str[i], shifted: shifted[i], classes: 'helpKey', dataKey: str[i] });
             }
-            keyRows[labels[j]] = { id: labels[j], rows: keys };
+            keyRows[labels[j]] = keys;
             j += 1;
         });
-        keyRows[labels[j]] = { id: labels[j], rows: arrows };
+        keyRows[labels[j]] = arrows;
         return keyRows;
     }
     static flashShift() {
@@ -53645,6 +53711,11 @@ class Qwerty {
         Qwerty.displayAll();
         $('#row-1').hide();
         $('#row-2').hide();
+    }
+    static displayForNav() {
+        Qwerty.displayAll();
+        $('#row-0').hide();
+        $('#row-1').hide();
     }
     static displayAll() {
         $('#row-0').show();
@@ -53682,6 +53753,9 @@ class Qwerty {
         if (evdata.code === 'Space') {
             Qwerty._flashButton('Space');
         }
+        if (evdata.code === 'Enter') {
+            Qwerty._flashButton('Enter');
+        }
         if (evdata.ctrlKey) {
             Qwerty._flashButton('ctrl');
         }
@@ -53698,7 +53772,7 @@ class Qwerty {
     static _kbButton(buttons) {
         var b = htmlHelpers_1.buildDom;
         var r = b('span').classes('keyContainer');
-        buttons.rows.forEach((button) => {
+        buttons.forEach((button) => {
             var text = button.text;
             var shiftedText = button.shifted ? button.shifted : text;
             r.append(b('span').classes(button.icon + ' ' + button.classes)
@@ -53715,19 +53789,26 @@ class Qwerty {
         return r;
     }
     static _buildElements(rows) {
-        var b = htmlHelpers_1.buildDom;
-        var r = b('div').classes('buttonLine')
+        const b = htmlHelpers_1.buildDom;
+        const r = b('div').classes('buttonLine')
             .append(b('span').classes('icon icon-move'));
-        var keys = Object.keys(rows);
-        var rowIx = 0;
-        keys.forEach((key) => {
-            var row = rows[key];
+        const keys = Object.keys(rows);
+        keys.forEach((key, rowIx) => {
+            const row = rows[key];
             r.append(Qwerty._buttonBlock(row, 'row-' + rowIx));
-            rowIx += 1;
         });
         return r;
     }
+    static hideKb() {
+        $('body').removeClass('showQwerty');
+        Qwerty.displayed = false;
+    }
     static displayKb() {
+        if (Qwerty.created) {
+            $('body').addClass('showQwerty');
+            Qwerty.displayed = true;
+            return;
+        }
         (0, htmlHelpers_1.createTopDomContainer)('.qwertyKb');
         $('body').addClass('showQwerty');
         $('.qwertyKb').html('');
@@ -53737,16 +53818,21 @@ class Qwerty {
         $('.qwertyKb').append(r.dom());
         var cb = function (x, y) { };
         (0, htmlHelpers_1.createTopDomContainer)('.draganime');
-        draggable({
+        (0, htmlHelpers_1.draggable)({
             parent: $('.qwertyKb'),
             handle: $('.qwertyKb').find('.icon-move'),
             animateDiv: '.draganime',
             cb: cb,
             moveParent: true
         });
+        Qwerty.displayed = true;
+        Qwerty.created = true;
     }
 }
 exports.Qwerty = Qwerty;
+Qwerty._shiftTime = 0;
+Qwerty.displayed = false;
+Qwerty.created = false;
 
 
 /***/ }),
@@ -56066,7 +56152,11 @@ exports.createLoadTests = createLoadTests;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -56086,6 +56176,7 @@ __exportStar(__webpack_require__(/*! ./src/common/promiseHelpers */ "./src/commo
 __exportStar(__webpack_require__(/*! ./src/common/htmlHelpers */ "./src/common/htmlHelpers.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/audio/oscillator */ "./src/render/audio/oscillator.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/audio/player */ "./src/render/audio/player.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/audio/samples */ "./src/render/audio/samples.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/configuration */ "./src/render/sui/configuration.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/formatter */ "./src/render/sui/formatter.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts"), exports);
@@ -56097,6 +56188,7 @@ __exportStar(__webpack_require__(/*! ./src/render/sui/scoreView */ "./src/render
 __exportStar(__webpack_require__(/*! ./src/render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/scroller */ "./src/render/sui/scroller.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/svgPageMap */ "./src/render/sui/svgPageMap.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/textEdit */ "./src/render/sui/textEdit.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/textRender */ "./src/render/sui/textRender.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/render/sui/tracker */ "./src/render/sui/tracker.ts"), exports);
@@ -56186,11 +56278,14 @@ __exportStar(__webpack_require__(/*! ./src/ui/dialogs/slur */ "./src/ui/dialogs/
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/tempo */ "./src/ui/dialogs/tempo.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/textBlock */ "./src/ui/dialogs/textBlock.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/textBracket */ "./src/ui/dialogs/textBracket.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/tie */ "./src/ui/dialogs/tie.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/timeSignature */ "./src/ui/dialogs/timeSignature.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/dialogs/volta */ "./src/ui/dialogs/volta.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/eventSource */ "./src/ui/eventSource.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/fileio/fileInput */ "./src/ui/fileio/fileInput.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/fileio/library */ "./src/ui/fileio/library.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/i18n/language */ "./src/ui/i18n/language.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts"), exports);

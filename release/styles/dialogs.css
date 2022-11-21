@@ -198,11 +198,13 @@ body.showAttributeDialog .attributeDialog {
 
 .attributeModal {
 	position:absolute;
-    width:380px;
+  width:380px;
 	background: #fff;
 	border-style: groove;
 	border-width: 2px;
-	border-color: #9ac;
+  border-color: rgba(156, 192, 240, 0.4);
+  box-shadow: 9px 9px 9px rgba(127, 127, 127, 0.4);
+  border-radius: 4px;
 	padding: 3px;
 }
 
@@ -556,15 +558,59 @@ body.showHelpDialog .helpDialog {
   overflow:auto;
 	margin: 8px;
 	padding: 10px;
-	border: 1px dashed #334;
   position: absolute;
   top:0;
   left: 0;
   z-index: 10;
   max-width: 350px;
-	/* border-radius: 5px; */
+  min-width: 350px;
+  user-select: none;
+	border-radius: 5px;
 }
 
+.helpDialog.card-view .help-category-button {
+  display: none;
+}
+.helpDialog .helpLine strong {
+  background: rgba(128,216,128);
+  font-size: 1.3em;
+  padding: 0 3px;
+}
+.helpDialog.card-view {
+  box-shadow: 0 0 9px rgba(127, 127, 127, 0.3);
+}
+.helpDialog.card-view .helpLine.hide {
+  display: none;
+}
+.helpDialog.card-view .helpLine button.prev-topic {
+  position: absolute;
+  left:5px;
+  bottom: 5px;
+  text-align: right;
+}
+.helpDialog.card-view .helpLine button {
+  border-radius: 4px;
+  width: 120px;
+}
+.helpDialog.card-view .helpLine button.next-topic {
+  position: absolute;
+  right:5px;
+  bottom: 5px;
+  text-align: left;
+}
+.helpDialog.card-view .helpLine button.next-topic span.icon {
+  position: absolute;
+  right: 2px;
+}
+.helpDialog.card-view .helpLine button.prev-topic span.icon {
+  position: absolute;
+  left: 2px;
+}
+body.showHelpDialog .helpDialog button.close {
+  position: absolute;
+  right: 5px;
+  color: red;
+}
 .workspace {
   overflow:none;
 }
@@ -593,15 +639,17 @@ body.showHelpDialog .helpDialog {
 .helpLine.showSection .help-content {
 	display:block;
 }
-.helpLine.showSection .help-content img {
+.helpLine.showSection .help-content img, 
+.helpDialog.card-view  .help-content img{
   width: 300px;
+  margin-left: 25px;
+  border: 1px solid black;
 }
 .helpLine.showSection .help-category-text {
   display:none;
 }
 
-
-.helpLine .help-content {
+.helpDialog.display-all .helpLine .help-content {
   display:none;
 }
 
