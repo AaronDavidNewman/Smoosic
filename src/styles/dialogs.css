@@ -562,9 +562,15 @@ body.showHelpDialog .helpDialog {
   left: 0;
   z-index: 10;
   max-width: 350px;
+  user-select: none;
 	/* border-radius: 5px; */
 }
 
+body.showHelpDialog .helpDialog button.close {
+  position: absolute;
+  right: 5px;
+  color: red;
+}
 .workspace {
   overflow:none;
 }

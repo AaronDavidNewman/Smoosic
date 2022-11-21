@@ -6,14 +6,15 @@ declare var $: any;
 
 export interface HtmlHelpBlock {
   title: string,
-  html: string
+  html: string,
+  index: number
 }
 export class SuiHelp {
   static displayHelp() {
     $('body').addClass('showHelpDialog');
     $('.helpDialog').html('');
     $('.helpDialog').append(SuiHelp.closeButton.dom());
-    SuiHelp.helpHtml.forEach((cat) => {
+    SuiHelp.helpHtml.forEach((cat, catIx) => {
       const r = SuiHelp._buildElements(cat);
       $('.helpDialog').append(r.dom());
     });
@@ -48,7 +49,7 @@ export class SuiHelp {
 
   static _buildElements(helps: HtmlHelpBlock) {
     const b = buildDom;
-    const r = b('div').classes('helpLine')
+    const r = b('div').classes('helpLine').attr('data-index', helps.index.toString())
       .append(b('div').classes('help-category-button')
         .append(b('button')
           .append(b('span').classes('icon icon-plus')).classes('help-title')
@@ -59,7 +60,7 @@ export class SuiHelp {
   }
 
   static get helpHtml() {
-    return [
+    const cards = [
       { title: 'Keys', html: SmoLanguage.getHelpFile('cardKeysHtml') },
       { title: 'Entering Notes', html: SmoLanguage.getHelpFile('cardNotesHtml') },
       { title: 'Changing Pitches', html: SmoLanguage.getHelpFile('cardPitchesHtml') },
@@ -70,6 +71,12 @@ export class SuiHelp {
       { title: 'Selecting things - modifiers', html: SmoLanguage.getHelpFile('cardSelections2Html') },
       { title: 'Articulations', html: SmoLanguage.getHelpFile('cardToggleArticulationHtml') },
       { title: 'Beams and Stems', html: SmoLanguage.getHelpFile('cardToggleBeamsAndStemsHtml') },
-      { title: 'Beams and Stems 2', html: SmoLanguage.getHelpFile('cardToggleBeamsAndStems2Html') },    ];
+      { title: 'Beams and Stems 2', html: SmoLanguage.getHelpFile('cardToggleBeamsAndStems2Html') },    
+    ];
+    const blocks: HtmlHelpBlock[] = [];
+    cards.forEach((card, cardIx) => {
+      blocks.push({ index: cardIx, ...card});
+    });
+    return blocks;
   }
 }

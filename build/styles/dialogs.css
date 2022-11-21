@@ -549,6 +549,7 @@ body.splashScreen .bugDialog {
 /* change did not get propogated */
 body.showHelpDialog .helpDialog {
 	display:flex;
+  overflow: hidden;
 	background: #eef;
   flex: 1 0 100%;
   flex-flow:column wrap;
@@ -561,14 +562,17 @@ body.showHelpDialog .helpDialog {
   left: 0;
   z-index: 10;
   max-width: 350px;
+  user-select: none;
 	/* border-radius: 5px; */
 }
 
+body.showHelpDialog .helpDialog button.close {
+  position: absolute;
+  right: 5px;
+  color: red;
+}
 .workspace {
   overflow:none;
-}
-body.showHelpDialog .workspace {
-  overflow:auto;
 }
 
 .helpLine {
