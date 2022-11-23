@@ -353,6 +353,8 @@ export class VxMeasure {
         vexNote.setStyle({ fillStyle: smoNote.fillStyle });
       } else if (voiceIx > 0 && !this.printing) {
         vexNote.setStyle({ fillStyle: "#115511" });
+      } else if (smoNote.hidden && this.printing) {
+        vexNote.setStyle({ fillStyle: "#ffffff00" });
       }
       smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
     }
