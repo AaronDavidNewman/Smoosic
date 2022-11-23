@@ -36,8 +36,8 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
 export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'proportionality' | 'padLeft' | 'measureIndex';
 export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
   ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
-export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem' | 'restBreak' | 'forceRest';
-export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
+export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'skipMeasureCount' | 'pageBreak' | 'padAllInSystem' | 'restBreak' | 'forceRest';
+export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify','skipMeasureCount', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
 
 /**
  * Constructor parameter for measure formatting object
@@ -58,6 +58,7 @@ export interface SmoMeasureFormatParams {
   pageBreak: boolean | null,
   restBreak: boolean | null,
   forceRest: boolean | null,
+  skipMeasureCount: boolean | null,
   padLeft: number | null,
   padAllInSystem: boolean | null,
   measureIndex: number | null,
@@ -79,10 +80,11 @@ export interface ISmoMeasureFormatMgr {
  */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
-    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak', 'forceRest'];
+    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 
+    'padLeft', 'measureIndex', 'padAllInSystem', 'skipMeasureCount', 'restBreak', 'forceRest'];
   }
   static get formatAttributes() {
-    return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+    return ['customStretch', 'skipMeasureCount', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
   }
   static get defaultProportionality() {
     return 0;
@@ -113,6 +115,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       forceRest: false,
       padLeft: 0,
       padAllInSystem: true,
+      skipMeasureCount: false,
       autoJustify: true,
       measureIndex: 0,
     }));
@@ -122,6 +125,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   systemBreak: boolean = false;
   pageBreak: boolean = false;
   restBreak: boolean = false;
+  skipMeasureCount: boolean = false;
   forceRest: boolean = false;
   padLeft: number = 0;
   padAllInSystem: boolean = true;

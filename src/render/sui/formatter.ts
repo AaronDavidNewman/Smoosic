@@ -170,11 +170,15 @@ export class SuiLayoutFormatter {
     // Keep running tab of accidental widths for justification
     const contextMap: Record<number, SuiTickContext> = {};
     let forceClefCount = 0;
+    let measureToSkip = false;
     measures.forEach((measure) => {
       SmoBeamer.applyBeams(measure);
       voiceCount += measure.voices.length;
       if (measure.isPickup()) {
         isPickup = true;
+      }
+      if (measure.format.skipMeasureCount) {
+        measureToSkip = true;
       }
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
@@ -260,7 +264,7 @@ export class SuiLayoutFormatter {
     const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
     const unalignedPad = unalignedPadding * unalignedCtxCount;
     let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
-    if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
+    if (scoreLayout.maxMeasureSystem > 0 && !isPickup && !measureToSkip) {
       // Add 1 because there is some overhead in each measure, 
       // so there can never be (width/max) measures in the system
       const defaultWidth = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1));

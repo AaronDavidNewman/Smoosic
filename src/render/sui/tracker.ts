@@ -71,10 +71,16 @@ export class SuiTracker extends SuiMapper {
   getIdleTime(): number {
     return this.idleTimer;
   }
-  clearMusicCursor() {
-    const ell = document.getElementById('vf-music-cursor');
-    if (ell) {
-      ell.remove();
+  clearMusicCursor(delay: number) {
+    if (delay < 1) {
+      const ell = document.getElementById('vf-music-cursor');
+      if (ell) {
+        ell.remove();
+      }
+    } else {
+      setTimeout(() => {
+        this.clearMusicCursor(0);
+      }, delay);
     }
   }
 
@@ -101,7 +107,9 @@ export class SuiTracker extends SuiMapper {
       botBox.y -= context.box.y;
       const height = (botBox.y + botBox.height) - topBox.y;
       const measureWidth = botBox.width - measure.svg.adjX;
-      const width = measureWidth * durationPct;
+      const nhWidth = 10 / this.score.layoutManager!.getGlobalLayout().svgScale;
+      let width = measureWidth * durationPct - 10 / this.score.layoutManager!.getGlobalLayout().svgScale;
+      width = Math.max(nhWidth, width);
       const y = topBox.y;
       let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
       const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
@@ -113,7 +121,7 @@ export class SuiTracker extends SuiMapper {
       fillParams['fill-opacity'] = '0.5';
       fillParams['fill'] = '#4444ff';
       const ctx = context.getContext();
-      this.clearMusicCursor();
+      this.clearMusicCursor(0);
       ctx.save();
       ctx.openGroup('music-cursor', 'music-cursor');
       ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);

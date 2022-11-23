@@ -144,7 +144,7 @@ export class SuiAudioPlayer {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
       a.paused = true;
-      a.tracker.clearMusicCursor();
+      a.tracker.clearMusicCursor(0);
     }
     SuiAudioPlayer.playing = false;
 
@@ -361,18 +361,20 @@ export class SuiAudioPlayer {
   playSounds() {
     this.cuedSounds.playMeasureIndex = 0;
     this.cuedSounds.playWaitTimer = 0;
+    let previousDuration = 0;
     const timer = () => {
       setTimeout(() => {
         const cuedSound = this.cuedSounds.advanceHead();
         if (cuedSound === null) {
           SuiAudioPlayer._playing = false;
-          this.tracker.clearMusicCursor();
+          this.tracker.clearMusicCursor(previousDuration);
           return;
         }
         if (SuiAudioPlayer._playing === false) {
-          this.tracker.clearMusicCursor();
+          this.tracker.clearMusicCursor(previousDuration);
           return;
         }
+        previousDuration = cuedSound.oscs[0].duration;
         SuiAudioPlayer._playChord(cuedSound.oscs);
         this.tracker.musicCursor(cuedSound.selector,
           cuedSound.offsetPct, cuedSound.durationPct);
@@ -430,7 +432,7 @@ export class SuiAudioPlayer {
   static stopPlayer() {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
-      a.tracker.clearMusicCursor();
+      a.tracker.clearMusicCursor(0);
       a.paused = false;
       a.cuedSounds.reset();
     }

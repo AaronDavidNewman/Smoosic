@@ -48,6 +48,12 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
     }
     this.writeNumber('padLeft', value);
   }
+  get skipMeasureCount() {
+    return this.format.skipMeasureCount;
+  }
+  set skipMeasureCount(value: boolean) {
+    this.writeBoolean('skipMeasureCount', value);
+  }
   get forceRest() {
     return this.format.forceRest;
   }
@@ -128,6 +134,10 @@ export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapt
             smoName: 'forceRest',
             control: 'SuiToggleComponent',
             label: 'Force Multimeasure Rest'
+          },  {
+            smoName: 'skipMeasureCount',
+            control: 'SuiToggleComponent',
+            label: 'Skip in max measure count'
           }, {
             smoName: 'systemBreak',
             control: 'SuiToggleComponent',
