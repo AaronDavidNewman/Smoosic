@@ -605,6 +605,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const nextNote = SmoNote.defaults;
       nextNote.pitches = [JSON.parse(JSON.stringify(pitch))];
       nextNote.noteType = 'r';
+      nextNote.clef = clef;
       nextNote.ticks.numerator = noteTick;
       pnotes.push(new SmoNote(nextNote));
       ticks += noteTick;

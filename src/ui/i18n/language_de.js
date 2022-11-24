@@ -1095,52 +1095,6 @@ export const smoLanguageStringDe = `{
             ]
         },
         {
-            "ctor": "SuiStaffMenu",
-            "label": "Notenschlüssel",
-            "menuItems": [
-                {
-                    "icon": "treble",
-                    "text": "Violinschlüssel",
-                    "value": "trebleInstrument"
-                },
-                {
-                    "icon": "bass",
-                    "text": "Basschlüssel",
-                    "value": "bassInstrument"
-                },
-                {
-                    "icon": "alto",
-                    "text": "Altschlüssel",
-                    "value": "altoInstrument"
-                },
-                {
-                    "icon": "tenor",
-                    "text": "Tenorschlüssel",
-                    "value": "tenorInstrument"
-                },
-                {
-                    "icon": "percussion",
-                    "text": "Percussion Clef Staff",
-                    "value": "percussionInstrument"
-                },
-                {
-                    "icon": "",
-                    "text": "Staff Groups",
-                    "value": "staffGroups"
-                },
-                {
-                    "icon": "cancel-circle",
-                    "text": "Notenschlüssel entfernen",
-                    "value": "remove"
-                },
-                {
-                    "icon": "",
-                    "text": "Cancel",
-                    "value": "cancel"
-                }
-            ]
-        },
-        {
             "ctor": "SuiKeySignatureMenu",
             "label": "Tonlage",
             "menuItems": [

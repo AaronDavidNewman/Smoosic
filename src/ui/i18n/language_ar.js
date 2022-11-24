@@ -1095,52 +1095,6 @@ export const smoLanguageStringAr = `{
       ]
      },
      {
-      "ctor": "SuiStaffMenu",
-      "label": "المفاتيح",
-      "menuItems": [
-       {
-        "icon": "treble",
-        "text": "طاقم التريبل مفتاح",
-        "value": "trebleInstrument"
-       },
-       {
-        "icon": "bass",
-        "text": "طاقم باس كلف",
-        "value": "bassInstrument"
-       },
-       {
-        "icon": "alto",
-        "text": "طاقم ألتو مفتاح",
-        "value": "altoInstrument"
-       },
-       {
-        "icon": "tenor",
-        "text": "طاقم تينور مفتاح",
-        "value": "tenorInstrument"
-       },
-       {
-        "icon": "percussion",
-        "text": "Percussion Clef Staff",
-        "value": "percussionInstrument"
-       },
-       {
-        "icon": "",
-        "text": "Staff Groups",
-        "value": "staffGroups"
-       },
-       {
-        "icon": "cancel-circle",
-        "text": "حذف الطواقم",
-        "value": "remove"
-       },
-       {
-        "icon": "",
-        "text": "إلغاء",
-        "value": "cancel"
-       }
-      ]
-     },
-     {
       "ctor": "SuiKeySignatureMenu",
       "label": "الدليل",
       "menuItems": [

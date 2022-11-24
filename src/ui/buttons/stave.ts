@@ -1,6 +1,5 @@
 import { SuiButton, SuiButtonParams } from './button';
 import { SmoInstrument } from '../../smo/data/staffModifiers';
-import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { Clef } from '../../smo/data/common';
 
 declare var $: any;

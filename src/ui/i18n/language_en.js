@@ -1093,53 +1093,7 @@ export const smoLanguageStringEn = `{
         "value": "cancel"
        }
       ]
-     },
-     {
-      "ctor": "SuiStaffMenu",
-      "label": "Add Staff",
-      "menuItems": [
-       {
-        "icon": "treble",
-        "text": "Treble Clef Staff",
-        "value": "trebleInstrument"
-       },
-       {
-        "icon": "bass",
-        "text": "Bass Clef Staff",
-        "value": "bassInstrument"
-       },
-       {
-        "icon": "alto",
-        "text": "Alto Clef Staff",
-        "value": "altoInstrument"
-       },
-       {
-        "icon": "tenor",
-        "text": "Tenor Clef Staff",
-        "value": "tenorInstrument"
-       },
-       {
-        "icon": "percussion",
-        "text": "Percussion Clef Staff",
-        "value": "percussionInstrument"
-       },
-       {
-        "icon": "",
-        "text": "Staff Groups",
-        "value": "staffGroups"
-       },
-       {
-        "icon": "cancel-circle",
-        "text": "Remove Staff",
-        "value": "remove"
-       },
-       {
-        "icon": "",
-        "text": "Cancel",
-        "value": "cancel"
-       }
-      ]
-     },
+     },     
      {
       "ctor": "SuiKeySignatureMenu",
       "label": "Key",
@@ -1555,17 +1509,21 @@ export const smoLanguageStringEn = `{
    }`;
 
 export var cardKeysHtmlEn = `
-
-    <h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
-<p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.  </p>
-<p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.</p>
-<p><img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
+<h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
+<p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.</p>
+<p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.
+<img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
 `;
 
 export var cardNotesHtmlEn = `
 <h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
 <p>Most key commands in Smoosic have a mnemonic device.  The keys <strong>a-g</strong> on the computer keyboard will enter a corresponding note, A-G, on the staff.  The default behavior is for the cursor to advance when a note is entered in this way.  This can be overridden in the &#39;Score Preferences&#39; dialog. You navigate to the notes using the keyboard navigation arrows.</p>
 <p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
+<p>Some conventions used in this documentation: </p>
+<p>Keystrokes are specified in <strong>bold</strong>, e.g. <strong>x</strong> means the &#39;x&#39; key.  <strong>Shift+E</strong> means to press the <strong>Shift</strong> and <strong>E</strong> keys at the same time.</p>
+<p>Key sequences are specified on their own line:</p>
+<p><strong>/</strong> <strong>a</strong></p>
+<p>means to press the <strong>/</strong> key followed by the <strong>a</strong> key.</p>
 `;
 
 export const cardPitchesHtmlEn = `
@@ -1581,6 +1539,8 @@ export const cardPitches2HtmlEn = `
 <p><img src="https://imgur.com/NGXRJQZ.gif" alt=""></p>
 `;
 
+export const cardPitches3HtmlEn = `
+`
 export const cardDurationsHtmlEn = `
 <h3 id="duration">Duration</h3>
 <p>Changing duration is a little different in Smoosic than other programs.  Rather than selecting a duration (quarter note, etc.), you change (increase/decrease) the duration of existing notes.</p>

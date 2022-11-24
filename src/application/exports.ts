@@ -97,8 +97,6 @@ import { SuiFileMenu } from '../ui/menus/file';
 import { SuiLanguageMenu } from '../ui/menus/language';
 import { SmoLanguage, SmoTranslator } from '../ui/i18n/language';
 import { SuiMeasureMenu } from '../ui/menus/measure';
-import { SuiStaffMenu } from '../ui/menus/staff';
-
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { PromiseHelpers } from '../common/promiseHelpers';
 // render library
@@ -160,7 +158,7 @@ export const Smo = {
     // Menus
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
+    SuiLanguageMenu, SuiMeasureMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiTextBracketDialog,

@@ -135,7 +135,6 @@ export * from './src/ui/menus/measure';
 export * from './src/ui/menus/menu';
 export * from './src/ui/menus/parts';
 export * from './src/ui/menus/score';
-export * from './src/ui/menus/staff';
 export * from './src/ui/menus/staffModifier';
 export * from './src/ui/menus/timeSignature';
 export * from './src/ui/ribbonLayout/default/defaultRibbon';

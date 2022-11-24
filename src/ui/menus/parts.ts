@@ -4,6 +4,7 @@ import { SuiScoreViewDialog } from '../dialogs/scoreView';
 import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { SuiPartInfoDialog } from '../dialogs/partInfo';
 import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
+import { SuiNewPartDialog } from '../dialogs/newPart';
 declare var $: any;
 
 export class SuiPartMenu extends SuiMenuBase {
@@ -15,7 +16,11 @@ export class SuiPartMenu extends SuiMenuBase {
     menuItems: [
       {
         icon: '',
-        text: 'View Part',
+        text: 'Create New Part',
+        value: 'createPart'
+      }, {
+        icon: '',
+        text: 'Part Properties',
         value: 'editPart'
       },  {
         icon: '',
@@ -23,7 +28,7 @@ export class SuiPartMenu extends SuiMenuBase {
         value: 'pageLayout'
       }, {
         icon: '',
-        text: 'View Parts/Staves',
+        text: 'View Partial Score',
         value: 'view'
       }, {
         icon: '',
@@ -42,6 +47,20 @@ export class SuiPartMenu extends SuiMenuBase {
   };
   getDefinition() {
     return SuiPartMenu.defaults;
+  }
+  createPart() {
+    createAndDisplayDialog(SuiNewPartDialog,
+      {
+        completeNotifier: this.completeNotifier!,
+        view: this.view,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'newPartDialog',
+        ctor: 'SuiNewPartDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
+      });
   }
   execView() {
     createAndDisplayDialog(SuiScoreViewDialog,
@@ -149,6 +168,9 @@ export class SuiPartMenu extends SuiMenuBase {
       this.complete();
     } else if (op === 'view') {
       this.execView();
+      this.complete();
+    } else if (op === 'createPart') {
+      this.createPart();
       this.complete();
     } else if (op === 'editPart') {
       this.editPart();

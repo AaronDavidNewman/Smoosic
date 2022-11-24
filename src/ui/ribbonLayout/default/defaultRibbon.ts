@@ -10,7 +10,8 @@ export class defaultRibbonLayout {
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
       .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
       .concat(defaultRibbonLayout.durationIds)
-      .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
+      .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
+      .concat(defaultRibbonLayout.staveIds)
       .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
       .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
@@ -72,7 +73,11 @@ export class defaultRibbonLayout {
   static get measureIds() {
     return ['MeasureButtons', 'endRepeat', 'startRepeat', 'endBar', 'doubleBar', 'singleBarEnd', 'singleBarStart', 'nthEnding', 'dcAlCoda', 'dsAlCoda', 'dcAlFine', 'dsAlFine', 'coda', 'toCoda', 'segno', 'toSegno', 'fine'];
   }
-
+  static get staveIds() {
+    return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
+      'clefTenor', 'clefAlto', 'clefPercussion',
+      'staffBracketLower', 'staffBraceLower', 'staffDoubleConnectorLower', 'staffSingleConnectorLower'];
+  }
   static get textIds() {
     return ['TextButtons', 'addTextMenu', 'rehearsalMark', 'lyrics', 'chordChanges', 'addDynamicsMenu'];
   }
@@ -80,12 +85,6 @@ export class defaultRibbonLayout {
   static get beamIds() {
     return ['BeamButtons', 'breakBeam', 'beamSelections', 'toggleBeamDirection'];
   }
-  static get staveIds() {
-    return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
-      'clefTenor', 'clefAlto', 'clefPercussion',
-      'staffBracketLower', 'staffBraceLower', 'staffDoubleConnectorLower', 'staffSingleConnectorLower'];
-  }
-
   static get playerIds() {
     return ['playerButtons', 'playButton', 'pauseButton', 'stopButton'];
   }
@@ -330,16 +329,7 @@ export class defaultRibbonLayout {
       ctor: 'StaveButtons',
       group: 'staves',
       id: 'clefBass'
-    }, {
-      leftText: '',
-      rightText: '',
-      classes: 'icon  collapsed staves',
-      icon: 'icon-plus',
-      action: 'collapseChildMenu',
-      ctor: 'SuiStaffMenu',
-      group: 'staves',
-      id: 'clefAddRemove'
-    },
+    }, 
     {
       leftText: '',
       rightText: '',
@@ -1572,16 +1562,7 @@ export class defaultRibbonLayout {
       ctor: 'SuiPartMenu',
       group: 'scoreEdit',
       id: 'instrumentMenu'
-    }, {
-      leftText: 'Staves',
-      rightText: '/s',
-      icon: '',
-      classes: 'staff-modify',
-      action: 'menu',
-      ctor: 'SuiStaffMenu',
-      group: 'scoreEdit',
-      id: 'addStaffMenu'
-    },
+    }, 
     {
       leftText: 'Measure',
       rightText: '/a',

@@ -1577,42 +1577,7 @@
      "text": "Cancel"
     }
    ]
-  },
-  {
-   "ctor": "SuiStaffMenu",
-   "label": "Notenschlüssel",
-   "options": {},
-   "menuItems": [
-    {
-     "value": "trebleInstrument",
-     "text": "Violinschlüssel"
-    },
-    {
-     "value": "bassInstrument",
-     "text": "Basschlüssel"
-    },
-    {
-     "value": "altoInstrument",
-     "text": "Altschlüssel"
-    },
-    {
-     "value": "tenorInstrument",
-     "text": "Tenorschlüssel"
-    },
-    {
-     "value": "percussionInstrument",
-     "text": "Percussion Clef Staff"
-    },
-    {
-     "value": "remove",
-     "text": "Notenschlüssel entfernen"
-    },
-    {
-     "value": "cancel",
-     "text": "Cancel"
-    }
-   ]
-  },
+  },  
   {
    "ctor": "SuiStaffModifierMenu",
    "label": "Lines",

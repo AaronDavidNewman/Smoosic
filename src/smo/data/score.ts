@@ -844,7 +844,7 @@ export class SmoScore {
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
       const measure: SmoMeasure = proto.measures[i];
-      const newMeasure = SmoMeasure.deserialize(measure.serialize());
+      let newMeasure = SmoMeasure.deserialize(measure.serialize());
       newMeasure.measureNumber = measure.measureNumber;
       newMeasure.clef = parameters.measureInstrumentMap[0].clef as Clef;
       newMeasure.modifiers = [];

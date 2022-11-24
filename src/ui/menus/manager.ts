@@ -10,9 +10,8 @@ import { SuiTracker } from '../../render/sui/tracker';
 import { CompleteNotifier, ModalComponent } from '../common';
 import { BrowserEventSource, EventHandler } from '../eventSource';
 import { KeyBinding } from '../../application/common';
-
+import { Qwerty } from '../qwerty';
 import { SuiMenuBase, SuiMenuParams } from './menu';
-import { TimeSignature } from '../../../release/smoosic';
 declare var $: any;
 
 export interface SuiMenuManagerParams {
@@ -99,13 +98,6 @@ export class SuiMenuManager {
         altKey: false,
         shiftKey: false,
         action: 'SuiDynamicsMenu'
-      }, {
-        event: 'keydown',
-        key: 's',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiStaffMenu'
       }, {
         event: 'keydown',
         key: 'f',
@@ -258,6 +250,7 @@ export class SuiMenuManager {
   // We have taken over menu commands from controller.  If there is a menu active, send the key
   // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
   evKey(event: any) {
+    Qwerty.handleKeyEvent(event);
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }

@@ -170,7 +170,6 @@ export class SmoTranslator {
       'SuiMeasureMenu',
       'SuiPartMenu',
       'SuiScoreMenu',
-      'SuiStaffMenu',
       'SuiStaffModifierMenu',
       'SuiTimeSignatureMenu',
     ];
