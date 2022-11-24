@@ -28,9 +28,12 @@ import { RibbonButtons } from '../ui/buttons/ribbon';
 import { simpleRibbonLayout } from '../ui/ribbonLayout/default/tabletRibbon';
 import { SimpleEventHandler, ModalEventHandler } from './common';
 // Language strings
-import { cardKeysHtmlEn, cardNotesHtmlEn, cardPitchesHtmlEn, cardPitches2HtmlEn, cardDurationsHtmlEn, cardDurations2HtmlEn,
-  cardSelectionsHtmlEn, cardSelections2HtmlEn, cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn } from '../ui/i18n/language_en';
-import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
+import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
+  cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
+  cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
+  cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
+  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+} from '../ui/i18n/language_en';
 
 // ui dialogs and menus
 // Dialogs
@@ -217,11 +220,13 @@ export const Smo = {
     // Smo Transformers
     SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap
-    // strings
-    cardKeysHtmlEn, cardNotesHtmlEn, cardPitchesHtmlEn, cardPitches2HtmlEn, cardDurationsHtmlEn, cardDurations2HtmlEn,
-  cardSelectionsHtmlEn, cardSelections2HtmlEn, cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn,
-    quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar
-    ,getClass,
+    // help strings
+    cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
+      cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
+      cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
+      cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
+      cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn,
+      getClass,
     createLoadTests,
     // utilities
     buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer

@@ -92,8 +92,8 @@ export class SuiHelp {
         .append(b('button')
           .append(b('span').classes('icon icon-plus')).classes('help-title')
           .append(b('span').classes('help-category-text').text(helps.title))))
-      .append(b('h3').text(helps.title))          
-      .append(b('div').classes('help-content').html(helps.html))      
+          .append(b('h3').text(helps.title)) 
+          .append(b('div').classes('help-content').html(helps.html))
       .append(b('div').classes('button-container')
         .append(b('button').classes('prev-topic')
           .append(b('span').classes('icon icon-arrow-left'))
@@ -105,18 +105,29 @@ export class SuiHelp {
   }
 
   static get helpHtml() {
+    /* [cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
+  cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
+  cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
+  cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
+  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+]; */
     const cards = [
       { title: 'Keys', html: SmoLanguage.getHelpFile('cardKeysHtml') },
-      { title: 'Entering Notes', html: SmoLanguage.getHelpFile('cardNotesHtml') },
-      { title: 'Changing Pitches', html: SmoLanguage.getHelpFile('cardPitchesHtml') },
-      { title: 'Changing Pitches 2', html: SmoLanguage.getHelpFile('cardPitches2Html') },
-      { title: 'Changing Duration', html: SmoLanguage.getHelpFile('cardDurationsHtml') },
-      { title: 'Changing Duration 2', html: SmoLanguage.getHelpFile('cardDurations2Html') },
-      { title: 'Selecting things - notes', html: SmoLanguage.getHelpFile('cardSelectionsHtml') },
-      { title: 'Selecting things - modifiers', html: SmoLanguage.getHelpFile('cardSelections2Html') },
-      { title: 'Articulations', html: SmoLanguage.getHelpFile('cardToggleArticulationHtml') },
-      { title: 'Beams and Stems', html: SmoLanguage.getHelpFile('cardToggleBeamsAndStemsHtml') },
-      { title: 'Beams and Stems 2', html: SmoLanguage.getHelpFile('cardToggleBeamsAndStems2Html') },    
+      { title: 'Notes - letter notes', html: SmoLanguage.getHelpFile('cardNotesLetterHtml') },
+      { title: 'Notes - chromatic and octave', html: SmoLanguage.getHelpFile('cardNotesChromaticHtml') },
+      { title: 'Notes - chords', html: SmoLanguage.getHelpFile('cardNotesChordsHtml') },
+      { title: 'Notes - rests', html: SmoLanguage.getHelpFile('cardNotesRestsHtml') },
+      { title: 'Duration', html: SmoLanguage.getHelpFile('cardDurationNotesHtml') },
+      { title: 'Duration - tuplets', html: SmoLanguage.getHelpFile('cardDurationTupletsHtml') },
+      { title: 'Selections - notes', html: SmoLanguage.getHelpFile('cardSelectionsNotesHtml') },
+      { title: 'Selections - modifiers', html: SmoLanguage.getHelpFile('cardSelectionsModifiersHtml') },
+      { title: 'Selections - non-selectable modifiers', html: SmoLanguage.getHelpFile('cardSelectionsNonSelectableHtml') },
+      { title: 'Selections - slash menus', html: SmoLanguage.getHelpFile('cardSelectionsSlashHtml') },
+      { title: 'Beams and Stems - direction', html: SmoLanguage.getHelpFile('cardBeamsAndStemsDirectionHtml') },
+      { title: 'Beams and Stems - grouping', html: SmoLanguage.getHelpFile('cardBeamsAndStemsGroupingHtml') },
+      { title: 'Measures - insert and delete', html: SmoLanguage.getHelpFile('cardMeasuresAddDeleteHtml') },
+      { title: 'Voices - create and delete', html: SmoLanguage.getHelpFile('cardVoicesCreateDeleteHtml') },
+      { title: 'Voices - hidden rests', html: SmoLanguage.getHelpFile('cardVoicesHiddenNotesHtml') }
     ];
     const blocks: HtmlHelpBlock[] = [];
     cards.forEach((card, cardIx) => {

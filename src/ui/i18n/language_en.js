@@ -1508,15 +1508,14 @@ export const smoLanguageStringEn = `{
     ]
    }`;
 
-export var cardKeysHtmlEn = `
+export const cardKeysHtmlEn = `
 <h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
 <p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.</p>
 <p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.
 <img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
 `;
 
-export var cardNotesHtmlEn = `
-<h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
+export const cardNotesLetterHtmlEn = `
 <p>Most key commands in Smoosic have a mnemonic device.  The keys <strong>a-g</strong> on the computer keyboard will enter a corresponding note, A-G, on the staff.  The default behavior is for the cursor to advance when a note is entered in this way.  This can be overridden in the &#39;Score Preferences&#39; dialog. You navigate to the notes using the keyboard navigation arrows.</p>
 <p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
 <p>Some conventions used in this documentation: </p>
@@ -1526,66 +1525,99 @@ export var cardNotesHtmlEn = `
 <p>means to press the <strong>/</strong> key followed by the <strong>a</strong> key.</p>
 `;
 
-export const cardPitchesHtmlEn = `
-<h3 id="pitches-part-1">Pitches part 1</h3>
+export const cardNotesChromaticHtmlEn = `
 <p>You change notes chromatically using <strong>-</strong> and <strong>=</strong> key.  You can change the octave using the <strong>_</strong> (underscore) and <strong>+</strong> (plus) keys.   The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the <strong>Shift+E</strong> (mnemonic: E for enharmonic - get it?).  And <strong>Shift+F</strong> gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
 <p><img src="https://imgur.com/1tC94sV.gif" alt=""></p>
 `;
 
-export const cardPitches2HtmlEn = `
-<h3 id="pitches-part-2-chords">Pitches part 2 - Chords</h3>
+export const cardNotesChordsHtmlEn = `
 <p>You can create chords and intervals using the number keys along the top of the keyboard.  The <strong>3</strong> key makes a third, the <strong>4</strong> key a fourth, and so on.  <strong>Shift+3</strong> gives you the 3rd below.</p>
 <p>You can toggle selection to individual pitches by using <strong>Shift+UpArrow</strong>. So to create a G triad, starting with <strong>g</strong>, hit <strong>3</strong> for the &#39;B&#39;, <strong>3</strong> again for the &#39;D&#39;.  So far, we have G major.  To lower the 3rd, <strong>Shift+up</strong> to select the &#39;B&#39;, then <strong>-</strong> to lower the pitch.</p>
 <p><img src="https://imgur.com/NGXRJQZ.gif" alt=""></p>
 `;
 
-export const cardPitches3HtmlEn = `
+export const cardNotesRestsHtmlEn = `
+<p>You can toggle notes to rests by pressing <strong>r</strong> or <strong>Delete</strong>.</p>
+<p>In Smoosic, you can&#39;t truly delete a note - a 4/4 bar will always have 4 beats of music.  But you can &#39;hide&#39; notes by creating invisible rests.  This is another use of <strong>Delete</strong>.</p>
+<p><strong>Delete</strong> follows standard toggle behavior - deleted notes become rests, and delete rests become invisible rests.  Hitting <strong>Delete</strong> a third time restores the note.</p>
+<p>Invisible rests show up as partially opaque in the display.  But when printed, they are truly invisible.</p>
+<p><img src="https://imgur.com/c2FVZi3.gif" alt=""></p>
 `
-export const cardDurationsHtmlEn = `
-<h3 id="duration">Duration</h3>
+export const cardDurationNotesHtmlEn = `
 <p>Changing duration is a little different in Smoosic than other programs.  Rather than selecting a duration (quarter note, etc.), you change (increase/decrease) the duration of existing notes.</p>
 <p>You can change the length of notes using the <strong>,</strong> and <strong>.</strong> (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 5/4 for the second dot, if you like to think of it that way) or remove a dot, using the <strong>&gt;</strong> (<strong>Shift+,</strong>) and <strong>,</strong>.  The mnemonic device for these is <strong>&gt;</strong> makes note duration greater. <strong>&lt;</strong>  makes note duration less.  (On most QWERTY keyboards, comma shifted is <strong>&lt;</strong> and period shifted is <strong>&gt;</strong>).</p>
-<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-`;
+<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>`;
 
-export const cardDurations2HtmlEn = `
-<h3 id="duration-part-2-tuplets">Duration part 2: Tuplets</h3>
+export const cardDurationTupletsHtmlEn = `
 <p>You can create tuplets from the keyboard by typing <strong>Ctrl+3</strong>, <strong>Ctrl+5</strong> or <strong>Ctrl+7</strong> for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys <strong>-</strong> (minus) and <strong>=</strong> (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by <strong>Ctrl+0</strong>.</p>
-<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>
-`;
+<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>`;
 
-export const cardSelectionsHtmlEn = ` <h3 id="selections-part-1">Selections part 1</h3>
-<h3 id="selections-part-1">Selections part 1</h3>
-<p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move left, <strong>←</strong> to move right.   <strong>Shift+→</strong> expands the selection left, etc. </p>
+export const cardSelectionsNotesHtmlEn = ` <p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move right, <strong>←</strong> to move left.   <strong>Shift+→</strong> expands the selection left, etc. </p>
 <p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.</p>
-<p>You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
-
+<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.
+You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
 `;
-
-export const cardSelections2HtmlEn = ` 
-<h3 id="selections-part-2-modifier-selections">Selections part 2: Modifier selections</h3>
-<p>A modifier is anythying that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
-<p>You can also select modifiers with the mouse.</p>
+export const cardSelectionsModifiersHtmlEn = ` 
+<p>A modifier is anything that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
+<p>You can also select modifiers with the mouse. </p>
 <p>Once selected, you can bring up the modifier dialog by hitting &#39;Enter&#39;.</p>
 <p><img src="https://imgur.com/rhOyIKD.gif" alt=""></p>
 `;
-export const cardToggleArticulationHtmlEn = `
-<h3 id="toggle-modifiers-articulations-">Toggle modifiers (articulations)</h3>
+
+export const cardSelectionsNonSelectableHtmlEn = `
 <p>Some modifiers, such as articulations, aren&#39;t selectable.  The keys <strong>h</strong>, <strong>i</strong>, <strong>j</strong>, and <strong>k</strong> bring up articulations that aren&#39;t selectable, but are placed on the note automatically.  You can toggle position and on/off by repeating the key.</p>
 <p>Additional articulations are available from the of articulation button group.</p>
 <p>You can customize the articulations selected by the key bindings by changing the <code>ui/keyBindings/editorKeys.ts</code> file, or by providing your own bindings.  See the <code>custom-keybinding.html</code> example in the project.</p>
-<p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>
-`;
+<p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>`;
 
-export const cardToggleBeamsAndStemsHtmlEn = `
+
+export const cardSelectionsSlashHtmlEn = `
+<p>The buttons on the left (for L-to-R languages) bring up menus and dialogs.  These dialogs can also be accessed via the &#39;Slash&#39; menus.</p>
+<p>For instance, slurs, ties, hairpins and other modifiers that work on a range of music are created from the &#39;Lines&#39; menu.  You can access this via the slash menu:</p>
+<p><strong>/</strong> <strong>l</strong> (el, not one) <strong>2</strong></p>
+<p>Then you can use the modifier selection to edit the phrase marking to your taste.</p>
+<p>You can also select modifiers or any menu option with the mouse.</p>
+<p><img src="https://imgur.com/4QfEfSs.gif" alt=""></p>`;
+
+export const cardBeamsAndStemsDirectionHtmlEn = `
 <h3 id="beams-and-stems-part-1-direction">Beams and Stems part 1: Direction</h3>
-<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.   </p>
+<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. </p>
+<p>Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.  </p>
 <p><img src="https://imgur.com/itUMVBF.gif" alt=""></p>
 `;
-export const cardToggleBeamsAndStems2HtmlEn = `
-<h3 id="beams-and-stems-part-1-beam-groups">Beams and Stems part 1: Beam Groups</h3>
+export const cardBeamsAndStemsGroupingHtmlEn = `
 <p>By default, notes are auto-beamed so that a 1/4 note is beamed.  So 1/8 notes in 4/4 time will be beamed in 2&#39;s, 16th notes in 4&#39;s etc.  In triple time (e.g. 6/8, 9/8), 1/8 notes are beamed in 3&#39;s.  You can change this default in the Score Preferences.</p>
-<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing &#39;Shift-X&#39;.  Only notes with 1/8 note duration or less can be beamed.</p>
+<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing <strong>Shift-X</strong>.  Only notes with 1/8 note duration or less can be beamed.</p>
 <p><img src="https://imgur.com/wZmXKq8.gif" alt=""></p>
 `;
+
+export const cardMeasuresAddDeleteHtmlEn = `
+<p>You can add a single measure at the current selection point by pressing <strong>Insert</strong>.  <strong>Shift+Insert</strong> appends the new measure to the selected measure.</p>
+<p>To add many measures, you can do this from the &#39;Add Measures&#39; dialog.  This can be brought up through the &#39;Measure&#39; button on the left, or by pressing </p>
+<p><strong>/</strong>  <strong>a</strong>  <strong>0</strong> (zero)</p>
+<p>Deleting the selected measures can be done from the &#39;Measures&#39; menu on the left, or by pressing </p>
+<p><strong>/</strong>  <strong>a</strong> <strong>1</strong>.</p>
+<p>Note the insert and delete key behavior is asymmetric.  The <strong>Delete</strong> key is used to toggle notes to rests, and also I thought this made it too easy to accidentally delete a lot of music. </p>
+<p><img src="https://imgur.com/gGuxP7G.gif" alt=""></p>
+`;
+
+export const cardVoicesCreateDeleteHtmlEn = `
+<p>If you need different rhythms in the same stave, you can do this by creating multiple voices.  You add a voice to a measure using the voice buttons - you can have up to 4 voices in a measure.  </p>
+<p>You can select a differnt voice using the voice buttons also.  </p>
+<p>You can delete any voice except voice 1 by selecting the voice, and selecting the <strong>Vx</strong> button.  When a voice is deleted, any voices with a higher number are bumped down - e.g., if you delete voice 2, voice 3 becomes voice 2, etc.</p>
+<p>By default, the odd-numbered voices (indexed from 1) have stems that point up.  You can use the <strong>Ctrl+B</strong> to change the staff direction if you want.</p>
+<p>Notes in voices &gt; 1 have different colors in the editor.  This is to make editing easier.  All voices are black when the music is printed.</p>
+<p><img src="https://imgur.com/HIUH2Pp.gif" alt=""></p>
+`;
+export const cardVoicesHiddenNotesHtmlEn = `
+<p>In Smoosic, there are no &#39;empty&#39; beats - all the beats in a measure are padded with rests to align playback.  But sometimes this padding can be confusing to the musician playing the part.  This is often the case in piano music - the rests in the following example don&#39;t make any sense in a piano part.  Their only purpose is to align the notes at the end of the measure.</p>
+<p>Earlier we introduced &#39;invisible&#39; rests.  The 1/4 rests in voice 2 are only there to align the voice, so we can hide them and the meaning is clear.  Pressing <strong>Delete</strong> on the rests hides them in the printed version.</p>
+<p><img src="https://imgur.com/PWJrR3U.gif" alt=""></p>
+`;
+
+export const helpCards = [cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
+  cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
+  cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
+  cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
+  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+];

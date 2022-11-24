@@ -207,14 +207,6 @@ export class SmoTranslator {
       'SuiVoltaAttributeDialog'
     ];
   }
-  static get allHelpFiles() {
-    return [
-      'quickStartHtml',
-      'selectionHtml',
-      'enterPitchesHtml',
-      'enterDurationsHtml'
-    ];
-  }
 }
 
 export class SmoLanguage {
