@@ -1609,15 +1609,20 @@ export const cardVoicesCreateDeleteHtmlEn = `
 <p>Notes in voices &gt; 1 have different colors in the editor.  This is to make editing easier.  All voices are black when the music is printed.</p>
 <p><img src="https://imgur.com/HIUH2Pp.gif" alt=""></p>
 `;
-export const cardVoicesHiddenNotesHtmlEn = `
-<p>In Smoosic, there are no &#39;empty&#39; beats - all the beats in a measure are padded with rests to align playback.  But sometimes this padding can be confusing to the musician playing the part.  This is often the case in piano music - the rests in the following example don&#39;t make any sense in a piano part.  Their only purpose is to align the notes at the end of the measure.</p>
-<p>Earlier we introduced &#39;invisible&#39; rests.  The 1/4 rests in voice 2 are only there to align the voice, so we can hide them and the meaning is clear.  Pressing <strong>Delete</strong> on the rests hides them in the printed version.</p>
-<p><img src="https://imgur.com/PWJrR3U.gif" alt=""></p>
+
+export const cardPartAddDeleteHtmlEn = `    <p>You can add a new stave/part from the parts menu.</p>
+<p><strong>/</strong>  <strong>p</strong>  <strong>0</strong> (zero)</p>
+<p>From the dialog, you can select the initial properties of the new stave, such as the clef and transposition.</p>
+<p>To delete the selected staves:
+<strong>/</strong>  <strong>p</strong>  <strong>1</strong> (zero)</p>
+<p>Note that you can&#39;t delete the only stave - the music will always contain at least one stave.</p>
+<p>Note:  The &#39;Part&#39; menu may show different options depending on what else is in the score.  Other characteristics of the part and staff are covered in the &#39;Working with Scores&#39; section.</p>
+<p><img src="https://imgur.com/7GAia6G.gif" alt=""></p>
 `;
 
 export const helpCards = [cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
   cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
   cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
   cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
-  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardPartAddDeleteHtmlEn
 ];

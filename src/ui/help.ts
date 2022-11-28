@@ -126,8 +126,8 @@ export class SuiHelp {
       { title: 'Beams and Stems - direction', html: SmoLanguage.getHelpFile('cardBeamsAndStemsDirectionHtml') },
       { title: 'Beams and Stems - grouping', html: SmoLanguage.getHelpFile('cardBeamsAndStemsGroupingHtml') },
       { title: 'Measures - insert and delete', html: SmoLanguage.getHelpFile('cardMeasuresAddDeleteHtml') },
+      { title: 'Staves - add and delete', html: SmoLanguage.getHelpFile('cardPartAddDeleteHtml') },
       { title: 'Voices - create and delete', html: SmoLanguage.getHelpFile('cardVoicesCreateDeleteHtml') },
-      { title: 'Voices - hidden rests', html: SmoLanguage.getHelpFile('cardVoicesHiddenNotesHtml') }
     ];
     const blocks: HtmlHelpBlock[] = [];
     cards.forEach((card, cardIx) => {

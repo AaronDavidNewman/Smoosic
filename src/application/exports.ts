@@ -32,7 +32,7 @@ import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNo
   cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
   cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
   cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
-  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+  cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardPartAddDeleteHtmlEn
 } from '../ui/i18n/language_en';
 
 // ui dialogs and menus
@@ -225,7 +225,7 @@ export const Smo = {
       cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
       cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
       cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
-      cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn,
+      cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardPartAddDeleteHtmlEn,
       getClass,
     createLoadTests,
     // utilities

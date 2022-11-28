@@ -626,13 +626,14 @@ const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui
 class SuiDom {
     static splash(config) {
         var b = htmlHelpers_1.buildDom;
-        var logoPath = 'https://aarondavidnewman.github.io/Smoosic/release/styles/images/logo.png';
-        var r = b('div').classes('bug-modal').append(b('img').attr('src', logoPath).classes('splash-logo'))
+        var logoPath = '../styles/images/logo.png';
+        var r = b('div').classes('bug-modal').append(b('img').attr('src', logoPath).classes('splash-logo').attr('width', '300px').attr('height', '300px'))
             .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+            .append(b('div').classes('splash-div')
             .append(b('span').classes('splash-title').text('Sm'))
             .append(b('span').classes('splash-shine').text('ooooooooo'))
-            .append(b('span').classes('splash-title').text('sic'));
-        $('.bugDialog').append(r.dom());
+            .append(b('span').classes('splash-title').text('sic')));
+        $('body').append(r.dom());
         $('body').addClass('splashScreen modal');
         setTimeout(function () {
             $('body').removeClass('splashScreen modal');
@@ -979,7 +980,6 @@ const tabletRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/tablet
 const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
 // Language strings
 const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
-const language_ar_1 = __webpack_require__(/*! ../ui/i18n/language_ar */ "./src/ui/i18n/language_ar.js");
 // ui dialogs and menus
 // Dialogs
 const dialog_1 = __webpack_require__(/*! ../ui/dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
@@ -1039,7 +1039,6 @@ const file_1 = __webpack_require__(/*! ../ui/menus/file */ "./src/ui/menus/file.
 const language_1 = __webpack_require__(/*! ../ui/menus/language */ "./src/ui/menus/language.ts");
 const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
 const measure_2 = __webpack_require__(/*! ../ui/menus/measure */ "./src/ui/menus/measure.ts");
-const staff_1 = __webpack_require__(/*! ../ui/menus/staff */ "./src/ui/menus/staff.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 // render library
@@ -1095,7 +1094,7 @@ exports.Smo = {
     // Menus
     SuiMenuManager: manager_1.SuiMenuManager, SuiMenuBase: menu_1.SuiMenuBase, SuiScoreMenu: score_1.SuiScoreMenu, SuiFileMenu: file_1.SuiFileMenu, SuiLibraryMenu: library_2.SuiLibraryMenu,
     SuiDynamicsMenu: dynamics_2.SuiDynamicsMenu, SuiTimeSignatureMenu: timeSignature_2.SuiTimeSignatureMenu, SuiKeySignatureMenu: keySignature_1.SuiKeySignatureMenu, SuiStaffModifierMenu: staffModifier_1.SuiStaffModifierMenu,
-    SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SuiStaffMenu: staff_1.SuiStaffMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
+    SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
     // Dialogs
     SuiTempoDialog: tempo_1.SuiTempoDialog, SuiInstrumentDialog: instrument_1.SuiInstrumentDialog, SuiModifierDialogFactory: factory_1.SuiModifierDialogFactory, SuiLibraryDialog: library_1.SuiLibraryDialog,
     SuiTextBracketDialog: textBracket_1.SuiTextBracketDialog,
@@ -1127,6 +1126,7 @@ exports.Smo = {
     SuiAudioPlayer: player_2.SuiAudioPlayer, SuiOscillator: oscillator_1.SuiOscillator, SuiSampleMedia: samples_1.SuiSampleMedia, SuiSampler: oscillator_1.SuiSampler, SuiReverb: oscillator_1.SuiReverb,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
+    engravingFontTypes: score_2.engravingFontTypes, isEngravingFont: score_2.isEngravingFont,
     XmlToSmo: xmlToSmo_1.XmlToSmo,
     SmoToXml: smoToXml_1.SmoToXml,
     MidiToSmo: midiToSmo_1.MidiToSmo,
@@ -1151,10 +1151,12 @@ exports.Smo = {
     // Smo Transformers
     SmoSelection: selections_1.SmoSelection, SmoSelector: selections_1.SmoSelector, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex, SmoOperation: operations_1.SmoOperation,
     // new score bootstrap
-    // strings
-    cardKeysHtmlEn: language_en_1.cardKeysHtmlEn, cardNotesHtmlEn: language_en_1.cardNotesHtmlEn, cardPitchesHtmlEn: language_en_1.cardPitchesHtmlEn, cardPitches2HtmlEn: language_en_1.cardPitches2HtmlEn, cardDurationsHtmlEn: language_en_1.cardDurationsHtmlEn, cardDurations2HtmlEn: language_en_1.cardDurations2HtmlEn,
-    cardSelectionsHtmlEn: language_en_1.cardSelectionsHtmlEn, cardSelections2HtmlEn: language_en_1.cardSelections2HtmlEn, cardToggleArticulationHtmlEn: language_en_1.cardToggleArticulationHtmlEn, cardToggleBeamsAndStemsHtmlEn: language_en_1.cardToggleBeamsAndStemsHtmlEn, cardToggleBeamsAndStems2HtmlEn: language_en_1.cardToggleBeamsAndStems2HtmlEn,
-    quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
+    // help strings
+    cardKeysHtmlEn: language_en_1.cardKeysHtmlEn, cardNotesLetterHtmlEn: language_en_1.cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn: language_en_1.cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn: language_en_1.cardNotesChordsHtmlEn,
+    cardNotesRestsHtmlEn: language_en_1.cardNotesRestsHtmlEn, cardDurationNotesHtmlEn: language_en_1.cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn: language_en_1.cardDurationTupletsHtmlEn,
+    cardSelectionsNotesHtmlEn: language_en_1.cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn: language_en_1.cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn: language_en_1.cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn: language_en_1.cardSelectionsSlashHtmlEn,
+    cardBeamsAndStemsDirectionHtmlEn: language_en_1.cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn: language_en_1.cardBeamsAndStemsGroupingHtmlEn,
+    cardMeasuresAddDeleteHtmlEn: language_en_1.cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn: language_en_1.cardVoicesCreateDeleteHtmlEn, cardPartAddDeleteHtmlEn: language_en_1.cardPartAddDeleteHtmlEn,
     getClass,
     createLoadTests: file_load_1.createLoadTests,
     // utilities
@@ -1652,8 +1654,8 @@ class Draggable {
         this._animate(e);
     }
     enddrag() {
-        this.lastX = this.lastX - this.domOffset.left;
-        this.lastY = this.lastY - this.domOffset.top;
+        this.lastX = Math.max(this.lastX - this.domOffset.left, 0);
+        this.lastY = Math.max(this.lastY - this.domOffset.top, 0);
         if (this.moveParent) {
             $(this.parent).css('left', this.lastX + 'px');
             $(this.parent).css('top', this.lastY + 'px');
@@ -3815,6 +3817,10 @@ exports.SuiSampler = exports.SuiWavetable = exports.SuiOscillator = exports.Synt
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const samples_1 = __webpack_require__(/*! ./samples */ "./src/render/audio/samples.ts");
+/**
+ * Create audio reverb node.
+ * @category SuiAudio
+ */
 class SuiReverb {
     constructor(context) {
         this.damp = 1.0;
@@ -3880,6 +3886,7 @@ exports.SynthWavetable = {
 /**
  * Simple waveform synthesizer thing that plays notes.  Oscillator works in either
  * analog synthisizer or sampler mode.
+ * @category SuiAudio
  */
 class SuiOscillator {
     constructor(parameters) {
@@ -4122,6 +4129,7 @@ SuiOscillator.sampleFiles = ['bb4', 'cn4'];
 SuiOscillator.samples = [];
 /**
  * An audio output that uses browser audio api OscillatorNode as a sound source
+ * @category SuiAudio
  */
 class SuiWavetable extends SuiOscillator {
     createAudioNode() {
@@ -4211,6 +4219,7 @@ const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/
 /**
  * Maintain a list of buffers ready to play, since this is a
  * system resource.
+ * @category SuiAudio
  */
 class CuedAudioContexts {
     constructor() {
@@ -4261,8 +4270,10 @@ class CuedAudioContexts {
     }
 }
 exports.CuedAudioContexts = CuedAudioContexts;
-// ## SuiAudioPlayer
-// Play the music, ja!
+/**
+ * Play the music, ja!
+ * @category SuiAudio
+ */
 class SuiAudioPlayer {
     constructor(parameters) {
         this.audioDefaults = oscillator_1.SuiOscillator.defaults;
@@ -4295,7 +4306,7 @@ class SuiAudioPlayer {
         if (SuiAudioPlayer._playingInstance) {
             const a = SuiAudioPlayer._playingInstance;
             a.paused = true;
-            a.tracker.clearMusicCursor();
+            a.tracker.clearMusicCursor(0);
         }
         SuiAudioPlayer.playing = false;
     }
@@ -4500,18 +4511,27 @@ class SuiAudioPlayer {
     playSounds() {
         this.cuedSounds.playMeasureIndex = 0;
         this.cuedSounds.playWaitTimer = 0;
+        let previousDuration = 0;
         const timer = () => {
             setTimeout(() => {
                 const cuedSound = this.cuedSounds.advanceHead();
                 if (cuedSound === null) {
                     SuiAudioPlayer._playing = false;
-                    this.tracker.clearMusicCursor();
+                    this.tracker.clearMusicCursor(previousDuration);
                     return;
                 }
                 if (SuiAudioPlayer._playing === false) {
-                    this.tracker.clearMusicCursor();
+                    this.tracker.clearMusicCursor(previousDuration);
                     return;
                 }
+                if (cuedSound.oscs.length === 0) {
+                    this.cuedSounds.playMeasureIndex += 1;
+                    this.cuedSounds.playWaitTimer = cuedSound.waitTime;
+                    console.warn('empty oscs in playback');
+                    timer();
+                    return;
+                }
+                previousDuration = cuedSound.oscs[0].duration;
                 SuiAudioPlayer._playChord(cuedSound.oscs);
                 this.tracker.musicCursor(cuedSound.selector, cuedSound.offsetPct, cuedSound.durationPct);
                 this.cuedSounds.playMeasureIndex += 1;
@@ -4569,7 +4589,7 @@ class SuiAudioPlayer {
     static stopPlayer() {
         if (SuiAudioPlayer._playingInstance) {
             const a = SuiAudioPlayer._playingInstance;
-            a.tracker.clearMusicCursor();
+            a.tracker.clearMusicCursor(0);
             a.paused = false;
             a.cuedSounds.reset();
         }
@@ -4633,6 +4653,13 @@ exports.SuiSampleMedia = exports.sampleFromFrequency = exports.sampleFromMinDura
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+/**
+ * For instruments like violin that require different samples depending on note duration
+ * @param params
+ * @param samples
+ * @returns
+ * @category SuiAudio
+ */
 const sampleFromMinDuration = (params, samples) => {
     const longSamples = samples.filter((ss) => ss.minDuration < params.duration && ss.minDuration > 0);
     if (longSamples.length) {
@@ -4641,6 +4668,13 @@ const sampleFromMinDuration = (params, samples) => {
     return (0, exports.sampleFromFrequency)(params, samples.filter((ss) => ss.minDuration === 0));
 };
 exports.sampleFromMinDuration = sampleFromMinDuration;
+/**
+ * Give a set of samples, return the one that closest matches the frequency
+ * @param params
+ * @param samples
+ * @returns
+ * @category SuiAudio
+*/
 const sampleFromFrequency = (params, samples) => {
     let min = 9999;
     let rv = null;
@@ -4664,6 +4698,10 @@ const sampleFromFrequency = (params, samples) => {
     return rv;
 };
 exports.sampleFromFrequency = sampleFromFrequency;
+/**
+ * Logic to create audio nodes out of HTML5 media elements
+ * @category SuiAudio
+ */
 class SuiSampleMedia {
     static insertIntoMap(sample) {
         const oscInfo = staffModifiers_1.SmoInstrument.defaultOscillatorParam;
@@ -5114,11 +5152,15 @@ class SuiLayoutFormatter {
         // Keep running tab of accidental widths for justification
         const contextMap = {};
         let forceClefCount = 0;
+        let measureToSkip = false;
         measures.forEach((measure) => {
             beamers_1.SmoBeamer.applyBeams(measure);
             voiceCount += measure.voices.length;
             if (measure.isPickup()) {
                 isPickup = true;
+            }
+            if (measure.format.skipMeasureCount) {
+                measureToSkip = true;
             }
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
@@ -5199,7 +5241,7 @@ class SuiLayoutFormatter {
         const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
         const unalignedPad = unalignedPadding * unalignedCtxCount;
         let maxWidth = Math.max(adjX + minTotalWidth + Math.max(unalignedPad, padmax), maxCfgWidth);
-        if (scoreLayout.maxMeasureSystem > 0 && !isPickup) {
+        if (scoreLayout.maxMeasureSystem > 0 && !isPickup && !measureToSkip) {
             // Add 1 because there is some overhead in each measure, 
             // so there can never be (width/max) measures in the system
             const defaultWidth = (scoreLayout.pageWidth / (scoreLayout.maxMeasureSystem + 1));
@@ -9867,6 +9909,23 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         // if we are looking at a subset of the score, we won't see the new staff.  So
         // revert to the full view
         operations_1.SmoOperation.addStaff(this.storeScore, instrument);
+        if (instrument.alignWithPrevious && instrument.staffId > 0) {
+            const sel = selections_1.SmoSelector.default;
+            sel.staff = instrument.staffId - 1;
+            const selection = selections_1.SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
+            if (selection) {
+                let grp = this.storeScore.getSystemGroupForStaff(selection);
+                if (grp) {
+                    grp.endSelector.staff = instrument.staffId;
+                }
+                else {
+                    let grp = new scoreModifiers_1.SmoSystemGroup(scoreModifiers_1.SmoSystemGroup.defaults);
+                    grp.startSelector.staff = instrument.staffId - 1;
+                    grp.endSelector.staff = instrument.staffId;
+                    this.storeScore.systemGroups.push(grp);
+                }
+            }
+        }
         this.viewAll();
         return this.renderer.updatePromise();
     }
@@ -13434,10 +13493,17 @@ class SuiTracker extends mapper_1.SuiMapper {
     getIdleTime() {
         return this.idleTimer;
     }
-    clearMusicCursor() {
-        const ell = document.getElementById('vf-music-cursor');
-        if (ell) {
-            ell.remove();
+    clearMusicCursor(delay) {
+        if (delay < 1) {
+            const ell = document.getElementById('vf-music-cursor');
+            if (ell) {
+                ell.remove();
+            }
+        }
+        else {
+            setTimeout(() => {
+                this.clearMusicCursor(0);
+            }, delay);
         }
     }
     /**
@@ -13462,7 +13528,9 @@ class SuiTracker extends mapper_1.SuiMapper {
             botBox.y -= context.box.y;
             const height = (botBox.y + botBox.height) - topBox.y;
             const measureWidth = botBox.width - measure.svg.adjX;
-            const width = measureWidth * durationPct;
+            const nhWidth = 10 / this.score.layoutManager.getGlobalLayout().svgScale;
+            let width = measureWidth * durationPct - 10 / this.score.layoutManager.getGlobalLayout().svgScale;
+            width = Math.max(nhWidth, width);
             const y = topBox.y;
             let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
             const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
@@ -13474,7 +13542,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             fillParams['fill-opacity'] = '0.5';
             fillParams['fill'] = '#4444ff';
             const ctx = context.getContext();
-            this.clearMusicCursor();
+            this.clearMusicCursor(0);
             ctx.save();
             ctx.openGroup('music-cursor', 'music-cursor');
             ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
@@ -14808,6 +14876,9 @@ class VxMeasure {
             }
             else if (voiceIx > 0 && !this.printing) {
                 vexNote.setStyle({ fillStyle: "#115511" });
+            }
+            else if (smoNote.hidden && this.printing) {
+                vexNote.setStyle({ fillStyle: "#ffffff00" });
             }
             smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
         }
@@ -16195,6 +16266,7 @@ class SmoMeasure {
             const nextNote = note_1.SmoNote.defaults;
             nextNote.pitches = [JSON.parse(JSON.stringify(pitch))];
             nextNote.noteType = 'r';
+            nextNote.clef = clef;
             nextNote.ticks.numerator = noteTick;
             pnotes.push(new note_1.SmoNote(nextNote));
             ticks += noteTick;
@@ -16936,7 +17008,7 @@ class SmoMeasureModifierBase {
 }
 exports.SmoMeasureModifierBase = SmoMeasureModifierBase;
 exports.SmoMeasureFormatNumberKeys = ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
-exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
+exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'skipMeasureCount', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
 /**
  * Measure format holds parameters about the automatic formatting of the measure itself, such as the witch and
  * how the durations are proportioned.  Note that measure formatting is also controlled by the justification
@@ -16951,6 +17023,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         this.systemBreak = false;
         this.pageBreak = false;
         this.restBreak = false;
+        this.skipMeasureCount = false;
         this.forceRest = false;
         this.padLeft = 0;
         this.padAllInSystem = true;
@@ -16965,10 +17038,11 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         });
     }
     static get attributes() {
-        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem', 'restBreak', 'forceRest'];
+        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak',
+            'padLeft', 'measureIndex', 'padAllInSystem', 'skipMeasureCount', 'restBreak', 'forceRest'];
     }
     static get formatAttributes() {
-        return ['customStretch', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+        return ['customStretch', 'skipMeasureCount', 'proportionality', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
     }
     static get defaultProportionality() {
         return 0;
@@ -17000,6 +17074,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
             forceRest: false,
             padLeft: 0,
             padAllInSystem: true,
+            skipMeasureCount: false,
             autoJustify: true,
             measureIndex: 0,
         }));
@@ -20524,6 +20599,9 @@ const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/
 const scoreText_1 = __webpack_require__(/*! ./scoreText */ "./src/smo/data/scoreText.ts");
 const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+/**
+ * Arrary of engraving fonts available in Smoosic
+ */
 exports.engravingFontTypes = ['Bravura', 'Gonville', 'Petaluma', 'Leland'];
 function isEngravingFont(et) {
     return exports.engravingFontTypes.indexOf(et) >= 0;
@@ -21258,7 +21336,7 @@ class SmoScore {
         const measures = [];
         for (i = 0; i < proto.measures.length; ++i) {
             const measure = proto.measures[i];
-            const newMeasure = measure_1.SmoMeasure.deserialize(measure.serialize());
+            let newMeasure = measure_1.SmoMeasure.deserialize(measure.serialize());
             newMeasure.measureNumber = measure.measureNumber;
             newMeasure.clef = parameters.measureInstrumentMap[0].clef;
             newMeasure.modifiers = [];
@@ -42731,6 +42809,12 @@ class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
         }
         this.writeNumber('padLeft', value);
     }
+    get skipMeasureCount() {
+        return this.format.skipMeasureCount;
+    }
+    set skipMeasureCount(value) {
+        this.writeBoolean('skipMeasureCount', value);
+    }
     get forceRest() {
         return this.format.forceRest;
     }
@@ -42819,10 +42903,173 @@ SuiMeasureDialog.dialogElements = {
             control: 'SuiToggleComponent',
             label: 'Force Multimeasure Rest'
         }, {
+            smoName: 'skipMeasureCount',
+            control: 'SuiToggleComponent',
+            label: 'Skip in max measure count'
+        }, {
             smoName: 'systemBreak',
             control: 'SuiToggleComponent',
             label: 'System break before this measure'
         }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/newPart.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/newPart.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiNewPartDialog = exports.SuiNewPartAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const systemStaff_1 = __webpack_require__(/*! ../../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
+class SuiNewPartAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.alignWithPreviousVal = true;
+        const selection = this.view.tracker.selections[0];
+        this.instrument = new staffModifiers_1.SmoInstrument(this.view.score.getStaffInstrument(selection.selector));
+    }
+    writeNumParam(paramName, value) {
+        this.instrument[paramName] = value;
+    }
+    writeStringParam(paramName, value) {
+        this.instrument[paramName] = value;
+    }
+    set alignWithPrevious(val) {
+        this.alignWithPreviousVal = val;
+    }
+    get alignWithPrevious() {
+        return this.alignWithPreviousVal;
+    }
+    get transposeIndex() {
+        return this.instrument.keyOffset;
+    }
+    set transposeIndex(value) {
+        this.writeNumParam('keyOffset', value);
+    }
+    get instrumentName() {
+        return this.instrument.instrumentName;
+    }
+    get subFamily() {
+        return this.instrument.instrument;
+    }
+    set subFamily(value) {
+        this.writeStringParam('instrument', value);
+    }
+    set instrumentName(value) {
+        this.writeStringParam('instrumentName', value);
+    }
+    get clef() {
+        return this.instrument.clef;
+    }
+    set clef(value) {
+        this.instrument.clef = value;
+    }
+    commit() {
+        const staffParams = systemStaff_1.SmoSystemStaff.defaults;
+        staffParams.staffId = this.view.storeScore.staves.length;
+        staffParams.measureInstrumentMap[0] = this.instrument;
+        staffParams.alignWithPrevious = this.alignWithPreviousVal;
+        this.view.addStaff(staffParams);
+    }
+    cancel() {
+    }
+    remove() { }
+}
+exports.SuiNewPartAdapter = SuiNewPartAdapter;
+class SuiNewPartDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiNewPartAdapter(parameters.view);
+        super(SuiNewPartDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    static get applyTo() {
+        return {
+            score: 0, selected: 1, remaining: 3
+        };
+    }
+}
+exports.SuiNewPartDialog = SuiNewPartDialog;
+// export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
+//| 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
+SuiNewPartDialog.dialogElements = {
+    label: 'Instrument Properties',
+    elements: [{
+            smoName: 'transposeIndex',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Transpose Index (1/2 steps)',
+        }, {
+            smoName: 'instrumentName',
+            control: 'SuiTextInputComponent',
+            label: 'Part Name'
+        }, {
+            smoName: 'alignWithPrevious',
+            control: 'SuiToggleComponent',
+            label: 'Align Notes with Previous Staff'
+        }, {
+            smoName: 'subFamily',
+            control: 'SuiDropdownComponent',
+            label: 'Sample Sound',
+            options: [{
+                    value: 'piano',
+                    label: 'Grand Piano'
+                }, {
+                    value: 'bass',
+                    label: 'Bass'
+                }, {
+                    value: 'cello',
+                    label: 'Cello'
+                }, {
+                    value: 'violin',
+                    label: 'Violin'
+                }, {
+                    value: 'trumpet',
+                    label: 'Bb Trumpet'
+                }, {
+                    value: 'horn',
+                    label: 'F Horn'
+                }, {
+                    value: 'tuba',
+                    label: 'Tuba'
+                }, {
+                    value: 'clarinet',
+                    label: 'Bb Clarinet'
+                }, {
+                    value: 'pad',
+                    label: 'Synth Pad'
+                }, {
+                    value: 'none',
+                    label: 'None'
+                }]
+        }, {
+            smoName: 'clef',
+            control: 'SuiDropdownComponent',
+            label: 'Clef',
+            options: [{
+                    label: 'Treble Clef Staff',
+                    value: 'treble'
+                }, {
+                    label: 'Bass Clef Staff',
+                    value: 'bass'
+                }, {
+                    label: 'Alto Clef Staff',
+                    value: 'alto'
+                }, {
+                    label: 'Tenor Clef Staff',
+                    value: 'tenor'
+                }, {
+                    label: 'Percussion Clef Staff',
+                    value: 'percussion'
+                }]
+        }
+    ],
     staticText: []
 };
 
@@ -45841,18 +46088,29 @@ class SuiHelp {
         return r;
     }
     static get helpHtml() {
+        /* [cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
+      cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
+      cardSelectionsNotesHtmlEn, cardSelectionsModifiersHtmlEn, cardSelectionsNonSelectableHtmlEn, cardSelectionsSlashHtmlEn,
+      cardBeamsAndStemsDirectionHtmlEn, cardBeamsAndStemsGroupingHtmlEn,
+      cardMeasuresAddDeleteHtmlEn, cardVoicesCreateDeleteHtmlEn, cardVoicesHiddenNotesHtmlEn
+    ]; */
         const cards = [
             { title: 'Keys', html: language_1.SmoLanguage.getHelpFile('cardKeysHtml') },
-            { title: 'Entering Notes', html: language_1.SmoLanguage.getHelpFile('cardNotesHtml') },
-            { title: 'Changing Pitches', html: language_1.SmoLanguage.getHelpFile('cardPitchesHtml') },
-            { title: 'Changing Pitches 2', html: language_1.SmoLanguage.getHelpFile('cardPitches2Html') },
-            { title: 'Changing Duration', html: language_1.SmoLanguage.getHelpFile('cardDurationsHtml') },
-            { title: 'Changing Duration 2', html: language_1.SmoLanguage.getHelpFile('cardDurations2Html') },
-            { title: 'Selecting things - notes', html: language_1.SmoLanguage.getHelpFile('cardSelectionsHtml') },
-            { title: 'Selecting things - modifiers', html: language_1.SmoLanguage.getHelpFile('cardSelections2Html') },
-            { title: 'Articulations', html: language_1.SmoLanguage.getHelpFile('cardToggleArticulationHtml') },
-            { title: 'Beams and Stems', html: language_1.SmoLanguage.getHelpFile('cardToggleBeamsAndStemsHtml') },
-            { title: 'Beams and Stems 2', html: language_1.SmoLanguage.getHelpFile('cardToggleBeamsAndStems2Html') },
+            { title: 'Notes - letter notes', html: language_1.SmoLanguage.getHelpFile('cardNotesLetterHtml') },
+            { title: 'Notes - chromatic and octave', html: language_1.SmoLanguage.getHelpFile('cardNotesChromaticHtml') },
+            { title: 'Notes - chords', html: language_1.SmoLanguage.getHelpFile('cardNotesChordsHtml') },
+            { title: 'Notes - rests', html: language_1.SmoLanguage.getHelpFile('cardNotesRestsHtml') },
+            { title: 'Duration', html: language_1.SmoLanguage.getHelpFile('cardDurationNotesHtml') },
+            { title: 'Duration - tuplets', html: language_1.SmoLanguage.getHelpFile('cardDurationTupletsHtml') },
+            { title: 'Selections - notes', html: language_1.SmoLanguage.getHelpFile('cardSelectionsNotesHtml') },
+            { title: 'Selections - modifiers', html: language_1.SmoLanguage.getHelpFile('cardSelectionsModifiersHtml') },
+            { title: 'Selections - non-selectable modifiers', html: language_1.SmoLanguage.getHelpFile('cardSelectionsNonSelectableHtml') },
+            { title: 'Selections - slash menus', html: language_1.SmoLanguage.getHelpFile('cardSelectionsSlashHtml') },
+            { title: 'Beams and Stems - direction', html: language_1.SmoLanguage.getHelpFile('cardBeamsAndStemsDirectionHtml') },
+            { title: 'Beams and Stems - grouping', html: language_1.SmoLanguage.getHelpFile('cardBeamsAndStemsGroupingHtml') },
+            { title: 'Measures - insert and delete', html: language_1.SmoLanguage.getHelpFile('cardMeasuresAddDeleteHtml') },
+            { title: 'Staves - add and delete', html: language_1.SmoLanguage.getHelpFile('cardPartAddDeleteHtml') },
+            { title: 'Voices - create and delete', html: language_1.SmoLanguage.getHelpFile('cardVoicesCreateDeleteHtml') },
         ];
         const blocks = [];
         cards.forEach((card, cardIx) => {
@@ -46025,7 +46283,6 @@ class SmoTranslator {
             'SuiMeasureMenu',
             'SuiPartMenu',
             'SuiScoreMenu',
-            'SuiStaffMenu',
             'SuiStaffModifierMenu',
             'SuiTimeSignatureMenu',
         ];
@@ -46060,14 +46317,6 @@ class SmoTranslator {
             'SuiTieAttributesDialog',
             'SuiTimeSignatureDialog',
             'SuiVoltaAttributeDialog'
-        ];
-    }
-    static get allHelpFiles() {
-        return [
-            'quickStartHtml',
-            'selectionHtml',
-            'enterPitchesHtml',
-            'enterDurationsHtml'
         ];
     }
 }
@@ -47196,52 +47445,6 @@ exports.smoLanguageStringAr = `{
         "icon": "icon-play3",
         "text": "Play Actions",
         "value": "playActions"
-       },
-       {
-        "icon": "",
-        "text": "إلغاء",
-        "value": "cancel"
-       }
-      ]
-     },
-     {
-      "ctor": "SuiStaffMenu",
-      "label": "المفاتيح",
-      "menuItems": [
-       {
-        "icon": "treble",
-        "text": "طاقم التريبل مفتاح",
-        "value": "trebleInstrument"
-       },
-       {
-        "icon": "bass",
-        "text": "طاقم باس كلف",
-        "value": "bassInstrument"
-       },
-       {
-        "icon": "alto",
-        "text": "طاقم ألتو مفتاح",
-        "value": "altoInstrument"
-       },
-       {
-        "icon": "tenor",
-        "text": "طاقم تينور مفتاح",
-        "value": "tenorInstrument"
-       },
-       {
-        "icon": "percussion",
-        "text": "Percussion Clef Staff",
-        "value": "percussionInstrument"
-       },
-       {
-        "icon": "",
-        "text": "Staff Groups",
-        "value": "staffGroups"
-       },
-       {
-        "icon": "cancel-circle",
-        "text": "حذف الطواقم",
-        "value": "remove"
        },
        {
         "icon": "",
@@ -48846,52 +49049,6 @@ exports.smoLanguageStringDe = `{
             ]
         },
         {
-            "ctor": "SuiStaffMenu",
-            "label": "Notenschlüssel",
-            "menuItems": [
-                {
-                    "icon": "treble",
-                    "text": "Violinschlüssel",
-                    "value": "trebleInstrument"
-                },
-                {
-                    "icon": "bass",
-                    "text": "Basschlüssel",
-                    "value": "bassInstrument"
-                },
-                {
-                    "icon": "alto",
-                    "text": "Altschlüssel",
-                    "value": "altoInstrument"
-                },
-                {
-                    "icon": "tenor",
-                    "text": "Tenorschlüssel",
-                    "value": "tenorInstrument"
-                },
-                {
-                    "icon": "percussion",
-                    "text": "Percussion Clef Staff",
-                    "value": "percussionInstrument"
-                },
-                {
-                    "icon": "",
-                    "text": "Staff Groups",
-                    "value": "staffGroups"
-                },
-                {
-                    "icon": "cancel-circle",
-                    "text": "Notenschlüssel entfernen",
-                    "value": "remove"
-                },
-                {
-                    "icon": "",
-                    "text": "Cancel",
-                    "value": "cancel"
-                }
-            ]
-        },
-        {
             "ctor": "SuiKeySignatureMenu",
             "label": "Tonlage",
             "menuItems": [
@@ -49316,7 +49473,7 @@ exports.smoLanguageStringDe = `{
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.cardToggleBeamsAndStems2HtmlEn = exports.cardToggleBeamsAndStemsHtmlEn = exports.cardToggleArticulationHtmlEn = exports.cardSelections2HtmlEn = exports.cardSelectionsHtmlEn = exports.cardDurations2HtmlEn = exports.cardDurationsHtmlEn = exports.cardPitches2HtmlEn = exports.cardPitchesHtmlEn = exports.cardNotesHtmlEn = exports.cardKeysHtmlEn = exports.smoLanguageStringEn = void 0;
+exports.helpCards = exports.cardPartAddDeleteHtmlEn = exports.cardVoicesCreateDeleteHtmlEn = exports.cardMeasuresAddDeleteHtmlEn = exports.cardBeamsAndStemsGroupingHtmlEn = exports.cardBeamsAndStemsDirectionHtmlEn = exports.cardSelectionsSlashHtmlEn = exports.cardSelectionsNonSelectableHtmlEn = exports.cardSelectionsModifiersHtmlEn = exports.cardSelectionsNotesHtmlEn = exports.cardDurationTupletsHtmlEn = exports.cardDurationNotesHtmlEn = exports.cardNotesRestsHtmlEn = exports.cardNotesChordsHtmlEn = exports.cardNotesChromaticHtmlEn = exports.cardNotesLetterHtmlEn = exports.cardKeysHtmlEn = exports.smoLanguageStringEn = void 0;
 exports.smoLanguageStringEn = `{
     "dialogs": [
      {
@@ -50411,53 +50568,7 @@ exports.smoLanguageStringEn = `{
         "value": "cancel"
        }
       ]
-     },
-     {
-      "ctor": "SuiStaffMenu",
-      "label": "Add Staff",
-      "menuItems": [
-       {
-        "icon": "treble",
-        "text": "Treble Clef Staff",
-        "value": "trebleInstrument"
-       },
-       {
-        "icon": "bass",
-        "text": "Bass Clef Staff",
-        "value": "bassInstrument"
-       },
-       {
-        "icon": "alto",
-        "text": "Alto Clef Staff",
-        "value": "altoInstrument"
-       },
-       {
-        "icon": "tenor",
-        "text": "Tenor Clef Staff",
-        "value": "tenorInstrument"
-       },
-       {
-        "icon": "percussion",
-        "text": "Percussion Clef Staff",
-        "value": "percussionInstrument"
-       },
-       {
-        "icon": "",
-        "text": "Staff Groups",
-        "value": "staffGroups"
-       },
-       {
-        "icon": "cancel-circle",
-        "text": "Remove Staff",
-        "value": "remove"
-       },
-       {
-        "icon": "",
-        "text": "Cancel",
-        "value": "cancel"
-       }
-      ]
-     },
+     },     
      {
       "ctor": "SuiKeySignatureMenu",
       "label": "Key",
@@ -50872,72 +50983,109 @@ exports.smoLanguageStringEn = `{
     ]
    }`;
 exports.cardKeysHtmlEn = `
-
-    <h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
-<p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.  </p>
-<p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.</p>
-<p><img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
+<h3 id="welcome-to-smoosic">Welcome to Smoosic</h3>
+<p>Smoosic was designed to allow you to enter music as fast as you can type, once you learn some basic commands and patterns.  While music can be entered in multiple ways, the fastest/easiest way to create or edit in Smoosic is to use some basic keyboard shortcuts.</p>
+<p>You can customize the key bindings (which keys do what) by changing the files in <code>src/ui/keyBindings/</code> directory, or by providing your own bindings.  See the <code>custom-keybinding.html</code> in the project that demonstrates how to create your own key bindings.
+<img src="https://imgur.com/jJ5utJm.gif" alt=""></p>
 `;
-exports.cardNotesHtmlEn = `
-<h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>
+exports.cardNotesLetterHtmlEn = `
 <p>Most key commands in Smoosic have a mnemonic device.  The keys <strong>a-g</strong> on the computer keyboard will enter a corresponding note, A-G, on the staff.  The default behavior is for the cursor to advance when a note is entered in this way.  This can be overridden in the &#39;Score Preferences&#39; dialog. You navigate to the notes using the keyboard navigation arrows.</p>
 <p><img src="https://imgur.com/lxR0NI7.gif" alt=""></p>
+<p>Some conventions used in this documentation: </p>
+<p>Keystrokes are specified in <strong>bold</strong>, e.g. <strong>x</strong> means the &#39;x&#39; key.  <strong>Shift+E</strong> means to press the <strong>Shift</strong> and <strong>E</strong> keys at the same time.</p>
+<p>Key sequences are specified on their own line:</p>
+<p><strong>/</strong> <strong>a</strong></p>
+<p>means to press the <strong>/</strong> key followed by the <strong>a</strong> key.</p>
 `;
-exports.cardPitchesHtmlEn = `
-<h3 id="pitches-part-1">Pitches part 1</h3>
+exports.cardNotesChromaticHtmlEn = `
 <p>You change notes chromatically using <strong>-</strong> and <strong>=</strong> key.  You can change the octave using the <strong>_</strong> (underscore) and <strong>+</strong> (plus) keys.   The mnemonic device for this is &#39;plus and minus&#39; for raising and lowering pitches.  You can change the enharmonic spelling of the note using the <strong>Shift+E</strong> (mnemonic: E for enharmonic - get it?).  And <strong>Shift+F</strong> gives you a courtesy, or cautionary, accidental (mnemonic - F comes after E).</p>
 <p><img src="https://imgur.com/1tC94sV.gif" alt=""></p>
 `;
-exports.cardPitches2HtmlEn = `
-<h3 id="pitches-part-2-chords">Pitches part 2 - Chords</h3>
+exports.cardNotesChordsHtmlEn = `
 <p>You can create chords and intervals using the number keys along the top of the keyboard.  The <strong>3</strong> key makes a third, the <strong>4</strong> key a fourth, and so on.  <strong>Shift+3</strong> gives you the 3rd below.</p>
 <p>You can toggle selection to individual pitches by using <strong>Shift+UpArrow</strong>. So to create a G triad, starting with <strong>g</strong>, hit <strong>3</strong> for the &#39;B&#39;, <strong>3</strong> again for the &#39;D&#39;.  So far, we have G major.  To lower the 3rd, <strong>Shift+up</strong> to select the &#39;B&#39;, then <strong>-</strong> to lower the pitch.</p>
 <p><img src="https://imgur.com/NGXRJQZ.gif" alt=""></p>
 `;
-exports.cardDurationsHtmlEn = `
-<h3 id="duration">Duration</h3>
+exports.cardNotesRestsHtmlEn = `
+<p>You can toggle notes to rests by pressing <strong>r</strong> or <strong>Delete</strong>.</p>
+<p>In Smoosic, you can&#39;t truly delete a note - a 4/4 bar will always have 4 beats of music.  But you can &#39;hide&#39; notes by creating invisible rests.  This is another use of <strong>Delete</strong>.</p>
+<p><strong>Delete</strong> follows standard toggle behavior - deleted notes become rests, and delete rests become invisible rests.  Hitting <strong>Delete</strong> a third time restores the note.</p>
+<p>Invisible rests show up as partially opaque in the display.  But when printed, they are truly invisible.</p>
+<p><img src="https://imgur.com/c2FVZi3.gif" alt=""></p>
+`;
+exports.cardDurationNotesHtmlEn = `
 <p>Changing duration is a little different in Smoosic than other programs.  Rather than selecting a duration (quarter note, etc.), you change (increase/decrease) the duration of existing notes.</p>
 <p>You can change the length of notes using the <strong>,</strong> and <strong>.</strong> (comma and period) keys, which halve and double the note lengths, respectively.  You can add a dot to the length of the note (multiplying length by 3/2 for the first dot, and 5/4 for the second dot, if you like to think of it that way) or remove a dot, using the <strong>&gt;</strong> (<strong>Shift+,</strong>) and <strong>,</strong>.  The mnemonic device for these is <strong>&gt;</strong> makes note duration greater. <strong>&lt;</strong>  makes note duration less.  (On most QWERTY keyboards, comma shifted is <strong>&lt;</strong> and period shifted is <strong>&gt;</strong>).</p>
-<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-`;
-exports.cardDurations2HtmlEn = `
-<h3 id="duration-part-2-tuplets">Duration part 2: Tuplets</h3>
+<p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>`;
+exports.cardDurationTupletsHtmlEn = `
 <p>You can create tuplets from the keyboard by typing <strong>Ctrl+3</strong>, <strong>Ctrl+5</strong> or <strong>Ctrl+7</strong> for triplets, quintuplets, and septuplets, respectively.  Individual notes in a tuplet can be doubled and halved with the duration keys <strong>-</strong> (minus) and <strong>=</strong> (equals), just like non-tuplets.  You &#39;untupletify&#39; a tuplet by <strong>Ctrl+0</strong>.</p>
-<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>
-`;
-exports.cardSelectionsHtmlEn = ` <h3 id="selections-part-1">Selections part 1</h3>
-<h3 id="selections-part-1">Selections part 1</h3>
-<p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move left, <strong>←</strong> to move right.   <strong>Shift+→</strong> expands the selection left, etc. </p>
+<p><img src="https://imgur.com/uBpQwXD.gif" alt=""></p>`;
+exports.cardSelectionsNotesHtmlEn = ` <p>Many operations in Smoosic act on the selected music.  You select the music the way you select text in a text app, with the <strong>→</strong> to move right, <strong>←</strong> to move left.   <strong>Shift+→</strong> expands the selection left, etc. </p>
 <p><img src="https://imgur.com/5ZWq2Xe.gif" alt=""></p>
-<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.</p>
-<p>You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
-
+<p>In the last example, note how the selection is preserved as the notes get shorter.  When you change something, Smoosic will try to keep the selection as close as possible to what you had when the music changes.
+You can also use the mouse to select notes.  Selecting a range across multiple staves is not supported (yet).  But you can use <strong>Control+click</strong> to select notes in multiple staves.</p>
 `;
-exports.cardSelections2HtmlEn = ` 
-<h3 id="selections-part-2-modifier-selections">Selections part 2: Modifier selections</h3>
-<p>A modifier is anythying that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
-<p>You can also select modifiers with the mouse.</p>
+exports.cardSelectionsModifiersHtmlEn = ` 
+<p>A modifier is anything that affects a note, such as an articulation or dynamic.  Many modifiers, especially those that affect multiple notes, can be selected with the keyboard.  To select a modifier such as a slur, crescendo, or ending, use &#39;Alt-left arrow&#39; or &#39;Alt-right arrow&#39; when the first or last note of the modifier is selected.  This will move the selecttion between modifiers that apply to that note.</p>
+<p>You can also select modifiers with the mouse. </p>
 <p>Once selected, you can bring up the modifier dialog by hitting &#39;Enter&#39;.</p>
 <p><img src="https://imgur.com/rhOyIKD.gif" alt=""></p>
 `;
-exports.cardToggleArticulationHtmlEn = `
-<h3 id="toggle-modifiers-articulations-">Toggle modifiers (articulations)</h3>
+exports.cardSelectionsNonSelectableHtmlEn = `
 <p>Some modifiers, such as articulations, aren&#39;t selectable.  The keys <strong>h</strong>, <strong>i</strong>, <strong>j</strong>, and <strong>k</strong> bring up articulations that aren&#39;t selectable, but are placed on the note automatically.  You can toggle position and on/off by repeating the key.</p>
 <p>Additional articulations are available from the of articulation button group.</p>
 <p>You can customize the articulations selected by the key bindings by changing the <code>ui/keyBindings/editorKeys.ts</code> file, or by providing your own bindings.  See the <code>custom-keybinding.html</code> example in the project.</p>
-<p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>
-`;
-exports.cardToggleBeamsAndStemsHtmlEn = `
+<p><img src="https://imgur.com/RqY9Nzo.gif" alt=""></p>`;
+exports.cardSelectionsSlashHtmlEn = `
+<p>The buttons on the left (for L-to-R languages) bring up menus and dialogs.  These dialogs can also be accessed via the &#39;Slash&#39; menus.</p>
+<p>For instance, slurs, ties, hairpins and other modifiers that work on a range of music are created from the &#39;Lines&#39; menu.  You can access this via the slash menu:</p>
+<p><strong>/</strong> <strong>l</strong> (el, not one) <strong>2</strong></p>
+<p>Then you can use the modifier selection to edit the phrase marking to your taste.</p>
+<p>You can also select modifiers or any menu option with the mouse.</p>
+<p><img src="https://imgur.com/4QfEfSs.gif" alt=""></p>`;
+exports.cardBeamsAndStemsDirectionHtmlEn = `
 <h3 id="beams-and-stems-part-1-direction">Beams and Stems part 1: Direction</h3>
-<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.   </p>
+<p>The direction of beams and stems is controlled selecting the notes you want to affect and typing <strong>Shift+B</strong>.  The selection will be toggled between auto (default), up, and down. &#39;Auto&#39; means stems are up if the notes are below 3rd line, so the beam direction will change if the notes do. </p>
+<p>Note that there are 3 settings, even though only 2 will produce a visible change for any given stem, since &#39;auto&#39; will be either up or down.  </p>
 <p><img src="https://imgur.com/itUMVBF.gif" alt=""></p>
 `;
-exports.cardToggleBeamsAndStems2HtmlEn = `
-<h3 id="beams-and-stems-part-1-beam-groups">Beams and Stems part 1: Beam Groups</h3>
+exports.cardBeamsAndStemsGroupingHtmlEn = `
 <p>By default, notes are auto-beamed so that a 1/4 note is beamed.  So 1/8 notes in 4/4 time will be beamed in 2&#39;s, 16th notes in 4&#39;s etc.  In triple time (e.g. 6/8, 9/8), 1/8 notes are beamed in 3&#39;s.  You can change this default in the Score Preferences.</p>
-<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing &#39;Shift-X&#39;.  Only notes with 1/8 note duration or less can be beamed.</p>
+<p>You can split a beam at any point using the <strong>x</strong> (mnemonic: <strong>x</strong> to cancel beaming.  You can create a beam by selecting the notes and typing <strong>Shift-X</strong>.  Only notes with 1/8 note duration or less can be beamed.</p>
 <p><img src="https://imgur.com/wZmXKq8.gif" alt=""></p>
 `;
+exports.cardMeasuresAddDeleteHtmlEn = `
+<p>You can add a single measure at the current selection point by pressing <strong>Insert</strong>.  <strong>Shift+Insert</strong> appends the new measure to the selected measure.</p>
+<p>To add many measures, you can do this from the &#39;Add Measures&#39; dialog.  This can be brought up through the &#39;Measure&#39; button on the left, or by pressing </p>
+<p><strong>/</strong>  <strong>a</strong>  <strong>0</strong> (zero)</p>
+<p>Deleting the selected measures can be done from the &#39;Measures&#39; menu on the left, or by pressing </p>
+<p><strong>/</strong>  <strong>a</strong> <strong>1</strong>.</p>
+<p>Note the insert and delete key behavior is asymmetric.  The <strong>Delete</strong> key is used to toggle notes to rests, and also I thought this made it too easy to accidentally delete a lot of music. </p>
+<p><img src="https://imgur.com/gGuxP7G.gif" alt=""></p>
+`;
+exports.cardVoicesCreateDeleteHtmlEn = `
+<p>If you need different rhythms in the same stave, you can do this by creating multiple voices.  You add a voice to a measure using the voice buttons - you can have up to 4 voices in a measure.  </p>
+<p>You can select a differnt voice using the voice buttons also.  </p>
+<p>You can delete any voice except voice 1 by selecting the voice, and selecting the <strong>Vx</strong> button.  When a voice is deleted, any voices with a higher number are bumped down - e.g., if you delete voice 2, voice 3 becomes voice 2, etc.</p>
+<p>By default, the odd-numbered voices (indexed from 1) have stems that point up.  You can use the <strong>Ctrl+B</strong> to change the staff direction if you want.</p>
+<p>Notes in voices &gt; 1 have different colors in the editor.  This is to make editing easier.  All voices are black when the music is printed.</p>
+<p><img src="https://imgur.com/HIUH2Pp.gif" alt=""></p>
+`;
+exports.cardPartAddDeleteHtmlEn = `    <p>You can add a new stave/part from the parts menu.</p>
+<p><strong>/</strong>  <strong>p</strong>  <strong>0</strong> (zero)</p>
+<p>From the dialog, you can select the initial properties of the new stave, such as the clef and transposition.</p>
+<p>To delete the selected staves:
+<strong>/</strong>  <strong>p</strong>  <strong>1</strong> (zero)</p>
+<p>Note that you can&#39;t delete the only stave - the music will always contain at least one stave.</p>
+<p>Note:  The &#39;Part&#39; menu may show different options depending on what else is in the score.  Other characteristics of the part and staff are covered in the &#39;Working with Scores&#39; section.</p>
+<p><img src="https://imgur.com/7GAia6G.gif" alt=""></p>
+`;
+exports.helpCards = [exports.cardKeysHtmlEn, exports.cardNotesLetterHtmlEn, exports.cardNotesChromaticHtmlEn, exports.cardNotesChordsHtmlEn,
+    exports.cardNotesRestsHtmlEn, exports.cardDurationNotesHtmlEn, exports.cardDurationTupletsHtmlEn,
+    exports.cardSelectionsNotesHtmlEn, exports.cardSelectionsModifiersHtmlEn, exports.cardSelectionsNonSelectableHtmlEn, exports.cardSelectionsSlashHtmlEn,
+    exports.cardBeamsAndStemsDirectionHtmlEn, exports.cardBeamsAndStemsGroupingHtmlEn,
+    exports.cardMeasuresAddDeleteHtmlEn, exports.cardVoicesCreateDeleteHtmlEn, exports.cardPartAddDeleteHtmlEn
+];
 
 
 /***/ }),
@@ -52482,6 +52630,7 @@ exports.SuiMenuManager = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const qwerty_1 = __webpack_require__(/*! ../qwerty */ "./src/ui/qwerty.ts");
 class SuiMenuManager {
     constructor(params) {
         var _a;
@@ -52536,6 +52685,13 @@ class SuiMenuManager {
                 action: 'SuiKeySignatureMenu'
             }, {
                 event: 'keydown',
+                key: 'p',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiPartMenu'
+            }, {
+                event: 'keydown',
                 key: 'l',
                 ctrlKey: false,
                 altKey: false,
@@ -52548,13 +52704,6 @@ class SuiMenuManager {
                 altKey: false,
                 shiftKey: false,
                 action: 'SuiDynamicsMenu'
-            }, {
-                event: 'keydown',
-                key: 's',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiStaffMenu'
             }, {
                 event: 'keydown',
                 key: 'f',
@@ -52695,6 +52844,7 @@ class SuiMenuManager {
     // We have taken over menu commands from controller.  If there is a menu active, send the key
     // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
     evKey(event) {
+        qwerty_1.Qwerty.handleKeyEvent(event);
         if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
             return;
         }
@@ -52916,12 +53066,26 @@ const scoreView_1 = __webpack_require__(/*! ../dialogs/scoreView */ "./src/ui/di
 const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
 const partInfo_1 = __webpack_require__(/*! ../dialogs/partInfo */ "./src/ui/dialogs/partInfo.ts");
 const pageLayout_1 = __webpack_require__(/*! ../dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts");
+const newPart_1 = __webpack_require__(/*! ../dialogs/newPart */ "./src/ui/dialogs/newPart.ts");
 class SuiPartMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
     }
     getDefinition() {
         return SuiPartMenu.defaults;
+    }
+    createPart() {
+        (0, dialog_1.createAndDisplayDialog)(newPart_1.SuiNewPartDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'newPartDialog',
+            ctor: 'SuiNewPartDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
     }
     execView() {
         (0, dialog_1.createAndDisplayDialog)(scoreView_1.SuiScoreViewDialog, {
@@ -52968,6 +53132,10 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
             modifier: null,
             startPromise: this.closePromise
         });
+    }
+    removePart() {
+        this.view.removeStaff();
+        this.complete();
     }
     pageLayout() {
         (0, dialog_1.createAndDisplayDialog)(pageLayout_1.SuiPageLayoutDialog, {
@@ -53030,6 +53198,14 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
             this.execView();
             this.complete();
         }
+        else if (op === 'createPart') {
+            this.createPart();
+            this.complete();
+        }
+        else if (op === 'removePart') {
+            this.removePart();
+            this.complete();
+        }
         else if (op === 'editPart') {
             this.editPart();
             this.complete();
@@ -53054,7 +53230,15 @@ SuiPartMenu.defaults = {
     menuItems: [
         {
             icon: '',
-            text: 'View Part',
+            text: 'Create New Part/Stave',
+            value: 'createPart'
+        }, {
+            icon: 'cancel-circle',
+            text: 'Remove Selected Parts/Staves',
+            value: 'removePart'
+        }, {
+            icon: '',
+            text: 'Part Properties',
             value: 'editPart'
         }, {
             icon: '',
@@ -53062,7 +53246,7 @@ SuiPartMenu.defaults = {
             value: 'pageLayout'
         }, {
             icon: '',
-            text: 'View Parts/Staves',
+            text: 'View Partial Score',
             value: 'view'
         }, {
             icon: '',
@@ -53291,144 +53475,6 @@ SuiScoreMenu.defaults = {
             text: 'Cancel',
             value: 'cancel'
         }]
-};
-
-
-/***/ }),
-
-/***/ "./src/ui/menus/staff.ts":
-/*!*******************************!*\
-  !*** ./src/ui/menus/staff.ts ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiStaffMenu = void 0;
-const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-class SuiStaffMenu extends menu_1.SuiMenuBase {
-    constructor(params) {
-        super(params);
-    }
-    static get instrumentMap() {
-        return {
-            'trebleInstrument': {
-                instrumentName: 'Treble Clef Staff',
-                keyOffset: 0,
-                abbreviation: 'treble',
-                family: 'keyboard',
-                instrument: 'piano',
-                midichannel: 0,
-                midiport: 0,
-                clef: 'treble',
-                startSelector: selections_1.SmoSelector.default,
-                endSelector: selections_1.SmoSelector.default
-            },
-            'bassInstrument': {
-                instrumentName: 'Bass Clef Staff',
-                keyOffset: 0,
-                abbreviation: 'treble',
-                family: 'keyboard',
-                instrument: 'piano',
-                midichannel: 0,
-                midiport: 0,
-                clef: 'bass',
-                startSelector: selections_1.SmoSelector.default,
-                endSelector: selections_1.SmoSelector.default
-            },
-            'altoInstrument': {
-                instrumentName: 'Alto Clef Staff',
-                keyOffset: 0,
-                family: 'keyboard',
-                instrument: 'piano',
-                abbreviation: 'treble',
-                midichannel: 0,
-                midiport: 0,
-                clef: 'alto',
-                startSelector: selections_1.SmoSelector.default,
-                endSelector: selections_1.SmoSelector.default
-            },
-            'tenorInstrument': {
-                instrumentName: 'Tenor Clef Staff',
-                keyOffset: 0,
-                abbreviation: 'treble',
-                family: 'keyboard',
-                instrument: 'piano',
-                midichannel: 0,
-                midiport: 0,
-                clef: 'tenor',
-                startSelector: selections_1.SmoSelector.default,
-                endSelector: selections_1.SmoSelector.default
-            },
-            'percussionInstrument': {
-                instrumentName: 'Percussion Clef Staff',
-                keyOffset: 0,
-                abbreviation: 'treble',
-                family: 'keyboard',
-                instrument: 'piano',
-                midichannel: 0,
-                midiport: 0,
-                clef: 'percussion',
-                startSelector: selections_1.SmoSelector.default,
-                endSelector: selections_1.SmoSelector.default
-            }
-        };
-    }
-    getDefinition() {
-        return SuiStaffMenu.defaults;
-    }
-    selection(ev) {
-        const op = $(ev.currentTarget).attr('data-value');
-        if (op === 'remove') {
-            this.view.removeStaff();
-            this.complete();
-        }
-        else if (op === 'cancel') {
-            this.complete();
-        }
-        else {
-            const params = SuiStaffMenu.instrumentMap[op];
-            this.view.addStaffSimple(params);
-            this.complete();
-        }
-    }
-    keydown() { }
-}
-exports.SuiStaffMenu = SuiStaffMenu;
-SuiStaffMenu.defaults = {
-    label: 'Add Staff',
-    menuItems: [
-        {
-            icon: 'treble',
-            text: 'Treble Clef Staff',
-            value: 'trebleInstrument'
-        }, {
-            icon: 'bass',
-            text: 'Bass Clef Staff',
-            value: 'bassInstrument'
-        }, {
-            icon: 'alto',
-            text: 'Alto Clef Staff',
-            value: 'altoInstrument'
-        }, {
-            icon: 'tenor',
-            text: 'Tenor Clef Staff',
-            value: 'tenorInstrument'
-        }, {
-            icon: 'percussion',
-            text: 'Percussion Clef Staff',
-            value: 'percussionInstrument'
-        }, {
-            icon: 'cancel-circle',
-            text: 'Remove Staff',
-            value: 'remove'
-        }, {
-            icon: '',
-            text: 'Cancel',
-            value: 'cancel'
-        }
-    ]
 };
 
 
@@ -53854,7 +53900,8 @@ class defaultRibbonLayout {
         var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
             .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
             .concat(defaultRibbonLayout.durationIds)
-            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
+            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
+            .concat(defaultRibbonLayout.staveIds)
             .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
             .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
         return {
@@ -53905,16 +53952,16 @@ class defaultRibbonLayout {
     static get measureIds() {
         return ['MeasureButtons', 'endRepeat', 'startRepeat', 'endBar', 'doubleBar', 'singleBarEnd', 'singleBarStart', 'nthEnding', 'dcAlCoda', 'dsAlCoda', 'dcAlFine', 'dsAlFine', 'coda', 'toCoda', 'segno', 'toSegno', 'fine'];
     }
+    static get staveIds() {
+        return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
+            'clefTenor', 'clefAlto', 'clefPercussion',
+            'staffBracketLower', 'staffBraceLower', 'staffDoubleConnectorLower', 'staffSingleConnectorLower'];
+    }
     static get textIds() {
         return ['TextButtons', 'addTextMenu', 'rehearsalMark', 'lyrics', 'chordChanges', 'addDynamicsMenu'];
     }
     static get beamIds() {
         return ['BeamButtons', 'breakBeam', 'beamSelections', 'toggleBeamDirection'];
-    }
-    static get staveIds() {
-        return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
-            'clefTenor', 'clefAlto', 'clefPercussion',
-            'staffBracketLower', 'staffBraceLower', 'staffDoubleConnectorLower', 'staffSingleConnectorLower'];
     }
     static get playerIds() {
         return ['playerButtons', 'playButton', 'pauseButton', 'stopButton'];
@@ -54154,15 +54201,6 @@ class defaultRibbonLayout {
                 ctor: 'StaveButtons',
                 group: 'staves',
                 id: 'clefBass'
-            }, {
-                leftText: '',
-                rightText: '',
-                classes: 'icon  collapsed staves',
-                icon: 'icon-plus',
-                action: 'collapseChildMenu',
-                ctor: 'SuiStaffMenu',
-                group: 'staves',
-                id: 'clefAddRemove'
             },
             {
                 leftText: '',
@@ -55381,22 +55419,13 @@ class defaultRibbonLayout {
             },
             {
                 leftText: 'Parts',
-                rightText: '',
+                rightText: '/p',
                 icon: '',
                 classes: 'icon',
                 action: 'menu',
                 ctor: 'SuiPartMenu',
                 group: 'scoreEdit',
                 id: 'instrumentMenu'
-            }, {
-                leftText: 'Staves',
-                rightText: '/s',
-                icon: '',
-                classes: 'staff-modify',
-                action: 'menu',
-                ctor: 'SuiStaffMenu',
-                group: 'scoreEdit',
-                id: 'addStaffMenu'
             },
             {
                 leftText: 'Measure',
@@ -56203,6 +56232,7 @@ __exportStar(__webpack_require__(/*! ./src/smo/data/note */ "./src/smo/data/note
 __exportStar(__webpack_require__(/*! ./src/smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/smo/data/partInfo */ "./src/smo/data/partInfo.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/smo/data/score */ "./src/smo/data/score.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/scoreText */ "./src/smo/data/scoreText.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/smo/data/systemStaff */ "./src/smo/data/systemStaff.ts"), exports);
@@ -56300,7 +56330,6 @@ __exportStar(__webpack_require__(/*! ./src/ui/menus/measure */ "./src/ui/menus/m
 __exportStar(__webpack_require__(/*! ./src/ui/menus/menu */ "./src/ui/menus/menu.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/menus/parts */ "./src/ui/menus/parts.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/menus/score */ "./src/ui/menus/score.ts"), exports);
-__exportStar(__webpack_require__(/*! ./src/ui/menus/staff */ "./src/ui/menus/staff.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/menus/staffModifier */ "./src/ui/menus/staffModifier.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/menus/timeSignature */ "./src/ui/menus/timeSignature.ts"), exports);
 __exportStar(__webpack_require__(/*! ./src/ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts"), exports);

@@ -374,6 +374,13 @@ export class SuiAudioPlayer {
           this.tracker.clearMusicCursor(previousDuration);
           return;
         }
+        if (cuedSound.oscs.length === 0) {
+          this.cuedSounds.playMeasureIndex += 1;
+          this.cuedSounds.playWaitTimer = cuedSound.waitTime;
+          console.warn('empty oscs in playback');
+          timer();            
+          return;
+        }
         previousDuration = cuedSound.oscs[0].duration;
         SuiAudioPlayer._playChord(cuedSound.oscs);
         this.tracker.musicCursor(cuedSound.selector,
