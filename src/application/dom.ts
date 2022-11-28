@@ -10,14 +10,15 @@ declare var $: any;
 export class SuiDom {
   static splash(config: SmoConfiguration) {
     var b: any = buildDom;
-    var logoPath = 'https://aarondavidnewman.github.io/Smoosic/release/styles/images/logo.png';
+    var logoPath = '../styles/images/logo.png';
     var r = b('div').classes('bug-modal').append(
-      b('img').attr('src', logoPath).classes('splash-logo'))
+      b('img').attr('src', logoPath).classes('splash-logo').attr('width', '300px').attr('height', '300px'))
       .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+      .append(b('div').classes('splash-div')
       .append(b('span').classes('splash-title').text('Sm'))
       .append(b('span').classes('splash-shine').text('ooooooooo'))
-      .append(b('span').classes('splash-title').text('sic'));
-    $('.bugDialog').append(r.dom());
+      .append(b('span').classes('splash-title').text('sic')));
+    $('body').append(r.dom());
     $('body').addClass('splashScreen modal');
     setTimeout(function () {
       $('body').removeClass('splashScreen modal');

@@ -41,6 +41,7 @@ export interface SmoSystemStaffParams {
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
   textBrackets?: SmoStaffTextBracket[];
+  alignWithPrevious?: boolean;
 }
 /**
  * A staff is a line of music that can span multiple measures.

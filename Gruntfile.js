@@ -93,5 +93,5 @@ module.exports = function (grunt) {
   console.log(new Date());
 
   // Default task(s).
-  grunt.registerTask('default', ['eslint', 'webpack:build', 'copy', 'typedoc']);
+  grunt.registerTask('default', ['eslint', 'webpack:build', 'copy']);
 };

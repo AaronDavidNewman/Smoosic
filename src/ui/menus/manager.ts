@@ -86,6 +86,13 @@ export class SuiMenuManager {
         action: 'SuiKeySignatureMenu'
       }, {
         event: 'keydown',
+        key: 'p',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiPartMenu'
+      }, {
+        event: 'keydown',
         key: 'l',
         ctrlKey: false,
         altKey: false,

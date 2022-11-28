@@ -16,8 +16,12 @@ export class SuiPartMenu extends SuiMenuBase {
     menuItems: [
       {
         icon: '',
-        text: 'Create New Part',
+        text: 'Create New Part/Stave',
         value: 'createPart'
+      }, {
+        icon: 'cancel-circle',
+        text: 'Remove Selected Parts/Staves',
+        value: 'removePart'
       }, {
         icon: '',
         text: 'Part Properties',
@@ -113,6 +117,10 @@ export class SuiPartMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
   }
+  removePart() {
+    this.view.removeStaff();
+    this.complete();
+  }
   pageLayout() {
     createAndDisplayDialog(SuiPageLayoutDialog,
       {
@@ -171,6 +179,9 @@ export class SuiPartMenu extends SuiMenuBase {
       this.complete();
     } else if (op === 'createPart') {
       this.createPart();
+      this.complete();
+    } else if (op === 'removePart') {
+      this.removePart();
       this.complete();
     } else if (op === 'editPart') {
       this.editPart();

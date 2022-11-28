@@ -1555,7 +1555,7 @@ export class defaultRibbonLayout {
     },
     {
       leftText: 'Parts',
-      rightText: '',
+      rightText: '/p',
       icon: '',
       classes: 'icon',
       action: 'menu',

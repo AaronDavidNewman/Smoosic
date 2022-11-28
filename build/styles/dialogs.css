@@ -487,7 +487,12 @@ body.showAttributeDialog .attributeDialog {
 	padding:100px 10px;
 	z-index: 9;
 }
-
+.splash-div {
+  position: absolute;
+  top:40px;
+  background-color: white;
+  left: 300px;
+}
 .splashScreen .splash-title {
     font-size: 3em;
 	font-family: sans-serif;
@@ -523,9 +528,17 @@ body.showAttributeDialog .attributeDialog {
 	margin-left:10px;
 }
 
+body.splashScreen.modal .bug-modal {
+  display: block;
+}
 .bug-modal {
+  display: none;
 	width:100%;
 	height:100%;
+  font-size: 1.5em;
+  position: absolute;
+  top: calc(50% - 200px);
+  left: calc(50% - 300px);
 	margin:10px;
 }
 

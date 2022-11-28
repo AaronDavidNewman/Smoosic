@@ -313,8 +313,8 @@ export class Draggable {
     this._animate(e);
   }
   enddrag() {
-    this.lastX = this.lastX - this.domOffset.left;
-    this.lastY = this.lastY - this.domOffset.top;
+    this.lastX = Math.max(this.lastX - this.domOffset.left, 0);
+    this.lastY = Math.max(this.lastY - this.domOffset.top, 0);
     if (this.moveParent) {
       $(this.parent).css('left', this.lastX + 'px');
       $(this.parent).css('top', this.lastY + 'px');

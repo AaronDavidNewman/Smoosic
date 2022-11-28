@@ -1512,6 +1512,22 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // if we are looking at a subset of the score, we won't see the new staff.  So
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
+    if (instrument.alignWithPrevious && instrument.staffId > 0) {
+      const sel = SmoSelector.default;
+      sel.staff = instrument.staffId - 1;
+      const selection = SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
+      if (selection) {
+        let grp = this.storeScore.getSystemGroupForStaff(selection);
+        if (grp) {
+          grp.endSelector.staff = instrument.staffId;
+        } else {
+          let grp = new SmoSystemGroup(SmoSystemGroup.defaults);
+          grp.startSelector.staff = instrument.staffId - 1;
+          grp.endSelector.staff = instrument.staffId;
+          this.storeScore.systemGroups.push(grp);
+        }
+      }
+    }
     this.viewAll();
     return this.renderer.updatePromise();
   }
