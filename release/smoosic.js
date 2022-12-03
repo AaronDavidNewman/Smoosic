@@ -6236,14 +6236,14 @@ class SuiMapper {
                         });
                     }
                     smoNote.graceNotes.forEach((g) => {
+                        if (g.element) {
+                        }
                         var gel = context.svg.getElementById('vf-' + g.renderId);
-                        $(gel).addClass('grace-note');
                         svgHelpers_1.SvgHelpers.updateArtifactBox(context, gel, g);
                     });
                     smoNote.textModifiers.forEach((modifier) => {
-                        const modEl = $('.' + modifier.attrs.id);
-                        if (modifier.logicalBox && modEl.length) {
-                            svgHelpers_1.SvgHelpers.updateArtifactBox(context, modEl[0], modifier);
+                        if (modifier.logicalBox && modifier.element) {
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(context, modifier.element, modifier);
                         }
                     });
                 }
@@ -6502,16 +6502,6 @@ class SuiMapper {
         const note = artifact.note;
         const noteKey = selections_1.SmoSelector.getNoteKey(artifact.selector);
         const activeVoice = artifact.measure.getActiveVoice();
-        /* if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
-          const vvv = artifact.selector.voice;
-          const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
-          const g = 128 / vvv;
-          const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
-          const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-          $('#' + note.renderId).find('.vf-notehead path').each((ix: number, el: Element) => {
-            el.setAttributeNS('', 'fill', fill);
-          });
-        }  */
         // not has not been drawn yet.
         if ((!artifact.box) || (!artifact.measure.svg.logicalBox)) {
             return;
@@ -14747,6 +14737,7 @@ class VxMeasure {
             const group = [];
             gar.forEach((g) => {
                 const gr = new VF.GraceNote(g.toVexGraceNote());
+                gr.setAttribute('id', g.attrs.id);
                 for (i = 0; i < g.pitches.length; ++i) {
                     const pitch = g.pitches[i];
                     if (!pitch.accidental) {
@@ -15253,9 +15244,9 @@ class VxSystem {
         this.leftConnector = [null, null];
         this.vxMeasures = [];
         this.smoMeasures = [];
+        this.minMeasureIndex = -1;
+        this.maxMeasureIndex = 0;
         this.staves = [];
-        this.endcaps = [];
-        this.endings = [];
         this.box = common_1.SvgBox.default;
         this.ys = [];
         this.measures = [];
@@ -15267,8 +15258,6 @@ class VxSystem {
         this.maxSystemIndex = -1;
         this.width = -1;
         this.staves = [];
-        this.endcaps = [];
-        this.endings = [];
         this.currentY = 0;
         this.topY = topY;
         this.clefWidth = 70;
@@ -15296,12 +15285,6 @@ class VxSystem {
             }
         }
         return null;
-    }
-    minMax() {
-        const mar = this.staves[0].measures.map((mm) => mm.measureNumber.measureIndex);
-        const min = mar.reduce((a, b) => a < b ? a : b);
-        const max = mar.reduce((a, b) => a > b ? a : b);
-        return { min, max };
     }
     _updateChordOffsets(note) {
         var i = 0;
@@ -15588,8 +15571,13 @@ class VxSystem {
     renderEndings(scroller) {
         let j = 0;
         let i = 0;
-        const minMax = this.minMax();
-        const voltas = this.staves[0].getVoltaMap(minMax.min, minMax.max);
+        const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
+        voltas.forEach((ending) => {
+            ending.elements.forEach((element) => {
+                element.remove();
+            });
+            ending.elements = [];
+        });
         for (j = 0; j < this.smoMeasures.length; ++j) {
             let pushed = false;
             const smoMeasure = this.smoMeasures[j];
@@ -15602,18 +15590,16 @@ class VxSystem {
             for (i = 0; i < voltas.length && vxMeasure !== null; ++i) {
                 const ending = voltas[i];
                 const mix = smoMeasure.measureNumber.measureIndex;
-                if (ending.startBar === mix) {
-                    $(this.context.svg).find('g.' + ending.attrs.id).remove();
-                }
                 if ((ending.startBar <= mix) && (ending.endBar >= mix) && vxMeasure.stave !== null) {
                     const group = this.context.getContext().openGroup(null, ending.attrs.id);
                     group.classList.add(ending.attrs.id);
                     group.classList.add(ending.endingId);
+                    ending.elements.push(group);
                     const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
                     const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
                     vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
                     this.context.getContext().closeGroup();
-                    ending.logicalBox = this.context.offsetBbox(group);
+                    // ending.logicalBox = this.context.offsetBbox(group);
                     if (!pushed) {
                         voAr.push({ smoMeasure, ending });
                         pushed = true;
@@ -15652,6 +15638,13 @@ class VxSystem {
         var _a, _b;
         if (smoMeasure.svg.hideMultimeasure) {
             return;
+        }
+        const measureIndex = smoMeasure.measureNumber.measureIndex;
+        if (this.minMeasureIndex < 0 || this.minMeasureIndex > measureIndex) {
+            this.minMeasureIndex = measureIndex;
+        }
+        if (this.maxMeasureIndex < measureIndex) {
+            this.maxMeasureIndex = measureIndex;
         }
         let brackets = false;
         const staff = this.score.staves[smoMeasure.measureNumber.staffId];
@@ -15713,10 +15706,16 @@ class VxSystem {
         // Keep track of the y coordinate for the nth staff
         const renderedConnection = {};
         if (systemIndex === 0 && lastStaff) {
-            $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+            if (staff.bracketMap[this.lineIndex]) {
+                staff.bracketMap[this.lineIndex].forEach((element) => {
+                    element.remove();
+                });
+            }
+            staff.bracketMap[this.lineIndex] = [];
             const group = this.context.getContext().openGroup();
             group.classList.add('lineBracket-' + this.lineIndex);
             group.classList.add('lineBracket');
+            staff.bracketMap[this.lineIndex].push(group);
             this.vxMeasures.forEach((vv) => {
                 const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
                 if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
@@ -15743,10 +15742,10 @@ class VxSystem {
                 const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
                     vv.selection.selector.measure === vxMeasure.selection.selector.measure);
                 if (endMeasure && startMeasure) {
-                    $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
                     const group = this.context.getContext().openGroup();
                     group.classList.add('endBracket-' + this.lineIndex);
                     group.classList.add('endBracket');
+                    staff.bracketMap[this.lineIndex].push(group);
                     const c2 = new VF.StaveConnector(startMeasure.stave, endMeasure.stave)
                         .setType(VF.StaveConnector.type.SINGLE_RIGHT);
                     c2.setContext(this.context.getContext()).draw();
@@ -15765,12 +15764,7 @@ class VxSystem {
             }
         }
         else if (smoMeasure.measureNumber.systemIndex > this.maxSystemIndex) {
-            this.endcaps = [];
-            this.endcaps.push(vxMeasure.stave);
             this.maxSystemIndex = smoMeasure.measureNumber.systemIndex;
-        }
-        else if (smoMeasure.measureNumber.systemIndex === this.maxSystemIndex) {
-            this.endcaps.push(vxMeasure.stave);
         }
         this.measures.push(vxMeasure);
     }
@@ -22913,6 +22907,7 @@ class SmoSystemStaff {
         this.measures = [];
         this.modifiers = [];
         this.textBrackets = [];
+        this.bracketMap = {};
         this.attrs = {
             id: '',
             type: 'SmoSystemStaff'
