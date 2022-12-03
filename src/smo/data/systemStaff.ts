@@ -86,6 +86,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   measures: SmoMeasure[] = [];
   modifiers: StaffModifierBase[] = [];
   textBrackets: SmoStaffTextBracket[] = [];
+  bracketMap: Record<number, SVGSVGElement[]> = {};
   attrs: SmoAttrs = {
     id: '',
     type: 'SmoSystemStaff'

@@ -45,7 +45,6 @@ export abstract class SelectionMap<T, K> {
    * @param rv 
    */
   abstract findValueInMap(value: T, box: SvgBox): SmoSelection[];
-  ;
   /**
    * the outer bounding box of these selections
    */

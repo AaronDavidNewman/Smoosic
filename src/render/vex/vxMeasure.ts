@@ -221,6 +221,7 @@ export class VxMeasure {
       const group: any[] = [];
       gar.forEach((g) => {
         const gr = new VF.GraceNote(g.toVexGraceNote());
+        gr.setAttribute('id', g.attrs.id);
         for (i = 0; i < g.pitches.length; ++i) {
           const pitch = g.pitches[i];
           if (!pitch.accidental) {

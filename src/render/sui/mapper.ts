@@ -12,7 +12,6 @@ import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore, SmoModifier } from '../../smo/data/score';
 import { SvgPageMap } from './svgPageMap';
-declare var $: any;
 
 /**
  * DI information about renderer, so we can notify renderer and it can contain
@@ -348,14 +347,14 @@ export abstract class SuiMapper {
             });
           }
           smoNote.graceNotes.forEach((g) => {
-            var gel = context.svg.getElementById('vf-' + g.renderId);
-            $(gel).addClass('grace-note');
-            SvgHelpers.updateArtifactBox(context, gel as any, g);
+            if (g.element) {
+            }
+            var gel = context.svg.getElementById('vf-' + g.renderId) as SVGSVGElement;
+            SvgHelpers.updateArtifactBox(context, gel, g);
           });
           smoNote.textModifiers.forEach((modifier) => {
-            const modEl = $('.' + modifier.attrs.id);
-            if (modifier.logicalBox && modEl.length) {
-              SvgHelpers.updateArtifactBox(context, modEl[0], modifier as any);
+            if (modifier.logicalBox && modifier.element) {
+              SvgHelpers.updateArtifactBox(context, modifier.element, modifier as any);
             }
           });
         }
@@ -616,16 +615,6 @@ export abstract class SuiMapper {
     const note = artifact.note as SmoNote;
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
-    /* if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
-      const vvv = artifact.selector.voice;
-      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
-      const g = 128 / vvv;
-      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
-      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-      $('#' + note.renderId).find('.vf-notehead path').each((ix: number, el: Element) => {
-        el.setAttributeNS('', 'fill', fill);
-      });
-    }  */
     // not has not been drawn yet.
     if ((!artifact.box) || (!artifact.measure.svg.logicalBox)) {
       return;

@@ -40,10 +40,10 @@ export class VxSystem {
   lineIndex: number;
   maxStaffIndex: number;
   maxSystemIndex: number;
+  minMeasureIndex: number = -1;
+  maxMeasureIndex: number = 0;
   width: number;
   staves: SmoSystemStaff[] = [];
-  endcaps: any[] = [];
-  endings: any[] = [];
   box: SvgBox = SvgBox.default;
   currentY: number;
   topY: number;
@@ -59,8 +59,6 @@ export class VxSystem {
     this.maxSystemIndex = -1;
     this.width = -1;
     this.staves = [];
-    this.endcaps = [];
-    this.endings = [];
     this.currentY = 0;
     this.topY = topY;
     this.clefWidth = 70;
@@ -91,13 +89,6 @@ export class VxSystem {
       }
     }
     return null;
-  }
-
-  minMax(): { min: number, max: number } {
-    const mar = this.staves[0].measures.map((mm) => mm.measureNumber.measureIndex);
-    const min = mar.reduce((a, b) => a < b ? a : b);
-    const max = mar.reduce((a, b) => a > b ? a : b);
-    return { min, max };
   }
 
   _updateChordOffsets(note: SmoNote) {
@@ -173,7 +164,8 @@ export class VxSystem {
               if (hasLyric && ll.logicalBox && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
               }else if (hasLyric && !ll.logicalBox) {
-                console.warn(`unrendered lyric for note ${note.attrs.id} measure ${smoMeasure.measureNumber.staffId}-${smoMeasure.measureNumber.measureIndex}`);
+                console.warn(
+                  `unrendered lyric for note ${note.attrs.id} measure ${smoMeasure.measureNumber.staffId}-${smoMeasure.measureNumber.measureIndex}`);
               }
               if (hasLyric && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);
@@ -386,8 +378,13 @@ export class VxSystem {
   renderEndings(scroller: SuiScroller) {
     let j = 0;
     let i = 0;
-    const minMax = this.minMax();
-    const voltas = this.staves[0].getVoltaMap(minMax.min, minMax.max);
+    const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
+    voltas.forEach((ending) => {
+      ending.elements.forEach((element) => {
+        element.remove();
+      });
+      ending.elements = [];
+    });
     for (j = 0; j < this.smoMeasures.length; ++j) {
       let pushed = false;
       const smoMeasure = this.smoMeasures[j];
@@ -400,18 +397,16 @@ export class VxSystem {
       for (i = 0; i < voltas.length && vxMeasure !== null; ++i) {
         const ending = voltas[i];
         const mix = smoMeasure.measureNumber.measureIndex;
-        if (ending.startBar === mix) {
-          $(this.context.svg).find('g.' + ending.attrs.id).remove();
-        }
         if ((ending.startBar <= mix) && (ending.endBar >= mix) && vxMeasure.stave !== null) {
           const group = this.context.getContext().openGroup(null, ending.attrs.id);
           group.classList.add(ending.attrs.id);
           group.classList.add(ending.endingId);
+          ending.elements.push(group);
           const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
           const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.getContext().closeGroup();
-          ending.logicalBox = this.context.offsetBbox(group);
+          // ending.logicalBox = this.context.offsetBbox(group);
           if (!pushed) {
             voAr.push({ smoMeasure, ending });
             pushed = true;
@@ -453,6 +448,13 @@ export class VxSystem {
   renderMeasure(smoMeasure: SmoMeasure, printing: boolean) {
     if (smoMeasure.svg.hideMultimeasure) {
       return;
+    }
+    const measureIndex = smoMeasure.measureNumber.measureIndex;
+    if (this.minMeasureIndex < 0 || this.minMeasureIndex > measureIndex) {
+      this.minMeasureIndex = measureIndex;
+    }
+    if (this.maxMeasureIndex < measureIndex) {
+      this.maxMeasureIndex = measureIndex;
     }
     let brackets = false;
     const staff = this.score.staves[smoMeasure.measureNumber.staffId];
@@ -517,10 +519,16 @@ export class VxSystem {
     const renderedConnection: Record<string, number> = {};
 
     if (systemIndex === 0 && lastStaff) {
-      $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+      if (staff.bracketMap[this.lineIndex]) {
+        staff.bracketMap[this.lineIndex].forEach((element) => {
+          element.remove();
+        });
+      }
+      staff.bracketMap[this.lineIndex] = [];
       const group = this.context.getContext().openGroup();
       group.classList.add('lineBracket-' + this.lineIndex);
       group.classList.add('lineBracket');
+      staff.bracketMap[this.lineIndex].push(group);
       this.vxMeasures.forEach((vv) => {
         const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
         if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
@@ -548,10 +556,10 @@ export class VxSystem {
         const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
           vv.selection.selector.measure === vxMeasure.selection.selector.measure);
         if (endMeasure && startMeasure) {
-          $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
           const group = this.context.getContext().openGroup();
           group.classList.add('endBracket-' + this.lineIndex);
           group.classList.add('endBracket');
+          staff.bracketMap[this.lineIndex].push(group);
           const c2 = new VF.StaveConnector(startMeasure.stave, endMeasure.stave)
             .setType(VF.StaveConnector.type.SINGLE_RIGHT);
           c2.setContext(this.context.getContext()).draw();
@@ -569,11 +577,7 @@ export class VxSystem {
         this.leftConnector[1] = vxMeasure.stave;
       }
     } else if (smoMeasure.measureNumber.systemIndex > this.maxSystemIndex) {
-      this.endcaps = [];
-      this.endcaps.push(vxMeasure.stave);
       this.maxSystemIndex = smoMeasure.measureNumber.systemIndex;
-    } else if (smoMeasure.measureNumber.systemIndex === this.maxSystemIndex) {
-      this.endcaps.push(vxMeasure.stave);
     }
     this.measures.push(vxMeasure);
   }
