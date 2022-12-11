@@ -372,6 +372,17 @@ export class SmoStaffTextBracket extends StaffModifierBase {
   }
 }
 
+export interface SlurDefaultParams {
+  stemDir1: number,
+  stemDir2: number,
+  line1: number,
+  line2: number,
+  lineMin: number,
+  lineMax: number,
+  position: number,
+  orientation: number,
+  sameBeam: number
+}
 export type SlurNumberParam = 'spacing' | 'thickness' | 'xOffset' | 'yOffset' | 'position' |
   'position_end' | 'cp1x' | 'cp1y' | 'cp2x' | 'cp2y';
 export const SlurNumberParams: SlurNumberParam[] = ['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 
@@ -407,7 +418,8 @@ export interface SmoSlurParams {
   cp2x: number,
   cp2y: number,
   startSelector: SmoSelector,
-  endSelector: SmoSelector
+  endSelector: SmoSelector,
+  debugParams?: SlurDefaultParams
 }
 /**
  * Defines a slur

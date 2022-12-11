@@ -19,9 +19,11 @@ export interface OutlineInfo {
   stroke: StrokeInfo,
   classes: string,
   box: SvgBox | SvgBox[],
-  clientCoordinates: boolean,
   scroll: SvgPoint,
-  context: SvgPage
+  context: SvgPage,
+  timeOff: number,
+  timer?: number,
+  element?: SVGSVGElement
 }
 
 export interface GradientInfo {
@@ -181,21 +183,38 @@ export class SvgHelpers {
 
   // ### eraseOutline
   // Erases old outlineRects.
-  static eraseOutline(svg: SVGSVGElement, stroke: StrokeInfo) {
+  static eraseOutline(params: OutlineInfo) {
     // Hack:  Assume a stroke style, should just take a stroke param.
-    $(svg).find('g.vf-' + stroke.strokeName).remove();
+    if (params.element) {
+      params.element.remove();
+      params.element = undefined;
+    }
   }
 
-  static _outlineRect(params: OutlineInfo) {
+  static outlineRect(params: OutlineInfo) {
     const context = params.context;
-    // vex puts 'vf-' before everything rendered by context API
-    SvgHelpers.eraseOutline(context.svg, params.stroke);
+    if (params.element && params.timer) {
+      clearTimeout(params.timer);
+      params.timer = undefined;
+      params.element.remove();
+      params.element = undefined;
+    }
+    if (params.timeOff) {
+      params.timer = window.setTimeout(() => {
+        if (params.element) {
+          params.element.remove();
+          params.element = undefined;
+          params.timer = undefined;
+        }
+      }, params.timeOff);
+    }
     // Don't highlight in print mode.
     if ($('body').hasClass('printing')) {
       return;
     }
     const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
     var grp = context.getContext().openGroup(classes, classes + '-outline');
+    params.element = grp;
     const boxes = Array.isArray(params.box) ? params.box : [params.box];
 
     boxes.forEach((box: SvgBox) => {
@@ -210,22 +229,6 @@ export class SvgHelpers {
       }
     });
     context.getContext().closeGroup(grp);
-  }
-
-
-  // ### outlineRect
-  // Usage:
-  //  outlineRect(params)
-  // params ({context,box,outlineStroke,classes,scroller})
-  // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
-  static outlineRect(params: OutlineInfo) {
-    params.clientCoordinates = true;
-    SvgHelpers._outlineRect(params);
-  }
-
-  static outlineLogicalRect(params: OutlineInfo) {
-    params.clientCoordinates = false;
-    SvgHelpers._outlineRect(params);
   }
 
   static setSvgStyle(element: Element, attrs: StrokeInfo) {
@@ -309,6 +312,30 @@ export class SvgHelpers {
         b('text').text(Math.round(box.x - 14 + voffset), ytextp2, 'svg-vdebug-text', htext)
           .attr('transform', 'rotate(-90,' + Math.round(box.x - 14 + voffset) + ',' + (ytextp2) + ')'))
         .append(
+          b('line').line(Math.round(box.x - 2), Math.round(box.y + box.height), box.x - 2, box.y, ''))
+        .append(
+          b('line').line(Math.round(box.x - 8), Math.round(box.y + box.height), box.x + 6, Math.round(box.y + box.height), ''))
+        .append(
+          b('line').line(Math.round(box.x - 8), Math.round(box.y), Math.round(box.x + 6), Math.round(box.y),''));
+    }
+    svg.appendChild(r.dom());
+  }
+  static debugBoxNoText(svg: SVGSVGElement, box: SvgBox | null, classes: string, voffset: number) {
+    voffset = voffset ?? 0;
+    classes = classes ?? '';
+    if (!box)
+      return;
+    classes += ' svg-debug-box';
+    var b = SvgBuilder.b;
+    var r = b('g').classes(classes)
+      .append(
+        b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2, ''))
+      .append(
+        b('line').line(box.x, box.y - 8, box.x, box.y + 5, ''))
+      .append(
+        b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5, ''));
+    if (box.height > 2) {
+      r.append(
           b('line').line(Math.round(box.x - 2), Math.round(box.y + box.height), box.x - 2, box.y, ''))
         .append(
           b('line').line(Math.round(box.x - 8), Math.round(box.y + box.height), box.x + 6, Math.round(box.y + box.height), ''))

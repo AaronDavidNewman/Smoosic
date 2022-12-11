@@ -208,7 +208,7 @@ export const Smo = {
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
     SmoStaffTextBracket,
-    SmoInstrument, SmoSlur, SmoTie, 
+    SmoInstrument, SmoSlur, SmoTie,
     // score modifiers
     SmoSystemGroup, SmoAudioPlayerSettings,
     // measure modifiers

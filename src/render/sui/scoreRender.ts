@@ -10,7 +10,7 @@ import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
 import { SuiMapper } from './mapper';
 import { VxSystem } from '../vex/vxSystem';
-import { SvgHelpers } from './svgHelpers';
+import { SvgHelpers, StrokeInfo } from './svgHelpers';
 import { SuiPiano } from './piano';
 import { SuiLayoutFormatter, RenderedPage } from './formatter';
 import { SmoBeamer } from '../../smo/xform/beamers';
@@ -65,8 +65,7 @@ export class SuiScoreRender {
   renderedPages: Record<number, RenderedPage | null> = {};
   _autoAdjustRenderTime: boolean = true;
   lyricsToOffset: Map<number, VxSystem> = new Map();
-  renderingPage: number = -1;
-
+  renderingPage: number = -1;  
   get autoAdjustRenderTime() {
     return this._autoAdjustRenderTime;
   }
@@ -358,6 +357,24 @@ export class SuiScoreRender {
       $('body').removeClass('refresh-1');
       if (this.measureMapper !== null) {
         this.measureMapper.updateMap();
+        if (layoutDebug.mask & layoutDebug.values['artifactMap']) {
+          this.score?.staves.forEach((staff) => {
+            staff.measures.forEach((mm) => {
+              mm.voices.forEach((voice) => {
+                voice.notes.forEach((note) => {
+                  if (note.logicalBox) {
+                    const page = this.vexContainers.getRendererFromPoint(note.logicalBox);
+                    if (page) {
+                      const noteBox = SvgHelpers.smoBox(note.logicalBox);
+                      noteBox.y -= page.box.y;
+                      SvgHelpers.debugBox(page.svg, noteBox, '.measure-place-dbg', 0);
+                    }
+                  }
+                });
+              });
+            });
+          });
+        }
       }
       this.backgroundRender = false;
     }

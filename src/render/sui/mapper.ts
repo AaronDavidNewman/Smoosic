@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoSelector, SmoSelection, ModifierTab } from '../../smo/xform/selections';
-import { SvgHelpers } from './svgHelpers';
+import { OutlineInfo, SvgHelpers } from './svgHelpers';
 import { layoutDebug } from './layoutDebug';
 import { SuiScroller } from './scroller';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
@@ -62,6 +62,9 @@ export abstract class SuiMapper {
   suggestion: SmoSelection | null = null;
   pasteBuffer: PasteBuffer;
   highlightQueue: HighlightQueue;
+  mouseHintBox: OutlineInfo | null = null;
+  selectionRects: Record<number, OutlineInfo[]> = {};
+  outlines: Record<string, OutlineInfo> = {};
   mapping: boolean = false;
   constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     // renderer renders the music when it changes
@@ -170,6 +173,10 @@ export abstract class SuiMapper {
     this.modifierSelections = [];
     this._createLocalModifiersList();
     this.modifierIndex = -1;
+    if (this.outlines['staffModifier'] && this.outlines['staffModifier'].element) {
+      this.outlines['staffModifier'].element.remove();
+      this.outlines['staffModifier'].element = undefined;
+    }
     // this.eraseRect('staffModifier');  not sure where this should go
   }
   // ### loadScore
@@ -575,29 +582,64 @@ export abstract class SuiMapper {
     this.mapping = false;
     layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
   }
-
+  createMousePositionBox(logicalBox: SvgBox) {
+    const pageMap = this.renderer.pageMap;
+    const page = pageMap.getRendererFromPoint(logicalBox);
+    if (page) {
+      const cof = (pageMap.zoomScale * pageMap.renderScale);  
+      const debugBox = SvgHelpers.smoBox(logicalBox);
+      debugBox.y -= (page.box.y + 5 / cof);
+      debugBox.x -= (page.box.x + 5 / cof)
+      debugBox.width = 10 / cof;
+      debugBox.height = 10 / cof;
+      if (!this.mouseHintBox) {
+        this.mouseHintBox =  {
+          stroke: SvgPageMap.strokes['debug-mouse-box'],
+          classes: 'hide-print',
+          box: debugBox,
+          scroll: { x: 0, y: 0 },
+          context: page,
+          timeOff: 1000
+        };
+      }
+      this.mouseHintBox.context = page;
+      this.mouseHintBox.box = debugBox;
+      SvgHelpers.outlineRect(this.mouseHintBox);
+    }            
+  }
+  eraseMousePositionBox() {
+    if (this.mouseHintBox && this.mouseHintBox.element) {
+      this.mouseHintBox.element.remove();
+      this.mouseHintBox.element = undefined;
+    }
+  }
   /**
    * Find any musical elements at the supplied screen coordinates and set them as the selection
    * @param bb 
    * @returns 
    */
   intersectingArtifact(bb: SvgBox) {
-    let sel: ModifierTab[] = [];
     const scrollState = this.scroller.scrollState;
     bb = SvgHelpers.boxPoints(bb.x + scrollState.x, bb.y + scrollState.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const { selections, page } = this.renderer.pageMap.findArtifact(bb);
+    const logicalBox = this.renderer.pageMap.clientToSvg(bb);
+    const { selections, page } = this.renderer.pageMap.findArtifact(logicalBox);
     if (page) {
       const artifacts = selections;
       // const artifacts = SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, SvgHelpers.smoBox(this.scroller.scrollState.scroll));
       // TODO: handle overlapping suggestions
       if (!artifacts.length) {
-        const sel = this.renderer.pageMap.findModifierTabs(bb);
+        const sel = this.renderer.pageMap.findModifierTabs(logicalBox);
         if (sel.length) {
           this._setModifierAsSuggestion(sel[0]);
+          this.eraseMousePositionBox();
+        } else {
+          // no intersection, show mouse hint          
+          this.createMousePositionBox(logicalBox);
         }
         return;
       }
       const artifact = artifacts[0];
+      this.eraseMousePositionBox();
       this._setArtifactAsSuggestion(artifact);
     }
   }

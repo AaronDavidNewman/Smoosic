@@ -12,7 +12,7 @@ import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
-import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
+import { SmoStaffHairpin, SmoSlur, SlurDefaultParams, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
   SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams } from '../data/staffModifiers';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
@@ -821,6 +821,26 @@ export class SmoOperation {
     return modifier;
   }
 
+  static getSlurDefaultParameters(selections: SmoSelection[]) {
+    const lastIndex = selections.length - 1;
+    const note1 = selections[0].note;
+    const note2 = selections[lastIndex].note;
+    const inners = [];
+    let minLine = -1;
+    let maxLine = 0;
+    if (selections.length > 2) {
+      for (var i = 1; i < selections.length - 1; ++i) {
+        inners.push(selections[i]);
+      }
+    }
+    if (note1 === null || note2 === null) {
+      throw('no note in slur selections');
+    }
+    const sameBeam = (note1.beam_group && note2.beam_group && note1.beam_group.id === note2.beam_group.id);
+    const lineDifference = Math.abs(SmoMusic.pitchToStaffLine(note1.clef as Clef, note1.pitches[0]) - 
+      SmoMusic.pitchToStaffLine(note2.clef as Clef, note2.pitches[0]));
+    
+  }
   /**
    * Heuristically determine how a slur should be formatted based on the notes.  Determine control points,
    * offset, and alignment
@@ -874,7 +894,7 @@ export class SmoOperation {
         lastGap = Math.abs(SmoMusic.pitchToStaffLine(note.clef as Clef, note.pitches[0]) - 
           SmoMusic.pitchToStaffLine(nextNote.clef as Clef, nextNote.pitches[0]));
       }
-      const fstate = SmoMusic.flagStateFromNote(note.clef as Clef, selection.note!);
+      const fstate = SmoMusic.flagStateFromNote(note.clef as Clef, note);
       // Keep track of the number of stem directions, so we can determine if the flags are mixed direction
       // the rules are a little different for mixed - we always try to put the slur on (the real) top of the staff.
       dirs[fstate] = true;
@@ -887,7 +907,7 @@ export class SmoOperation {
     });
     params.invert = false;
     mixed = Object.keys(dirs).length > 1;
-    // If the notes are beamed together, the beams must point in the same direction    
+    // If the notes are beamed together, we assume the beams point in the same direction
     if (Object.keys(beamGroups).length < 2) {
       mixed = false;
     }
@@ -938,7 +958,7 @@ export class SmoOperation {
     }
     return params;
   }
-  static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlurParams {
     const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
     const modifier: SmoSlur = new SmoSlur(params);
     fromSelection.staff.addStaffModifier(modifier);

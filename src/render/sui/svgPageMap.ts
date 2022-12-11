@@ -1,4 +1,4 @@
-import { SvgHelpers } from "./svgHelpers";
+import { SvgHelpers, StrokeInfo } from "./svgHelpers";
 import { SvgPoint, SvgBox, Renderable } from '../../smo/data/common';
 import { layoutDebug } from './layoutDebug';
 import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
@@ -345,6 +345,18 @@ export class SvgPageMap {
     _container: HTMLElement;
     _pageLayouts: SmoPageLayout[];
     vfRenderers: SvgPage[] = [];
+    static get strokes(): Record<string, StrokeInfo> {
+      return {
+        'debug-mouse-box': {
+          strokeName: 'debug-mouse',
+          stroke: '#7ce',
+          strokeWidth: 3,
+          strokeDasharray: '1,1',
+          fill: 'none',
+          opacity: 0.6
+        }
+      };
+    }
     containerOffset: SvgPoint = SvgPoint.default;
     /**
      * 
@@ -430,6 +442,7 @@ export class SvgPageMap {
       const box = SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight);
       this.vfRenderers.push(new SvgPage(vexRenderer, ix, box));
     }
+
     /**
      * Convert from screen/client event to SVG space.  We assume the scroll offset is already added to `box`
      * @param box 
@@ -440,6 +453,7 @@ export class SvgPageMap {
       const x = (box.x - this.containerOffset.x) / cof;
       const y = (box.y - this.containerOffset.y) / cof;
       const logicalBox = SvgHelpers.boxPoints(x, y, Math.max(box.width / cof, 1), Math.max(box.height / cof, 1));
+      logicalBox.y -= Math.round(logicalBox.y / this.layout.pageHeight) / this.layout.svgScale;
       if (layoutDebug.mask | layoutDebug.values['mouseDebug']) {
         layoutDebug.updateMouseDebug(box, logicalBox, this.containerOffset);
       }
@@ -462,12 +476,8 @@ export class SvgPageMap {
      * @param box - location of a mouse event or specific screen coordinates
      * @returns 
      */
-    findArtifact(box: SvgBox): { selections: SmoSelection[], page: SvgPage} {
+    findArtifact(logicalBox: SvgBox): { selections: SmoSelection[], page: SvgPage} {
       const selections: SmoSelection[] = [];
-      if (box.x < this.containerOffset.x || box.y < this.containerOffset.y) {
-        return { selections, page: this.vfRenderers[0] };
-      }
-      const logicalBox = this.clientToSvg(box);
       const page = this.getRenderer(logicalBox);
       if (page) {
         return { selections: page.findArtifact(logicalBox), page };
@@ -479,11 +489,7 @@ export class SvgPageMap {
      * @param box 
      * @returns 
      */
-    findModifierTabs(box: SvgBox): ModifierTab[] {
-      if (box.x < this.containerOffset.x || box.y < this.containerOffset.y) {
-        return [];
-      }
-      const logicalBox = this.clientToSvg(box);
+    findModifierTabs(logicalBox: SvgBox): ModifierTab[] {
       const page = this.getRenderer(logicalBox);
       if (page) {
         return page.findModifierTabs(logicalBox);

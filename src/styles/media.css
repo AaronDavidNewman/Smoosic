@@ -195,7 +195,10 @@ body.print-render .measure-format {
 body.printing .piano-container {
   display:none;
 }
-
+body.printing .hide-print, 
+body.printing .vf-hide-print{
+  display: none;
+}
 
 @media print {
     .controls-left,.controls-top,.testTitle {

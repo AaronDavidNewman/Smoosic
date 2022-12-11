@@ -138,6 +138,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   mouseUpHandler: EventHandler | null;
   mouseDownHandler: EventHandler | null;
   mouseClickHandler: EventHandler | null;
+  outlineRect: OutlineInfo | null = null;
 
   constructor(parameters: SuiDialogParams) {
     let edited = false;
@@ -311,20 +312,21 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   highlightActiveRegion() {
     const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
     const svg = pageContext.svg;
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-highlight']);
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-suggestion']);
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['inactive-text']);
     if (this.activeScoreText.logicalBox) {
       const stroke = SuiTextEditor.strokes['text-highlight'];
-      const outline: OutlineInfo = {
-        context: pageContext,
-        clientCoordinates: false,
-        classes: '',
-        stroke,
-        box: this.activeScoreText.logicalBox,
-        scroll: this.scroller.scrollState
+      if (!this.outlineRect) {
+        this.outlineRect = {
+          context: pageContext,
+          classes: '',
+          stroke,
+          box: this.activeScoreText.logicalBox,
+          scroll: this.scroller.scrollState,
+          timeOff: 1000
+        };
       }
-      SvgHelpers.outlineRect(outline);
+      SvgHelpers.eraseOutline(this.outlineRect);
+      this.outlineRect.box = this.activeScoreText.logicalBox;
+      SvgHelpers.outlineRect(this.outlineRect);
     }
   }
   // ### handleKeydown
@@ -385,13 +387,10 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     }
     const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
     const svg = pageContext.svg;
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-drag']);
-    $('body').find('g.vf-text-highlight').remove();
+    if (this.outlineRect) {
+      SvgHelpers.eraseOutline(this.outlineRect);
+    }
     // Hack - this comes from SuiInlineText and SuiTextEdit.
-    $('body').find('g.sui-inline-edit').remove();
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-highlight']);
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['text-suggestion']);
-    SvgHelpers.eraseOutline(svg, SuiTextEditor.strokes['inactive-text']);
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();

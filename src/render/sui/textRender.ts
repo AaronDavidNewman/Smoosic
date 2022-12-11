@@ -611,6 +611,7 @@ export class SuiTextBlock {
   skipRender: boolean;
   currentBlockIndex: number = 0;
   justification: number;
+  outlineRect: OutlineInfo | null = null;
   currentBlock: SuiTextBlockBlock | null = null;
   logicalBox: SvgBox = SvgBox.default;
   constructor(params: SuiTextBlockParams) {
@@ -652,11 +653,16 @@ export class SuiTextBlock {
   }
   _outlineBox(context: any, box: SvgBox) {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
-    const obj: OutlineInfo = {
-      context, box, classes: 'text-drag',
-      stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
-    };
-    SvgHelpers.outlineLogicalRect(obj);
+    if (!this.outlineRect) {
+      this.outlineRect = {
+        context, box, classes: 'text-drag',
+        stroke: outlineStroke, scroll: this.scroller.scrollState, timeOff: 1000
+      };
+    }
+    this.outlineRect.box = box;
+    this.outlineRect.context = context;
+    this.outlineRect.scroll = this.scroller.scrollState;
+    SvgHelpers.outlineRect(this.outlineRect);
   }
 
   offsetStartX(offset: number) {

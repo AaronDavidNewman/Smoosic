@@ -103,7 +103,6 @@ export class SuiTextEditor {
     }
     return SuiInlineText.textTypes.normal;
   }
-
   svgText: SuiInlineText | null = null;
   context: SvgPage;
   pageMap: SvgPageMap;
@@ -123,6 +122,7 @@ export class SuiTextEditor {
   fontFamily: string = 'Merriweather';
   fontSize: number = 14;
   state: number = SuiTextEditor.States.RUNNING;
+  suggestionRect: OutlineInfo | null = null;
   constructor(params: SuiTextEditorParams) {
     this.scroller = params.scroller;
     this.context = params.context;
@@ -181,11 +181,14 @@ export class SuiTextEditor {
   // Create the svg text outline parameters
   _suggestionParameters(box: SvgBox, strokeName: SuiTextStrokeName): OutlineInfo {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
-    return {
-      context: this.context, box, classes: '',
-      stroke: outlineStroke, scroll: this.scroller.scrollState,
-      clientCoordinates: false
+    if (!this.suggestionRect) {
+      this.suggestionRect = {
+        context: this.context, box, classes: '',
+        stroke: outlineStroke, scroll: this.scroller.scrollState, timeOff: 1000
+      };
     };
+    this.suggestionRect.box = SvgHelpers.smoBox(box);
+    return this.suggestionRect;
   }
 
   // ### _expandSelectionToSuggestion
@@ -234,7 +237,9 @@ export class SuiTextEditor {
 
     // The mouse is not over the text
     if (!blocks.length) {
-      SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
+      if (this.suggestionRect) {
+        SvgHelpers.eraseOutline(this.suggestionRect);
+      }
 
       // If the user clicks and there was a previous selection, treat it as selected
       if (ev.type === 'click' && this.suggestionIndex >= 0) {
@@ -257,7 +262,9 @@ export class SuiTextEditor {
     });
     // if the user clicked on it, add it to the selection.
     if (ev.type === 'click') {
-      SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
+      if (this.suggestionRect) {
+        SvgHelpers.eraseOutline(this.suggestionRect);
+      }
       if (ev.shiftKey) {
         this._expandSelectionToSuggestion();
       } else {
@@ -552,9 +559,10 @@ export class SuiTextBlockEditor extends SuiTextEditor {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj: OutlineInfo = {
       context: this.context, box: bbox, classes: '',
-      stroke: outlineStroke, scroll: this.scroller.scrollState, clientCoordinates: false
+      stroke: outlineStroke, scroll: this.scroller.scrollState,
+      timeOff: 0
     };
-    SvgHelpers.outlineLogicalRect(obj);
+    SvgHelpers.outlineRect(obj);
   }
 
   getText(): string {
@@ -857,6 +865,7 @@ export class SuiDragSession {
   outlineBox: SvgBox;
   textObject: SuiTextBlock;
   dragging: boolean = false;
+  outlineRect: OutlineInfo | null = null;
   textGroup: SmoTextGroup;
   constructor(params: SuiDragSessionParams) {
     this.textGroup = params.textGroup;
@@ -873,14 +882,16 @@ export class SuiDragSession {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
     const x = this.outlineBox.x - this.page.box.x;
     const y = this.outlineBox.y - this.page.box.y;
-    const obj: OutlineInfo = {
-      context: this.page, 
-      box: SvgHelpers.boxPoints(x , y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
-      classes: 'text-drag',
-      stroke: outlineStroke, scroll: this.scroller.scrollState,
-      clientCoordinates: false
-    };
-    SvgHelpers.outlineLogicalRect(obj);
+    if (!this.outlineRect) {
+      this.outlineRect = {
+        context: this.page, 
+        box: SvgHelpers.boxPoints(x , y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
+        classes: 'text-drag',
+        stroke: outlineStroke, scroll: this.scroller.scrollState, timeOff: 1000
+      };
+    }
+    this.outlineRect.box = SvgHelpers.boxPoints(x , y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
+    SvgHelpers.outlineRect(this.outlineRect);
   }
   scrolledClientBox(x: number, y: number) {
     return { x: x + this.scroller.scrollState.x, y: y + this.scroller.scrollState.y, width: 1, height: 1 };
@@ -937,7 +948,9 @@ export class SuiDragSession {
     if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
       layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'drag');
     }
-    SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
+    if (this.outlineRect) {
+      SvgHelpers.eraseOutline(this.outlineRect);
+    }
     this._outlineBox();
   }
 
@@ -951,7 +964,9 @@ export class SuiDragSession {
     this.textGroup.offsetX(newBox.x - curBox.x);
     this.textGroup.offsetY(newBox.y - curBox.y + this.outlineBox.height);
     this.dragging = false;
-    SvgHelpers.eraseOutline(this.page.svg, SuiTextEditor.strokes['text-drag']);
+    if (this.outlineRect) {
+      SvgHelpers.eraseOutline(this.outlineRect);
+    }
   }
 }
 

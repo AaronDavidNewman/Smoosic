@@ -22,7 +22,8 @@ import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { StaffModifierBase, SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { StaffModifierBase, SmoSlur,
+   SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
@@ -1297,7 +1298,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const ttAlt = this._getEquivalentSelection(tt);
     const modifier = SmoOperation.slur(this.score, ft, tt);
     const altModifier = SmoOperation.slur(this.storeScore, ftAlt!, ttAlt!);
-    this._undoStaffModifier('add ' + 'op', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this._undoStaffModifier('add ' + 'op', new SmoSlur(modifier), UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }

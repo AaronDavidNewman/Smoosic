@@ -11,7 +11,6 @@ import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
-import { SvgPage } from './svgPageMap';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
 /**
@@ -22,9 +21,6 @@ declare var $: any;
 export class SuiTracker extends SuiMapper {
   idleTimer: number = Date.now();
   musicCursorGlyph: SVGSVGElement | null = null;
-  // timer: NodeJS.Timer | null = null;
-  suggestFadeTimer: NodeJS.Timer | null = null;
-  strokeMemory: Record<string, SvgPage> = {};
   static get strokes(): Record<string, StrokeInfo> {
     return {
       suggestion: {
@@ -50,14 +46,20 @@ export class SuiTracker extends SuiMapper {
         fill: 'none',
         strokeDasharray: 0,
         opacity: 1.0
+      }, pitchSelection: {
+        strokeName: 'pitchSelection',
+        stroke: '#933',
+        strokeWidth: 3,
+        fill: 'none',
+        strokeDasharray: 0,
+        opacity: 1.0
       }
+
     };
   }
-
   constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     super(renderer, scroller, pasteBuffer);
   }
-
   // ### renderElement
   // the element the score is rendered on
   get renderElement(): Element {
@@ -157,10 +159,6 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     this.idleTimer = Date.now();
-    if (this.strokeMemory['staffModifier']) {
-      SvgHelpers.eraseOutline(this.strokeMemory['staffModifier'].svg, SuiTracker.strokes['staffModifier']);
-      delete this.strokeMemory['staffModifier'];
-    }
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
     this.modifierIndex = this.modifierIndex + offset;
     this.modifierIndex = (this.modifierIndex === -2 && this.localModifiers.length) ?
@@ -626,10 +624,6 @@ export class SuiTracker extends SuiMapper {
     this.idleTimer = Date.now();
 
     if (this.modifierSuggestion) {
-      if (this.suggestFadeTimer) {
-        clearTimeout(this.suggestFadeTimer);
-        this.suggestFadeTimer = null;
-      }
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierSuggestion];
       this.modifierSuggestion = null;
@@ -696,30 +690,12 @@ export class SuiTracker extends SuiMapper {
     this.deferHighlight();
     this._createLocalModifiersList();
   }
-
-  _setFadeTimer() {
-    if (this.suggestFadeTimer) {
-      clearTimeout(this.suggestFadeTimer);
-    }
-    const tracker = this;
-    this.suggestFadeTimer = setTimeout(() => {
-      if (tracker.containsArtifact()) {
-        if (this.strokeMemory['suggestion']) {
-          SvgHelpers.eraseOutline(this.strokeMemory['suggestion'].svg, SuiTracker.strokes['suggestion']);
-          delete this.strokeMemory['suggestion'];
-        }
-        tracker.modifierSuggestion = null;
-      }
-    }, 1000);
-  }
-
   _setModifierAsSuggestion(artifact: ModifierTab): void {
     if (!artifact.box) {
       return;
     }
     this.modifierSuggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
-    this._setFadeTimer();
   }
 
   _setArtifactAsSuggestion(artifact: SmoSelection) {
@@ -739,16 +715,6 @@ export class SuiTracker extends SuiMapper {
 
     this.suggestion = artifact;
     this._drawRect(artifact.box, 'suggestion');
-    this._setFadeTimer();
-  }
-
-  eraseAllSelections() {
-    Object.keys(SuiTracker.strokes).forEach((key) => {
-      if (this.strokeMemory[key]) {
-        SvgHelpers.eraseOutline(this.strokeMemory[key].svg, SuiTracker.strokes[key]);
-      }
-    });
-    this.strokeMemory = {};
   }
   _highlightModifier() {
     let box: SvgBox | null = null;
@@ -769,7 +735,6 @@ export class SuiTracker extends SuiMapper {
   }
 
   _highlightPitchSelection(note: SmoNote, index: number) {
-    this.eraseAllSelections();
     const noteDiv = $(this.renderElement).find('#' + note.renderId);
     const heads = noteDiv.find('.vf-notehead');
     if (!heads.length) {
@@ -778,7 +743,7 @@ export class SuiTracker extends SuiMapper {
     const headEl = heads[index];
     const pageContext = this.renderer.pageMap.getRendererFromModifier(note);
     const box = pageContext.offsetBbox(headEl);
-    this._drawRect(box, 'staffModifier');
+    this._drawRect(box, 'pitchSelection');
   }
 
   _highlightActiveVoice(selection: SmoSelection) {
@@ -828,7 +793,6 @@ export class SuiTracker extends SuiMapper {
     }
 
     this.pitchIndex = -1;
-    this.eraseAllSelections();
     if (this.selections.length === 1 && note.logicalBox) {
       this._drawRect(note.logicalBox, 'selection');
       this._highlightActiveVoice(this.selections[0]);
@@ -863,23 +827,73 @@ export class SuiTracker extends SuiMapper {
     }
     this._drawRect(boxes, 'selection');
   }
-
-  _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string): OutlineInfo {
-    const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
-    let testBox: SvgBox = SvgHelpers.smoBox(box);
-    let context = this.renderer.pageMap.getRenderer(testBox);
-    if (!context) {
-      context = this.renderer.pageMap.getRendererForPage(0);
-    }
-    testBox.y -= context.box.y;
-    this.strokeMemory[strokeName] = context;
-    return {
-      context: context, box: testBox, classes: '',
-      stroke, scroll: this.scroller.scrollState, clientCoordinates: false
-    };
+  /**
+   * Boxes are divided up into lines/systems already.  But we need
+   * to put the correct box on the correct page.
+   * @param boxes 
+   */
+  drawSelectionRects(boxes: SvgBox[]) {
+    const keys = Object.keys(this.selectionRects);
+    // erase any old selections
+    keys.forEach((key) => {
+      const oon = this.selectionRects[parseInt(key)];
+      oon.forEach((outline) => {
+        if (outline.element) {
+          outline.element.remove();
+          outline.element = undefined;
+  
+        }
+      })
+    });
+    this.selectionRects = {};
+    // Create an OutlineInfo for each page
+    const pages: number[] = [];
+    const stroke: StrokeInfo = (SuiTracker.strokes as any)['selection'];
+    boxes.forEach((box) => {
+      let testBox: SvgBox = SvgHelpers.smoBox(box);
+      let context = this.renderer.pageMap.getRenderer(testBox);
+      testBox.y -= context.box.y;
+      if (!this.selectionRects[context.pageNumber]) {
+        this.selectionRects[context.pageNumber] = [];
+        pages.push(context.pageNumber);
+      }
+      this.selectionRects[context.pageNumber].push({
+        context: context, box: testBox, classes: '',
+        stroke, scroll: this.scroller.scrollState,
+        timeOff: 0
+      });
+    });
+    pages.forEach((pageNo) => {
+      const outlineInfos = this.selectionRects[pageNo];
+      outlineInfos.forEach((info) => {
+        SvgHelpers.outlineRect(info);
+      });
+    });
   }
-
-  _drawRect(bb: SvgBox | SvgBox[], stroke: string) {
-    SvgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
+  _drawRect(pBox: SvgBox | SvgBox[], strokeName: string) {    
+    const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
+    const boxes = Array.isArray(pBox) ? pBox : [pBox];
+    if (strokeName === 'selection') {
+      this.drawSelectionRects(boxes);
+      return;
+    }
+    boxes.forEach((box) => {
+      let testBox: SvgBox = SvgHelpers.smoBox(box);
+      let context = this.renderer.pageMap.getRenderer(testBox);
+      const timeOff = strokeName === 'suggestion' ? 1000 : 0;    
+      if (context) {
+        testBox.y -= context.box.y;
+        if (!this.outlines[strokeName]) {
+          this.outlines[strokeName] = {
+            context: context, box: testBox, classes: '',
+            stroke, scroll: this.scroller.scrollState,
+            timeOff
+          };
+        }
+        this.outlines[strokeName].box = testBox;
+        this.outlines[strokeName].context = context;
+        SvgHelpers.outlineRect(this.outlines[strokeName]);
+      }
+    });
   }
 }
