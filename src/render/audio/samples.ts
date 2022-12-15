@@ -39,6 +39,18 @@ export interface InstrumentSampleChooser {
   sampleChooser: SampleChooser,
   samples: SmoOscillatorInfo[]
 }
+
+export const sampleForPercussion = (params: SampleChooserParams, samples: SmoOscillatorInfo[]): AudioSample | null => {
+  const longSamples = samples.filter((ss) => ss.instrument === 'percussion');
+  let sample: AudioSample | null = null;
+  if (longSamples.length) {
+    sample = sampleFromFrequency(params, longSamples);
+    if (sample) {
+      return sample;
+    }
+  }
+  return sampleFromFrequency(params, samples);
+}
 /**
  * For instruments like violin that require different samples depending on note duration
  * @param params 
@@ -275,6 +287,46 @@ export class SuiSampleMedia {
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
       dynamic: 100
     });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'drum-hh-closed',
+      family: 'drums',
+      instrument: 'percussion',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 5 }, 0, null),
+      dynamic: 100
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'drum-drumset-snare',
+      family: 'drums',
+      instrument: 'percussion',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'f', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'drum-drumset-tom1',
+      family: 'drums',
+      instrument: 'percussion',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'drum-drumset-tom2',
+      family: 'drums',
+      instrument: 'percussion',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 5 }, 0, null),
+      dynamic: 100
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'drum-drumset-kick',
+      family: 'drums',
+      instrument: 'percussion',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      dynamic: 100
+    });
     const instrumentMap = Object.keys(SuiSampleMedia.sampleOscMap);
     instrumentMap.forEach((instrumentKey) => {
       SuiSampleMedia.instrumentChooser[instrumentKey] = {
@@ -284,6 +336,7 @@ export class SuiSampleMedia {
       }
     });
     SuiSampleMedia.instrumentChooser['violin'].sampleChooser = sampleFromMinDuration;
+    SuiSampleMedia.instrumentChooser['percussion'].sampleChooser = sampleForPercussion;
   }
   static getSmoOscillatorInfo(instrument: string) {
     if (!SuiSampleMedia.sampleOscMap[instrument]) {

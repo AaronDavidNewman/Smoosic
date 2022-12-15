@@ -120,9 +120,12 @@ export class SuiNewPartDialog extends SuiDialogAdapterBase<SuiNewPartAdapter> {
             }, {
               value: 'clarinet',
               label: 'Bb Clarinet'
-            },  {
+            }, {
               value: 'pad',
               label: 'Synth Pad'
+            }, {
+              value: 'percussion',
+              label: 'Percussion'
             }, {
               value: 'none',
               label: 'None'
@@ -141,10 +144,10 @@ export class SuiNewPartDialog extends SuiDialogAdapterBase<SuiNewPartAdapter> {
               label: 'Alto Clef Staff',
               value: 'alto'
             }, {
-              label: 'Tenor Clef Staff',
+              label: 'Tenor',
               value: 'tenor'
             }, {
-              label: 'Percussion Clef Staff',
+              label: 'Percussion',
               value: 'percussion'
             }]          
           }

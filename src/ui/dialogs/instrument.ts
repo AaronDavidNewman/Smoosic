@@ -134,6 +134,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               value: 'pad',
               label: 'Synth Pad'
             }, {
+              value: 'percussion',
+              label: 'Percussion'
+            }, {
               value: 'none',
               label: 'None'
             }]
@@ -153,6 +156,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
             }, {
               value: 'alto',
               label: 'Alto'
+            }, {
+              label: 'Percussion',
+              value: 'percussion'
             }]
           }, {
             smoName: 'applyTo',

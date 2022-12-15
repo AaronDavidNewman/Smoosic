@@ -15,7 +15,6 @@ import { SmoLayoutManager } from "../data/scoreModifiers";
 import { SmoTie } from "../data/staffModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
 import { SmoTuplet } from "../data/tuplet";
-import { SmoSelector } from "../xform/selections";
 
 export type MidiEventType = 'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
   'cuePoint' | 'channelPrefix' | 'portPrefix' | 'endOfTrack' | 'setTempo' | 'smpteOffset' | 'timeSignature' | 'keySignature' |
