@@ -12,12 +12,12 @@ export class DisplaySettings extends SuiButton {
   zoomout() {
     const globalLayout = this.view.score.layoutManager!.getGlobalLayout();
     globalLayout.zoomScale *= 1.1;
-    this.view.setGlobalLayout(globalLayout);
+    this.view.updateZoom(globalLayout.zoomScale);
   }
   zoomin() {
     const globalLayout = this.view.score.layoutManager!.getGlobalLayout();
     globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
-    this.view.setGlobalLayout(globalLayout);
+    this.view.updateZoom(globalLayout.zoomScale);
   }
   playButton2() {
     this.view.playFromSelection();

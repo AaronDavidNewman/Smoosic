@@ -318,6 +318,15 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     });
     return rv;
   }
+  static isZoomChange(g1: SmoGlobalLayout, g2: SmoGlobalLayout) {
+    let rv = true;
+    GlobalLayoutAttributesArray.forEach((attr) => {
+      if (g1[attr] !== g2[attr] && attr !== 'zoomScale') {
+        rv = false;
+      }
+    });
+    return rv;
+  }
   /**
    * Adjust zoom width so the score takes up the whole score area
    */

@@ -1310,6 +1310,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._lineOperation('tie');
     return this.renderer.updatePromise();
   }
+  updateZoom(zoomFactor: number) {
+    const original = this.score.layoutManager!.getGlobalLayout();
+    original.zoomScale = zoomFactor;
+    this.score.layoutManager!.globalLayout.zoomScale = zoomFactor;
+    this.renderer.pageMap.updateZoom(zoomFactor);
+    this.renderer.pageMap.updateContainerOffset(this.scroller.scrollState);
+  }
   /**
    * set global page for score, zoom etc.
    * @param layout global SVG settings

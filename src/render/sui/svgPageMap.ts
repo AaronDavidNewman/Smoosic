@@ -442,6 +442,14 @@ export class SvgPageMap {
       const box = SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight);
       this.vfRenderers.push(new SvgPage(vexRenderer, ix, box));
     }
+    updateZoom(zoomScale: number) {
+      this.layout.zoomScale = zoomScale;
+      this.vfRenderers.forEach((pp) => {
+        SvgHelpers.svgViewport(pp.svg, 0, 0, this.pageDivWidth, this.pageDivHeight, this.renderScale * this.zoomScale);
+      });
+      $(this.container).css('width', '' + Math.round(this.pageDivWidth) + 'px');
+      $(this.container).css('height', '' + Math.round(this.totalHeight) + 'px');
+    }
 
     /**
      * Convert from screen/client event to SVG space.  We assume the scroll offset is already added to `box`
