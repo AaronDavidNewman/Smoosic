@@ -13,6 +13,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
+
 /**
  * SuiTracker
  A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -72,66 +73,6 @@ export class SuiTracker extends SuiMapper {
 
   getIdleTime(): number {
     return this.idleTimer;
-  }
-  clearMusicCursor(delay: number) {
-    if (delay < 1) {
-      const ell = document.getElementById('vf-music-cursor');
-      if (ell) {
-        ell.remove();
-      }
-    } else {
-      setTimeout(() => {
-        this.clearMusicCursor(0);
-      }, delay);
-    }
-  }
-
-  /**
-   * the little birdie that follows the music as it plays
-   * @param selector 
-   * @returns 
-   */
-  musicCursor(selector: SmoSelector, offsetPct: number, durationPct: number) {
-    if (!this.score) {
-      return;
-    }
-    // Get note from 0th staff if we can
-    const measureSel = SmoSelection.measureSelection(this.score,
-      this.score.staves.length - 1, selector.measure);
-    const zmeasureSel = SmoSelection.measureSelection(this.score,
-      0, selector.measure);
-    const measure = measureSel?.measure as SmoMeasure;
-    if (measure.svg.logicalBox && zmeasureSel?.measure?.svg?.logicalBox) {
-      const context = this.renderer.pageMap.getRenderer(measure.svg.logicalBox);
-      const topBox = SvgHelpers.smoBox(zmeasureSel.measure.svg.logicalBox);
-      topBox.y -= context.box.y;
-      const botBox = SvgHelpers.smoBox(measure.svg.logicalBox);
-      botBox.y -= context.box.y;
-      const height = (botBox.y + botBox.height) - topBox.y;
-      const measureWidth = botBox.width - measure.svg.adjX;
-      const nhWidth = 10 / this.score.layoutManager!.getGlobalLayout().svgScale;
-      let width = measureWidth * durationPct - 10 / this.score.layoutManager!.getGlobalLayout().svgScale;
-      width = Math.max(nhWidth, width);
-      const y = topBox.y;
-      let x = topBox.x + measure.svg.adjX + offsetPct * measureWidth;
-      const noteBox = this.score.staves[selector.staff].measures[selector.measure].voices[selector.voice].notes[selector.tick];
-      if (noteBox && noteBox.logicalBox) {
-        x = noteBox.logicalBox.x;
-      }
-      const screenBox = SvgHelpers.boxPoints(x, y, width, height);
-      const fillParams: Record<string, string> = {};
-      fillParams['fill-opacity'] = '0.5';
-      fillParams['fill'] = '#4444ff';
-      const ctx = context.getContext();
-      this.clearMusicCursor(0);
-      ctx.save();
-      ctx.openGroup('music-cursor', 'music-cursor');
-      ctx.rect(x, screenBox.y, width, screenBox.height, fillParams);
-      ctx.closeGroup();
-      ctx.restore();
-      layoutDebug.updatePlayDebug(selector, measure.svg.logicalBox);
-      this.scroller.scrollVisibleBox(zmeasureSel.measure.svg.logicalBox);        
-    }
   }
 
   getSelectedModifier() {

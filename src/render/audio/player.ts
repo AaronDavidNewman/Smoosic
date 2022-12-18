@@ -2,11 +2,12 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiOscillator, SuiSampler, SuiWavetable, SynthWavetable } from './oscillator';
 import { SmoAudioScore } from '../../smo/xform/audioTrack';
-import { SuiTracker } from '../sui/tracker';
+import { SuiScoreView } from '../sui/scoreView';
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SmoTie } from '../../smo/data/staffModifiers';
 import { SmoAudioPitch } from '../../smo/data/music';
+import { SuiAudioAnimationParams } from './musicCursor';
 
 /**
  * Create audio player for the score from the start point
@@ -14,8 +15,9 @@ import { SmoAudioPitch } from '../../smo/data/music';
  */
 export interface SuiAudioPlayerParams {
   startIndex: number,
-  tracker: SuiTracker,
-  score: SmoScore
+  view: SuiScoreView,
+  score: SmoScore,
+  audioAnimation: SuiAudioAnimationParams
 }
 /**
  * Parameters used to create just-in-time oscillators
@@ -120,7 +122,7 @@ export class SuiAudioPlayer {
   static _playing: boolean = false;
   static instanceId: number = 0;
   static duplicatePitchThresh = 4;
-  static voiceThresh = 8;
+  static voiceThresh = 16;
   static _playingInstance: SuiAudioPlayer | null = null;
   static set playing(val) {
     SuiAudioPlayer._playing = val;
@@ -144,25 +146,27 @@ export class SuiAudioPlayer {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
       a.paused = true;
-      a.tracker.clearMusicCursor(0);
+      a.audioAnimation.clearAudioAnimationHandler(0);
     }
     SuiAudioPlayer.playing = false;
 
   }
   instanceId: number;
   paused: boolean;
-  tracker: SuiTracker;
+  view: SuiScoreView;
   score: SmoScore;
   cuedSounds: CuedAudioContexts;
   audioDefaults = SuiOscillator.defaults;
   openTies: Record<string, SoundParams | null> = {};
+  audioAnimation: SuiAudioAnimationParams;
   constructor(parameters: SuiAudioPlayerParams) {
     this.instanceId = SuiAudioPlayer.incrementInstanceId();
     this.paused = false;
-    this.tracker = parameters.tracker;
+    this.view = parameters.view;
     this.score = parameters.score;
     // Assume tempo is same for all measures
     this.cuedSounds = new CuedAudioContexts();
+    this.audioAnimation = parameters.audioAnimation;
   }
 
   getNoteSoundData(measureIndex: number) {
@@ -185,7 +189,7 @@ export class SuiAudioPlayer {
           selector.tick = tickIx;
           let ties: SmoTie[] = [];
           const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
-          if (smoNote.noteType === 'n' && measure.clef !== 'percussion') {
+          if (smoNote.noteType === 'n') {
             ties = staff.getTiesStartingAt(selector);
             smoNote.pitches.forEach((pitch, pitchIx) => {
               const freq = SmoAudioPitch.smoPitchToFrequency(pitch, xpose, smoNote.getMicrotone(pitchIx) ?? null);
@@ -367,11 +371,11 @@ export class SuiAudioPlayer {
         const cuedSound = this.cuedSounds.advanceHead();
         if (cuedSound === null) {
           SuiAudioPlayer._playing = false;
-          this.tracker.clearMusicCursor(previousDuration);
+          this.audioAnimation.clearAudioAnimationHandler(previousDuration);
           return;
         }
         if (SuiAudioPlayer._playing === false) {
-          this.tracker.clearMusicCursor(previousDuration);
+          this.audioAnimation.clearAudioAnimationHandler(previousDuration);
           return;
         }
         if (cuedSound.oscs.length === 0) {
@@ -383,7 +387,7 @@ export class SuiAudioPlayer {
         }
         previousDuration = cuedSound.oscs[0].duration;
         SuiAudioPlayer._playChord(cuedSound.oscs);
-        this.tracker.musicCursor(cuedSound.selector,
+        this.audioAnimation.audioAnimationHandler(this.view, cuedSound.selector,
           cuedSound.offsetPct, cuedSound.durationPct);
         this.cuedSounds.playMeasureIndex += 1;
         this.cuedSounds.playWaitTimer = cuedSound.waitTime;
@@ -439,7 +443,7 @@ export class SuiAudioPlayer {
   static stopPlayer() {
     if (SuiAudioPlayer._playingInstance) {
       const a = SuiAudioPlayer._playingInstance;
-      a.tracker.clearMusicCursor(0);
+      a.audioAnimation.clearAudioAnimationHandler(0);
       a.paused = false;
       a.cuedSounds.reset();
     }
@@ -472,7 +476,7 @@ export class SuiAudioPlayer {
     }
     SuiAudioPlayer._playingInstance = this;
     SuiAudioPlayer.playing = true;
-    const startIndex = this.tracker.getFirstMeasureOfSelection()?.measureNumber.measureIndex ?? 0;
+    const startIndex = this.view.tracker.getFirstMeasureOfSelection()?.measureNumber.measureIndex ?? 0;
     //for (i = this.startIndex; i < this.score.staves[0].measures.length; ++i) {
     //   this.tracks.push(SuiAudioPlayer.getTrackSounds(this.audio.tracks, i));
     // }

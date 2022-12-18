@@ -12,6 +12,8 @@ import { defaultTrackerKeys } from "../ui/keyBindings/default/trackerKeys";
 import { RibbonLayout } from "../ui/common";
 import { ButtonDefinition } from "../ui/buttons/button";
 import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
+import { SuiAudioAnimationParams, defaultAudioAnimationHandler, defaultClearAudioAnimationHandler, AudioAnimationHandler, ClearAudioAnimationHandler } 
+  from "../render/audio/musicCursor";
 
 export type SmoMode = 'library' | 'application' | 'translate';
 export type ConfigurationStringOption = 'language' | 'libraryUrl' | 'remoteScore';
@@ -40,6 +42,7 @@ export interface SmoConfigurationParams {
   idleRedrawTime: number;
   ribbonLayout?: RibbonLayout;
   buttonDefinition?: ButtonDefinition[];
+  audioAnimation: SuiAudioAnimationParams;
 }
 
 /**
@@ -72,6 +75,7 @@ export interface SmoConfigurationParams {
   keys?: KeyBindingConfiguration;
   eventHandler?: ModalEventHandler;
   ribbonLayout: RibbonLayout;
+  audioAnimation: SuiAudioAnimationParams;
   buttonDefinition: ButtonDefinition[];
 
   static get defaults(): SmoConfiguration {
@@ -83,7 +87,11 @@ export interface SmoConfigurationParams {
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
       ribbonLayout: defaultRibbonLayout.ribbons,
-      buttonDefinition: defaultRibbonLayout.ribbonButtons
+      buttonDefinition: defaultRibbonLayout.ribbonButtons,
+      audioAnimation: {
+        audioAnimationHandler: defaultAudioAnimationHandler,
+        clearAudioAnimationHandler: defaultClearAudioAnimationHandler
+      }
     };
   }
   static get keyBindingDefaults(): KeyBindingConfiguration {
@@ -120,6 +128,11 @@ export interface SmoConfigurationParams {
     }
     if (!params.buttonDefinition) {
       this.buttonDefinition = defaultRibbonLayout.ribbonButtons;
+    }
+    if (!params.audioAnimation) {
+      this.audioAnimation = SmoConfiguration.defaults.audioAnimation;
+    } else {
+      this.audioAnimation = params.audioAnimation;
     }
   }
 }

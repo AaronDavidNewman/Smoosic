@@ -17,7 +17,7 @@ import { SuiRenderState } from './renderState';
 import { ScoreRenderParams } from './scoreRender';
 import { SmoOperation } from '../../smo/xform/operations';
 import { SuiAudioPlayer } from '../audio/player';
-
+import { SuiAudioAnimationParams } from '../audio/musicCursor';
 
 declare var $: any;
 
@@ -49,6 +49,7 @@ export abstract class SuiScoreView {
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
   config: SmoRenderConfiguration;
+  audioAnimation: SuiAudioAnimationParams;
   constructor(config: SmoRenderConfiguration, svgContainer: HTMLElement, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
     this.score = score;
     const renderParams: ScoreRenderParams = {
@@ -57,6 +58,7 @@ export abstract class SuiScoreView {
       config,
       undoBuffer
     };
+    this.audioAnimation = config.audioAnimation;
     this.renderer = new SuiRenderState(renderParams);
     this.config = config;
     const scoreJson = score.serialize();
