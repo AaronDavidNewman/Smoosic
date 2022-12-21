@@ -87,6 +87,12 @@ export class SuiScoreRender {
     gg.elements = [];
     const layoutManager = this.score!.layoutManager!;
     const scaledScoreLayout = layoutManager.getScaledPageLayout(0);
+    // If this text hasn't been rendered before, estimate the logical box.
+    const dummyContainer = this.vexContainers.getRendererFromModifier(gg);
+    if (dummyContainer && !gg.logicalBox) {
+      const dummyBlock = SuiTextBlock.fromTextGroup(gg, dummyContainer, this.vexContainers, this.measureMapper!.scroller);
+      gg.logicalBox = dummyBlock.getLogicalBox();
+    }
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.

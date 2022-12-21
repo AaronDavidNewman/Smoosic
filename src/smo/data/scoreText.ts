@@ -151,7 +151,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
   getText() {
     return this.text;
   }
-  estimateWidth() {
+  estimateWidth(): number {
     let i = 0;
     let rv = 0;
     const textFont = VF.TextFormatter.create({
@@ -166,7 +166,6 @@ export class SmoScoreText extends SmoScoreModifierBase {
     }
     return rv;
   }
-
   tryParseUnicode() {
     this.text = smoSerialize.tryParseUnicode(this.text);
   }
