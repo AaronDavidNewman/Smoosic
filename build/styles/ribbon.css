@@ -156,7 +156,16 @@ button#MicrotoneButtons  {
     top:25%;
     left:25%;
 }
-
+.controls-top .ribbonButtonContainer[data-group="quickButtons"] .select-part-button {
+  width: 120px;
+}
+.controls-top .ribbonButtonContainer[data-group="quickButtons"] .select-part-button .ribbon-button-text {
+  position: absolute;
+  left: 5px;
+}
+.controls-top .ribbonButtonContainer[data-group="quickButtons"] .select-part-button .ribbon-button-hotkey {
+  right: 15px;
+}
 .ribbonButtonContainer[data-group="microtone"] {
     font-size:1.5em;
 }

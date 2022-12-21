@@ -203,6 +203,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const ul = this.modifier.ul();
     this.xCtrl.setValue(ul.x);
     this.yCtrl.setValue(ul.y);
+    this.paginationCtrl.setValue(this.modifier.pagination);
     this.highlightActiveRegion();
   }
   display() {

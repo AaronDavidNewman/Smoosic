@@ -129,7 +129,6 @@ export * from './src/ui/menus/dynamics';
 export * from './src/ui/menus/file';
 export * from './src/ui/menus/keySignature';
 export * from './src/ui/menus/language';
-export * from './src/ui/menus/library';
 export * from './src/ui/menus/manager';
 export * from './src/ui/menus/measure';
 export * from './src/ui/menus/menu';

@@ -7,6 +7,7 @@ import { SmoPartInfo, SmoPartInfoStringType } from '../../smo/data/partInfo';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { SuiToggleComponent } from './components/toggle';
 import { ViewMapEntry } from '../../render/sui/scoreView';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 
@@ -18,7 +19,6 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   selection: SmoSelection;
   changed: boolean = false;
   currentView: ViewMapEntry[] = [];
-  restoreView: boolean = true;
   resetPart: boolean = false;
   constructor(view: SuiScoreViewOperations) {
     super(view);
@@ -27,23 +27,12 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     this.selection = SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure)!;
     this.partInfo = new SmoPartInfo(this.selection.staff.partInfo);
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
-    if (this.view.isPartExposed()) {
-      this.restoreView = false;
-    }
   }
-  update() {
-    const self = this;
-    this.changed = true;
-
-    const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length) || this.resetPart;
+  async update() {
+    this.changed = true;    
     // Since update will change the displayed score, wait for any display change to complete first.
-    this.view.renderer.updatePromise().then(() => {
-      self.view.updatePartInfo(self.partInfo);
-      if (shouldReset) {
-        self.resetPart = false;
-        self.view.exposePart(self.view.score.staves[0]);
-      }
-    });
+    await this.view.renderer.updatePromise();
+    await this.view.updatePartInfo(this.partInfo);
   }
   writeLayoutValue(attr: GlobalLayoutAttributes, value: number) {
     // no change?
@@ -59,12 +48,6 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     }
     this.partInfo[attr] = value;
     this.changed = true;
-  }
-  get restoreScoreView() {
-    return this.restoreView;
-  }
-  set restoreScoreView(value: boolean) {
-    this.restoreView = value;
   }
   get expandMultimeasureRest() {
     return this.partInfo.expandMultimeasureRests;
@@ -151,7 +134,14 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
       this.partInfo.stavesAfter = 0;
     }
     if (oldValue !== this.partInfo.stavesAfter) {
-      this.resetPart = true;
+      // special case for a 2-stave score.  The score and the part are the same so we stick to 
+      // score view.
+      if (this.partInfo.stavesAfter === 1 && this.view.storeScore.staves.length === 2) {
+        this.update().then(() => {
+          this.view.viewAll();
+        });
+        return;
+      }
     }
     this.update();
   }
@@ -175,29 +165,15 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     this.partInfo.preserveTextGroups = value;
     this.update();
   }
-  restoreViewMap() {
-    const current = this.currentView;
-    const viewObj = this.view;
-    this.view.renderer.updatePromise().then(() => {
-      viewObj.setView(current);
-    });
-  }
   commit() {
     if (this.changed) {
       this.update();
-    }
-    if (this.restoreView) {
-      this.restoreViewMap();
     }
   }
   cancel() {
     if (this.changed) {
       this.partInfo = this.backup;
       this.update();
-    }
-    // restore previous view
-    if (this.restoreView) {
-      this.restoreViewMap();
     }
   }
 }
@@ -231,10 +207,6 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
           smoName: 'expandMultimeasureRest',
           control: 'SuiToggleComponent',
           label: 'Expand Multimeasure Rests'
-        }, {
-          smoName: 'restoreScoreView',
-          control: 'SuiToggleComponent',
-          label: 'Restore View on Close'
         }, {
           smoName: 'noteSpacing',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
@@ -305,6 +277,15 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
     super.changed();
     if (this.dimensionControls.find((x) => x.changeFlag)) {
       this.initialValue();
+    }
+    if (this.cmap.includeNextCtrl.changeFlag) {
+      const includeNext = this.cmap.includeNextCtrl as SuiToggleComponent;
+      if (includeNext.getValue()) {
+        const partMap = this.view.getPartMap();
+        if (this.view.storeScore.staves.length === 2) {
+          this.complete();
+        }
+      }
     }
   }
 }

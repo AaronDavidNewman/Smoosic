@@ -20,6 +20,7 @@ import { SuiExceptionHandler } from '../../ui/exceptions';
 declare var $: any;
 const VF = eval('Vex.Flow');
 
+export var scoreChangeEvent = 'smoScoreChangeEvent';
 /**
  * Manage the state of the score rendering.  The score can be rendered either completely,
  * or partially for editing.  This class works with the RenderDemon to decide when to

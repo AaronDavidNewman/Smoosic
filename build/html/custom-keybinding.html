@@ -20,13 +20,10 @@
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
   <script type="text/javascript" src="../smoosic.js"></script>
   <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function (event) {
+    document.addEventListener("DOMContentLoaded", async function  (event) {
       // @@@@@@
-      // A simple music program using Smoosic in library mode.  We add the music 
-      // to the score by creating SMO objects directly.  Since we are not using async mode,
-      // we need to create our own selections, since tracker will not be aware of music changes
-      // made before the item renders.
-
+      // A very simple notation application using Smoosic in library mode.  We create event handlers
+      // for keys and mouse events, a-g for the notes and some cursor keys.
       // If the application gets one of these keys, it will pass it to the 
       // view for rendering one of these notes.  
       const editorKeys = [];
@@ -48,38 +45,43 @@
         key: "ArrowLeft",
         action: "moveSelectionLeft"
       }];
-      Smo.SuiApplication.configure({
+      const application = await Smo.SuiApplication.configure({
         mode: 'library',
         scoreDomContainer: 'outer-container',
         keys: { trackerKeys, editorKeys },
         initialScore: Smo.basicJson,
-      }).then((application) => {
-        const view = application.view;
-        // Create kb handling logic.  Tracker events and other commands take 
-        // different parameters, which is why the different arrays
-        window.addEventListener('keydown', (evKey) => {
-          const trackerAction = trackerKeys.find((ev) => ev.key === evKey.key);
-          if (trackerAction) {
-            view[trackerAction.action](evKey);
-            return false;
-          }
-          const editorAction = editorKeys.find((ev) => ev.key === evKey.key);
-          if (editorAction) {
-            view[editorAction.action](evKey.key);
-            return false;
-          }
-        });
-
-        // Get mouse move event to highlight mouseover.  We pass the client coordinates
-        // into tracker (via view).  The tracker maps client space to SVG space
-        document.getElementById('outer-container').addEventListener('mousemove', (ev) => {
-          view.intersectingArtifact({
-            x: ev.clientX,
-            y: ev.clientY
-          });
-        });
-
       });
+      const view = application.view;
+      // Create kb handling logic.  Tracker events and other commands take 
+      // different parameters, which is why the different arrays
+      window.addEventListener('keydown', async (evKey) => {
+        const trackerAction = trackerKeys.find((ev) => ev.key === evKey.key);
+        if (trackerAction) {
+          await view[trackerAction.action](evKey);
+          return false;
+        }
+        const editorAction = editorKeys.find((ev) => ev.key === evKey.key);
+        if (editorAction) {
+          await view[editorAction.action](evKey.key);
+          return false;
+        }
+      });
+      // tracker is a class that tracks the selections of the music.  If the user
+      // clicks on a musical element, make it the selection.  
+      // TODO: This should be moved into the view for the API...
+      window.addEventListener('click', async (ev) => {
+        view.tracker.selectSuggestion(view.score, ev);
+      });
+
+      // Get mouse move event to highlight mouseover.  We pass the client coordinates
+      // into tracker (via view).  The tracker maps client space to SVG space
+      document.getElementById('outer-container').addEventListener('mousemove', (ev) => {
+        view.intersectingArtifact({
+          x: ev.clientX,
+          y: ev.clientY
+        });
+      });
+
     });
   </script>
 </head>

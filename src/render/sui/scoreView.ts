@@ -4,6 +4,7 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { SmoPartInfo } from '../../smo/data/partInfo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
@@ -13,7 +14,7 @@ import { SvgHelpers } from './svgHelpers';
 import { SuiTracker } from './tracker';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { SmoRenderConfiguration } from './configuration';
-import { SuiRenderState } from './renderState';
+import { SuiRenderState, scoreChangeEvent } from './renderState';
 import { ScoreRenderParams } from './scoreRender';
 import { SmoOperation } from '../../smo/xform/operations';
 import { SuiAudioPlayer } from '../audio/player';
@@ -99,6 +100,27 @@ export abstract class SuiScoreView {
     this.renderer.setViewport();
     this.renderer.setRefresh();
     return this.renderer.renderPromise();
+  }
+  getPartMap(): { keys: number[], partMap: Record<number, SmoPartInfo> } {
+    let keepNext = false;
+    let partCount = 0;
+    let partMap: Record<number, SmoPartInfo> = {};
+    const keys: number[] = [];
+    this.storeScore.staves.forEach((staff) => {
+      const partInfo = staff.partInfo;
+      partInfo.associatedStaff = staff.staffId;
+      if (!keepNext) {
+        partMap[partCount] = partInfo;
+        keys.push(partCount);
+        partCount += 1;
+        if (partInfo.stavesAfter > 0) {
+          keepNext = true;
+        }
+      } else {
+        keepNext = false;
+      }
+    });
+    return { keys, partMap };
   }
   /**
    * This is used in some Smoosic demos and pens.
@@ -425,13 +447,20 @@ export abstract class SuiScoreView {
    */
   exposePart(staff: SmoSystemStaff) {
     let i = 0;
-    const partInfo = staff.partInfo;
-    const startIndex = this.staffMap[staff.staffId] - partInfo.stavesBefore;
-    const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1;
     const exposeMap: ViewMapEntry[] = [];
+    let pushNext = false;
     for (i = 0; i < this.storeScore.staves.length; ++i) {
-      const show = (i >= startIndex && i < startIndex + partLength);
-      exposeMap.push({ show });
+      const tS = this.storeScore.staves[i];
+      const show = tS.staffId === staff.staffId;
+      if (pushNext) {
+        exposeMap.push({ show: true });
+        pushNext = false;
+      } else  {
+        exposeMap.push({ show });
+        if (tS.partInfo.stavesAfter > 0 && show) {
+          pushNext = true;
+        }
+      }
     }
     this.setView(exposeMap);
   }
@@ -440,7 +469,7 @@ export abstract class SuiScoreView {
    * @returns 
    */
   isPartExposed(): boolean {
-    return this.score.isPartExposed() && this.score.staves.length !== this.storeScore.staves.length;
+    return this.score.isPartExposed() && this.storeScore.staves.length > 1;
   }
   /**
    * Parts have different formatting options from the parent score, indluding layout.  Reset
@@ -505,6 +534,7 @@ export abstract class SuiScoreView {
         staff.partInfo.displayCues = staff.partInfo.cueInScore;
       });
     }
+    window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
   }
   /**
@@ -516,6 +546,7 @@ export abstract class SuiScoreView {
     this.setMappedStaffIds();
     this._setTransposing();
     this.renderer.score = this.score;
+    window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
   }
   /**
@@ -546,7 +577,9 @@ export abstract class SuiScoreView {
     this._setTransposing();
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
-    return this.renderPromise();
+    const rv = this.renderPromise();
+    window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
+    return rv;
   }
 
   /**

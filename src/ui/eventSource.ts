@@ -3,6 +3,7 @@
 import { KeyEvent } from '../smo/data/common';
 
 declare var $: any;
+import { scoreChangeEvent } from '../render/sui/renderState';
 
 /**
  * Event handler for smoosic.  Any UI element can have any number
@@ -29,6 +30,7 @@ export class BrowserEventSource {
   mouseClickHandlers: EventHandler[];
   mouseUpHandlers: EventHandler[];
   mouseDownHandlers: EventHandler[];
+  scoreChangeHandlers: EventHandler[] = [];
   domTriggers: EventHandler[];
   handleMouseMove: ((ev: any) => void) | null = null;
   handleMouseClick: ((ev: any) => void) | null = null;
@@ -36,6 +38,7 @@ export class BrowserEventSource {
   handleMouseDown: ((ev: any) => void) | null = null;
 
   handleKeydown: (ev: KeyEvent) => void;
+  handleScoreChangeEvent: (ev: KeyEvent) => void;
   renderElement: any;
   constructor() {
     this.keydownHandlers = [];
@@ -45,7 +48,9 @@ export class BrowserEventSource {
     this.mouseDownHandlers = [];
     this.domTriggers = [];
     this.handleKeydown = this.evKey.bind(this);
+    this.handleScoreChangeEvent = this.evScoreChange.bind(this);
     window.addEventListener("keydown", this.handleKeydown as any, true);
+    window.addEventListener(scoreChangeEvent, this.handleScoreChangeEvent as any, true);
   }
 
   async evKey(event: KeyEvent) {
@@ -55,7 +60,13 @@ export class BrowserEventSource {
       await handler.sink[handler.method](event);
     }
   }
-
+  async evScoreChange(event: any) {
+    let i = 0;
+    for (i = 0; i < this.scoreChangeHandlers.length; ++i) {
+      const handler = this.scoreChangeHandlers[i]
+      await handler.sink[handler.method](event);
+    }
+  }
   mouseMove(event: any) {
     this.mouseMoveHandlers.forEach((handler) => {
       handler.sink[handler.method](event);
@@ -126,7 +137,7 @@ export class BrowserEventSource {
     const handlers: EventHandler[] = [];
     this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
     this.keydownHandlers = handlers;
-  }
+  }  
 
   bindScroller() { }
 
@@ -147,6 +158,11 @@ export class BrowserEventSource {
   bindMouseUpHandler(sink: any, method: string) {
     var handler: EventHandler = { symbol: Symbol(), sink, method };
     this.mouseUpHandlers.push(handler);
+    return handler;
+  }
+  bindScoreChangeHandler(sink: any, method: string) {
+    var handler: EventHandler = { symbol: Symbol(), sink, method };
+    this.scoreChangeHandlers.push(handler);
     return handler;
   }
 

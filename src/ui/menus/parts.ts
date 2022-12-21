@@ -138,6 +138,7 @@ export class SuiPartMenu extends SuiMenuBase {
   preAttach() {
     const fullScore = this.view.storeScore.staves.length === this.view.score.staves.length;
     const defs: MenuChoiceDefinition[] = [];
+    const partInfo = this.view.getPartMap();
     this.menuItems.forEach((item) => {
       // Only show 'display all' if the full score is not already displayed
       if (item.value === 'viewAll') {
@@ -155,13 +156,10 @@ export class SuiPartMenu extends SuiMenuBase {
           defs.push(item);
         }
       } else if (item.value === 'editPart') {
-        if (this.view.isPartExposed() === false) {
-          // TODO: use language-specific text for both of these
-          item.text = 'Edit Part';
-        } else {
+        if (this.view.isPartExposed() && this.view.storeScore.staves.length > 1) {
           item.text = 'Part Properties';
+          defs.push(item);
         }
-        defs.push(item);
       } else {
         defs.push(item);
       }

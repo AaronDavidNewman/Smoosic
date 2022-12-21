@@ -95,7 +95,7 @@ export class SuiTracker extends SuiMapper {
     return rv;
   }
 
-  advanceModifierSelection(score: SmoScore,keyEv: KeyEvent | null) {
+  advanceModifierSelection(score: SmoScore, keyEv: KeyEvent | null) {
     if (!keyEv) {
       return;
     }

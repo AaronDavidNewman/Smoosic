@@ -166,7 +166,6 @@ export class SmoTranslator {
       'SuiFileMenu',
       'SuiKeySignatureMenu',
       'SuiLanguageMenu',
-      'SuiLibraryMenu',
       'SuiMeasureMenu',
       'SuiPartMenu',
       'SuiScoreMenu',

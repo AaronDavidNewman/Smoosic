@@ -91,7 +91,7 @@ import { SuiMenuManager} from '../ui/menus/manager';
 import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
 import { SuiPartMenu } from '../ui/menus/parts';
-import { SuiLibraryMenu } from '../ui/menus/library';
+import { SuiPartSelectionMenu } from '../ui/menus/partSelection';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
 import { SuiTimeSignatureMenu } from '../ui/menus/timeSignature';
 import { SuiKeySignatureMenu } from '../ui/menus/keySignature';
@@ -130,6 +130,7 @@ import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
 import { SmoSystemGroup, SmoAudioPlayerSettings } from '../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoTextGroupParams } from '../smo/data/scoreText';
 import { SmoOperation } from '../smo/xform/operations';
 import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
@@ -159,9 +160,10 @@ export const Smo = {
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
     DisplaySettings,  ExtendedCollapseParent, CollapseRibbonControl,
     // Menus
-    SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
+    SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
+    SuiPartSelectionMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiTextBracketDialog,
@@ -210,7 +212,7 @@ export const Smo = {
     SmoStaffTextBracket,
     SmoInstrument, SmoSlur, SmoTie,
     // score modifiers
-    SmoSystemGroup, SmoAudioPlayerSettings,
+    SmoSystemGroup, SmoAudioPlayerSettings, SmoTextGroup,
     // measure modifiers
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText,

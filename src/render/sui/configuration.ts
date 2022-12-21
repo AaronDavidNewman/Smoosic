@@ -1,5 +1,6 @@
 
 import { SuiAudioAnimationParams } from '../audio/musicCursor';
+
 /**
  * Define configurable rendering options
  * @module /render/sui/configuration

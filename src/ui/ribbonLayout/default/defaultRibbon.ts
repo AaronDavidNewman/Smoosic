@@ -36,7 +36,7 @@ export class defaultRibbonLayout {
 
   static get leftRibbonIds() {
     return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-    'layoutMenu', 'instrumentMenu', 'addStaffMenu', 'measureModal', 
+    'scoreMenu', 'partMenu', 'addStaffMenu', 'measureModal', 
     'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
        'pianoModal'];
   }
@@ -94,7 +94,7 @@ export class defaultRibbonLayout {
   }
 
   static get displayIds() {
-    return ['quickButtons', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
+    return ['quickButtons', 'selectPart', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
   }
 
 
@@ -167,6 +167,15 @@ export class defaultRibbonLayout {
       ctor: 'CollapseRibbonControl',
       group: 'quickButtons',
       id: 'quickButtons'
+    }, {
+      leftText: '',
+      rightText: 'Select Part',
+      classes: 'icon select-part-button',
+      icon: 'icon-circle-down',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'quickButtons',
+      id: 'selectPart'
     }, {
       leftText: '',
       rightText: '',
@@ -1551,7 +1560,7 @@ export class defaultRibbonLayout {
       action: 'menu',
       ctor: 'SuiScoreMenu',
       group: 'scoreEdit',
-      id: 'layoutMenu'
+      id: 'scoreMenu'
     },
     {
       leftText: 'Parts',
@@ -1561,7 +1570,7 @@ export class defaultRibbonLayout {
       action: 'menu',
       ctor: 'SuiPartMenu',
       group: 'scoreEdit',
-      id: 'instrumentMenu'
+      id: 'partMenu'
     }, 
     {
       leftText: 'Measure',
@@ -1600,8 +1609,7 @@ export class defaultRibbonLayout {
       ctor: 'SuiKeySignatureMenu',
       group: 'scoreEdit',
       id: 'keyMenu'
-    },
-    {
+    }, {
       leftText: 'Lines',
       rightText: '/l',
       icon: '',

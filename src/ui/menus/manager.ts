@@ -114,13 +114,6 @@ export class SuiMenuManager {
         action: 'SuiFileMenu'
       }, {
         event: 'keydown',
-        key: 'L',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiLibraryMenu'
-      }, {
-        event: 'keydown',
         key: 'm',
         ctrlKey: false,
         altKey: false,
@@ -133,6 +126,13 @@ export class SuiMenuManager {
         altKey: false,
         shiftKey: false,
         action: 'SuiMeasureMenu'
+      },  {
+        event: 'partSelection',
+        key: '',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiPartSelectionMenu'
       }
     ];
   }
