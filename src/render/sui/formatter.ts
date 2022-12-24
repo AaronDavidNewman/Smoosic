@@ -279,6 +279,24 @@ export class SuiLayoutFormatter {
     return rv;
   }
   /**
+   * return true if this is the last measure, taking into account multimeasure rest
+   * @param measureIx 
+   * @returns 
+   */
+  isLastVisibleMeasure(measureIx: number) {
+    if (measureIx >= this.score.staves[0].measures.length) {
+      return true;
+    }
+    let i = 0;
+    for (i = measureIx; i < this.score.staves[0].measures.length; ++i) {
+      const mm = this.score.staves[0].measures[i];
+      if (!mm.svg.hideMultimeasure) {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
    * Calculate the geometry for the entire score, based on estimated measure width and height.
    * @returns 
    */
@@ -378,7 +396,7 @@ export class SuiLayoutFormatter {
       systemIndex += 1;
       // If this is the last measure but we have not filled the x extent,
       // still justify the vertical staves and check for page break.
-      if (measureIx >= this.score.staves[0].measures.length && measureEstimate !== null) {
+      if (this.isLastVisibleMeasure(measureIx) && measureEstimate !== null) {
         this.justifyY(scoreLayout, measureEstimate.measures.length, currentLine, true);
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b

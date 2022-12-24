@@ -62,8 +62,11 @@ export class SmoScoreText extends SmoScoreModifierBase {
     return rv;
   }
 
-  // ### weightString
-  // Convert a numeric or string weight into either 'bold' or 'normal'
+  /**
+   * Convert a numeric or string weight into either 'bold' or 'normal'
+   * @param fontWeight 
+   * @returns 
+   */
   static weightString(fontWeight: string): string {
     let rv = 'normal';
     if (fontWeight) {

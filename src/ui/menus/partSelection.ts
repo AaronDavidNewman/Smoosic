@@ -21,6 +21,11 @@ export class SuiPartSelectionMenu extends SuiMenuBase {
     return SuiPartSelectionMenu.defaults;
   }
   selectPart(val: number) {
+    if (val < 0) {
+      this.view.viewAll();
+      this.complete();
+      return;
+    }
     const partInfo = this.partMap.partMap[val];
     this.view.exposePart(this.view.storeScore.staves[partInfo.associatedStaff]);
     this.complete();
@@ -28,6 +33,13 @@ export class SuiPartSelectionMenu extends SuiMenuBase {
   preAttach() {
     const defs: MenuChoiceDefinition[] = [];
     this.partMap = this.view.getPartMap();
+    if (this.view.score.staves.length < this.view.storeScore.staves.length) {
+      defs.push({
+        icon: '',
+        text: 'View All',
+        value: '-1'
+      });
+    }
     this.partMap.keys.forEach((key) => {
       defs.push({
         icon: '',
