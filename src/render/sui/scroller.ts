@@ -71,17 +71,13 @@ export class SuiScroller {
    scrollVisibleBox(box: SvgBox) {
     let yoff = 0;
     let xoff = 0;
-    // offset is added to client coordinates but we subtract it out b/c
-    // the scroll region 0,0 and svg 0,0 are the same
-    const offset = this.svgPages.svgToClient(SvgBox.default);
-    const screenBox = this.svgPages.svgToClient(box);
-    screenBox.x -= offset.x;
-    screenBox.y -= offset.y
+
+    const screenBox = this.svgPages.svgToClientNoOffset(box);
     const scrollState = this.scrollState;
-    const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + (this.viewport.height - this.viewport.y);
+    const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height;
     const scrollUp = () => screenBox.y < scrollState.y;
     const scrollLeft = () => screenBox.x < scrollState.x;
-    const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + (this.viewport.width - this.viewport.x);
+    const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width;
     // Math: make sure we don't scroll down if scrollUp is indicated, etc.
     if (scrollUp()) {
       yoff = Math.min(screenBox.y - scrollState.y, 0);

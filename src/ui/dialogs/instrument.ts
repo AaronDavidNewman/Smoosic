@@ -125,11 +125,23 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               value: 'horn',
               label: 'F Horn'
             }, {
+              value: 'trombone',
+              label: 'Trombone'
+            }, {
               value: 'tuba',
               label: 'Tuba'
             }, {
               value: 'clarinet',
               label: 'Bb Clarinet'
+            },  {
+              value: 'altoSax',
+              label: 'Eb Alto Sax'
+            },  {
+              value: 'tenorSax',
+              label: 'Bb Tenor Sax'
+            },  {
+              value: 'bariSax',
+              label: 'Eb Bari Sax'
             },  {
               value: 'pad',
               label: 'Synth Pad'

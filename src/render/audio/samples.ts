@@ -140,17 +140,17 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-bass-b1',
+      sample: 'sample-bass-a1',
       family: 'strings',
       instrument: 'bass',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 1 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 1 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-bass-e2',
+      sample: 'sample-bass-a3',
       family: 'strings',
       instrument: 'bass',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
@@ -245,6 +245,20 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
+      sample: 'trombone-g3-sso',
+      family: 'brass',
+      instrument: 'trombone',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 3 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'trombone-g4-sso',
+      family: 'brass',
+      instrument: 'trombone',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
       sample: 'sample-tuba-c2',
       family: 'brass',
       instrument: 'tuba',
@@ -269,6 +283,48 @@ export class SuiSampleMedia {
       sample: 'sample-clarinet-c5',
       family: 'woodwind',
       instrument: 'clarinet',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-a3',
+      family: 'woodwind',
+      instrument: 'altoSax',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-c4',
+      family: 'woodwind',
+      instrument: 'altoSax',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-a3',
+      family: 'woodwind',
+      instrument: 'tenorSax',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-c4',
+      family: 'woodwind',
+      instrument: 'tenorSax',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-a3',
+      family: 'woodwind',
+      instrument: 'bariSax',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'sample-asax-c4',
+      family: 'woodwind',
+      instrument: 'bariSax',
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
@@ -355,6 +411,7 @@ export class SuiSampleMedia {
       return PromiseHelpers.emptyPromise();
     }
     SuiSampleMedia.populateSampleMap();
+    const loadedSamples: Record<string, boolean> = {};
     for (i = 0; i < SuiSampleMedia.sampleFiles.length; ++i) {
       const file = SuiSampleMedia.sampleFiles[i];
       if (!file.sample) {
@@ -362,7 +419,8 @@ export class SuiSampleMedia {
       }
       const sampleName = file.sample;
       const audioElement: HTMLMediaElement | null = document.getElementById(file.sample) as HTMLMediaElement;
-      if (audioElement) {
+      if (!loadedSamples[file.sample] && audioElement) {
+        loadedSamples[file.sample] = true;
         const media = audio.createMediaElementSource(audioElement);
         mediaElements.push(audioElement);
         const req = new XMLHttpRequest();

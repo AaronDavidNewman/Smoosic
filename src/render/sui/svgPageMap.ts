@@ -480,6 +480,19 @@ export class SvgPageMap {
       return clientBox;
     }
     /**
+     * Convert from SVG bounding box to screen coordinates
+     * @param box 
+     * @returns 
+    */
+    svgToClientNoOffset(box: SvgBox) {
+      const cof = (this.zoomScale * this.renderScale);
+      const x = (box.x * cof);
+      const y = (box.y * cof);
+      const clientBox = SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);
+      return clientBox;
+    }
+
+    /**
      * Find a selection from a mouse event
      * @param box - location of a mouse event or specific screen coordinates
      * @returns 
