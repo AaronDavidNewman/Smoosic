@@ -4842,17 +4842,17 @@ class SuiSampleMedia {
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-bass-b1',
+            sample: 'sample-bass-a1',
             family: 'strings',
             instrument: 'bass',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 1 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 1 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-bass-e2',
+            sample: 'sample-bass-a3',
             family: 'strings',
             instrument: 'bass',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -4947,6 +4947,20 @@ class SuiSampleMedia {
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
+            sample: 'trombone-g3-sso',
+            family: 'brass',
+            instrument: 'trombone',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 3 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'trombone-g4-sso',
+            family: 'brass',
+            instrument: 'trombone',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
             sample: 'sample-tuba-c2',
             family: 'brass',
             instrument: 'tuba',
@@ -4971,6 +4985,48 @@ class SuiSampleMedia {
             sample: 'sample-clarinet-c5',
             family: 'woodwind',
             instrument: 'clarinet',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-a3',
+            family: 'woodwind',
+            instrument: 'altoSax',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-c4',
+            family: 'woodwind',
+            instrument: 'altoSax',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-a3',
+            family: 'woodwind',
+            instrument: 'tenorSax',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-c4',
+            family: 'woodwind',
+            instrument: 'tenorSax',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-a3',
+            family: 'woodwind',
+            instrument: 'bariSax',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'sample-asax-c4',
+            family: 'woodwind',
+            instrument: 'bariSax',
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
@@ -5057,6 +5113,7 @@ class SuiSampleMedia {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
         }
         SuiSampleMedia.populateSampleMap();
+        const loadedSamples = {};
         for (i = 0; i < SuiSampleMedia.sampleFiles.length; ++i) {
             const file = SuiSampleMedia.sampleFiles[i];
             if (!file.sample) {
@@ -5064,7 +5121,8 @@ class SuiSampleMedia {
             }
             const sampleName = file.sample;
             const audioElement = document.getElementById(file.sample);
-            if (audioElement) {
+            if (!loadedSamples[file.sample] && audioElement) {
+                loadedSamples[file.sample] = true;
                 const media = audio.createMediaElementSource(audioElement);
                 mediaElements.push(audioElement);
                 const req = new XMLHttpRequest();
@@ -10537,17 +10595,12 @@ class SuiScroller {
     scrollVisibleBox(box) {
         let yoff = 0;
         let xoff = 0;
-        // offset is added to client coordinates but we subtract it out b/c
-        // the scroll region 0,0 and svg 0,0 are the same
-        const offset = this.svgPages.svgToClient(common_1.SvgBox.default);
-        const screenBox = this.svgPages.svgToClient(box);
-        screenBox.x -= offset.x;
-        screenBox.y -= offset.y;
+        const screenBox = this.svgPages.svgToClientNoOffset(box);
         const scrollState = this.scrollState;
-        const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + (this.viewport.height - this.viewport.y);
+        const scrollDown = () => screenBox.y + screenBox.height > scrollState.y + this.viewport.height;
         const scrollUp = () => screenBox.y < scrollState.y;
         const scrollLeft = () => screenBox.x < scrollState.x;
-        const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + (this.viewport.width - this.viewport.x);
+        const scrollRight = () => screenBox.x + screenBox.width > scrollState.x + this.viewport.width;
         // Math: make sure we don't scroll down if scrollUp is indicated, etc.
         if (scrollUp()) {
             yoff = Math.min(screenBox.y - scrollState.y, 0);
@@ -11509,6 +11562,18 @@ class SvgPageMap {
         const cof = (this.zoomScale * this.renderScale);
         const x = (box.x * cof) + this.containerOffset.x;
         const y = (box.y * cof) + this.containerOffset.y;
+        const clientBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);
+        return clientBox;
+    }
+    /**
+     * Convert from SVG bounding box to screen coordinates
+     * @param box
+     * @returns
+    */
+    svgToClientNoOffset(box) {
+        const cof = (this.zoomScale * this.renderScale);
+        const x = (box.x * cof);
+        const y = (box.y * cof);
         const clientBox = svgHelpers_1.SvgHelpers.boxPoints(x, y, box.width * cof, box.height * cof);
         return clientBox;
     }
@@ -42685,11 +42750,23 @@ SuiInstrumentDialog.dialogElements = {
                     value: 'horn',
                     label: 'F Horn'
                 }, {
+                    value: 'trombone',
+                    label: 'Trombone'
+                }, {
                     value: 'tuba',
                     label: 'Tuba'
                 }, {
                     value: 'clarinet',
                     label: 'Bb Clarinet'
+                }, {
+                    value: 'altoSax',
+                    label: 'Eb Alto Sax'
+                }, {
+                    value: 'tenorSax',
+                    label: 'Bb Tenor Sax'
+                }, {
+                    value: 'bariSax',
+                    label: 'Eb Bari Sax'
                 }, {
                     value: 'pad',
                     label: 'Synth Pad'
