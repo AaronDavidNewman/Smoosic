@@ -19,6 +19,21 @@ export interface UndoEntry {
   firstInGroup: boolean,
   json?: any
 }
+export function copyUndo(entry: UndoEntry): UndoEntry {
+  const obj = { 
+    title: entry.title,
+    type: entry.type,
+    selector: entry.selector,
+    subtype: entry.subtype,
+    grouped: entry.grouped,
+    firstInGroup: entry.firstInGroup,
+    json: undefined
+  };
+  if (entry.json) {
+    obj.json = JSON.parse(JSON.stringify(entry.json));
+  }
+  return obj;
+}
 /**
  * manage a set of undo or redo operations on a score.  The objects passed into
  * undo must implement serialize()/deserialize()
@@ -67,6 +82,7 @@ export class UndoBuffer {
   }
   score: SmoScore | null = null;
   buffer: UndoEntry[] = [];
+  reconcile: number = -1;
   opCount: number;
   _grouping: boolean;
   constructor() {
@@ -195,7 +211,7 @@ export class UndoBuffer {
           }
         }
       } else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER)  {
-        const modifier: StaffModifierBase = StaffModifierBase.deserialize(buf.json);
+        const modifier: StaffModifierBase = StaffModifierBase.deserialize(buf.json);        
         const staff: SmoSystemStaff = score.staves[modifier.startSelector.staff];
         const existing: StaffModifierBase | undefined = staff.getModifier(modifier);
         if (existing) {

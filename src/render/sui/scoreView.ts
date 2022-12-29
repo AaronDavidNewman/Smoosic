@@ -7,7 +7,7 @@ import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { UndoBuffer } from '../../smo/xform/undo';
+import { UndoBuffer, copyUndo } from '../../smo/xform/undo';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SuiScroller } from './scroller';
 import { SvgHelpers } from './svgHelpers';
@@ -174,7 +174,7 @@ export abstract class SuiScoreView {
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
     copy.endSelector = this._getEquivalentSelector(copy.endSelector);
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
-      staffModifier.serialize(), subtype);
+      copy.serialize(), subtype);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
       copy.serialize(), subtype);
   }
@@ -501,15 +501,14 @@ export abstract class SuiScoreView {
       return;
     }
     this._undoScore('change view');
-    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
-    const staveScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
-    nscore.staves = [];
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(true)));
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
-        staveScore.staves[i].mapStaffFromTo(i, nscore.staves.length);
-        nscore.staves.push(staveScore.staves[i]);
+        const nStave = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
+        nStave.mapStaffFromTo(i, nscore.staves.length);
+        nscore.staves.push(nStave);
         staffMap.push(i);
       }
     }
@@ -591,9 +590,22 @@ export abstract class SuiScoreView {
     if (!this.renderer.score) {
       return;
     }
-    this.renderer.undo(this.undoBuffer);
+    
     // A score-level undo might have changed the score.
-    this.score = this.renderer.score;
-    this.storeScore = this.storeUndo.undo(this.storeScore);
+    if (this.storeUndo.buffer.length < 1) {
+      return;
+    }
+    const bufCopy = copyUndo(this.storeUndo.buffer[this.storeUndo.buffer.length - 1]);
+    // Make sure the 'undo' staff is visible, if this undo is for a measure or staff.
+    let equiv = this.staffMap.find((x) => x === bufCopy.selector.staff);
+    if (bufCopy.type !== UndoBuffer.bufferTypes.MEASURE && bufCopy.type !== UndoBuffer.bufferTypes.STAFF
+       && bufCopy.type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
+        equiv = equiv ?? 0;
+    }
+    if (typeof(equiv) === 'number') {
+      bufCopy.selector.staff = equiv;
+      this.score = this.renderer.undo(this.undoBuffer, bufCopy);
+      this.storeScore = this.storeUndo.undo(this.storeScore);
+    }
   }
 }

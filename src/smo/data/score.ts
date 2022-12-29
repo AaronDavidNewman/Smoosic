@@ -342,7 +342,7 @@ export class SmoScore {
    * Serialize the entire score.
    * @returns JSON object
    */
-  serialize(): any {
+  serialize(skipStaves?: boolean): any {
     const params = {};
     let obj: any = {
       score: params,
@@ -361,9 +361,13 @@ export class SmoScore {
     }
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
     obj.audioSettings = this.audioSettings.serialize();
-    this.staves.forEach((staff: SmoSystemStaff) => {
-      obj.staves.push(staff.serialize());
-    });
+    if (!skipStaves) {
+      this.staves.forEach((staff: SmoSystemStaff) => {
+        obj.staves.push(staff.serialize());
+      });
+    } else {
+      obj.staves = [];
+    }
     // Score text is not part of text group, so don't save separately.
     this.textGroups.forEach((tg) => {
       if (tg.isTextVisible()) {

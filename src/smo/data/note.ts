@@ -475,6 +475,9 @@ export class SmoNote implements Transposable {
   isSlash() {
     return this.noteType === '/';
   }
+  isHidden() {
+    return this.hidden;
+  }
 
   makeNote() {
     this.noteType = 'n';

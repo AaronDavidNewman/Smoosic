@@ -152,7 +152,7 @@ export abstract class SuiOscillator {
     if (!selection.note) {
       return;
     }
-    if (selection.note.isRest() || selection.note.isSlash()) {
+    if (selection.note.isRest() || selection.note.isSlash() || selection.note.isHidden()) {
       return;
     }
     const soundInfo = selection.staff.getStaffInstrument(selection.selector.measure);

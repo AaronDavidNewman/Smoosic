@@ -139,6 +139,20 @@ export class SuiSampleMedia {
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 4 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'basspizz-c2-sso',
+      family: 'strings',
+      instrument: 'jazzBass',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: '#', octave: 3 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      sample: 'basspizz-c3-sso',
+      family: 'strings',
+      instrument: 'jazzBass',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: '#', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
       sample: 'sample-bass-a1',
       family: 'strings',
@@ -216,17 +230,17 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-trumpet-c4',
+      sample: 'trumpet-g5-sso',
       family: 'brass',
       instrument: 'trumpet',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 5 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-trumpet-c5',
+      sample: 'trumpet-e4-sso',
       family: 'brass',
       instrument: 'trumpet',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
@@ -290,42 +304,42 @@ export class SuiSampleMedia {
       sample: 'sample-asax-a3',
       family: 'woodwind',
       instrument: 'altoSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 12, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
       sample: 'sample-asax-c4',
       family: 'woodwind',
       instrument: 'altoSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 12, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
       sample: 'sample-asax-a3',
       family: 'woodwind',
       instrument: 'tenorSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 24, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
       sample: 'sample-asax-c4',
       family: 'woodwind',
       instrument: 'tenorSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 24, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-asax-a3',
+      sample: 'barisax-d2-nz10',
       family: 'woodwind',
       instrument: 'bariSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 12, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-asax-c4',
+      sample: 'barisax-c3-nz10',
       family: 'woodwind',
       instrument: 'bariSax',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 12, null) - 5,
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',

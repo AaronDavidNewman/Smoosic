@@ -5,7 +5,7 @@
  * @module renderState
  */
 import { SmoMeasure } from '../../smo/data/measure';
-import { UndoBuffer } from '../../smo/xform/undo';
+import { UndoBuffer, UndoEntry } from '../../smo/xform/undo';
 import { SmoRenderConfiguration } from './configuration';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
@@ -380,18 +380,17 @@ export class SuiRenderState {
   // Undo is handled by the render state machine, because the layout has to first
   // delete areas of the viewport that may have changed,
   // then create the modified score, then render the 'new' score.
-  undo(undoBuffer: UndoBuffer) {
-    const buffer = undoBuffer.peek();
+  undo(buffer: UndoBuffer, entry: UndoEntry): SmoScore {
     let op = 'setDirty';
     // Unrender the modified music because the IDs may change and normal unrender won't work
-    if (buffer) {
-      const sel = buffer.selector;
-      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
+    if (entry) {
+      const sel = entry.selector;
+      if (entry.type === UndoBuffer.bufferTypes.MEASURE) {
         const mSelection = SmoSelection.measureSelection(this.score!, sel.staff, sel.measure);
         if (mSelection !== null) {
           this.renderer.unrenderMeasure(mSelection.measure);
         }
-      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
+      } else if (entry.type === UndoBuffer.bufferTypes.STAFF) {
         const sSelection = SmoSelection.measureSelection(this.score!, sel.staff, 0);
         if (sSelection !== null) {
           this.renderer.unrenderStaff(sSelection.staff);
@@ -401,9 +400,13 @@ export class SuiRenderState {
         this.renderer.unrenderAll();
         op = 'setRefresh';
       }
-      this._score = undoBuffer.undo(this._score!);
+      buffer.undo(this._score!);
       (this as any)[op]();
     }
+    if (!this._score) {
+      throw ('no score when undo');
+    }    
+    return this._score;
   }
 
 

@@ -111,7 +111,10 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               label:'Grand Piano'
             }, {
               value: 'bass',
-              label: 'Bass'
+              label: 'Bass (bowed)'
+            }, {
+              value: 'jazzBass',
+              label: 'Bass (plucked)'
             }, {
               value: 'cello',
               label: 'Cello'
