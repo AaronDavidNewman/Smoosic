@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../../smo/data/score';
+import { SmoMeasure } from '../../smo/data/measure';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
@@ -19,6 +20,8 @@ import { ScoreRenderParams } from './scoreRender';
 import { SmoOperation } from '../../smo/xform/operations';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiAudioAnimationParams } from '../audio/musicCursor';
+import { SmoTempoText } from '../../smo/data/measureModifiers';
+import { TimeSignature } from '../../smo/data/measureModifiers';
 
 declare var $: any;
 
@@ -505,9 +508,19 @@ export abstract class SuiScoreView {
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
-        const nStave = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
+        const srcStave = this.storeScore.staves[i];
+        const nStave = SmoSystemStaff.deserialize(srcStave.serialize());
         nStave.mapStaffFromTo(i, nscore.staves.length);
         nscore.staves.push(nStave);
+        if (srcStave.keySignatureMap) {
+          nStave.keySignatureMap = JSON.parse(JSON.stringify(srcStave.keySignatureMap));
+        }
+        nStave.measures.forEach((measure: SmoMeasure, ix) => {
+          const srcMeasure = srcStave.measures[ix];
+          measure.tempo = new SmoTempoText(srcMeasure.tempo.serialize());
+          measure.timeSignature = new TimeSignature(srcMeasure.timeSignature);
+          measure.keySignature = srcMeasure.keySignature;
+        });
         staffMap.push(i);
       }
     }
