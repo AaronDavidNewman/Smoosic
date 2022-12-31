@@ -380,27 +380,37 @@ export class SuiRenderState {
   // Undo is handled by the render state machine, because the layout has to first
   // delete areas of the viewport that may have changed,
   // then create the modified score, then render the 'new' score.
-  undo(buffer: UndoBuffer, entry: UndoEntry): SmoScore {
+  undo(undoBuffer: UndoBuffer, staffMap: Record<number, number>): SmoScore {
     let op = 'setDirty';
+    const buffer = undoBuffer.peek();
     // Unrender the modified music because the IDs may change and normal unrender won't work
-    if (entry) {
-      const sel = entry.selector;
-      if (entry.type === UndoBuffer.bufferTypes.MEASURE) {
-        const mSelection = SmoSelection.measureSelection(this.score!, sel.staff, sel.measure);
-        if (mSelection !== null) {
-          this.renderer.unrenderMeasure(mSelection.measure);
+    if (buffer) {
+      const sel = buffer.selector;
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {       
+        if (typeof(staffMap[sel.staff]) === 'number')  {
+          const mSelection = SmoSelection.measureSelection(this.score!, staffMap[sel.staff], sel.measure);
+          if (mSelection !== null) {
+            this.renderer.unrenderMeasure(mSelection.measure);
+          }
         }
-      } else if (entry.type === UndoBuffer.bufferTypes.STAFF) {
-        const sSelection = SmoSelection.measureSelection(this.score!, sel.staff, 0);
-        if (sSelection !== null) {
-          this.renderer.unrenderStaff(sSelection.staff);
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
+        if (typeof(staffMap[sel.staff]) === 'number')  {
+          const sSelection = SmoSelection.measureSelection(this.score!, staffMap[sel.staff], 0);
+          if (sSelection !== null) {
+            this.renderer.unrenderStaff(sSelection.staff);
+          }
         }
         op = 'setRefresh';
       } else {
         this.renderer.unrenderAll();
         op = 'setRefresh';
       }
-      buffer.undo(this._score!);
+      this._score = undoBuffer.undo(this._score!, staffMap, false);
+      // Broken encapsulation - we need to know if we are 'undoing' an entire score
+      // so we can change the score pointed to by the renderer.
+      if (buffer.type === UndoBuffer.bufferTypes.SCORE) {
+        this.renderer.score = this._score;
+      }
       (this as any)[op]();
     }
     if (!this._score) {

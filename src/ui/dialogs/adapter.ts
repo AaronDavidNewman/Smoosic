@@ -60,7 +60,7 @@ export interface SuiDialogAdapterParams<T extends SuiComponentAdapter> {
   startPromise: Promise<void> | null
   view: SuiScoreViewOperations,
   eventSource: BrowserEventSource,
-  undoBuffer: UndoBuffer,
+  undoBuffer?: UndoBuffer,
   // definition: DialogDefinition,
   adapter: T
 }

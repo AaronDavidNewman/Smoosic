@@ -500,7 +500,6 @@ export abstract class SuiScoreView {
     if (!any) {
       return;
     }
-    this._undoScore('change view');
     const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(true)));
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
@@ -566,7 +565,7 @@ export abstract class SuiScoreView {
    * @returns 
    */
   changeScore(score: SmoScore) {
-    this._undoScore('load new score');
+    this.storeUndo.reset();
     SuiAudioPlayer.stopPlayer();
     this.renderer.score = score;
     this.renderer.setViewport();
@@ -595,17 +594,11 @@ export abstract class SuiScoreView {
     if (this.storeUndo.buffer.length < 1) {
       return;
     }
-    const bufCopy = copyUndo(this.storeUndo.buffer[this.storeUndo.buffer.length - 1]);
-    // Make sure the 'undo' staff is visible, if this undo is for a measure or staff.
-    let equiv = this.staffMap.find((x) => x === bufCopy.selector.staff);
-    if (bufCopy.type !== UndoBuffer.bufferTypes.MEASURE && bufCopy.type !== UndoBuffer.bufferTypes.STAFF
-       && bufCopy.type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
-        equiv = equiv ?? 0;
-    }
-    if (typeof(equiv) === 'number') {
-      bufCopy.selector.staff = equiv;
-      this.score = this.renderer.undo(this.undoBuffer, bufCopy);
-      this.storeScore = this.storeUndo.undo(this.storeScore);
-    }
+    const staffMap: Record<number, number> = {};
+    const identityMap: Record<number, number> = {};
+    this.defaultStaffMap.forEach((nn) => identityMap[nn] = nn);
+    this.staffMap.forEach((mm, ix) => staffMap[mm] = ix);
+    this.score = this.renderer.undo(this.storeUndo, staffMap);
+    this.storeScore = this.storeUndo.undo(this.storeScore, identityMap, true);
   }
 }

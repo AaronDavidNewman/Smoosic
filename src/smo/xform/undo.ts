@@ -80,7 +80,6 @@ export class UndoBuffer {
     });
     return json;
   }
-  score: SmoScore | null = null;
   buffer: UndoEntry[] = [];
   reconcile: number = -1;
   opCount: number;
@@ -104,6 +103,9 @@ export class UndoBuffer {
       }
     }
     this._grouping = val;
+  }
+  reset() {
+    this.buffer = [];
   }
   // ### addBuffer
   // Description:
@@ -184,16 +186,31 @@ export class UndoBuffer {
     }
     return this.buffer[this.buffer.length - 1];
   }
+  peekIndex(index: number) {
+    if (this.buffer.length - index < 1) {
+      return null;
+    }
+    return this.buffer[this.buffer.length - (1 + index)];
+  }
 
   // ## undo
   // ## Description:
   // Undo the operation at the top of the undo stack.  This is done by replacing
   // the music as it existed before the change was made.
-  undo(score: SmoScore): SmoScore {
+  undo(score: SmoScore, staffMap: Record<number, number>, pop: boolean): SmoScore {
     let i = 0;
     let j = 0;
     let mix = 0;
-    let buf = this._pop();
+    let buf: UndoEntry | null = null;
+    let peekIndex = 0;
+    if (pop) {
+      buf = this._pop();
+    } else {
+      buf = this.peekIndex(peekIndex);
+      if (buf) {
+        buf = copyUndo(buf);
+      }
+    }
     if (!buf) {
       return score;
     }
@@ -205,24 +222,29 @@ export class UndoBuffer {
             const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
             mix += 1;
             const selector = SmoSelector.default;
-            selector.staff = i;
-            selector.measure = j;
-            score.replaceMeasure(selector, measure);
+            if (typeof(staffMap[i]) === 'number') {
+              selector.staff = staffMap[i];
+              measure.measureNumber.staffId = staffMap[i];
+              selector.measure = j;
+              score.replaceMeasure(selector, measure);
+            }
           }
         }
       } else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER)  {
-        const modifier: StaffModifierBase = StaffModifierBase.deserialize(buf.json);        
-        const staff: SmoSystemStaff = score.staves[modifier.startSelector.staff];
-        const existing: StaffModifierBase | undefined = staff.getModifier(modifier);
-        if (existing) {
-          staff.removeStaffModifier(existing);
-        }
-        // If we undo an add, we just remove it.
-        if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
-          if (modifier.ctor === 'SmoStaffTextBracket') {
-            staff.addTextBracket(modifier as SmoStaffTextBracket);
-          } else {
-            staff.addStaffModifier(modifier);
+        const modifier: StaffModifierBase = StaffModifierBase.deserialize(buf.json);
+        if (typeof(staffMap[modifier.startSelector.staff]) === 'number') {
+          const staff: SmoSystemStaff = score.staves[staffMap[modifier.startSelector.staff]];
+          const existing: StaffModifierBase | undefined = staff.getModifier(modifier);
+          if (existing) {
+            staff.removeStaffModifier(existing);
+          }
+          // If we undo an add, we just remove it.
+          if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
+            if (modifier.ctor === 'SmoStaffTextBracket') {
+              staff.addTextBracket(modifier as SmoStaffTextBracket);
+            } else {
+              staff.addStaffModifier(modifier);
+            }
           }
         }
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
@@ -231,17 +253,24 @@ export class UndoBuffer {
         for (i = 0; i < score.staves.length; ++i) {
           const measure = SmoMeasure.deserialize(buf.json.measures[i]);
           const selector = SmoSelector.default;
-          selector.staff = i;
-          selector.measure = buf.json.measureIndex;
-          score.replaceMeasure(selector, measure);
+          if (typeof(staffMap[i]) === 'number') {
+            selector.staff = staffMap[i];
+            measure.measureNumber.staffId = staffMap[i];
+            selector.measure = buf.json.measureIndex;
+            score.replaceMeasure(selector, measure);
+          }
         }
       } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
         // measure expects key signature to be in concert key.
-        const xpose = buf.json.transposeIndex ?? 0;
-        const concertKey = SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
-        buf.json.keySignature = concertKey;
-        const measure = SmoMeasure.deserialize(buf.json);
-        score.replaceMeasure(buf.selector, measure);
+        if (typeof(staffMap[buf.selector.staff]) === 'number' ) {
+          buf.selector.staff = staffMap[buf.selector.staff];
+          const xpose = buf.json.transposeIndex ?? 0;
+          const concertKey = SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
+          buf.json.keySignature = concertKey;
+          const measure = SmoMeasure.deserialize(buf.json);
+          measure.measureNumber.staffId = buf.selector.staff;
+          score.replaceMeasure(buf.selector, measure);
+        }
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
         // Score expects string, as deserialized score is how saving is done.
         score = SmoScore.deserialize(JSON.stringify(buf.json));
@@ -258,11 +287,22 @@ export class UndoBuffer {
           }
         }
       } else {
-        const staff = SmoSystemStaff.deserialize(buf.json);
-        score.replaceStaff(buf.selector.staff, staff);
+        if (typeof(staffMap[buf.selector.staff]) === 'number') {
+          buf.selector.staff = staffMap[buf.selector.staff];
+          const staff = SmoSystemStaff.deserialize(buf.json);
+          score.replaceStaff(buf.selector.staff, staff);
+        }
       }
       if (grouping && this.peek() && (this.peek() as UndoEntry).grouped) {
-        buf = this._pop();
+        if (pop) {
+          buf = this._pop();
+        } else {
+          peekIndex += 1;
+          buf = this.peekIndex(peekIndex);
+          if (buf) {
+            buf = copyUndo(buf);
+          }
+        }
       } else {
         buf = null;
       }

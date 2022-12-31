@@ -209,7 +209,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   display() {
     const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
     const svg = pageContext.svg;
-    this.textElement = $(svg).find('.' + this.modifier.attrs.id)[0];
+    this.textElement = $(svg).find('.' + this.activeScoreText.attrs.id)[0];
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
     this.applyDisplayOptions();

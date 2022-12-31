@@ -96,10 +96,11 @@ export class SuiTextInPlace extends SuiComponentBase {
     const context = this.view.renderer.pageMap.getRendererFromModifier(this.value).getContext();
     context.save();
     context.setFillStyle('#ddd');
+    const svgPage = this.view.renderer.pageMap.getRendererFromModifier(this.value);
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
-      if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context, this.view.renderer.pageMap, this.scroller);
+      if (st.attrs.id !== this.value.getActiveBlock().attrs.id && svgPage) {
+        const svgText = SuiInlineText.fromScoreText(st, svgPage, this.view.renderer.pageMap, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;

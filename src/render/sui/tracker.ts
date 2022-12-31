@@ -540,7 +540,8 @@ export class SuiTracker extends SuiMapper {
     // Get the actual selections from our map, since the client bounding boxes are already computed
     selections.forEach((sel) => {
       const key = SmoSelector.getNoteKey(sel.selector);
-      if (this.measureNoteMap) {
+      // Skip measures that are not rendered because they are part of a multi-rest
+      if (this.measureNoteMap && this.measureNoteMap[key]) {
         this.selections.push(this.measureNoteMap[key]);
       }
     });
