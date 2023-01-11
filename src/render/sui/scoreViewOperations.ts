@@ -1591,6 +1591,21 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
+  updateRepeatCount(count: number) {
+    const measureSelections = this._undoTrackerMeasureSelections('repeat bar');
+    const symbol = count > 0 ? true : false;    
+    measureSelections.forEach((ms) => {
+      const store = this._getEquivalentSelection(ms);
+      ms.measure.repeatCount = count;
+      ms.measure.repeatSymbol = symbol;
+      if (store) {
+        store.measure.repeatCount = count;
+        store.measure.repeatSymbol = symbol;
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    return this.updatePromise();
+  }
   /**
    * Update the measure formatting parameters for the current selection
    * @param format generic measure formatting parameters

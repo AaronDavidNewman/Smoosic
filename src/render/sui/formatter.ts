@@ -507,7 +507,8 @@ export class SuiLayoutFormatter {
       width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
     }
     if (smoMeasure.svg.forceClef) {
-      width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
+      const clefGlyph = vexGlyph.clef(smoMeasure.clef);
+      width += clefGlyph.width + clefGlyph.spacingRight;
     }
     if (smoMeasure.svg.forceTimeSignature) {
       width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;

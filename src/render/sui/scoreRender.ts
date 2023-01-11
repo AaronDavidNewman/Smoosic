@@ -373,7 +373,7 @@ export class SuiScoreRender {
                     if (page) {
                       const noteBox = SvgHelpers.smoBox(note.logicalBox);
                       noteBox.y -= page.box.y;
-                      SvgHelpers.debugBox(page.svg, noteBox, '.measure-place-dbg', 0);
+                      SvgHelpers.debugBox(page.svg, noteBox, 'measure-place-dbg', 0);
                     }
                   }
                 });

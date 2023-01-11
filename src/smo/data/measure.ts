@@ -101,9 +101,9 @@ export interface ColumnMappedParams {
   tempo: any
 }
 // @internal
-export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'activeVoice' | 'lines';
+export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'activeVoice' | 'lines' | 'repeatCount';
 // @internal
-export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'activeVoice', 'lines'];
+export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'activeVoice', 'lines', 'repeatCount'];
 // @internal
 export type SmoMeasureStringParam = 'timeSignatureString' | 'keySignature';
 // @internal
@@ -145,7 +145,9 @@ export interface SmoMeasureParams {
   activeVoice: number,
   tempo: SmoTempoText,
   format: SmoMeasureFormat | null,
-  modifiers: SmoMeasureModifierBase[]
+  modifiers: SmoMeasureModifierBase[],
+  repeatSymbol: boolean,
+  repeatCount: number
 }
 /**
  * Used to create {@link MeasureTickmaps}
@@ -196,7 +198,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     voices: [],
     format: new SmoMeasureFormat(SmoMeasureFormat.defaults),
     activeVoice: 0,
-    tempo: new SmoTempoText(SmoTempoText.defaults)
+    tempo: new SmoTempoText(SmoTempoText.defaults),
+    repeatSymbol: false,
+    repeatCount: 0  
   }
 
   /**
@@ -234,6 +238,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   canceledKeySignature: string = '';
   padRight: number = 10;
   tuplets: SmoTuplet[] = [];
+  repeatSymbol: boolean = false;
+  repeatCount: number = 0;
   /**
    * Adjust for non-concert pitch intstruments
    */
@@ -312,6 +318,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       this[param] = params[param] ? params[param] : defaults[param];
     });
     this.clef = params.clef;
+    this.repeatSymbol = params.repeatSymbol;
     this.measureNumber = JSON.parse(JSON.stringify(params.measureNumber));
     if (params.tempo) {
       this.tempo = new SmoTempoText(params.tempo);
@@ -350,7 +357,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       'keySignature', 'timeSignatureString',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'format', 'rightMargin', 'lines'
+      'format', 'rightMargin', 'lines', 'repeatSymbol', 'repeatCount'
     ];
   }
 

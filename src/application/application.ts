@@ -218,7 +218,9 @@ export class SuiApplication {
         this.score = this._tryParse(localScore);
       } else {
         this.score = SmoScore.getDefaultScore(SmoScore.defaults, null);
-        SuiHelp.displayHelp();
+        if (this.config.mode === 'application') {
+          SuiHelp.displayHelp();
+        }
       }
     }
     return PromiseHelpers.emptyPromise();

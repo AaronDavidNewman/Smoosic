@@ -206,7 +206,9 @@ class SuiApplication {
             }
             else {
                 this.score = score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, null);
-                help_1.SuiHelp.displayHelp();
+                if (this.config.mode === 'application') {
+                    help_1.SuiHelp.displayHelp();
+                }
             }
         }
         return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -4037,7 +4039,7 @@ class SuiOscillator {
         if (!selection.note) {
             return;
         }
-        if (selection.note.isRest() || selection.note.isSlash()) {
+        if (selection.note.isRest() || selection.note.isSlash() || selection.note.isHidden()) {
             return;
         }
         const soundInfo = selection.staff.getStaffInstrument(selection.selector.measure);
@@ -4424,7 +4426,7 @@ class SuiAudioPlayer {
                     selector.tick = tickIx;
                     let ties = [];
                     const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
-                    if (smoNote.noteType === 'n') {
+                    if (smoNote.noteType === 'n' && !smoNote.isHidden()) {
                         ties = staff.getTiesStartingAt(selector);
                         smoNote.pitches.forEach((pitch, pitchIx) => {
                             var _a;
@@ -4841,6 +4843,20 @@ class SuiSampleMedia {
             nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'b', accidental: 'b', octave: 4 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
+            sustain: 'percussive',
+            sample: 'basspizz-c2-sso',
+            family: 'strings',
+            instrument: 'jazzBass',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: '#', octave: 3 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'percussive',
+            sample: 'basspizz-c3-sso',
+            family: 'strings',
+            instrument: 'jazzBass',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: '#', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
             sample: 'sample-bass-a1',
             family: 'strings',
@@ -4918,17 +4934,17 @@ class SuiSampleMedia {
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-trumpet-c4',
+            sample: 'trumpet-g5-sso',
             family: 'brass',
             instrument: 'trumpet',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 5 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-trumpet-c5',
+            sample: 'trumpet-e4-sso',
             family: 'brass',
             instrument: 'trumpet',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -4992,42 +5008,42 @@ class SuiSampleMedia {
             sample: 'sample-asax-a3',
             family: 'woodwind',
             instrument: 'altoSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 12, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
             sample: 'sample-asax-c4',
             family: 'woodwind',
             instrument: 'altoSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 12, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
             sample: 'sample-asax-a3',
             family: 'woodwind',
             instrument: 'tenorSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 3 }, 24, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
             sample: 'sample-asax-c4',
             family: 'woodwind',
             instrument: 'tenorSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 24, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-asax-a3',
+            sample: 'barisax-d2-nz10',
             family: 'woodwind',
             instrument: 'bariSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 4 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 2 }, 12, null),
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
-            sample: 'sample-asax-c4',
+            sample: 'barisax-c3-nz10',
             family: 'woodwind',
             instrument: 'bariSax',
-            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 5 }, 0, null),
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 12, null) - 5,
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
@@ -5674,7 +5690,8 @@ class SuiLayoutFormatter {
             width += glyphDimensions_1.vexGlyph.keySignatureLength(smoMeasure.keySignature);
         }
         if (smoMeasure.svg.forceClef) {
-            width += glyphDimensions_1.vexGlyph.width(glyphDimensions_1.vexGlyph.clef(smoMeasure.clef)) + glyphDimensions_1.vexGlyph.clef(smoMeasure.clef).spacingRight;
+            const clefGlyph = glyphDimensions_1.vexGlyph.clef(smoMeasure.clef);
+            width += clefGlyph.width + clefGlyph.spacingRight;
         }
         if (smoMeasure.svg.forceTimeSignature) {
             width += glyphDimensions_1.vexGlyph.width(glyphDimensions_1.vexGlyph.dimensions.timeSignature) * digits + glyphDimensions_1.vexGlyph.dimensions.timeSignature.spacingRight;
@@ -6685,12 +6702,6 @@ class SuiMapper {
         }
         this.deferHighlight();
         this._createLocalModifiersList();
-        // Is this right?  Don't update the past buffer with data until the display is redrawn
-        // because some of the selections may not exist in the score.
-        if (this.renderer.dirty === false && this.renderer.score) {
-            this.pasteBuffer.clearSelections();
-            this.pasteBuffer.setSelections(this.renderer.score, this.selections);
-        }
         this.mapping = false;
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
     }
@@ -7480,22 +7491,26 @@ class SuiRenderState {
     // Undo is handled by the render state machine, because the layout has to first
     // delete areas of the viewport that may have changed,
     // then create the modified score, then render the 'new' score.
-    undo(undoBuffer) {
-        const buffer = undoBuffer.peek();
+    undo(undoBuffer, staffMap) {
         let op = 'setDirty';
+        const buffer = undoBuffer.peek();
         // Unrender the modified music because the IDs may change and normal unrender won't work
         if (buffer) {
             const sel = buffer.selector;
             if (buffer.type === undo_1.UndoBuffer.bufferTypes.MEASURE) {
-                const mSelection = selections_1.SmoSelection.measureSelection(this.score, sel.staff, sel.measure);
-                if (mSelection !== null) {
-                    this.renderer.unrenderMeasure(mSelection.measure);
+                if (typeof (staffMap[sel.staff]) === 'number') {
+                    const mSelection = selections_1.SmoSelection.measureSelection(this.score, staffMap[sel.staff], sel.measure);
+                    if (mSelection !== null) {
+                        this.renderer.unrenderMeasure(mSelection.measure);
+                    }
                 }
             }
             else if (buffer.type === undo_1.UndoBuffer.bufferTypes.STAFF) {
-                const sSelection = selections_1.SmoSelection.measureSelection(this.score, sel.staff, 0);
-                if (sSelection !== null) {
-                    this.renderer.unrenderStaff(sSelection.staff);
+                if (typeof (staffMap[sel.staff]) === 'number') {
+                    const sSelection = selections_1.SmoSelection.measureSelection(this.score, staffMap[sel.staff], 0);
+                    if (sSelection !== null) {
+                        this.renderer.unrenderStaff(sSelection.staff);
+                    }
                 }
                 op = 'setRefresh';
             }
@@ -7503,9 +7518,18 @@ class SuiRenderState {
                 this.renderer.unrenderAll();
                 op = 'setRefresh';
             }
-            this._score = undoBuffer.undo(this._score);
+            this._score = undoBuffer.undo(this._score, staffMap, false);
+            // Broken encapsulation - we need to know if we are 'undoing' an entire score
+            // so we can change the score pointed to by the renderer.
+            if (buffer.type === undo_1.UndoBuffer.bufferTypes.SCORE) {
+                this.renderer.score = this._score;
+            }
             this[op]();
         }
+        if (!this._score) {
+            throw ('no score when undo');
+        }
+        return this._score;
     }
     unrenderColumn(measure) {
         this.score.staves.forEach((staff) => {
@@ -7905,7 +7929,7 @@ class SuiScoreRender {
                                         if (page) {
                                             const noteBox = svgHelpers_1.SvgHelpers.smoBox(note.logicalBox);
                                             noteBox.y -= page.box.y;
-                                            svgHelpers_1.SvgHelpers.debugBox(page.svg, noteBox, '.measure-place-dbg', 0);
+                                            svgHelpers_1.SvgHelpers.debugBox(page.svg, noteBox, 'measure-place-dbg', 0);
                                         }
                                     }
                                 });
@@ -8166,6 +8190,7 @@ exports.SuiScoreView = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const systemStaff_1 = __webpack_require__(/*! ../../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -8177,6 +8202,8 @@ const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/player.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const measureModifiers_2 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -8307,7 +8334,7 @@ class SuiScoreView {
         const copy = staffModifiers_1.StaffModifierBase.deserialize(staffModifier.serialize());
         copy.startSelector = this._getEquivalentSelector(copy.startSelector);
         copy.endSelector = this._getEquivalentSelector(copy.endSelector);
-        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, staffModifier.serialize(), subtype);
+        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, copy.serialize(), subtype);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, copy.serialize(), subtype);
     }
     /**
@@ -8616,16 +8643,24 @@ class SuiScoreView {
         if (!any) {
             return;
         }
-        this._undoScore('change view');
-        const nscore = score_1.SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
-        const staveScore = score_1.SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
-        nscore.staves = [];
+        const nscore = score_1.SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(true)));
         const staffMap = [];
         for (i = 0; i < rows.length; ++i) {
             const row = rows[i];
             if (row.show) {
-                staveScore.staves[i].mapStaffFromTo(i, nscore.staves.length);
-                nscore.staves.push(staveScore.staves[i]);
+                const srcStave = this.storeScore.staves[i];
+                const nStave = systemStaff_1.SmoSystemStaff.deserialize(srcStave.serialize());
+                nStave.mapStaffFromTo(i, nscore.staves.length);
+                nscore.staves.push(nStave);
+                if (srcStave.keySignatureMap) {
+                    nStave.keySignatureMap = JSON.parse(JSON.stringify(srcStave.keySignatureMap));
+                }
+                nStave.measures.forEach((measure, ix) => {
+                    const srcMeasure = srcStave.measures[ix];
+                    measure.tempo = new measureModifiers_1.SmoTempoText(srcMeasure.tempo.serialize());
+                    measure.timeSignature = new measureModifiers_2.TimeSignature(srcMeasure.timeSignature);
+                    measure.keySignature = srcMeasure.keySignature;
+                });
                 staffMap.push(i);
             }
         }
@@ -8684,7 +8719,7 @@ class SuiScoreView {
      * @returns
      */
     changeScore(score) {
-        this._undoScore('load new score');
+        this.storeUndo.reset();
         player_1.SuiAudioPlayer.stopPlayer();
         this.renderer.score = score;
         this.renderer.setViewport();
@@ -8707,10 +8742,16 @@ class SuiScoreView {
         if (!this.renderer.score) {
             return;
         }
-        this.renderer.undo(this.undoBuffer);
         // A score-level undo might have changed the score.
-        this.score = this.renderer.score;
-        this.storeScore = this.storeUndo.undo(this.storeScore);
+        if (this.storeUndo.buffer.length < 1) {
+            return;
+        }
+        const staffMap = {};
+        const identityMap = {};
+        this.defaultStaffMap.forEach((nn) => identityMap[nn] = nn);
+        this.staffMap.forEach((mm, ix) => staffMap[mm] = ix);
+        this.score = this.renderer.undo(this.storeUndo, staffMap);
+        this.storeScore = this.storeUndo.undo(this.storeScore, identityMap, true);
     }
 }
 exports.SuiScoreView = SuiScoreView;
@@ -9008,7 +9049,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 altSel.note.pitches = [altPitch];
                 // If the note is a note, make it into a rest.  If the note is a rest already,
                 // make it invisible.  If it is invisible already, make it back into a rest.
-                if (sel.note.isRest() && !sel.note.hidden) {
+                if (sel.note.isRest() && !sel.note.isHidden()) {
                     sel.note.makeHidden(true);
                     altSel.note.makeHidden(true);
                 }
@@ -10306,6 +10347,21 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     quickSave() {
         const scoreStr = JSON.stringify(this.storeScore.serialize());
         localStorage.setItem(serializationHelpers_1.smoSerialize.localScore, scoreStr);
+    }
+    updateRepeatCount(count) {
+        const measureSelections = this._undoTrackerMeasureSelections('repeat bar');
+        const symbol = count > 0 ? true : false;
+        measureSelections.forEach((ms) => {
+            const store = this._getEquivalentSelection(ms);
+            ms.measure.repeatCount = count;
+            ms.measure.repeatSymbol = symbol;
+            if (store) {
+                store.measure.repeatCount = count;
+                store.measure.repeatSymbol = symbol;
+            }
+        });
+        this._renderChangedMeasures(measureSelections);
+        return this.updatePromise();
     }
     /**
      * Update the measure formatting parameters for the current selection
@@ -14213,6 +14269,14 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.deferHighlight();
         this._createLocalModifiersList();
     }
+    removePitchSelection() {
+        if (this.outlines['pitchSelection']) {
+            if (this.outlines['pitchSelection'].element) {
+                this.outlines['pitchSelection'].element.remove();
+            }
+            delete this.outlines['pitchSelection'];
+        }
+    }
     // ### _moveSelectionPitch
     // Suggest a specific pitch in a chord, so we can transpose just the one note vs. the whole chord.
     _moveSelectionPitch(index) {
@@ -14224,6 +14288,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         const note = sel.note;
         if (note.pitches.length < 2) {
             this.pitchIndex = -1;
+            this.removePitchSelection();
             return;
         }
         this.pitchIndex = (this.pitchIndex + index) % note.pitches.length;
@@ -14326,7 +14391,8 @@ class SuiTracker extends mapper_1.SuiMapper {
         // Get the actual selections from our map, since the client bounding boxes are already computed
         selections.forEach((sel) => {
             const key = selections_1.SmoSelector.getNoteKey(sel.selector);
-            if (this.measureNoteMap) {
+            // Skip measures that are not rendered because they are part of a multi-rest
+            if (this.measureNoteMap && this.measureNoteMap[key]) {
                 this.selections.push(this.measureNoteMap[key]);
             }
         });
@@ -14464,6 +14530,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         const headEl = heads[index];
         const pageContext = this.renderer.pageMap.getRendererFromModifier(note);
+        $(pageContext.svg).find('.vf-pitchSelection').remove();
         const box = pageContext.offsetBbox(headEl);
         this._drawRect(box, 'pitchSelection');
     }
@@ -14512,6 +14579,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             this._highlightActiveVoice(this.selections[0]);
             return;
         }
+        this.removePitchSelection();
         this.pitchIndex = -1;
         if (this.selections.length === 1 && note.logicalBox) {
             this._drawRect(note.logicalBox, 'selection');
@@ -14699,6 +14767,17 @@ class vexGlyph {
         if (!vexGlyph.dimensions[key]) {
             return vexGlyph.dimensions.tenorClef;
         }
+        if (vexGlyph.dimensions[key].vexGlyph) {
+            const width = vexGlyph.width(vexGlyph.dimensions[key]);
+            return {
+                width,
+                height: 68.32,
+                yTop: 3,
+                yBottom: 3,
+                spacingRight: 10,
+                vexGlyph: 'gClef'
+            };
+        }
         return vexGlyph.dimensions[key];
     }
     static get dimensions() {
@@ -14716,7 +14795,7 @@ class vexGlyph {
                 height: 41,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 5,
+                spacingRight: 1,
                 vexGlyph: null
             },
             endBar: {
@@ -14724,7 +14803,7 @@ class vexGlyph {
                 height: 40.99,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 10,
+                spacingRight: 5,
                 vexGlyph: null
             },
             doubleBar: {
@@ -14773,7 +14852,7 @@ class vexGlyph {
                 height: 68.32,
                 yTop: 3,
                 yBottom: 3,
-                spacingRight: 10,
+                spacingRight: 5,
                 vexGlyph: 'gClef'
             },
             bassClef: {
@@ -14789,7 +14868,7 @@ class vexGlyph {
                 yTop: 0,
                 yBottom: 0,
                 height: 85.5,
-                spacingRight: 10,
+                spacingRight: 5,
                 vexGlyph: 'cClef'
             },
             tenorClef: {
@@ -14797,7 +14876,7 @@ class vexGlyph {
                 yTop: 10,
                 yBottom: 0,
                 height: 41,
-                spacingRight: 10,
+                spacingRight: 5,
                 vexGlyph: 'cClef'
             },
             timeSignature: {
@@ -14805,7 +14884,7 @@ class vexGlyph {
                 height: 85,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 5,
+                spacingRight: 2,
                 vexGlyph: 'timeSig4'
             },
             tempo: {
@@ -14821,7 +14900,7 @@ class vexGlyph {
                 height: 23.55,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 0,
                 vexGlyph: 'accidentalFlat'
             },
             keySignature: {
@@ -14829,7 +14908,7 @@ class vexGlyph {
                 height: 85.5,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 10,
+                spacingRight: 5,
                 vexGlyph: null
             },
             sharp: {
@@ -14837,7 +14916,7 @@ class vexGlyph {
                 height: 62,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 0,
                 vexGlyph: 'accidentalSharp',
             },
             natural: {
@@ -14845,7 +14924,7 @@ class vexGlyph {
                 height: 53.35,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 0,
                 vexGlyph: 'accidentalNatural',
             },
             doubleSharp: {
@@ -14853,7 +14932,7 @@ class vexGlyph {
                 width: 21.63,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 0,
                 vexGlyph: 'accidentalDoubleSharp'
             },
             doubleFlat: {
@@ -14861,7 +14940,7 @@ class vexGlyph {
                 height: 49.65,
                 yTop: 0,
                 yBottom: 0,
-                spacingRight: 2,
+                spacingRight: 0,
                 vexGlyph: 'accidentalDoubleFlat'
             }, stem: {
                 width: 1,
@@ -14932,6 +15011,8 @@ class VxMeasure {
         this.allCues = false;
         this.modifiersToBox = [];
         this.collisionMap = {};
+        this.dbgLeftX = 0;
+        this.dbgWidth = 0;
         this.context = context;
         this.rendered = false;
         this.selection = selection;
@@ -15014,7 +15095,9 @@ class VxMeasure {
             }
         }
         for (i = 0; i < smoNote.dots; ++i) {
-            vexNote.addModifier(new VF.Dot());
+            for (var j = 0; j < smoNote.pitches.length; ++j) {
+                vexNote.addModifier(new VF.Dot(), j);
+            }
         }
         this._createMicrotones(smoNote, vexNote);
     }
@@ -15228,7 +15311,7 @@ class VxMeasure {
             else if (voiceIx > 0 && !this.printing) {
                 vexNote.setStyle({ fillStyle: "#115511" });
             }
-            else if (smoNote.hidden && this.printing) {
+            else if (smoNote.isHidden() && this.printing) {
                 vexNote.setStyle({ fillStyle: "#ffffff00" });
             }
             smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
@@ -15284,6 +15367,13 @@ class VxMeasure {
                 });
             });
         });
+    }
+    createRepeatSymbol() {
+        this.voiceNotes = [];
+        const vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+        vexNote.setCenterAlignment(true);
+        this.vexNotes.push(vexNote);
+        this.voiceNotes.push(vexNote);
     }
     /**
      * create an a array of VF.StaveNote objects to render the active voice.
@@ -15490,10 +15580,20 @@ class VxMeasure {
         this.noteToVexMap = {};
         // If there are multiple voices, add them all to the formatter at the same time so they don't collide
         for (j = 0; j < this.smoMeasure.voices.length; ++j) {
-            if (!this.smoMeasure.svg.multimeasureLength) {
+            if (!this.smoMeasure.svg.multimeasureLength && !this.smoMeasure.repeatSymbol) {
                 this.createVexNotes(j);
                 this.createVexTuplets(j);
                 this.createVexBeamGroups(j);
+                // Create a voice in 4/4 and add above notes
+                const voice = new VF.Voice({
+                    num_beats: this.smoMeasure.timeSignature.actualBeats,
+                    beat_value: this.smoMeasure.timeSignature.beatDuration
+                }).setMode(VF.Voice.Mode.SOFT);
+                voice.addTickables(this.voiceNotes);
+                this.voiceAr.push(voice);
+            }
+            if (this.smoMeasure.repeatSymbol) {
+                this.createRepeatSymbol();
                 // Create a voice in 4/4 and add above notes
                 const voice = new VF.Voice({
                     num_beats: this.smoMeasure.timeSignature.actualBeats,
@@ -15524,8 +15624,11 @@ class VxMeasure {
             return;
         }
         const timestamp = new Date().valueOf();
-        this.formatter.format(voices, this.smoMeasure.staffWidth -
-            (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
+        const staffWidth = this.smoMeasure.staffWidth -
+            (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
+        this.dbgLeftX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft + this.smoMeasure.svg.adjX;
+        this.dbgWidth = staffWidth;
+        this.formatter.format(voices, staffWidth);
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
     }
     /**
@@ -15561,6 +15664,9 @@ class VxMeasure {
             this.context.getContext().closeGroup();
             // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
             this.rendered = true;
+            if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values['adjust']) {
+                svgHelpers_1.SvgHelpers.debugBoxNoText(this.context.getContext().svg, svgHelpers_1.SvgHelpers.boxPoints(this.dbgLeftX, this.smoMeasure.svg.staffY, this.dbgWidth, 40), 'render-x-dbg', 0);
+            }
         }
         catch (exc) {
             console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
@@ -16219,7 +16325,7 @@ const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/x
 // @internal
 const VF = eval('Vex.Flow');
 // @internal
-exports.SmoMeasureNumberParams = ['padRight', 'transposeIndex', 'activeVoice', 'lines'];
+exports.SmoMeasureNumberParams = ['padRight', 'transposeIndex', 'activeVoice', 'lines', 'repeatCount'];
 // @internal
 exports.SmoMeasureStringParams = ['timeSignatureString', 'keySignature'];
 /**
@@ -16247,6 +16353,8 @@ class SmoMeasure {
         this.canceledKeySignature = '';
         this.padRight = 10;
         this.tuplets = [];
+        this.repeatSymbol = false;
+        this.repeatCount = 0;
         /**
          * Adjust for non-concert pitch intstruments
          */
@@ -16304,6 +16412,7 @@ class SmoMeasure {
             this[param] = params[param] ? params[param] : defaults[param];
         });
         this.clef = params.clef;
+        this.repeatSymbol = params.repeatSymbol;
         this.measureNumber = JSON.parse(JSON.stringify(params.measureNumber));
         if (params.tempo) {
             this.tempo = new measureModifiers_1.SmoTempoText(params.tempo);
@@ -16375,7 +16484,7 @@ class SmoMeasure {
             'keySignature', 'timeSignatureString',
             'measureNumber',
             'activeVoice', 'clef', 'transposeIndex',
-            'format', 'rightMargin', 'lines'
+            'format', 'rightMargin', 'lines', 'repeatSymbol', 'repeatCount'
         ];
     }
     // @internal
@@ -17316,7 +17425,9 @@ SmoMeasure._defaults = {
     voices: [],
     format: new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults),
     activeVoice: 0,
-    tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults)
+    tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults),
+    repeatSymbol: false,
+    repeatCount: 0
 };
 SmoMeasure._emptyMeasureNoteType = 'r';
 
@@ -19934,6 +20045,9 @@ class SmoNote {
     isSlash() {
         return this.noteType === '/';
     }
+    isHidden() {
+        return this.hidden;
+    }
     makeNote() {
         this.noteType = 'n';
         // clear fill style if we were hiding rests
@@ -21209,7 +21323,7 @@ class SmoScore {
      * Serialize the entire score.
      * @returns JSON object
      */
-    serialize() {
+    serialize(skipStaves) {
         const params = {};
         let obj = {
             score: params,
@@ -21228,9 +21342,14 @@ class SmoScore {
         }
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
         obj.audioSettings = this.audioSettings.serialize();
-        this.staves.forEach((staff) => {
-            obj.staves.push(staff.serialize());
-        });
+        if (!skipStaves) {
+            this.staves.forEach((staff) => {
+                obj.staves.push(staff.serialize());
+            });
+        }
+        else {
+            obj.staves = [];
+        }
         // Score text is not part of text group, so don't save separately.
         this.textGroups.forEach((tg) => {
             if (tg.isTextVisible()) {
@@ -28641,6 +28760,12 @@ class PasteBuffer {
     }
     pasteSelections(score, selector) {
         let i = 0;
+        const backupNotes = [];
+        this.notes.forEach((bb) => {
+            const note = (note_1.SmoNote.deserialize(bb.note.serialize()));
+            const selector = JSON.parse(JSON.stringify(bb.selector));
+            backupNotes.push({ note, selector, originalKey: bb.originalKey });
+        });
         this.destination = selector;
         this.modifiersToPlace = [];
         if (this.notes.length < 1) {
@@ -28713,6 +28838,7 @@ class PasteBuffer {
                 selection.staff.addStaffModifier(mod.modifier);
             }
         });
+        this.notes = backupNotes;
     }
 }
 exports.PasteBuffer = PasteBuffer;
@@ -31045,7 +31171,7 @@ exports.SmoToVex = SmoToVex;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoUndoable = exports.UndoBuffer = void 0;
+exports.SmoUndoable = exports.UndoBuffer = exports.copyUndo = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
@@ -31057,6 +31183,22 @@ const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/mea
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const scoreText_1 = __webpack_require__(/*! ../data/scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
+function copyUndo(entry) {
+    const obj = {
+        title: entry.title,
+        type: entry.type,
+        selector: entry.selector,
+        subtype: entry.subtype,
+        grouped: entry.grouped,
+        firstInGroup: entry.firstInGroup,
+        json: undefined
+    };
+    if (entry.json) {
+        obj.json = JSON.parse(JSON.stringify(entry.json));
+    }
+    return obj;
+}
+exports.copyUndo = copyUndo;
 /**
  * manage a set of undo or redo operations on a score.  The objects passed into
  * undo must implement serialize()/deserialize()
@@ -31074,8 +31216,8 @@ const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/se
  * */
 class UndoBuffer {
     constructor() {
-        this.score = null;
         this.buffer = [];
+        this.reconcile = -1;
         this.buffer = [];
         this.opCount = 0;
         this._grouping = false;
@@ -31123,6 +31265,9 @@ class UndoBuffer {
             }
         }
         this._grouping = val;
+    }
+    reset() {
+        this.buffer = [];
     }
     // ### addBuffer
     // Description:
@@ -31206,16 +31351,32 @@ class UndoBuffer {
         }
         return this.buffer[this.buffer.length - 1];
     }
+    peekIndex(index) {
+        if (this.buffer.length - index < 1) {
+            return null;
+        }
+        return this.buffer[this.buffer.length - (1 + index)];
+    }
     // ## undo
     // ## Description:
     // Undo the operation at the top of the undo stack.  This is done by replacing
     // the music as it existed before the change was made.
-    undo(score) {
+    undo(score, staffMap, pop) {
         var _a;
         let i = 0;
         let j = 0;
         let mix = 0;
-        let buf = this._pop();
+        let buf = null;
+        let peekIndex = 0;
+        if (pop) {
+            buf = this._pop();
+        }
+        else {
+            buf = this.peekIndex(peekIndex);
+            if (buf) {
+                buf = copyUndo(buf);
+            }
+        }
         if (!buf) {
             return score;
         }
@@ -31227,26 +31388,31 @@ class UndoBuffer {
                         const measure = measure_1.SmoMeasure.deserialize(buf.json.measures[mix]);
                         mix += 1;
                         const selector = selections_1.SmoSelector.default;
-                        selector.staff = i;
-                        selector.measure = j;
-                        score.replaceMeasure(selector, measure);
+                        if (typeof (staffMap[i]) === 'number') {
+                            selector.staff = staffMap[i];
+                            measure.measureNumber.staffId = staffMap[i];
+                            selector.measure = j;
+                            score.replaceMeasure(selector, measure);
+                        }
                     }
                 }
             }
             else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
                 const modifier = staffModifiers_1.StaffModifierBase.deserialize(buf.json);
-                const staff = score.staves[modifier.startSelector.staff];
-                const existing = staff.getModifier(modifier);
-                if (existing) {
-                    staff.removeStaffModifier(existing);
-                }
-                // If we undo an add, we just remove it.
-                if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
-                    if (modifier.ctor === 'SmoStaffTextBracket') {
-                        staff.addTextBracket(modifier);
+                if (typeof (staffMap[modifier.startSelector.staff]) === 'number') {
+                    const staff = score.staves[staffMap[modifier.startSelector.staff]];
+                    const existing = staff.getModifier(modifier);
+                    if (existing) {
+                        staff.removeStaffModifier(existing);
                     }
-                    else {
-                        staff.addStaffModifier(modifier);
+                    // If we undo an add, we just remove it.
+                    if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
+                        if (modifier.ctor === 'SmoStaffTextBracket') {
+                            staff.addTextBracket(modifier);
+                        }
+                        else {
+                            staff.addStaffModifier(modifier);
+                        }
                     }
                 }
             }
@@ -31257,18 +31423,25 @@ class UndoBuffer {
                 for (i = 0; i < score.staves.length; ++i) {
                     const measure = measure_1.SmoMeasure.deserialize(buf.json.measures[i]);
                     const selector = selections_1.SmoSelector.default;
-                    selector.staff = i;
-                    selector.measure = buf.json.measureIndex;
-                    score.replaceMeasure(selector, measure);
+                    if (typeof (staffMap[i]) === 'number') {
+                        selector.staff = staffMap[i];
+                        measure.measureNumber.staffId = staffMap[i];
+                        selector.measure = buf.json.measureIndex;
+                        score.replaceMeasure(selector, measure);
+                    }
                 }
             }
             else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
                 // measure expects key signature to be in concert key.
-                const xpose = (_a = buf.json.transposeIndex) !== null && _a !== void 0 ? _a : 0;
-                const concertKey = music_1.SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
-                buf.json.keySignature = concertKey;
-                const measure = measure_1.SmoMeasure.deserialize(buf.json);
-                score.replaceMeasure(buf.selector, measure);
+                if (typeof (staffMap[buf.selector.staff]) === 'number') {
+                    buf.selector.staff = staffMap[buf.selector.staff];
+                    const xpose = (_a = buf.json.transposeIndex) !== null && _a !== void 0 ? _a : 0;
+                    const concertKey = music_1.SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
+                    buf.json.keySignature = concertKey;
+                    const measure = measure_1.SmoMeasure.deserialize(buf.json);
+                    measure.measureNumber.staffId = buf.selector.staff;
+                    score.replaceMeasure(buf.selector, measure);
+                }
             }
             else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
                 // Score expects string, as deserialized score is how saving is done.
@@ -31289,11 +31462,23 @@ class UndoBuffer {
                 }
             }
             else {
-                const staff = systemStaff_1.SmoSystemStaff.deserialize(buf.json);
-                score.replaceStaff(buf.selector.staff, staff);
+                if (typeof (staffMap[buf.selector.staff]) === 'number') {
+                    buf.selector.staff = staffMap[buf.selector.staff];
+                    const staff = systemStaff_1.SmoSystemStaff.deserialize(buf.json);
+                    score.replaceStaff(buf.selector.staff, staff);
+                }
             }
             if (grouping && this.peek() && this.peek().grouped) {
-                buf = this._pop();
+                if (pop) {
+                    buf = this._pop();
+                }
+                else {
+                    peekIndex += 1;
+                    buf = this.peekIndex(peekIndex);
+                    if (buf) {
+                        buf = copyUndo(buf);
+                    }
+                }
             }
             else {
                 buf = null;
@@ -40531,10 +40716,11 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
         const context = this.view.renderer.pageMap.getRendererFromModifier(this.value).getContext();
         context.save();
         context.setFillStyle('#ddd');
+        const svgPage = this.view.renderer.pageMap.getRendererFromModifier(this.value);
         modifier.textBlocks.forEach((block) => {
             const st = block.text;
-            if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
-                const svgText = textRender_1.SuiInlineText.fromScoreText(st, context, this.view.renderer.pageMap, this.scroller);
+            if (st.attrs.id !== this.value.getActiveBlock().attrs.id && svgPage) {
+                const svgText = textRender_1.SuiInlineText.fromScoreText(st, svgPage, this.view.renderer.pageMap, this.scroller);
                 if (st.logicalBox) {
                     svgText.startX += st.logicalBox.x - st.x;
                     svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
@@ -42736,7 +42922,10 @@ SuiInstrumentDialog.dialogElements = {
                     label: 'Grand Piano'
                 }, {
                     value: 'bass',
-                    label: 'Bass'
+                    label: 'Bass (bowed)'
+                }, {
+                    value: 'jazzBass',
+                    label: 'Bass (plucked)'
                 }, {
                     value: 'cello',
                     label: 'Cello'
@@ -43267,6 +43456,15 @@ class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
     set forceRest(value) {
         this.writeBoolean('forceRest', value);
     }
+    get repeatSymbol() {
+        return this.measure.repeatSymbol;
+    }
+    set repeatSymbol(value) {
+        const repeatCount = value ? 1 : 0;
+        this.view.updateRepeatCount(repeatCount);
+        this.measure.repeatSymbol = value;
+        this.measure.repeatCount = repeatCount;
+    }
     get restBreak() {
         return this.format.restBreak;
     }
@@ -43348,6 +43546,10 @@ SuiMeasureDialog.dialogElements = {
             smoName: 'forceRest',
             control: 'SuiToggleComponent',
             label: 'Force Multimeasure Rest'
+        }, {
+            smoName: 'repeatSymbol',
+            control: 'SuiToggleComponent',
+            label: 'Repeat Symbol'
         }, {
             smoName: 'skipMeasureCount',
             control: 'SuiToggleComponent',
@@ -45131,7 +45333,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     display() {
         const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
         const svg = pageContext.svg;
-        this.textElement = $(svg).find('.' + this.modifier.attrs.id)[0];
+        this.textElement = $(svg).find('.' + this.activeScoreText.attrs.id)[0];
         $('body').addClass('showAttributeDialog');
         $('body').addClass('textEditor');
         this.applyDisplayOptions();

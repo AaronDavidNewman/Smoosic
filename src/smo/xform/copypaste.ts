@@ -427,6 +427,12 @@ export class PasteBuffer {
 
   pasteSelections(score: SmoScore, selector: SmoSelector) {
     let i = 0;
+    const backupNotes: PasteNote[] = [];
+    this.notes.forEach((bb) => {
+      const note = (SmoNote.deserialize(bb.note.serialize()));
+      const selector = JSON.parse(JSON.stringify(bb.selector));
+      backupNotes.push({ note, selector, originalKey: bb.originalKey });
+    });
     this.destination = selector;
     this.modifiersToPlace = [];
     if (this.notes.length < 1) {
@@ -501,5 +507,6 @@ export class PasteBuffer {
         selection.staff.addStaffModifier(mod.modifier);
       }
     });
+    this.notes = backupNotes;
   }
 }

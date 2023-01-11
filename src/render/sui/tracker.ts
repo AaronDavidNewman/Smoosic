@@ -412,6 +412,14 @@ export class SuiTracker extends SuiMapper {
     this.deferHighlight();
     this._createLocalModifiersList();
   }
+  removePitchSelection() {
+    if (this.outlines['pitchSelection']) {
+      if (this.outlines['pitchSelection'].element) {
+        this.outlines['pitchSelection'].element.remove();
+      }
+      delete this.outlines['pitchSelection'];
+    }
+  }
 
   // ### _moveSelectionPitch
   // Suggest a specific pitch in a chord, so we can transpose just the one note vs. the whole chord.
@@ -424,6 +432,7 @@ export class SuiTracker extends SuiMapper {
     const note = sel.note as SmoNote;
     if (note.pitches.length < 2) {
       this.pitchIndex = -1;
+      this.removePitchSelection();
       return;
     }
     this.pitchIndex = (this.pitchIndex + index) % note.pitches.length;
@@ -684,6 +693,7 @@ export class SuiTracker extends SuiMapper {
     }
     const headEl = heads[index];
     const pageContext = this.renderer.pageMap.getRendererFromModifier(note);
+    $(pageContext.svg).find('.vf-pitchSelection').remove();
     const box = pageContext.offsetBbox(headEl);
     this._drawRect(box, 'pitchSelection');
   }
@@ -733,7 +743,7 @@ export class SuiTracker extends SuiMapper {
       this._highlightActiveVoice(this.selections[0]);
       return;
     }
-
+    this.removePitchSelection();
     this.pitchIndex = -1;
     if (this.selections.length === 1 && note.logicalBox) {
       this._drawRect(note.logicalBox, 'selection');

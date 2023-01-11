@@ -78,17 +78,6 @@ export class vexGlyph {
     if (!vexGlyph.dimensions[key]) {
       return vexGlyph.dimensions.tenorClef;
     }
-    if (vexGlyph.dimensions[key].vexGlyph) {
-      const width = vexGlyph.width(vexGlyph.dimensions[key]);
-      return  {
-        width,
-        height: 68.32,
-        yTop: 3,
-        yBottom: 3,
-        spacingRight: 10,
-        vexGlyph: 'gClef'
-      };
-    }
     return vexGlyph.dimensions[key];
   }
   static get dimensions(): Record<string, GlyphInfo> {
@@ -106,7 +95,7 @@ export class vexGlyph {
         height: 41,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 1,
+        spacingRight: 5,
         vexGlyph: null
       },
       endBar: {
@@ -114,7 +103,7 @@ export class vexGlyph {
         height: 40.99,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: null
       },
       doubleBar: {
@@ -163,7 +152,7 @@ export class vexGlyph {
         height: 68.32,
         yTop: 3,
         yBottom: 3,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: 'gClef'
       },
       bassClef: {
@@ -179,7 +168,7 @@ export class vexGlyph {
         yTop: 0,
         yBottom: 0,
         height: 85.5,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: 'cClef'
       },
       tenorClef: {
@@ -187,7 +176,7 @@ export class vexGlyph {
         yTop: 10,
         yBottom: 0,
         height: 41,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: 'cClef'
       },
       timeSignature: {
@@ -195,7 +184,7 @@ export class vexGlyph {
         height: 85,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2,
+        spacingRight: 5,
         vexGlyph: 'timeSig4'
       },
       tempo: {
@@ -211,7 +200,7 @@ export class vexGlyph {
         height: 23.55,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0,
+        spacingRight: 2,
         vexGlyph: 'accidentalFlat'
       },
       keySignature: {
@@ -219,7 +208,7 @@ export class vexGlyph {
         height: 85.5,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: null
       },
       sharp: {
@@ -227,7 +216,7 @@ export class vexGlyph {
         height: 62,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0,
+        spacingRight: 2,
         vexGlyph: 'accidentalSharp',
       },
       natural: {
@@ -235,7 +224,7 @@ export class vexGlyph {
         height: 53.35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0,
+        spacingRight: 2,
         vexGlyph: 'accidentalNatural',
       },
       doubleSharp: {
@@ -243,7 +232,7 @@ export class vexGlyph {
         width: 21.63,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0,
+        spacingRight: 2,
         vexGlyph: 'accidentalDoubleSharp'
       },
       doubleFlat: {
@@ -251,7 +240,7 @@ export class vexGlyph {
         height: 49.65,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0,
+        spacingRight: 2,
         vexGlyph: 'accidentalDoubleFlat'
       }, stem: {
         width: 1,

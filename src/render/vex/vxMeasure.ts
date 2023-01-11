@@ -15,7 +15,7 @@ import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifier
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
-import { Clef, IsClef } from '../../smo/data/common';
+import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -48,6 +48,8 @@ export class VxMeasure {
   allCues: boolean = false;
   modifiersToBox: SmoNoteModifierBase[] = [];
   collisionMap: Record<number, SmoNote[]> = {};
+  dbgLeftX: number = 0;
+  dbgWidth: number = 0;
 
   constructor(context: SvgPage, selection: SmoSelection, printing: boolean, softmax: number) {
     this.context = context;
@@ -133,7 +135,9 @@ export class VxMeasure {
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
-      vexNote.addModifier(new VF.Dot());
+      for (var j = 0; j < smoNote.pitches.length; ++j) {
+        vexNote.addModifier(new VF.Dot(), j);
+      }
     }
     this._createMicrotones(smoNote, vexNote);
   }
@@ -296,6 +300,7 @@ export class VxMeasure {
     }
     return false;
   }
+
   /**
    * convert a smoNote into a vxNote so it can be rasterized
    * @param smoNote 
@@ -418,7 +423,13 @@ export class VxMeasure {
       });
     });
   }
-
+  createRepeatSymbol() {
+    this.voiceNotes = [];
+    const vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+    vexNote.setCenterAlignment(true);
+    this.vexNotes.push(vexNote);
+    this.voiceNotes.push(vexNote);
+}
   /**
    * create an a array of VF.StaveNote objects to render the active voice.
    * @param voiceIx 
@@ -638,11 +649,21 @@ export class VxMeasure {
 
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (j = 0; j < this.smoMeasure.voices.length; ++j) {
-      if (!this.smoMeasure.svg.multimeasureLength) {
+      if (!this.smoMeasure.svg.multimeasureLength && !this.smoMeasure.repeatSymbol) {
         this.createVexNotes(j);
         this.createVexTuplets(j);
         this.createVexBeamGroups(j);
 
+        // Create a voice in 4/4 and add above notes
+        const voice = new VF.Voice({
+          num_beats: this.smoMeasure.timeSignature.actualBeats,
+          beat_value: this.smoMeasure.timeSignature.beatDuration
+        }).setMode(VF.Voice.Mode.SOFT);
+        voice.addTickables(this.voiceNotes);
+        this.voiceAr.push(voice);
+      }
+      if (this.smoMeasure.repeatSymbol) {
+        this.createRepeatSymbol();
         // Create a voice in 4/4 and add above notes
         const voice = new VF.Voice({
           num_beats: this.smoMeasure.timeSignature.actualBeats,
@@ -674,9 +695,11 @@ export class VxMeasure {
       return;
     }
     const timestamp = new Date().valueOf();
-    this.formatter.format(voices,
-      this.smoMeasure.staffWidth -
-      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
+    const staffWidth = this.smoMeasure.staffWidth -
+      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
+    this.dbgLeftX = this.smoMeasure.staffX +  this.smoMeasure.format.padLeft + this.smoMeasure.svg.adjX;
+    this.dbgWidth = staffWidth;
+    this.formatter.format(voices, staffWidth);
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   /**
@@ -717,6 +740,11 @@ export class VxMeasure {
       // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 
       this.rendered = true;
+      if (layoutDebug.mask & layoutDebug.values['adjust']) {
+        SvgHelpers.debugBoxNoText(this.context.getContext().svg,
+        SvgHelpers.boxPoints(this.dbgLeftX, 
+          this.smoMeasure.svg.staffY, this.dbgWidth, 40), 'render-x-dbg', 0);
+      }
     } catch (exc) {
       console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
       this.context.getContext().closeGroup();

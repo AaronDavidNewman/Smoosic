@@ -176,6 +176,13 @@ h1 {
 	stroke:#fc9;
 	stroke-width:1;
 }
+
+.svg-debug-box.render-x-dbg line {
+	stroke:#229cee;
+  fill:#229cee;
+  stroke-width:2;
+  opacity: 1;
+}
 .measure-note-dbg text {
 	display:none;
 }

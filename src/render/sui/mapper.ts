@@ -573,12 +573,6 @@ export abstract class SuiMapper {
     }
     this.deferHighlight();
     this._createLocalModifiersList();
-    // Is this right?  Don't update the past buffer with data until the display is redrawn
-    // because some of the selections may not exist in the score.
-    if (this.renderer.dirty === false && this.renderer.score) {
-      this.pasteBuffer.clearSelections();
-      this.pasteBuffer.setSelections(this.renderer.score, this.selections);
-    }
     this.mapping = false;
     layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
   }

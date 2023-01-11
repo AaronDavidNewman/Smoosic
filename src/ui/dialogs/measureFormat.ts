@@ -60,6 +60,15 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   set forceRest(value: boolean) {
     this.writeBoolean('forceRest', value);
   }
+  get repeatSymbol() {
+    return this.measure.repeatSymbol;
+  }
+  set repeatSymbol(value: boolean) {
+    const repeatCount = value ? 1 : 0;
+    this.view.updateRepeatCount(repeatCount);
+    this.measure.repeatSymbol = value;
+    this.measure.repeatCount = repeatCount;
+  }
   get restBreak() {
     return this.format.restBreak;
   }
@@ -134,7 +143,11 @@ export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapt
             smoName: 'forceRest',
             control: 'SuiToggleComponent',
             label: 'Force Multimeasure Rest'
-          },  {
+          }, {
+            smoName: 'repeatSymbol',
+            control: 'SuiToggleComponent',
+            label: 'Repeat Symbol'
+          }, {
             smoName: 'skipMeasureCount',
             control: 'SuiToggleComponent',
             label: 'Skip in max measure count'
