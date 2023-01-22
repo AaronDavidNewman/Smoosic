@@ -105,6 +105,7 @@ export class SuiTextEditor {
   }
   svgText: SuiInlineText | null = null;
   context: SvgPage;
+  outlineInfo: OutlineInfo | null = null;
   pageMap: SvgPageMap;
   x: number = 0;
   y: number = 0;
@@ -220,6 +221,10 @@ export class SuiTextEditor {
     this._updateSelections();
   }
 
+  rerender() {
+    this.svgText?.unrender();
+    this.svgText?.render();
+  }
   // ### handleMouseEvent
   // Handle hover/click behavior for the text under edit.
   // Returns: true if the event was handled here
@@ -249,7 +254,7 @@ export class SuiTextEditor {
           this._setSelectionToSugggestion();
         }
         handled = true;
-        this.svgText.render();
+        this.rerender();
       }
       return handled;
     }
@@ -274,7 +279,7 @@ export class SuiTextEditor {
       if (npos >= 0 && npos <= this.svgText.blocks.length) {
         this.textPos = npos;
       }
-      this.svgText.render();
+      this.rerender();
     }
     return handled;
   }
@@ -449,7 +454,7 @@ export class SuiTextEditor {
     }
     this.textPos = this.text.length;
     this.state = SuiTextEditor.States.RUNNING;
-    this.svgText.render();
+    this.rerender();
   }
   // ### evKey
   // Handle key events that filter down to the editor
@@ -466,7 +471,7 @@ export class SuiTextEditor {
       } else {
         this.moveCursorRight();
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     if (evdata.code === 'ArrowLeft') {
@@ -475,7 +480,7 @@ export class SuiTextEditor {
       } else {
         this.moveCursorLeft();
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     if (evdata.code === 'Backspace') {
@@ -489,7 +494,7 @@ export class SuiTextEditor {
           this.deleteSelections();
         }
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     if (evdata.code === 'Delete') {
@@ -503,7 +508,7 @@ export class SuiTextEditor {
           this.deleteSelections();
         }
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
@@ -524,17 +529,13 @@ export class SuiTextEditor {
         if (this.selectionStart >= 0) {
           this.deleteSelections();
         }
-        if (this.svgText) {
-          this.svgText.element?.remove();
-          this.svgText.element = null;
-        }
         const def = SuiInlineText.blockDefaults;
         def.text = text;
         def.textType = this.textType;
         this.svgText?.addTextBlockAt(this.textPos, def);
         this.setTextPos(this.textPos + 1);
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     return false;
@@ -557,12 +558,15 @@ export class SuiTextBlockEditor extends SuiTextEditor {
     }
     const bbox = this.svgText.getLogicalBox();
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
-    const obj: OutlineInfo = {
+    if (this.outlineInfo && this.outlineInfo.element) {
+      this.outlineInfo.element.remove();
+    }
+    this.outlineInfo = {
       context: this.context, box: bbox, classes: '',
       stroke: outlineStroke, scroll: this.scroller.scrollState,
       timeOff: 0
     };
-    SvgHelpers.outlineRect(obj);
+    SvgHelpers.outlineRect(this.outlineInfo);
   }
 
   getText(): string {
@@ -591,7 +595,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
         this.svgText?.addTextBlockAt(this.textPos, def);
         this.setTextPos(this.textPos + 1);
       }
-      this.svgText?.render();
+      this.rerender();
       return true;
     }
     const rv = super.evKey(evdata);
@@ -627,7 +631,7 @@ export class SuiLyricEditor extends SuiTextEditor {
     }
     this.textPos = this.text.length;
     this.state = SuiTextEditor.States.RUNNING;
-    this.svgText.render();
+    this.rerender();
   }
 
   getText(): string {
@@ -708,7 +712,7 @@ export class SuiChordEditor extends SuiTextEditor {
       }
     }
     if (render) {
-      this.svgText?.render();
+      this.rerender();
     }
   }
   _setSymbolModifier(char: string): boolean {
@@ -761,7 +765,7 @@ export class SuiChordEditor extends SuiTextEditor {
     }
     this.textPos = blockIx;
     this.state = SuiTextEditor.States.RUNNING;
-    this.svgText.render();
+    this.rerender();
   }
 
   // ### getText
@@ -811,12 +815,12 @@ export class SuiChordEditor extends SuiTextEditor {
       this.unrender();
       const glyph = evdata.key.substr(1, evdata.key.length - 2);
       this._addGlyphAt(this.textPos, glyph);
-      this.svgText?.render();
+      this.rerender();
       edited = true;
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
       this.unrender();
       this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
-      this.svgText?.render();
+      this.rerender();
       edited = true;
     } else {
       // some ordinary key
@@ -914,17 +918,21 @@ export class SuiDragSession {
     const evBox = this.scrolledClientBox(e.clientX, e.clientY);
     const svgMouseBox = this.pageMap.clientToSvg(evBox);
     svgMouseBox.y -= this.outlineBox.height;
-    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+    if (layoutDebug.mask & layoutDebug.values['dragDebug']) {
       layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'start');
     }
     if (!SvgHelpers.doesBox1ContainBox2(this.outlineBox, svgMouseBox)) {
       return;
     }
-    this.dragging = true;    
+    this.dragging = true;
     this.outlineBox = svgMouseBox;
     const currentBox = this.textObject.getLogicalBox();
     this.outlineBox.width = currentBox.width;
     this.outlineBox.height = currentBox.height;
+    this.textGroup.elements.forEach((toRemove) => {
+      toRemove.remove();
+    });
+    this.textGroup.elements = [];
     this.checkBounds();
     this._outlineBox();
   }
@@ -945,20 +953,21 @@ export class SuiDragSession {
     this.textObject.offsetStartX(this.outlineBox.x - currentBox.x);
     this.textObject.offsetStartY(this.outlineBox.y - currentBox.y);
     this.textObject.render();
-    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+    if (layoutDebug.mask & layoutDebug.values['dragDebug']) {
       layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'drag');
     }
     if (this.outlineRect) {
       SvgHelpers.eraseOutline(this.outlineRect);
+      this.outlineRect = null;
     }
     this._outlineBox();
   }
 
   endDrag() {
-    this.textObject.render();
+    // this.textObject.render();
     const newBox = this.textObject.getLogicalBox();
     const curBox = this.textGroup.logicalBox ?? SvgBox.default;
-    if (layoutDebug.mask | layoutDebug.values['dragDebug']) {
+    if (layoutDebug.mask & layoutDebug.values['dragDebug']) {
       layoutDebug.updateDragDebug(curBox, newBox, 'end');
     }
     this.textGroup.offsetX(newBox.x - curBox.x);
@@ -966,6 +975,7 @@ export class SuiDragSession {
     this.dragging = false;
     if (this.outlineRect) {
       SvgHelpers.eraseOutline(this.outlineRect);
+      this.outlineRect = null;
     }
   }
 }

@@ -618,6 +618,9 @@ export class SuiScoreRender {
     const score = this.score;
     $('head title').text(this.score.scoreInfo.name);
     const formatter = new SuiLayoutFormatter(score, this.vexContainers, this.renderedPages);
+    Object.keys(this.renderedPages).forEach((key) => {
+      this.vexContainers.clearModifiersForPage(parseInt(key));
+    });
     const startPageCount = this.score.layoutManager!.pageLayouts.length;
     this.formatter = formatter;
     formatter.layout();    

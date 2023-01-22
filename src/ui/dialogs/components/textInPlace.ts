@@ -137,6 +137,13 @@ export class SuiTextInPlace extends SuiComponentBase {
     this.value = this.session.textGroup;
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+    // Erase the original since we are going to edit it now.
+    if (this.value) {
+      this.value.elements.forEach((el) => {
+        el.remove();
+      });
+      this.value.elements = [];
+    }
     this.session.startSession();
     // blur the button so key events don't get passed to it.
     $(this._getInputElement()).blur();

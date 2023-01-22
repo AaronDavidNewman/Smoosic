@@ -143,6 +143,11 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   constructor(parameters: SuiDialogParams) {
     let edited = false;
     const tracker = parameters.view.tracker;
+    ['staffModifier', 'suggestion'].forEach((outlineType) => {
+      if (tracker.outlines[outlineType]) {
+        SvgHelpers.eraseOutline(tracker.outlines[outlineType]);
+      }
+    });
     const layout = parameters.view.score.layoutManager!.getGlobalLayout();
 
     // Create a new text modifier, if this is new text.   Else use selection

@@ -276,7 +276,7 @@ export class UndoBuffer {
         score = SmoScore.deserialize(JSON.stringify(buf.json));
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
         // Currently only one type like this: SmoTextGroup
-        if (buf.json.ctor === 'SmoTextGroup') {
+        if (buf.json && buf.json.ctor === 'SmoTextGroup') {
           const obj = SmoTextGroup.deserialize(buf.json);
           obj.attrs.id = buf.json.attrs.id;
           // undo of add is remove, undo of remove is add

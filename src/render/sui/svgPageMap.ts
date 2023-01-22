@@ -2,6 +2,7 @@ import { SvgHelpers, StrokeInfo } from "./svgHelpers";
 import { SvgPoint, SvgBox, Renderable } from '../../smo/data/common';
 import { layoutDebug } from './layoutDebug';
 import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { ModifierTab } from '../../smo/xform/selections';
 /**
@@ -303,6 +304,20 @@ export class SvgPage {
     }
     return rv;
   }
+  clearModifiers() {      
+    Object.keys(this.modifierTabDivs).forEach((key) => {
+      const modifiers = this.modifierTabDivs[parseInt(key)];
+      modifiers.forEach((mod) => {
+        if (mod instanceof SmoTextGroup) {
+          (mod as SmoTextGroup).elements.forEach((element) => {
+            element.remove();
+          });
+          (mod as SmoTextGroup).elements = [];
+        }
+      });
+    });
+    this.modifierTabDivs = {};
+  }
   /**
    * Measure the bounding box of an element.  Return the box as if the top of the first page were 0,0.
    * Bounding boxes are stored in absolute coordinates from the top of the first page.  When rendering
@@ -539,6 +554,11 @@ export class SvgPageMap {
       const page = this.getRenderer(modifier.box);
       if (page) {
         page.addModifierTab(modifier);
+      }
+    }
+    clearModifiersForPage(page: number) {
+      if (this.vfRenderers.length > page) {
+        this.vfRenderers[page].clearModifiers();
       }
     }
     /**

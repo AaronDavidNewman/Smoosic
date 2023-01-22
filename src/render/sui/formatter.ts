@@ -382,12 +382,10 @@ export class SuiLayoutFormatter {
         measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
         x = measureEstimate.x;
       }
-      // ld declared for lint
-      const ld = layoutDebug;
       measureEstimate?.measures.forEach((measure) => {
         const context = this.svg.getRenderer(measure.svg.logicalBox);
         if (context) {
-          ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.pre);
+          layoutDebug.debugBox(context.svg, measure.svg.logicalBox, layoutDebug.values.pre);
         }
       });
       this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
