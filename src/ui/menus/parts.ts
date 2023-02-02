@@ -57,7 +57,6 @@ export class SuiPartMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'newPartDialog',
         ctor: 'SuiNewPartDialog',
@@ -71,7 +70,6 @@ export class SuiPartMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'scoreViewDialog',
         ctor: 'SuiScoreViewDialog',
@@ -92,7 +90,6 @@ export class SuiPartMenu extends SuiMenuBase {
         {
           completeNotifier: self.completeNotifier!,
           view: self.view,
-          undoBuffer: self.view.undoBuffer,
           eventSource: self.eventSource,
           id: 'editPart',
           ctor: 'SuiPartInfoDialog',
@@ -108,7 +105,6 @@ export class SuiPartMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'instrumentModal',
         ctor: 'SuiInstrumentDialog',
@@ -126,7 +122,6 @@ export class SuiPartMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'layoutDialog',
         ctor: 'SuiPageLayoutDialog',

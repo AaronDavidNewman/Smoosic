@@ -141,7 +141,6 @@ export class SuiEventHandler implements ModalEventHandler {
       tracker: this.tracker,
       startPromise: null,
       id: 'modifier-dialog',
-      undoBuffer: this.view.undoBuffer,
       config: this.config
     }
     return SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);

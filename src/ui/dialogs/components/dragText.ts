@@ -49,6 +49,10 @@ export class SuiDragText extends SuiComponentBase {
       this.session.dragging = false;
       this.session.endDrag();
     }
+    if (this.session) {
+      this.session.unrender();
+    }
+    this.handleChanged();
     this.running = false;
   }
   startEditSession() {
@@ -77,7 +81,6 @@ export class SuiDragText extends SuiComponentBase {
     if (this.session && this.session.dragging) {
       this.session.endDrag();
       this.dragging = false;
-      this.handleChanged();
     }
   }
 

@@ -53,7 +53,6 @@ export class SuiMeasureMenu extends SuiMenuBase {
         tracker: this.tracker,
         ctor: 'SuiMeasureDialog',
         id: 'measure-dialog',
-        undoBuffer: this.undoBuffer,
         modifier: null
       });
       this.complete();
@@ -68,7 +67,6 @@ export class SuiMeasureMenu extends SuiMenuBase {
         tracker: this.tracker,
         ctor: 'SuiMeasureDialog',
         id: 'insert-dialog',
-        undoBuffer: this.undoBuffer,
         modifier: null
       });
       this.complete();

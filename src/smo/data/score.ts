@@ -502,7 +502,7 @@ export class SmoScore {
 
     const textGroups: SmoTextGroup[] = [];
     jsonObj.textGroups.forEach((tg: any) => {
-      textGroups.push(SmoTextGroup.deserialize(tg));
+      textGroups.push(SmoTextGroup.deserializePreserveId(tg));
     });
 
     const systemGroups: SmoSystemGroup[] = [];
@@ -650,7 +650,16 @@ export class SmoScore {
       staff.addMeasure(measureIndex, defaultMeasure);
     });
   }
-
+  replaceTextGroup(tgr: SmoTextGroup) {
+    const tgar = [];
+    this.textGroups.forEach((tg) => {
+      if (tg.attrs.id !== tgr.attrs.id) {
+        tgar.push(tg);
+      }
+    });
+    tgar.push(tgr);
+    this.textGroups = tgar;
+  }
   /**
    * delete the measure at the supplied index in all the staves
   */
@@ -904,7 +913,7 @@ export class SmoScore {
     this.numberStaves();
   }
 
-  _updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
+  updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
     const tgid = typeof (textGroup) === 'string' ? textGroup :
       textGroup.attrs.id;
     const ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
@@ -914,7 +923,7 @@ export class SmoScore {
     }
   }
   addTextGroup(textGroup: SmoTextGroup) {
-    this._updateTextGroup(textGroup, true);
+    this.updateTextGroup(textGroup, true);
   }
   getTextGroups() {
     return this.textGroups;
@@ -926,7 +935,7 @@ export class SmoScore {
   }
 
   removeTextGroup(textGroup: SmoTextGroup) {
-    this._updateTextGroup(textGroup, false);
+    this.updateTextGroup(textGroup, false);
   }
 
   setLyricAdjustWidth(adjustNoteWidth: boolean) {

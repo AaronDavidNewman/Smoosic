@@ -158,7 +158,7 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   set preserveTextGroups(value: boolean) {
     if (value === true && this.partInfo.textGroups.length === 0) {
       this.view.score.textGroups.forEach((tg) => {
-        const ngrp: SmoTextGroup = SmoTextGroup.deserialize(tg.serialize()) as SmoTextGroup;
+        const ngrp: SmoTextGroup = SmoTextGroup.deserializePreserveId(tg.serialize()) as SmoTextGroup;
         this.partInfo.textGroups.push(ngrp);
       });
     }

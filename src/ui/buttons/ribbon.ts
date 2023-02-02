@@ -94,7 +94,6 @@ export class RibbonButtons {
   _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
    if (isModalButtonType(buttonData.ctor)) {
       const params = {
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         completeNotifier: this.controller,
         view: this.view,

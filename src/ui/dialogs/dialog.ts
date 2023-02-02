@@ -80,7 +80,6 @@ export interface SuiDialogParams {
   startPromise: Promise<void> | null
   view: SuiScoreViewOperations,
   eventSource: BrowserEventSource,
-  undoBuffer?: UndoBuffer,
   // definition: DialogDefinition,
   modifier?: any,
   config?: SmoUiConfiguration

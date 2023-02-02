@@ -197,7 +197,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       // Deserialize the text groups first
       const tgs: SmoTextGroup[] = [];
       jsonObj.partInfo.textGroups.forEach((tgSer: any) => {
-        tgs.push(SmoTextGroup.deserialize(tgSer));
+        tgs.push(SmoTextGroup.deserializePreserveId(tgSer));
       });
       jsonObj.partInfo.textGroups = tgs;
       params.partInfo = new SmoPartInfo(jsonObj.partInfo);

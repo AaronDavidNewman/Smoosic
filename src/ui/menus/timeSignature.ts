@@ -61,7 +61,6 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
       createAndDisplayDialog(SuiTimeSignatureDialog, {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'staffGroups',
         ctor: 'SuiStaffGroupDialog',

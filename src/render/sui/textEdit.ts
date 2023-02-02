@@ -897,6 +897,13 @@ export class SuiDragSession {
     this.outlineRect.box = SvgHelpers.boxPoints(x , y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
     SvgHelpers.outlineRect(this.outlineRect);
   }
+  unrender() {
+    this.textGroup.elements.forEach((el) => {
+      el.remove();
+    });
+    this.textGroup.elements = [];
+    this.textObject.unrender();
+  }
   scrolledClientBox(x: number, y: number) {
     return { x: x + this.scroller.scrollState.x, y: y + this.scroller.scrollState.y, width: 1, height: 1 };
   }
@@ -929,10 +936,7 @@ export class SuiDragSession {
     const currentBox = this.textObject.getLogicalBox();
     this.outlineBox.width = currentBox.width;
     this.outlineBox.height = currentBox.height;
-    this.textGroup.elements.forEach((toRemove) => {
-      toRemove.remove();
-    });
-    this.textGroup.elements = [];
+    this.unrender();
     this.checkBounds();
     this._outlineBox();
   }

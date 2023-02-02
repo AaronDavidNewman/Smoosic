@@ -41,7 +41,6 @@ export class SuiKeyCommands {
         eventSource: this.eventSource,
         tracker: this.tracker,
         startPromise: null,
-        undoBuffer: this.view.undoBuffer,
         modifier: tempo
       }
     );

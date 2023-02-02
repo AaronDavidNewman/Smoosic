@@ -72,8 +72,7 @@ export class SuiFileMenu extends SuiMenuBase {
       view: this.view,
       completeNotifier: this.completeNotifier,
       startPromise: this.closePromise,
-      tracker: this.tracker,
-      undoBuffer: this.undoBuffer,
+      tracker: this.tracker
     });
   }
   selection(ev: any) {
@@ -86,7 +85,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
@@ -98,7 +96,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
@@ -120,7 +117,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
@@ -132,7 +128,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
@@ -144,7 +139,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
@@ -156,7 +150,6 @@ export class SuiFileMenu extends SuiMenuBase {
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise

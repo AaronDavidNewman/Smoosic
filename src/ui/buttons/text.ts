@@ -22,7 +22,6 @@ export class TextButtons extends SuiButton {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'lyricDialog',
         ctor: 'SuiLyricDialog',
@@ -45,7 +44,6 @@ export class TextButtons extends SuiButton {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'chordDialog',
         ctor: 'SuiChordChangeDialog',
@@ -70,7 +68,6 @@ export class TextButtons extends SuiButton {
     createAndDisplayDialog(SuiTextBlockDialog, {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'chordDialog',
         ctor: 'SuiChordChangeDialog',

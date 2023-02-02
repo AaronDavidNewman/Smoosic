@@ -378,7 +378,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   elements: SVGSVGElement[] = [];
   textBlocks: SmoTextBlock[] = [];
   edited: boolean = false;  // indicates not edited this session
-  skipRender: boolean = false; // don't render if it is being edited
+  skipRender: boolean = false; // don't render if it is being edited  
   static deserialize(jObj: any) {
     const blocks: any = [];
     const params: any = {};
@@ -401,6 +401,13 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     });
     params.blocks = blocks;
     return new SmoTextGroup(params);
+  }
+  static deserializePreserveId(jObj: any) {
+    const rv = SmoTextGroup.deserialize(jObj);
+    if (jObj.attrs.id) {
+      rv.attrs.id = jObj.attrs.id;
+    }
+    return rv;
   }
   // ### getPagedTextGroups
   // If this text is repeated on page, create duplicates for each page, and

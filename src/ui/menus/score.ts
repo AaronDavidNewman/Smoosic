@@ -82,7 +82,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'staffGroups',
         ctor: 'SuiStaffGroupDialog',
@@ -97,7 +96,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'scoreIdDialog',
         ctor: 'SuiScoreIdentificationDialog',
@@ -111,7 +109,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'layoutDialog',
         ctor: 'SuiPageLayoutDialog',
@@ -125,7 +122,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'fontDialog',
         ctor: 'SuiScoreFontDialog',
@@ -139,7 +135,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'globalLayout',
         ctor: 'SuiGlobalLayoutDialog',
@@ -153,7 +148,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'preferences',
         ctor: 'SuiScorePreferencesDialog',
@@ -167,7 +161,6 @@ export class SuiScoreMenu extends SuiMenuBase {
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
-        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'audioSettings',
         ctor: 'SuiAudioSettingsDialog',

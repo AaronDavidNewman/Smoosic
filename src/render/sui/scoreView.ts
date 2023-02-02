@@ -46,7 +46,6 @@ export abstract class SuiScoreView {
   storeScore: SmoScore;  // the full score, including invisible staves
   staffMap: number[]; // mapping the 2 things above
   storeUndo: UndoBuffer; // undo buffer for operations to above
-  undoBuffer: UndoBuffer;
   tracker: SuiTracker; // UI selections
   renderer: SuiRenderState;
   scroller: SuiScroller;
@@ -73,12 +72,18 @@ export abstract class SuiScoreView {
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
-    this.undoBuffer = undoBuffer;
+    this.synchronizeTextGroups()
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView.Instance = this; // for debugging
     this.setMappedStaffIds();
     createTopDomContainer('.saveLink'); // for file upload
+  }
+  synchronizeTextGroups() {
+    // Synchronize the score text IDs so cut/paste/undo works transparently
+    this.score.textGroups.forEach((tg, ix) => {
+      this.storeScore.textGroups[ix].attrs.id = tg.attrs.id;
+    });
   }
   /**
    * Await on the full update of the score
@@ -176,8 +181,6 @@ export abstract class SuiScoreView {
     const copy = StaffModifierBase.deserialize(staffModifier.serialize());
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
     copy.endSelector = this._getEquivalentSelector(copy.endSelector);
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
-      copy.serialize(), subtype);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
       copy.serialize(), subtype);
   }
@@ -201,16 +204,14 @@ export abstract class SuiScoreView {
    * score.
    */
   _undoColumn(label: string, measureIndex: number) {
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.score, measureIndex },
-      UndoBuffer.bufferSubtypes.NONE);
-    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default, { score: this.storeScore, measureIndex }, UndoBuffer.bufferSubtypes.NONE);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, SmoSelector.default,
+      { score: this.storeScore, measureIndex }, UndoBuffer.bufferSubtypes.NONE);
   }
   /**
    * Score preferences don't affect the display, but they do have an undo
    * @param label 
    */
   _undoScorePreferences(label: string) {
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.score, UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.storeScore, UndoBuffer.bufferSubtypes.NONE);
   }
   
@@ -224,8 +225,6 @@ export abstract class SuiScoreView {
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
       if (equiv !== null) {
-        this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure,
-          UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure,
           UndoBuffer.bufferSubtypes.NONE);
       }
@@ -239,8 +238,6 @@ export abstract class SuiScoreView {
     const sel = this.tracker.selections[0];
     const equiv = this._getEquivalentSelection(sel);
     if (equiv !== null) {
-      this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure,
-        UndoBuffer.bufferSubtypes.NONE);
       this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure,
         UndoBuffer.bufferSubtypes.NONE);
     }
@@ -254,9 +251,6 @@ export abstract class SuiScoreView {
   _undoSelection(label: string, selection: SmoSelection) {
     const equiv = this._getEquivalentSelection(selection);
     if (equiv !== null) {
-      this.undoBuffer.addBuffer(label,
-        UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure,
-        UndoBuffer.bufferSubtypes.NONE);
       this.storeUndo.addBuffer(label,
         UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure,
         UndoBuffer.bufferSubtypes.NONE);
@@ -268,12 +262,10 @@ export abstract class SuiScoreView {
    * @param selections 
    */
   _undoSelections(label: string, selections: SmoSelection[]) {
-    this.undoBuffer.grouping = true;
     this.storeUndo.grouping = true;
     selections.forEach((selection) => {
       this._undoSelection(label, selection);
     });
-    this.undoBuffer.grouping = false;
     this.storeUndo.grouping = false;
   }
 
@@ -304,8 +296,6 @@ export abstract class SuiScoreView {
    * @param label 
    */
   _undoScore(label: string) {
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, SmoSelector.default, this.score,
-      UndoBuffer.bufferSubtypes.NONE);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, SmoSelector.default, this.storeScore,
       UndoBuffer.bufferSubtypes.NONE);
   }
@@ -389,7 +379,6 @@ export abstract class SuiScoreView {
    * @param val 
    */
   groupUndo(val: boolean) {
-    this.undoBuffer.grouping = val;
     this.storeUndo.grouping = val;
   }
 
@@ -556,6 +545,7 @@ export abstract class SuiScoreView {
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this._setTransposing();
+    this.synchronizeTextGroups();
     this.renderer.score = this.score;
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
@@ -588,6 +578,7 @@ export abstract class SuiScoreView {
     this._setTransposing();
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
+    this.synchronizeTextGroups();
     const rv = this.renderPromise();
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;

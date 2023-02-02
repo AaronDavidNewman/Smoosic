@@ -50,6 +50,7 @@ export function copyUndo(entry: UndoEntry): UndoEntry {
  * @category SmoTransform
  * */
 export class UndoBuffer {
+  static groupCount = 0;
   static get bufferMax() {
     return 100;
   }
@@ -277,9 +278,9 @@ export class UndoBuffer {
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
         // Currently only one type like this: SmoTextGroup
         if (buf.json && buf.json.ctor === 'SmoTextGroup') {
-          const obj = SmoTextGroup.deserialize(buf.json);
+          const obj = SmoTextGroup.deserializePreserveId(buf.json);
           obj.attrs.id = buf.json.attrs.id;
-          // undo of add is remove, undo of remove is add
+          // undo of add is remove, undo of remove is add.  Undo of update is remove and add older version
           if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
             score.removeTextGroup(obj);
           } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
@@ -293,7 +294,11 @@ export class UndoBuffer {
           score.replaceStaff(buf.selector.staff, staff);
         }
       }
-      if (grouping && this.peek() && (this.peek() as UndoEntry).grouped) {
+      const peekBuf = this.peekIndex(peekIndex + 1);
+      // If buf is grouped and not the first in the group, also undo the next buffer
+      if (grouping && peekBuf !== null && peekBuf.grouped && buf.firstInGroup === false) {
+        // For the backup/full score, we actually pop the buffer.  For the visible score, we 
+        // just use copies of the buffer.
         if (pop) {
           buf = this._pop();
         } else {

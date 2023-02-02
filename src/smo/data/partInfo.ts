@@ -152,4 +152,13 @@ export class SmoPartInfo extends StaffModifierBase {
     });
     return rv;
   }
+  updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
+    const tgid = typeof (textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+    const ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
+    this.textGroups = ar;
+    if (toAdd) {
+      this.textGroups.push(textGroup);
+    }
+  }
 }

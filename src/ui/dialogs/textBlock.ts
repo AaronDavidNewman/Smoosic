@@ -130,6 +130,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
         ]
       };
   edited: boolean;
+  isNew: boolean;
   modifier: SmoTextGroup;
   backup: SmoTextGroup;
   activeScoreText: SmoScoreText;
@@ -142,6 +143,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
 
   constructor(parameters: SuiDialogParams) {
     let edited = false;
+    let isNew = false;
     const tracker = parameters.view.tracker;
     ['staffModifier', 'suggestion'].forEach((outlineType) => {
       if (tracker.outlines[outlineType]) {
@@ -152,6 +154,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
 
     // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
+      isNew = true;
       const textParams = SmoScoreText.defaults;
       textParams.position = SmoScoreText.positions.custom;
       const newText = new SmoScoreText(textParams);
@@ -180,6 +183,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
     super(SuiTextBlockDialog.dialogElements, parameters);
+    this.isNew = isNew;
     this.modifier = parameters.modifier;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS']
     this.edited = edited;
@@ -391,8 +395,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (this.mouseClickHandler) {
       this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     }
-    const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
-    const svg = pageContext.svg;
     if (this.outlineRect) {
       SvgHelpers.eraseOutline(this.outlineRect);
     }
@@ -416,6 +418,10 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.view.groupUndo(false);
       if (this.edited) {
+        this.modifier.elements.forEach((element) => {
+          element.remove();
+        });
+        this.modifier.elements = [];
         this.view.undo();
       }
       this._complete();

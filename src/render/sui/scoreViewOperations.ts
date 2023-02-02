@@ -49,11 +49,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   addTextGroup(textGroup: SmoTextGroup): Promise<void> {
-    const altNew = SmoTextGroup.deserialize(textGroup.serialize());
-    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
-      UndoBuffer.bufferSubtypes.ADD);
+    const altNew = SmoTextGroup.deserializePreserveId(textGroup.serialize());
     SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
       UndoBuffer.bufferSubtypes.ADD);
+    if (this.isPartExposed()) {
+      this.score.updateTextGroup(textGroup, true);
+      const partInfo = this.storeScore.staves[this._getEquivalentStaff(0)].partInfo;
+      partInfo.updateTextGroup(altNew, true);
+    } else {
+      this.score.addTextGroup(textGroup);
+      this.storeScore.addTextGroup(altNew);
+    }
     this.renderer.renderScoreModifiers();
     return this.renderer.updatePromise()
   }
@@ -64,22 +70,21 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   removeTextGroup(textGroup: SmoTextGroup): Promise<void> {
-    const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
-    const altGroup = this.storeScore.textGroups[index];
-    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
-      UndoBuffer.bufferSubtypes.REMOVE);
+    this.score.updateTextGroup(textGroup, false);
+    const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize);
     textGroup.elements.forEach((el) => el.remove());
     textGroup.elements = [];
     const isPartExposed = this.isPartExposed();
-    if (!isPartExposed && altGroup) {
+    if (!isPartExposed) {
       SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
         UndoBuffer.bufferSubtypes.REMOVE);
+      this.storeScore.updateTextGroup(altGroup, false);
     } else {
-      const partInfo = this.score.staves[0].partInfo;
-      if (!partInfo.preserveTextGroups && altGroup) {
-        SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-          UndoBuffer.bufferSubtypes.REMOVE);
-        }
+      const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
+      stave.partInfo.updateTextGroup(altGroup, false);
+      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
+        UndoBuffer.bufferSubtypes.REMOVE);
+      
     }
     this.renderer.renderScoreModifiers();
     return this.renderer.updatePromise()
@@ -93,25 +98,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): void {
-    const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
     const isPartExposed = this.isPartExposed();
-    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
-      UndoBuffer.bufferSubtypes.UPDATE);
+    const altNew = SmoTextGroup.deserializePreserveId(newVersion.serialize());
+    this.score.updateTextGroup(newVersion, true);
     // If this is part text, don't store it in the score text, except for the displayed score
     if (!isPartExposed) {
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
-      const altNew = SmoTextGroup.deserialize(newVersion.serialize());
-      this.storeScore.textGroups[index] = altNew;
+      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, UndoBuffer.bufferSubtypes.UPDATE);
+      this.storeScore.updateTextGroup(altNew, true);
     } else {
-      const partInfo = this.score.staves[0].partInfo;
-      if (partInfo.preserveTextGroups) {
-        partInfo.textGroups = this.score.textGroups;
-      }
-      const tgs: SmoTextGroup[] = [];
-      partInfo.textGroups.forEach((tg) => {
-        tgs.push(SmoTextGroup.deserialize(tg.serialize()));
-      })
-      this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
+      this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altNew, true);
     }
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
