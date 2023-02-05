@@ -135,7 +135,7 @@ export class SmoNote implements Transposable {
    * @internal
    */
   static get parameterArray() {
-    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
+    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
       'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
   /**

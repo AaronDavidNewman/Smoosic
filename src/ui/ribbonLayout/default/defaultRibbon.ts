@@ -36,7 +36,7 @@ export class defaultRibbonLayout {
 
   static get leftRibbonIds() {
     return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-    'scoreMenu', 'partMenu', 'addStaffMenu', 'measureModal', 
+    'scoreMenu', 'partMenu', 'noteMenu', 'addStaffMenu', 'measureModal', 
     'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
        'pianoModal'];
   }
@@ -1571,8 +1571,16 @@ export class defaultRibbonLayout {
       ctor: 'SuiPartMenu',
       group: 'scoreEdit',
       id: 'partMenu'
-    }, 
-    {
+    }, {
+      leftText: 'Notes',
+      rightText: '',
+      icon: 'icon-note',
+      classes: 'icon',
+      action: 'menu',
+      ctor: 'SuiNoteMenu',
+      group: 'scoreEdit',
+      id: 'noteMenu'
+    }, {
       leftText: 'Measure',
       rightText: '/a',
       icon: '',

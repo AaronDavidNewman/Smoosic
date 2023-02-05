@@ -570,13 +570,23 @@ export class SuiLayoutFormatter {
     // If there are fewer measures in the system than the max, don't justify.
     // We estimate the staves at the same absolute y value.
     // Now, move them down so the top of the staves align for all measures in a  row.
+    const measuresToHide: SmoMeasure[] = [];
+    let anyNotes = false;
     for (i = 0; i < rowCount; ++i) {
       // lowest staff has greatest staffY value.
       const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
       const lowestStaff = rowAdj.reduce((a, b) =>
         a.staffY > b.staffY ? a : b
       );
+      const hasNotes = rowAdj.findIndex((x) => x.isRest() === false) >= 0;
+      if (hasNotes) {
+        anyNotes = true;
+      }
       rowAdj.forEach((measure) => {
+        measure.svg.hideEmptyMeasure = false;
+        if (this.score.preferences.hideEmptyLines && !hasNotes && !this.score.isPartExposed()) {
+          measuresToHide.push(measure);
+        }
         const adj = lowestStaff.staffY - measure.staffY;
         measure.setY(measure.staffY + adj, 'justifyY');
         measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
@@ -611,6 +621,24 @@ export class SuiLayoutFormatter {
         }
         justOffset += justifyX;
       });
+    }
+    if (this.score.preferences.hideEmptyLines && anyNotes) {
+      let adjY = 0;
+      for (i = 0; i < rowCount; ++i) {
+        const rowAdj = measuresToHide.filter((mm) => mm.svg.rowInSystem === i);
+        if (rowAdj.length) {
+          adjY += rowAdj[0].svg.logicalBox.height;
+          rowAdj.forEach((mm) => {
+            mm.svg.logicalBox.height = 0;
+            mm.svg.hideEmptyMeasure = true;
+          });
+        } else {
+          const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
+          rowAdj.forEach((row) => {
+            row.setY(row.svg.staffY - adjY, 'format-hide');
+          });
+        }
+      }
     }
   }
   // ### _highestLowestHead

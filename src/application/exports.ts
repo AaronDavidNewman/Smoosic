@@ -100,6 +100,7 @@ import { SuiFileMenu } from '../ui/menus/file';
 import { SuiLanguageMenu } from '../ui/menus/language';
 import { SmoLanguage, SmoTranslator } from '../ui/i18n/language';
 import { SuiMeasureMenu } from '../ui/menus/measure';
+import { SuiNoteMenu } from '../ui/menus/note';
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { PromiseHelpers } from '../common/promiseHelpers';
 // render library
@@ -117,7 +118,7 @@ import { SuiOscillator, SuiSampler, SuiReverb } from '../render/audio/oscillator
 import { SuiSampleMedia } from '../render/audio/samples';
 
 // SMO object model
-import { SmoScore, engravingFontType, engravingFontTypes, isEngravingFont } from '../smo/data/score';
+import { SmoScore, SmoScorePreferences, engravingFontTypes, isEngravingFont } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -162,7 +163,7 @@ export const Smo = {
     // Menus
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
+    SuiLanguageMenu, SuiMeasureMenu, SuiNoteMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
     SuiPartSelectionMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
@@ -197,6 +198,7 @@ export const Smo = {
 
     // Smo Music Objects
     SmoScore,
+    SmoScorePreferences, 
     engravingFontTypes, isEngravingFont,
     XmlToSmo,
     SmoToXml,

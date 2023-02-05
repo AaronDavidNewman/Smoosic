@@ -378,6 +378,9 @@ export class VxSystem {
   renderEndings(scroller: SuiScroller) {
     let j = 0;
     let i = 0;
+    if (this.staves.length < 1) {
+      return;
+    }
     const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
     voltas.forEach((ending) => {
       ending.elements.forEach((element) => {
@@ -490,7 +493,7 @@ export class VxSystem {
         adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
       });
       this.vxMeasures.forEach((vv: VxMeasure) => {
-        if (!vv.rendered) {
+        if (!vv.rendered && !vv.smoMeasure.svg.hideEmptyMeasure) {
           vv.vexNotes.forEach((vnote) => {
             vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
           });
@@ -531,11 +534,13 @@ export class VxSystem {
       staff.bracketMap[this.lineIndex].push(group);
       this.vxMeasures.forEach((vv) => {
         const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-        if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+        if (systemGroup && !renderedConnection[systemGroup.attrs.id] && 
+          !vv.smoMeasure.svg.hideEmptyMeasure) {
           renderedConnection[systemGroup.attrs.id] = 1;
           const startSel = this.vxMeasures[systemGroup.startSelector.staff];
           const endSel = this.vxMeasures[systemGroup.endSelector.staff];
-          if (startSel && endSel) {
+          if (startSel && startSel.rendered && 
+             endSel && endSel.rendered) {
             const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
               .setType(systemGroup.leftConnectorVx());
             c1.setContext(this.context.getContext()).draw();
@@ -544,7 +549,7 @@ export class VxSystem {
         }
       });
 
-      if (!brackets && this.vxMeasures.length > 1) {
+      if (!brackets && this.vxMeasures.length > 1 && !this.vxMeasures[0].smoMeasure.svg.hideEmptyMeasure) {
         const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave,
           VF.StaveConnector.type.SINGLE_LEFT);
         c2.setContext(this.context.getContext()).draw();
@@ -554,8 +559,9 @@ export class VxSystem {
       if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
         const endMeasure = vxMeasure;
         const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
-          vv.selection.selector.measure === vxMeasure.selection.selector.measure);
-        if (endMeasure && startMeasure) {
+          vv.selection.selector.measure === vxMeasure.selection.selector.measure && 
+          vv.smoMeasure.svg.hideEmptyMeasure === false);
+        if (endMeasure && startMeasure && !endMeasure.smoMeasure.svg.hideEmptyMeasure) {
           const group = this.context.getContext().openGroup();
           group.classList.add('endBracket-' + this.lineIndex);
           group.classList.add('endBracket');

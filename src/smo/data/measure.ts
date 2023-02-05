@@ -76,6 +76,7 @@ export interface MeasureSvg {
   forceKeySignature: boolean,
   forceTimeSignature: boolean,
   forceTempo: boolean,
+  hideEmptyMeasure: boolean,
   hideMultimeasure: boolean,
   multimeasureLength: number,
   multimeasureEndBarline: number,
@@ -302,6 +303,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       forceKeySignature: false,
       forceTimeSignature: false,
       forceTempo: false,
+      hideEmptyMeasure: false,
       hideMultimeasure: false,
       multimeasureLength: 0,
       multimeasureEndBarline: SmoBarline.barlines['singleBar'],
@@ -1095,11 +1097,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     let i = 0;
     for (i = 0; i < this.voices.length; ++i) {
       const voice = this.voices[i];
-      if (voice.notes.length === 1 && voice.notes[0].isRest()) {
-        return true;
+      if (!voice.notes[0].isRest()) {
+        return false;
       }
     }
-    return false;
+    return true;
   }
   // ### populateVoice
   // Create a new voice in this measure, and populate it with the default note

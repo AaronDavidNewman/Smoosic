@@ -59,9 +59,9 @@ export class SmoScoreInfo {
   copyright: string = '';
   version: number = 1;
 }
-export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 'transposingScore';
+export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 'hideEmptyLines' | 'transposingScore';
 export type SmoScorePreferenceNumber = 'defaultDupleDuration' | 'defaultTripleDuration';
-export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'transposingScore'];
+export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'hideEmptyLines', 'transposingScore'];
 export const SmoScorePreferenceNumbers: SmoScorePreferenceNumber[] = ['defaultDupleDuration', 'defaultTripleDuration'];
 /**
  * Global score/program behavior preferences, see below for parameters
@@ -72,6 +72,7 @@ export interface SmoScorePreferencesParams {
   defaultDupleDuration: number;
   defaultTripleDuration: number;
   showPiano: boolean;
+  hideEmptyLines: boolean;
   transposingScore: boolean;
 }
 /**
@@ -81,6 +82,7 @@ export interface SmoScorePreferencesParams {
  * @param defaultDupleDuration in ticks, even metered measures
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param showPiano show the piano widget in the score
+ * @param hideEmptyLines Hide empty lines in full score
  * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
  */
@@ -90,6 +92,7 @@ export class SmoScorePreferences {
   defaultDupleDuration: number = 4096;
   defaultTripleDuration: number = 6144;
   showPiano: boolean = true;
+  hideEmptyLines: boolean = false;
   transposingScore: boolean = false;
   static get defaults(): SmoScorePreferencesParams {
     return {
@@ -98,6 +101,7 @@ export class SmoScorePreferences {
       defaultDupleDuration: 4096,
       defaultTripleDuration: 6144,
       showPiano: true,
+      hideEmptyLines: false,
       transposingScore: false
     };
   }
@@ -211,6 +215,7 @@ export class SmoScore {
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
         showPiano: true,
+        hideEmptyLines: false,
         transposingScore: false
       },
       staves: [],
@@ -493,6 +498,7 @@ export class SmoScore {
       params.audioSettings = SmoScoreModifierBase.deserialize(jsonObj.audioSettings);
     }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
+    params.preferences.hideEmptyLines = params.preferences.hideEmptyLines ?? false;
 
     jsonObj.staves.forEach((staffObj: any, staffIx: number) => {
       staffObj.staffId = staffIx;

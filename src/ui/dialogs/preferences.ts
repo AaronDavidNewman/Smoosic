@@ -38,6 +38,13 @@ export class SuiScorePreferencesAdapter extends SuiComponentAdapter {
     this.preferences.showPiano = value;
     this.view.updateScorePreferences(this.preferences);
   }
+  get hideEmptyLines(): boolean {
+    return this.preferences.hideEmptyLines;
+  }
+  set hideEmptyLines(value: boolean) {
+    this.preferences.hideEmptyLines = value;
+    this.view.updateScorePreferences(this.preferences);
+  }
   get defaultDupleDuration() {
     return this.preferences.defaultDupleDuration;
   }
@@ -89,6 +96,10 @@ export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePref
         smoName: 'transposingScore',
         control: 'SuiToggleComponent',
         label: 'Tranpose Score'
+      }, {
+        smoName: 'hideEmptyLines',
+        control: 'SuiToggleComponent',
+        label: 'Hide Empty Lines'
       }, {
         smoName: 'defaultDupleDuration',
         control: 'SuiDropdownComponent',

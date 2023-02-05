@@ -71,7 +71,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   removeTextGroup(textGroup: SmoTextGroup): Promise<void> {
     this.score.updateTextGroup(textGroup, false);
-    const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize);
+    const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize());
     textGroup.elements.forEach((el) => el.remove());
     textGroup.elements = [];
     const isPartExposed = this.isPartExposed();
@@ -855,6 +855,20 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
+  }
+  async toggleCue() {
+    const measureSelections = this._undoTrackerMeasureSelections('toggle note cue');
+    this.tracker.selections.forEach((selection) => {
+      const altSelection = this._getEquivalentSelection(selection);
+      if (selection.note && selection.note.isRest() === false) {
+        selection.note.isCue = !selection.note.isCue;
+        if (altSelection && altSelection.note) {
+          altSelection.note.isCue = selection.note.isCue;
+        }
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();
   }
   /**
   * up or down

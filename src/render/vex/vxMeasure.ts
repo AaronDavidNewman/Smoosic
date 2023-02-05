@@ -595,7 +595,9 @@ export class VxMeasure {
       this.smoMeasure.svg.element.remove();
       this.smoMeasure.svg.element = null;
     }
-
+    if (this.smoMeasure.svg.hideEmptyMeasure) {
+      return;
+    }
     // Note: need to do this to get it into VEX KS format
     const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
     const canceledKey = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
@@ -688,6 +690,10 @@ export class VxMeasure {
    * @returns 
    */
   format(voices: any[]) {
+    if (this.smoMeasure.svg.hideEmptyMeasure) {
+      return;
+    }
+
     if (this.smoMeasure.svg.multimeasureLength > 0) {
       this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
       this.multimeasureRest.setContext(this.context.getContext());
@@ -706,6 +712,10 @@ export class VxMeasure {
    * render is called after format.  Actually draw the things.
    */
   render() {
+    if (this.smoMeasure.svg.hideEmptyMeasure) {
+      return;
+    }
+
     var group = this.context.getContext().openGroup() as SVGSVGElement;
     this.smoMeasure.svg.element = group;
     var mmClass = this.smoMeasure.getClassId();
