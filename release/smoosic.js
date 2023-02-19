@@ -804,7 +804,6 @@ class SuiEventHandler {
             tracker: this.tracker,
             startPromise: null,
             id: 'modifier-dialog',
-            undoBuffer: this.view.undoBuffer,
             config: this.config
         };
         return factory_1.SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
@@ -1052,6 +1051,7 @@ const file_1 = __webpack_require__(/*! ../ui/menus/file */ "./src/ui/menus/file.
 const language_1 = __webpack_require__(/*! ../ui/menus/language */ "./src/ui/menus/language.ts");
 const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
 const measure_2 = __webpack_require__(/*! ../ui/menus/measure */ "./src/ui/menus/measure.ts");
+const note_2 = __webpack_require__(/*! ../ui/menus/note */ "./src/ui/menus/note.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 // render library
@@ -1069,7 +1069,7 @@ const samples_1 = __webpack_require__(/*! ../render/audio/samples */ "./src/rend
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
+const note_3 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
 const file_load_1 = __webpack_require__(/*! ../../tests/file-load */ "./tests/file-load.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
@@ -1108,7 +1108,7 @@ exports.Smo = {
     // Menus
     SuiMenuManager: manager_1.SuiMenuManager, SuiMenuBase: menu_1.SuiMenuBase, SuiScoreMenu: score_1.SuiScoreMenu, SuiFileMenu: file_1.SuiFileMenu,
     SuiDynamicsMenu: dynamics_2.SuiDynamicsMenu, SuiTimeSignatureMenu: timeSignature_2.SuiTimeSignatureMenu, SuiKeySignatureMenu: keySignature_1.SuiKeySignatureMenu, SuiStaffModifierMenu: staffModifier_1.SuiStaffModifierMenu,
-    SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
+    SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SuiNoteMenu: note_2.SuiNoteMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
     SuiPartSelectionMenu: partSelection_1.SuiPartSelectionMenu,
     // Dialogs
     SuiTempoDialog: tempo_1.SuiTempoDialog, SuiInstrumentDialog: instrument_1.SuiInstrumentDialog, SuiModifierDialogFactory: factory_1.SuiModifierDialogFactory, SuiLibraryDialog: library_1.SuiLibraryDialog,
@@ -1141,6 +1141,7 @@ exports.Smo = {
     SuiAudioPlayer: player_2.SuiAudioPlayer, SuiOscillator: oscillator_1.SuiOscillator, SuiSampleMedia: samples_1.SuiSampleMedia, SuiSampler: oscillator_1.SuiSampler, SuiReverb: oscillator_1.SuiReverb,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
+    SmoScorePreferences: score_2.SmoScorePreferences,
     engravingFontTypes: score_2.engravingFontTypes, isEngravingFont: score_2.isEngravingFont,
     XmlToSmo: xmlToSmo_1.XmlToSmo,
     SmoToXml: smoToXml_1.SmoToXml,
@@ -1150,7 +1151,7 @@ exports.Smo = {
     SmoAudioPitch: music_2.SmoAudioPitch,
     SmoMeasure: measure_3.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
-    SmoNote: note_2.SmoNote,
+    SmoNote: note_3.SmoNote,
     // staff modifier
     SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
     SmoStaffTextBracket: staffModifiers_1.SmoStaffTextBracket,
@@ -1222,7 +1223,6 @@ class SuiKeyCommands {
             eventSource: this.eventSource,
             tracker: this.tracker,
             startPromise: null,
-            undoBuffer: this.view.undoBuffer,
             modifier: tempo
         });
     }
@@ -4858,6 +4858,20 @@ class SuiSampleMedia {
         });
         SuiSampleMedia.insertIntoMap({
             sustain: 'sustained',
+            sample: 'eguitar-e3',
+            family: 'strings',
+            instrument: 'eGuitar',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 3 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
+            sample: 'eguitar-d4',
+            family: 'strings',
+            instrument: 'eGuitar',
+            nativeFrequency: music_1.SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 4 }, 0, null),
+        });
+        SuiSampleMedia.insertIntoMap({
+            sustain: 'sustained',
             sample: 'sample-bass-a1',
             family: 'strings',
             instrument: 'bass',
@@ -5572,12 +5586,10 @@ class SuiLayoutFormatter {
                 measureEstimate = this.estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
                 x = measureEstimate.x;
             }
-            // ld declared for lint
-            const ld = layoutDebug_1.layoutDebug;
             measureEstimate === null || measureEstimate === void 0 ? void 0 : measureEstimate.measures.forEach((measure) => {
                 const context = this.svg.getRenderer(measure.svg.logicalBox);
                 if (context) {
-                    ld.debugBox(context.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
+                    layoutDebug_1.layoutDebug.debugBox(context.svg, measure.svg.logicalBox, layoutDebug_1.layoutDebug.values.pre);
                 }
             });
             this.updateSystemMap(measureEstimate.measures, lineIndex, systemIndex);
@@ -5752,11 +5764,21 @@ class SuiLayoutFormatter {
         // If there are fewer measures in the system than the max, don't justify.
         // We estimate the staves at the same absolute y value.
         // Now, move them down so the top of the staves align for all measures in a  row.
+        const measuresToHide = [];
+        let anyNotes = false;
         for (i = 0; i < rowCount; ++i) {
             // lowest staff has greatest staffY value.
             const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
             const lowestStaff = rowAdj.reduce((a, b) => a.staffY > b.staffY ? a : b);
+            const hasNotes = rowAdj.findIndex((x) => x.isRest() === false) >= 0;
+            if (hasNotes) {
+                anyNotes = true;
+            }
             rowAdj.forEach((measure) => {
+                measure.svg.hideEmptyMeasure = false;
+                if (this.score.preferences.hideEmptyLines && !hasNotes && !this.score.isPartExposed()) {
+                    measuresToHide.push(measure);
+                }
                 const adj = lowestStaff.staffY - measure.staffY;
                 measure.setY(measure.staffY + adj, 'justifyY');
                 measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
@@ -5788,6 +5810,25 @@ class SuiLayoutFormatter {
                 }
                 justOffset += justifyX;
             });
+        }
+        if (this.score.preferences.hideEmptyLines && anyNotes) {
+            let adjY = 0;
+            for (i = 0; i < rowCount; ++i) {
+                const rowAdj = measuresToHide.filter((mm) => mm.svg.rowInSystem === i);
+                if (rowAdj.length) {
+                    adjY += rowAdj[0].svg.logicalBox.height;
+                    rowAdj.forEach((mm) => {
+                        mm.svg.logicalBox.height = 0;
+                        mm.svg.hideEmptyMeasure = true;
+                    });
+                }
+                else {
+                    const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
+                    rowAdj.forEach((row) => {
+                        row.setY(row.svg.staffY - adjY, 'format-hide');
+                    });
+                }
+            }
         }
     }
     // ### _highestLowestHead
@@ -8162,6 +8203,9 @@ class SuiScoreRender {
         const score = this.score;
         $('head title').text(this.score.scoreInfo.name);
         const formatter = new formatter_1.SuiLayoutFormatter(score, this.vexContainers, this.renderedPages);
+        Object.keys(this.renderedPages).forEach((key) => {
+            this.vexContainers.clearModifiersForPage(parseInt(key));
+        });
         const startPageCount = this.score.layoutManager.pageLayouts.length;
         this.formatter = formatter;
         formatter.layout();
@@ -8230,12 +8274,18 @@ class SuiScoreView {
         this.tracker = new tracker_1.SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
         this.renderer.setMeasureMapper(this.tracker);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(scoreJson));
-        this.undoBuffer = undoBuffer;
+        this.synchronizeTextGroups();
         this.storeUndo = new undo_1.UndoBuffer();
         this.staffMap = this.defaultStaffMap;
         SuiScoreView.Instance = this; // for debugging
         this.setMappedStaffIds();
         (0, htmlHelpers_1.createTopDomContainer)('.saveLink'); // for file upload
+    }
+    synchronizeTextGroups() {
+        // Synchronize the score text IDs so cut/paste/undo works transparently
+        this.score.textGroups.forEach((tg, ix) => {
+            this.storeScore.textGroups[ix].attrs.id = tg.attrs.id;
+        });
     }
     /**
      * Await on the full update of the score
@@ -8334,7 +8384,6 @@ class SuiScoreView {
         const copy = staffModifiers_1.StaffModifierBase.deserialize(staffModifier.serialize());
         copy.startSelector = this._getEquivalentSelector(copy.startSelector);
         copy.endSelector = this._getEquivalentSelector(copy.endSelector);
-        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, copy.serialize(), subtype);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.STAFF_MODIFIER, selections_1.SmoSelector.default, copy.serialize(), subtype);
     }
     /**
@@ -8357,7 +8406,6 @@ class SuiScoreView {
      * score.
      */
     _undoColumn(label, measureIndex) {
-        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.COLUMN, selections_1.SmoSelector.default, { score: this.score, measureIndex }, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.COLUMN, selections_1.SmoSelector.default, { score: this.storeScore, measureIndex }, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
     /**
@@ -8365,7 +8413,6 @@ class SuiScoreView {
      * @param label
      */
     _undoScorePreferences(label) {
-        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, selections_1.SmoSelector.default, this.score, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, selections_1.SmoSelector.default, this.storeScore, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
     /**
@@ -8378,7 +8425,6 @@ class SuiScoreView {
         measureSelections.forEach((measureSelection) => {
             const equiv = this._getEquivalentSelection(measureSelection);
             if (equiv !== null) {
-                this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
                 this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
             }
         });
@@ -8391,7 +8437,6 @@ class SuiScoreView {
         const sel = this.tracker.selections[0];
         const equiv = this._getEquivalentSelection(sel);
         if (equiv !== null) {
-            this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
             this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
         }
         return sel;
@@ -8404,7 +8449,6 @@ class SuiScoreView {
     _undoSelection(label, selection) {
         const equiv = this._getEquivalentSelection(selection);
         if (equiv !== null) {
-            this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
             this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure, undo_1.UndoBuffer.bufferSubtypes.NONE);
         }
     }
@@ -8414,12 +8458,10 @@ class SuiScoreView {
      * @param selections
      */
     _undoSelections(label, selections) {
-        this.undoBuffer.grouping = true;
         this.storeUndo.grouping = true;
         selections.forEach((selection) => {
             this._undoSelection(label, selection);
         });
-        this.undoBuffer.grouping = false;
         this.storeUndo.grouping = false;
     }
     /**
@@ -8448,7 +8490,6 @@ class SuiScoreView {
      * @param label
      */
     _undoScore(label) {
-        this.undoBuffer.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE, selections_1.SmoSelector.default, this.score, undo_1.UndoBuffer.bufferSubtypes.NONE);
         this.storeUndo.addBuffer(label, undo_1.UndoBuffer.bufferTypes.SCORE, selections_1.SmoSelector.default, this.storeScore, undo_1.UndoBuffer.bufferSubtypes.NONE);
     }
     /**
@@ -8529,7 +8570,6 @@ class SuiScoreView {
      * @param val
      */
     groupUndo(val) {
-        this.undoBuffer.grouping = val;
         this.storeUndo.grouping = val;
     }
     /**
@@ -8697,6 +8737,7 @@ class SuiScoreView {
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this._setTransposing();
+        this.synchronizeTextGroups();
         this.renderer.score = this.score;
         window.dispatchEvent(new CustomEvent(renderState_1.scoreChangeEvent, { detail: { view: this } }));
         this.renderer.setViewport();
@@ -8729,6 +8770,7 @@ class SuiScoreView {
         this._setTransposing();
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
+        this.synchronizeTextGroups();
         const rv = this.renderPromise();
         window.dispatchEvent(new CustomEvent(renderState_1.scoreChangeEvent, { detail: { view: this } }));
         return rv;
@@ -8822,9 +8864,17 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addTextGroup(textGroup) {
-        const altNew = scoreText_1.SmoTextGroup.deserialize(textGroup.serialize());
-        undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.ADD);
+        const altNew = scoreText_1.SmoTextGroup.deserializePreserveId(textGroup.serialize());
         undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, undo_1.UndoBuffer.bufferSubtypes.ADD);
+        if (this.isPartExposed()) {
+            this.score.updateTextGroup(textGroup, true);
+            const partInfo = this.storeScore.staves[this._getEquivalentStaff(0)].partInfo;
+            partInfo.updateTextGroup(altNew, true);
+        }
+        else {
+            this.score.addTextGroup(textGroup);
+            this.storeScore.addTextGroup(altNew);
+        }
         this.renderer.renderScoreModifiers();
         return this.renderer.updatePromise();
     }
@@ -8834,20 +8884,19 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeTextGroup(textGroup) {
-        const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
-        const altGroup = this.storeScore.textGroups[index];
-        undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+        this.score.updateTextGroup(textGroup, false);
+        const altGroup = scoreText_1.SmoTextGroup.deserializePreserveId(textGroup.serialize());
         textGroup.elements.forEach((el) => el.remove());
         textGroup.elements = [];
         const isPartExposed = this.isPartExposed();
-        if (!isPartExposed && altGroup) {
+        if (!isPartExposed) {
             undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
+            this.storeScore.updateTextGroup(altGroup, false);
         }
         else {
-            const partInfo = this.score.staves[0].partInfo;
-            if (!partInfo.preserveTextGroups && altGroup) {
-                undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
-            }
+            const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
+            stave.partInfo.updateTextGroup(altGroup, false);
+            undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
         }
         this.renderer.renderScoreModifiers();
         return this.renderer.updatePromise();
@@ -8860,25 +8909,16 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     updateTextGroup(oldVersion, newVersion) {
-        const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
         const isPartExposed = this.isPartExposed();
-        undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
+        const altNew = scoreText_1.SmoTextGroup.deserializePreserveId(newVersion.serialize());
+        this.score.updateTextGroup(newVersion, true);
         // If this is part text, don't store it in the score text, except for the displayed score
         if (!isPartExposed) {
-            undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], undo_1.UndoBuffer.bufferSubtypes.UPDATE);
-            const altNew = scoreText_1.SmoTextGroup.deserialize(newVersion.serialize());
-            this.storeScore.textGroups[index] = altNew;
+            undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
+            this.storeScore.updateTextGroup(altNew, true);
         }
         else {
-            const partInfo = this.score.staves[0].partInfo;
-            if (partInfo.preserveTextGroups) {
-                partInfo.textGroups = this.score.textGroups;
-            }
-            const tgs = [];
-            partInfo.textGroups.forEach((tg) => {
-                tgs.push(scoreText_1.SmoTextGroup.deserialize(tg.serialize()));
-            });
-            this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
+            this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altNew, true);
         }
         // TODO: only render the one TG.
         this.renderer.renderScoreModifiers();
@@ -9620,6 +9660,22 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         });
         this._renderChangedMeasures(measureSelections);
         return this.renderer.updatePromise();
+    }
+    toggleCue() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const measureSelections = this._undoTrackerMeasureSelections('toggle note cue');
+            this.tracker.selections.forEach((selection) => {
+                const altSelection = this._getEquivalentSelection(selection);
+                if (selection.note && selection.note.isRest() === false) {
+                    selection.note.isCue = !selection.note.isCue;
+                    if (altSelection && altSelection.note) {
+                        altSelection.note.isCue = selection.note.isCue;
+                    }
+                }
+            });
+            this._renderChangedMeasures(measureSelections);
+            yield this.renderer.updatePromise();
+        });
     }
     /**
     * up or down
@@ -11167,6 +11223,7 @@ exports.SvgPageMap = exports.SvgPage = exports.MappedSystems = exports.MappedMea
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const scoreText_1 = __webpack_require__(/*! ../../smo/data/scoreText */ "./src/smo/data/scoreText.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const VF = eval('Vex.Flow');
 /**
@@ -11448,6 +11505,20 @@ class SvgPage {
         }
         return rv;
     }
+    clearModifiers() {
+        Object.keys(this.modifierTabDivs).forEach((key) => {
+            const modifiers = this.modifierTabDivs[parseInt(key)];
+            modifiers.forEach((mod) => {
+                if (mod instanceof scoreText_1.SmoTextGroup) {
+                    mod.elements.forEach((element) => {
+                        element.remove();
+                    });
+                    mod.elements = [];
+                }
+            });
+        });
+        this.modifierTabDivs = {};
+    }
     /**
      * Measure the bounding box of an element.  Return the box as if the top of the first page were 0,0.
      * Bounding boxes are stored in absolute coordinates from the top of the first page.  When rendering
@@ -11682,6 +11753,11 @@ class SvgPageMap {
             page.addModifierTab(modifier);
         }
     }
+    clearModifiersForPage(page) {
+        if (this.vfRenderers.length > page) {
+            this.vfRenderers[page].clearModifiers();
+        }
+    }
     /**
      * The number of pages is changing, remove the last page
      * @returns
@@ -11830,6 +11906,7 @@ const VF = eval('Vex.Flow');
 class SuiTextEditor {
     constructor(params) {
         this.svgText = null;
+        this.outlineInfo = null;
         this.x = 0;
         this.y = 0;
         this.textPos = 0;
@@ -11961,6 +12038,11 @@ class SuiTextEditor {
         this.suggestionIndex = -1;
         this._updateSelections();
     }
+    rerender() {
+        var _a, _b;
+        (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.unrender();
+        (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
+    }
     // ### handleMouseEvent
     // Handle hover/click behavior for the text under edit.
     // Returns: true if the event was handled here
@@ -11986,7 +12068,7 @@ class SuiTextEditor {
                     this._setSelectionToSugggestion();
                 }
                 handled = true;
-                this.svgText.render();
+                this.rerender();
             }
             return handled;
         }
@@ -12012,7 +12094,7 @@ class SuiTextEditor {
             if (npos >= 0 && npos <= this.svgText.blocks.length) {
                 this.textPos = npos;
             }
-            this.svgText.render();
+            this.rerender();
         }
         return handled;
     }
@@ -12182,12 +12264,12 @@ class SuiTextEditor {
         }
         this.textPos = this.text.length;
         this.state = SuiTextEditor.States.RUNNING;
-        this.svgText.render();
+        this.rerender();
     }
     // ### evKey
     // Handle key events that filter down to the editor
     evKey(evdata) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const removeCurrent = () => {
                 var _a;
@@ -12203,7 +12285,7 @@ class SuiTextEditor {
                 else {
                     this.moveCursorRight();
                 }
-                (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
+                this.rerender();
                 return true;
             }
             if (evdata.code === 'ArrowLeft') {
@@ -12213,7 +12295,7 @@ class SuiTextEditor {
                 else {
                     this.moveCursorLeft();
                 }
-                (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
+                this.rerender();
                 return true;
             }
             if (evdata.code === 'Backspace') {
@@ -12228,7 +12310,7 @@ class SuiTextEditor {
                         this.deleteSelections();
                     }
                 }
-                (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.render();
+                this.rerender();
                 return true;
             }
             if (evdata.code === 'Delete') {
@@ -12243,7 +12325,7 @@ class SuiTextEditor {
                         this.deleteSelections();
                     }
                 }
-                (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
+                this.rerender();
                 return true;
             }
             if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
@@ -12254,28 +12336,24 @@ class SuiTextEditor {
                     text = yield navigator.clipboard.readText();
                 }
                 if (this.empty) {
-                    (_e = this.svgText) === null || _e === void 0 ? void 0 : _e.removeBlockAt(0);
+                    (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.removeBlockAt(0);
                     this.empty = false;
                     const def = textRender_1.SuiInlineText.blockDefaults;
                     def.text = text;
-                    (_f = this.svgText) === null || _f === void 0 ? void 0 : _f.addTextBlockAt(0, def);
+                    (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.addTextBlockAt(0, def);
                     this.setTextPos(1);
                 }
                 else {
                     if (this.selectionStart >= 0) {
                         this.deleteSelections();
                     }
-                    if (this.svgText) {
-                        (_g = this.svgText.element) === null || _g === void 0 ? void 0 : _g.remove();
-                        this.svgText.element = null;
-                    }
                     const def = textRender_1.SuiInlineText.blockDefaults;
                     def.text = text;
                     def.textType = this.textType;
-                    (_h = this.svgText) === null || _h === void 0 ? void 0 : _h.addTextBlockAt(this.textPos, def);
+                    (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.addTextBlockAt(this.textPos, def);
                     this.setTextPos(this.textPos + 1);
                 }
-                (_j = this.svgText) === null || _j === void 0 ? void 0 : _j.render();
+                this.rerender();
                 return true;
             }
             return false;
@@ -12298,12 +12376,15 @@ class SuiTextBlockEditor extends SuiTextEditor {
         }
         const bbox = this.svgText.getLogicalBox();
         const outlineStroke = SuiTextEditor.strokes['text-highlight'];
-        const obj = {
+        if (this.outlineInfo && this.outlineInfo.element) {
+            this.outlineInfo.element.remove();
+        }
+        this.outlineInfo = {
             context: this.context, box: bbox, classes: '',
             stroke: outlineStroke, scroll: this.scroller.scrollState,
             timeOff: 0
         };
-        svgHelpers_1.SvgHelpers.outlineRect(obj);
+        svgHelpers_1.SvgHelpers.outlineRect(this.outlineInfo);
     }
     getText() {
         if (this.svgText !== null) {
@@ -12315,7 +12396,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
         const _super = Object.create(null, {
             evKey: { get: () => super.evKey }
         });
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             if (evdata.key.charCodeAt(0) === 32) {
                 if (this.empty) {
@@ -12336,7 +12417,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
                     (_c = this.svgText) === null || _c === void 0 ? void 0 : _c.addTextBlockAt(this.textPos, def);
                     this.setTextPos(this.textPos + 1);
                 }
-                (_d = this.svgText) === null || _d === void 0 ? void 0 : _d.render();
+                this.rerender();
                 return true;
             }
             const rv = _super.evKey.call(this, evdata);
@@ -12386,7 +12467,7 @@ class SuiLyricEditor extends SuiTextEditor {
         }
         this.textPos = this.text.length;
         this.state = SuiTextEditor.States.RUNNING;
-        this.svgText.render();
+        this.rerender();
     }
     getText() {
         if (this.svgText !== null) {
@@ -12441,7 +12522,6 @@ class SuiChordEditor extends SuiTextEditor {
     // Handle the case where user changed super/subscript in the middle of the
     // string.
     _updateSymbolModifiers() {
-        var _a;
         let change = this.textPos;
         let render = false;
         let i = 0;
@@ -12458,7 +12538,7 @@ class SuiChordEditor extends SuiTextEditor {
             }
         }
         if (render) {
-            (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
+            this.rerender();
         }
     }
     _setSymbolModifier(char) {
@@ -12512,7 +12592,7 @@ class SuiChordEditor extends SuiTextEditor {
         }
         this.textPos = blockIx;
         this.state = SuiTextEditor.States.RUNNING;
-        this.svgText.render();
+        this.rerender();
     }
     // ### getText
     // Get the text value that we persist
@@ -12557,7 +12637,6 @@ class SuiChordEditor extends SuiTextEditor {
         const _super = Object.create(null, {
             evKey: { get: () => super.evKey }
         });
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let edited = false;
             if (this._setSymbolModifier(evdata.key)) {
@@ -12568,13 +12647,13 @@ class SuiChordEditor extends SuiTextEditor {
                 this.unrender();
                 const glyph = evdata.key.substr(1, evdata.key.length - 2);
                 this._addGlyphAt(this.textPos, glyph);
-                (_a = this.svgText) === null || _a === void 0 ? void 0 : _a.render();
+                this.rerender();
                 edited = true;
             }
             else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
                 this.unrender();
                 this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
-                (_b = this.svgText) === null || _b === void 0 ? void 0 : _b.render();
+                this.rerender();
                 edited = true;
             }
             else {
@@ -12628,6 +12707,13 @@ class SuiDragSession {
         this.outlineRect.box = svgHelpers_1.SvgHelpers.boxPoints(x, y + this.outlineBox.height, this.outlineBox.width, this.outlineBox.height),
             svgHelpers_1.SvgHelpers.outlineRect(this.outlineRect);
     }
+    unrender() {
+        this.textGroup.elements.forEach((el) => {
+            el.remove();
+        });
+        this.textGroup.elements = [];
+        this.textObject.unrender();
+    }
     scrolledClientBox(x, y) {
         return { x: x + this.scroller.scrollState.x, y: y + this.scroller.scrollState.y, width: 1, height: 1 };
     }
@@ -12649,7 +12735,7 @@ class SuiDragSession {
         const evBox = this.scrolledClientBox(e.clientX, e.clientY);
         const svgMouseBox = this.pageMap.clientToSvg(evBox);
         svgMouseBox.y -= this.outlineBox.height;
-        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values['dragDebug']) {
             layoutDebug_1.layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'start');
         }
         if (!svgHelpers_1.SvgHelpers.doesBox1ContainBox2(this.outlineBox, svgMouseBox)) {
@@ -12660,6 +12746,7 @@ class SuiDragSession {
         const currentBox = this.textObject.getLogicalBox();
         this.outlineBox.width = currentBox.width;
         this.outlineBox.height = currentBox.height;
+        this.unrender();
         this.checkBounds();
         this._outlineBox();
     }
@@ -12678,20 +12765,21 @@ class SuiDragSession {
         this.textObject.offsetStartX(this.outlineBox.x - currentBox.x);
         this.textObject.offsetStartY(this.outlineBox.y - currentBox.y);
         this.textObject.render();
-        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values['dragDebug']) {
             layoutDebug_1.layoutDebug.updateDragDebug(svgMouseBox, this.outlineBox, 'drag');
         }
         if (this.outlineRect) {
             svgHelpers_1.SvgHelpers.eraseOutline(this.outlineRect);
+            this.outlineRect = null;
         }
         this._outlineBox();
     }
     endDrag() {
         var _a;
-        this.textObject.render();
+        // this.textObject.render();
         const newBox = this.textObject.getLogicalBox();
         const curBox = (_a = this.textGroup.logicalBox) !== null && _a !== void 0 ? _a : common_1.SvgBox.default;
-        if (layoutDebug_1.layoutDebug.mask | layoutDebug_1.layoutDebug.values['dragDebug']) {
+        if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values['dragDebug']) {
             layoutDebug_1.layoutDebug.updateDragDebug(curBox, newBox, 'end');
         }
         this.textGroup.offsetX(newBox.x - curBox.x);
@@ -12699,6 +12787,7 @@ class SuiDragSession {
         this.dragging = false;
         if (this.outlineRect) {
             svgHelpers_1.SvgHelpers.eraseOutline(this.outlineRect);
+            this.outlineRect = null;
         }
     }
 }
@@ -15532,6 +15621,9 @@ class VxMeasure {
             this.smoMeasure.svg.element.remove();
             this.smoMeasure.svg.element = null;
         }
+        if (this.smoMeasure.svg.hideEmptyMeasure) {
+            return;
+        }
         // Note: need to do this to get it into VEX KS format
         const key = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
         const canceledKey = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
@@ -15617,6 +15709,9 @@ class VxMeasure {
      * @returns
      */
     format(voices) {
+        if (this.smoMeasure.svg.hideEmptyMeasure) {
+            return;
+        }
         if (this.smoMeasure.svg.multimeasureLength > 0) {
             this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
             this.multimeasureRest.setContext(this.context.getContext());
@@ -15635,6 +15730,9 @@ class VxMeasure {
      * render is called after format.  Actually draw the things.
      */
     render() {
+        if (this.smoMeasure.svg.hideEmptyMeasure) {
+            return;
+        }
         var group = this.context.getContext().openGroup();
         this.smoMeasure.svg.element = group;
         var mmClass = this.smoMeasure.getClassId();
@@ -16037,6 +16135,9 @@ class VxSystem {
     renderEndings(scroller) {
         let j = 0;
         let i = 0;
+        if (this.staves.length < 1) {
+            return;
+        }
         const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
         voltas.forEach((ending) => {
             ending.elements.forEach((element) => {
@@ -16135,16 +16236,17 @@ class VxSystem {
         const lastStaff = (staffId === this.score.staves.length - 1);
         const smoGroupMap = {};
         const adjXMap = {};
+        const vxMeasures = this.vxMeasures.filter((mm) => !mm.smoMeasure.svg.hideEmptyMeasure);
         // If this is the last staff in the column, render the column with justification
         if (lastStaff) {
-            this.vxMeasures.forEach((mm) => {
+            vxMeasures.forEach((mm) => {
                 if (typeof (adjXMap[mm.smoMeasure.measureNumber.systemIndex]) === 'undefined') {
                     adjXMap[mm.smoMeasure.measureNumber.systemIndex] = mm.smoMeasure.svg.adjX;
                 }
                 adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
             });
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
+            vxMeasures.forEach((vv) => {
+                if (!vv.rendered && !vv.smoMeasure.svg.hideEmptyMeasure) {
                     vv.vexNotes.forEach((vnote) => {
                         vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
                     });
@@ -16163,7 +16265,7 @@ class VxSystem {
             smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
         });
         if (lastStaff) {
-            this.vxMeasures.forEach((vv) => {
+            vxMeasures.forEach((vv) => {
                 if (!vv.rendered) {
                     vv.render();
                 }
@@ -16182,13 +16284,15 @@ class VxSystem {
             group.classList.add('lineBracket-' + this.lineIndex);
             group.classList.add('lineBracket');
             staff.bracketMap[this.lineIndex].push(group);
-            this.vxMeasures.forEach((vv) => {
+            vxMeasures.forEach((vv) => {
                 const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+                if (systemGroup && !renderedConnection[systemGroup.attrs.id] &&
+                    !vv.smoMeasure.svg.hideEmptyMeasure) {
                     renderedConnection[systemGroup.attrs.id] = 1;
                     const startSel = this.vxMeasures[systemGroup.startSelector.staff];
                     const endSel = this.vxMeasures[systemGroup.endSelector.staff];
-                    if (startSel && endSel) {
+                    if (startSel && startSel.rendered &&
+                        endSel && endSel.rendered) {
                         const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
                             .setType(systemGroup.leftConnectorVx());
                         c1.setContext(this.context.getContext()).draw();
@@ -16196,18 +16300,35 @@ class VxSystem {
                     }
                 }
             });
-            if (!brackets && this.vxMeasures.length > 1) {
-                const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave, VF.StaveConnector.type.SINGLE_LEFT);
+            if (!brackets && vxMeasures.length > 1) {
+                const c2 = new VF.StaveConnector(vxMeasures[0].stave, vxMeasures[vxMeasures.length - 1].stave, VF.StaveConnector.type.SINGLE_LEFT);
                 c2.setContext(this.context.getContext()).draw();
             }
+            // draw outer brace on parts with multiple staves (e.g. keyboards)
+            vxMeasures.forEach((vv) => {
+                if (vv.selection.staff.partInfo.stavesAfter > 0) {
+                    if (this.vxMeasures.length > vv.selection.selector.staff + 1) {
+                        const endSel = this.vxMeasures[vv.selection.selector.staff + 1];
+                        const startSel = vv;
+                        if (startSel && startSel.rendered &&
+                            endSel && endSel.rendered) {
+                            const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+                                .setType(VF.StaveConnector.type.BRACE);
+                            c1.setContext(this.context.getContext()).draw();
+                        }
+                    }
+                }
+                ;
+            });
             this.context.getContext().closeGroup();
         }
         else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
             if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
                 const endMeasure = vxMeasure;
-                const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
-                    vv.selection.selector.measure === vxMeasure.selection.selector.measure);
-                if (endMeasure && startMeasure) {
+                const startMeasure = vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
+                    vv.selection.selector.measure === vxMeasure.selection.selector.measure &&
+                    vv.smoMeasure.svg.hideEmptyMeasure === false);
+                if (endMeasure && endMeasure.stave && startMeasure && startMeasure.stave) {
                     const group = this.context.getContext().openGroup();
                     group.classList.add('endBracket-' + this.lineIndex);
                     group.classList.add('endBracket');
@@ -16397,6 +16518,7 @@ class SmoMeasure {
             forceKeySignature: false,
             forceTimeSignature: false,
             forceTempo: false,
+            hideEmptyMeasure: false,
             hideMultimeasure: false,
             multimeasureLength: 0,
             multimeasureEndBarline: measureModifiers_1.SmoBarline.barlines['singleBar'],
@@ -17181,11 +17303,13 @@ class SmoMeasure {
         let i = 0;
         for (i = 0; i < this.voices.length; ++i) {
             const voice = this.voices[i];
-            if (voice.notes.length === 1 && voice.notes[0].isRest()) {
-                return true;
+            for (var j = 0; j < voice.notes.length; ++j) {
+                if (!voice.notes[j].isRest()) {
+                    return false;
+                }
             }
         }
-        return false;
+        return true;
     }
     // ### populateVoice
     // Create a new voice in this measure, and populate it with the default note
@@ -18537,7 +18661,7 @@ class SmoMusic {
                 { letter: 'c', accidental: '#', role: '6' },
                 { letter: 'c', accidental: '##', role: '7/7' },
                 { letter: 'd', accidental: 'n', role: 'b7' },
-                { letter: 'd', accidental: '#', role: 'b7' }
+                { letter: 'd', accidental: '#', role: '7' }
             ], 'f': [
                 { letter: 'f', accidental: 'n', role: 'tonic' },
                 { letter: 'f', accidental: '#', role: '7/2' },
@@ -19740,7 +19864,7 @@ class SmoNote {
      * @internal
      */
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
             'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
     }
     /**
@@ -21039,6 +21163,15 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
         });
         return rv;
     }
+    updateTextGroup(textGroup, toAdd) {
+        const tgid = typeof (textGroup) === 'string' ? textGroup :
+            textGroup.attrs.id;
+        const ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
+        this.textGroups = ar;
+        if (toAdd) {
+            this.textGroups.push(textGroup);
+        }
+    }
 }
 exports.SmoPartInfo = SmoPartInfo;
 
@@ -21090,7 +21223,7 @@ class SmoScoreInfo {
     }
 }
 exports.SmoScoreInfo = SmoScoreInfo;
-exports.SmoScorePreferenceBools = ['autoPlay', 'autoAdvance', 'showPiano', 'transposingScore'];
+exports.SmoScorePreferenceBools = ['autoPlay', 'autoAdvance', 'showPiano', 'hideEmptyLines', 'transposingScore'];
 exports.SmoScorePreferenceNumbers = ['defaultDupleDuration', 'defaultTripleDuration'];
 /**
  * Some default SMO behavior
@@ -21099,6 +21232,7 @@ exports.SmoScorePreferenceNumbers = ['defaultDupleDuration', 'defaultTripleDurat
  * @param defaultDupleDuration in ticks, even metered measures
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param showPiano show the piano widget in the score
+ * @param hideEmptyLines Hide empty lines in full score
  * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
  */
@@ -21109,6 +21243,7 @@ class SmoScorePreferences {
         this.defaultDupleDuration = 4096;
         this.defaultTripleDuration = 6144;
         this.showPiano = true;
+        this.hideEmptyLines = false;
         this.transposingScore = false;
         if (params) {
             exports.SmoScorePreferenceBools.forEach((bb) => {
@@ -21126,6 +21261,7 @@ class SmoScorePreferences {
             defaultDupleDuration: 4096,
             defaultTripleDuration: 6144,
             showPiano: true,
+            hideEmptyLines: false,
             transposingScore: false
         };
     }
@@ -21194,6 +21330,7 @@ class SmoScore {
                 defaultDupleDuration: 4096,
                 defaultTripleDuration: 6144,
                 showPiano: true,
+                hideEmptyLines: false,
                 transposingScore: false
             },
             staves: [],
@@ -21429,7 +21566,7 @@ class SmoScore {
      * @returns SmoScore
      */
     static deserialize(jsonString) {
-        var _a;
+        var _a, _b;
         let jsonObj = JSON.parse(jsonString);
         let upconvertFormat = false;
         let formattingManager = null;
@@ -21472,6 +21609,7 @@ class SmoScore {
             params.audioSettings = scoreModifiers_1.SmoScoreModifierBase.deserialize(jsonObj.audioSettings);
         }
         params.preferences.transposingScore = (_a = params.preferences.transposingScore) !== null && _a !== void 0 ? _a : false;
+        params.preferences.hideEmptyLines = (_b = params.preferences.hideEmptyLines) !== null && _b !== void 0 ? _b : false;
         jsonObj.staves.forEach((staffObj, staffIx) => {
             staffObj.staffId = staffIx;
             const staff = systemStaff_1.SmoSystemStaff.deserialize(staffObj);
@@ -21479,7 +21617,7 @@ class SmoScore {
         });
         const textGroups = [];
         jsonObj.textGroups.forEach((tg) => {
-            textGroups.push(scoreText_1.SmoTextGroup.deserialize(tg));
+            textGroups.push(scoreText_1.SmoTextGroup.deserializePreserveId(tg));
         });
         const systemGroups = [];
         if (jsonObj.systemGroups) {
@@ -21620,6 +21758,16 @@ class SmoScore {
             const defaultMeasure = measure_1.SmoMeasure.getDefaultMeasureWithNotes(parameters);
             staff.addMeasure(measureIndex, defaultMeasure);
         });
+    }
+    replaceTextGroup(tgr) {
+        const tgar = [];
+        this.textGroups.forEach((tg) => {
+            if (tg.attrs.id !== tgr.attrs.id) {
+                tgar.push(tg);
+            }
+        });
+        tgar.push(tgr);
+        this.textGroups = tgar;
     }
     /**
      * delete the measure at the supplied index in all the staves
@@ -21861,7 +22009,7 @@ class SmoScore {
         });
         this.numberStaves();
     }
-    _updateTextGroup(textGroup, toAdd) {
+    updateTextGroup(textGroup, toAdd) {
         const tgid = typeof (textGroup) === 'string' ? textGroup :
             textGroup.attrs.id;
         const ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
@@ -21871,7 +22019,7 @@ class SmoScore {
         }
     }
     addTextGroup(textGroup) {
-        this._updateTextGroup(textGroup, true);
+        this.updateTextGroup(textGroup, true);
     }
     getTextGroups() {
         return this.textGroups;
@@ -21882,7 +22030,7 @@ class SmoScore {
         });
     }
     removeTextGroup(textGroup) {
-        this._updateTextGroup(textGroup, false);
+        this.updateTextGroup(textGroup, false);
     }
     setLyricAdjustWidth(adjustNoteWidth) {
         this.staves.forEach((staff) => {
@@ -22607,7 +22755,7 @@ class SmoTextGroup extends scoreModifiers_1.SmoScoreModifierBase {
         this.elements = [];
         this.textBlocks = [];
         this.edited = false; // indicates not edited this session
-        this.skipRender = false; // don't render if it is being edited
+        this.skipRender = false; // don't render if it is being edited  
         if (typeof (params) === 'undefined') {
             params = {};
         }
@@ -22743,6 +22891,13 @@ class SmoTextGroup extends scoreModifiers_1.SmoScoreModifierBase {
         });
         params.blocks = blocks;
         return new SmoTextGroup(params);
+    }
+    static deserializePreserveId(jObj) {
+        const rv = SmoTextGroup.deserialize(jObj);
+        if (jObj.attrs.id) {
+            rv.attrs.id = jObj.attrs.id;
+        }
+        return rv;
     }
     // ### getPagedTextGroups
     // If this text is repeated on page, create duplicates for each page, and
@@ -23532,7 +23687,7 @@ class SmoSystemStaff {
             // Deserialize the text groups first
             const tgs = [];
             jsonObj.partInfo.textGroups.forEach((tgSer) => {
-                tgs.push(scoreText_1.SmoTextGroup.deserialize(tgSer));
+                tgs.push(scoreText_1.SmoTextGroup.deserializePreserveId(tgSer));
             });
             jsonObj.partInfo.textGroups = tgs;
             params.partInfo = new partInfo_1.SmoPartInfo(jsonObj.partInfo);
@@ -31449,10 +31604,10 @@ class UndoBuffer {
             }
             else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
                 // Currently only one type like this: SmoTextGroup
-                if (buf.json.ctor === 'SmoTextGroup') {
-                    const obj = scoreText_1.SmoTextGroup.deserialize(buf.json);
+                if (buf.json && buf.json.ctor === 'SmoTextGroup') {
+                    const obj = scoreText_1.SmoTextGroup.deserializePreserveId(buf.json);
                     obj.attrs.id = buf.json.attrs.id;
-                    // undo of add is remove, undo of remove is add
+                    // undo of add is remove, undo of remove is add.  Undo of update is remove and add older version
                     if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
                         score.removeTextGroup(obj);
                     }
@@ -31468,7 +31623,11 @@ class UndoBuffer {
                     score.replaceStaff(buf.selector.staff, staff);
                 }
             }
-            if (grouping && this.peek() && this.peek().grouped) {
+            const peekBuf = this.peekIndex(peekIndex + 1);
+            // If buf is grouped and not the first in the group, also undo the next buffer
+            if (grouping && peekBuf !== null && peekBuf.grouped && buf.firstInGroup === false) {
+                // For the backup/full score, we actually pop the buffer.  For the visible score, we 
+                // just use copies of the buffer.
                 if (pop) {
                     buf = this._pop();
                 }
@@ -31488,6 +31647,7 @@ class UndoBuffer {
     }
 }
 exports.UndoBuffer = UndoBuffer;
+UndoBuffer.groupCount = 0;
 // ## SmoUndoable
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
@@ -38406,7 +38566,6 @@ class RibbonButtons {
     _executeButtonModal(buttonElement, buttonData) {
         if (isModalButtonType(buttonData.ctor)) {
             const params = {
-                undoBuffer: this.view.undoBuffer,
                 eventSource: this.eventSource,
                 completeNotifier: this.controller,
                 view: this.view,
@@ -38647,7 +38806,6 @@ class TextButtons extends button_1.SuiButton {
         (0, dialog_1.createAndDisplayDialog)(lyric_1.SuiLyricDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'lyricDialog',
             ctor: 'SuiLyricDialog',
@@ -38668,7 +38826,6 @@ class TextButtons extends button_1.SuiButton {
         (0, dialog_1.createAndDisplayDialog)(chordChange_1.SuiChordChangeDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'chordDialog',
             ctor: 'SuiChordChangeDialog',
@@ -38691,7 +38848,6 @@ class TextButtons extends button_1.SuiButton {
         (0, dialog_1.createAndDisplayDialog)(textBlock_1.SuiTextBlockDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'chordDialog',
             ctor: 'SuiChordChangeDialog',
@@ -39607,6 +39763,10 @@ class SuiDragText extends baseComponent_1.SuiComponentBase {
             this.session.dragging = false;
             this.session.endDrag();
         }
+        if (this.session) {
+            this.session.unrender();
+        }
+        this.handleChanged();
         this.running = false;
     }
     startEditSession() {
@@ -39635,7 +39795,6 @@ class SuiDragText extends baseComponent_1.SuiComponentBase {
         if (this.session && this.session.dragging) {
             this.session.endDrag();
             this.dragging = false;
-            this.handleChanged();
         }
     }
     bind() {
@@ -40756,6 +40915,13 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
         this.value = this.session.textGroup;
         const button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        // Erase the original since we are going to edit it now.
+        if (this.value) {
+            this.value.elements.forEach((el) => {
+                el.remove();
+            });
+            this.value.elements = [];
+        }
         this.session.startSession();
         // blur the button so key events don't get passed to it.
         $(this._getInputElement()).blur();
@@ -42927,6 +43093,9 @@ SuiInstrumentDialog.dialogElements = {
                     value: 'jazzBass',
                     label: 'Bass (plucked)'
                 }, {
+                    value: 'eGuitar',
+                    label: 'Electric Guitar'
+                }, {
                     value: 'cello',
                     label: 'Cello'
                 }, {
@@ -44100,7 +44269,7 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
     set preserveTextGroups(value) {
         if (value === true && this.partInfo.textGroups.length === 0) {
             this.view.score.textGroups.forEach((tg) => {
-                const ngrp = scoreText_1.SmoTextGroup.deserialize(tg.serialize());
+                const ngrp = scoreText_1.SmoTextGroup.deserializePreserveId(tg.serialize());
                 this.partInfo.textGroups.push(ngrp);
             });
         }
@@ -44277,6 +44446,13 @@ class SuiScorePreferencesAdapter extends adapter_1.SuiComponentAdapter {
         this.preferences.showPiano = value;
         this.view.updateScorePreferences(this.preferences);
     }
+    get hideEmptyLines() {
+        return this.preferences.hideEmptyLines;
+    }
+    set hideEmptyLines(value) {
+        this.preferences.hideEmptyLines = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
     get defaultDupleDuration() {
         return this.preferences.defaultDupleDuration;
     }
@@ -44334,6 +44510,10 @@ SuiScorePreferencesDialog.dialogElements = {
             smoName: 'transposingScore',
             control: 'SuiToggleComponent',
             label: 'Tranpose Score'
+        }, {
+            smoName: 'hideEmptyLines',
+            control: 'SuiToggleComponent',
+            label: 'Hide Empty Lines'
         }, {
             smoName: 'defaultDupleDuration',
             control: 'SuiDropdownComponent',
@@ -45238,10 +45418,17 @@ const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.ts");
 class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         let edited = false;
+        let isNew = false;
         const tracker = parameters.view.tracker;
+        ['staffModifier', 'suggestion'].forEach((outlineType) => {
+            if (tracker.outlines[outlineType]) {
+                svgHelpers_1.SvgHelpers.eraseOutline(tracker.outlines[outlineType]);
+            }
+        });
         const layout = parameters.view.score.layoutManager.getGlobalLayout();
         // Create a new text modifier, if this is new text.   Else use selection
         if (!parameters.modifier) {
+            isNew = true;
             const textParams = scoreText_1.SmoScoreText.defaults;
             textParams.position = scoreText_1.SmoScoreText.positions.custom;
             const newText = new scoreText_1.SmoScoreText(textParams);
@@ -45272,6 +45459,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         }
         super(SuiTextBlockDialog.dialogElements, parameters);
         this.outlineRect = null;
+        this.isNew = isNew;
         this.modifier = parameters.modifier;
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
         this.edited = edited;
@@ -45500,8 +45688,6 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         if (this.mouseClickHandler) {
             this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
         }
-        const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
-        const svg = pageContext.svg;
         if (this.outlineRect) {
             svgHelpers_1.SvgHelpers.eraseOutline(this.outlineRect);
         }
@@ -45522,6 +45708,10 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
             this.view.groupUndo(false);
             if (this.edited) {
+                this.modifier.elements.forEach((element) => {
+                    element.remove();
+                });
+                this.modifier.elements = [];
                 this.view.undo();
             }
             this._complete();
@@ -52840,8 +53030,7 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
             view: this.view,
             completeNotifier: this.completeNotifier,
             startPromise: this.closePromise,
-            tracker: this.tracker,
-            undoBuffer: this.undoBuffer,
+            tracker: this.tracker
         });
     }
     selection(ev) {
@@ -52854,7 +53043,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -52867,7 +53055,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -52893,7 +53080,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -52906,7 +53092,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -52919,7 +53104,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -52932,7 +53116,6 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
-                undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
@@ -53454,7 +53637,6 @@ class SuiMeasureMenu extends menu_1.SuiMenuBase {
                 tracker: this.tracker,
                 ctor: 'SuiMeasureDialog',
                 id: 'measure-dialog',
-                undoBuffer: this.undoBuffer,
                 modifier: null
             });
             this.complete();
@@ -53469,7 +53651,6 @@ class SuiMeasureMenu extends menu_1.SuiMenuBase {
                 tracker: this.tracker,
                 ctor: 'SuiMeasureDialog',
                 id: 'insert-dialog',
-                undoBuffer: this.undoBuffer,
                 modifier: null
             });
             this.complete();
@@ -53572,6 +53753,61 @@ class SuiMenuBase {
     keydown() { }
 }
 exports.SuiMenuBase = SuiMenuBase;
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/note.ts":
+/*!******************************!*\
+  !*** ./src/ui/menus/note.ts ***!
+  \******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiNoteMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+class SuiNoteMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    getDefinition() {
+        return SuiNoteMenu.defaults;
+    }
+    selection(ev) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const text = $(ev.currentTarget).attr('data-value');
+            if (text === 'toggleCueCmd') {
+                yield this.view.toggleCue();
+            }
+            this.complete();
+        });
+    }
+}
+exports.SuiNoteMenu = SuiNoteMenu;
+SuiNoteMenu.defaults = {
+    label: 'Measure',
+    menuItems: [
+        {
+            icon: '',
+            text: 'Toggle Cue',
+            value: 'toggleCueCmd'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }
+    ]
+};
 
 
 /***/ }),
@@ -53680,7 +53916,6 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(newPart_1.SuiNewPartDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'newPartDialog',
             ctor: 'SuiNewPartDialog',
@@ -53693,7 +53928,6 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(scoreView_1.SuiScoreViewDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'scoreViewDialog',
             ctor: 'SuiScoreViewDialog',
@@ -53712,7 +53946,6 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
             (0, dialog_1.createAndDisplayDialog)(partInfo_1.SuiPartInfoDialog, {
                 completeNotifier: self.completeNotifier,
                 view: self.view,
-                undoBuffer: self.view.undoBuffer,
                 eventSource: self.eventSource,
                 id: 'editPart',
                 ctor: 'SuiPartInfoDialog',
@@ -53726,7 +53959,6 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(instrument_1.SuiInstrumentDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'instrumentModal',
             ctor: 'SuiInstrumentDialog',
@@ -53743,7 +53975,6 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(pageLayout_1.SuiPageLayoutDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'layoutDialog',
             ctor: 'SuiPageLayoutDialog',
@@ -53917,7 +54148,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(staffGroup_1.SuiStaffGroupDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'staffGroups',
             ctor: 'SuiStaffGroupDialog',
@@ -53930,7 +54160,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         scoreId_1.SuiScoreIdentificationDialog.createAndDisplay({
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'scoreIdDialog',
             ctor: 'SuiScoreIdentificationDialog',
@@ -53943,7 +54172,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(pageLayout_1.SuiPageLayoutDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'layoutDialog',
             ctor: 'SuiPageLayoutDialog',
@@ -53956,7 +54184,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         fonts_1.SuiScoreFontDialog.createAndDisplay({
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'fontDialog',
             ctor: 'SuiScoreFontDialog',
@@ -53969,7 +54196,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(globalLayout_1.SuiGlobalLayoutDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'globalLayout',
             ctor: 'SuiGlobalLayoutDialog',
@@ -53982,7 +54208,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(preferences_1.SuiScorePreferencesDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'preferences',
             ctor: 'SuiScorePreferencesDialog',
@@ -53995,7 +54220,6 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         (0, dialog_1.createAndDisplayDialog)(audioSettings_1.SuiAudioSettingsDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             id: 'audioSettings',
             ctor: 'SuiAudioSettingsDialog',
@@ -54219,7 +54443,6 @@ class SuiTimeSignatureMenu extends menu_1.SuiMenuBase {
             (0, dialog_1.createAndDisplayDialog)(timeSignature_1.SuiTimeSignatureDialog, {
                 completeNotifier: this.completeNotifier,
                 view: this.view,
-                undoBuffer: this.view.undoBuffer,
                 eventSource: this.eventSource,
                 id: 'staffGroups',
                 ctor: 'SuiStaffGroupDialog',
@@ -54516,7 +54739,7 @@ class defaultRibbonLayout {
     }
     static get leftRibbonIds() {
         return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-            'scoreMenu', 'partMenu', 'addStaffMenu', 'measureModal',
+            'scoreMenu', 'partMenu', 'noteMenu', 'addStaffMenu', 'measureModal',
             'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
             'pianoModal'];
     }
@@ -56034,8 +56257,16 @@ class defaultRibbonLayout {
                 ctor: 'SuiPartMenu',
                 group: 'scoreEdit',
                 id: 'partMenu'
-            },
-            {
+            }, {
+                leftText: 'Notes',
+                rightText: '',
+                icon: 'icon-note',
+                classes: 'icon',
+                action: 'menu',
+                ctor: 'SuiNoteMenu',
+                group: 'scoreEdit',
+                id: 'noteMenu'
+            }, {
                 leftText: 'Measure',
                 rightText: '/a',
                 icon: '',
