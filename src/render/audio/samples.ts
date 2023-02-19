@@ -154,6 +154,20 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
+      sample: 'eguitar-e3',
+      family: 'strings',
+      instrument: 'eGuitar',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 3 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
+      sample: 'eguitar-d4',
+      family: 'strings',
+      instrument: 'eGuitar',
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'd', accidental: 'n', octave: 4 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'sustained',
       sample: 'sample-bass-a1',
       family: 'strings',
       instrument: 'bass',

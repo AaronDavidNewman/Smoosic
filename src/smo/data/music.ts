@@ -514,7 +514,7 @@ export class SmoMusic {
         { letter: 'c', accidental: '#', role: '6'},
         { letter: 'c', accidental: '##', role: '7/7'},
         { letter: 'd', accidental: 'n', role: 'b7'},
-        { letter: 'd', accidental: '#', role: 'b7'}
+        { letter: 'd', accidental: '#', role: '7'}
       ], 'f': [
         { letter: 'f', accidental: 'n', role: 'tonic' },
         { letter: 'f', accidental: '#', role: '7/2' },

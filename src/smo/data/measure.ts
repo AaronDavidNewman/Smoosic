@@ -1097,8 +1097,10 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     let i = 0;
     for (i = 0; i < this.voices.length; ++i) {
       const voice = this.voices[i];
-      if (!voice.notes[0].isRest()) {
-        return false;
+      for (var j = 0; j < voice.notes.length; ++j) {
+        if (!voice.notes[j].isRest()) {
+          return false;
+        }
       }
     }
     return true;

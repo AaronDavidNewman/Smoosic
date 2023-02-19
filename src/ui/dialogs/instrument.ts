@@ -116,6 +116,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               value: 'jazzBass',
               label: 'Bass (plucked)'
             }, {
+              value: 'eGuitar',
+              label: 'Electric Guitar'
+            }, {
               value: 'cello',
               label: 'Cello'
             }, {

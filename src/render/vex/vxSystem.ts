@@ -6,6 +6,7 @@ import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
+import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
 import { SuiScroller } from '../sui/scroller';
@@ -484,15 +485,16 @@ export class VxSystem {
     const lastStaff = (staffId === this.score.staves.length - 1);
     const smoGroupMap: Record<string, SuiSystemGroup> = {};
     const adjXMap: Record<number, number> = {};
+    const vxMeasures = this.vxMeasures.filter((mm) => !mm.smoMeasure.svg.hideEmptyMeasure);
     // If this is the last staff in the column, render the column with justification
     if (lastStaff) {
-      this.vxMeasures.forEach((mm) => {
+      vxMeasures.forEach((mm) => {
         if (typeof(adjXMap[mm.smoMeasure.measureNumber.systemIndex]) === 'undefined') {
           adjXMap[mm.smoMeasure.measureNumber.systemIndex] = mm.smoMeasure.svg.adjX;
         }
         adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
       });
-      this.vxMeasures.forEach((vv: VxMeasure) => {
+      vxMeasures.forEach((vv: VxMeasure) => {
         if (!vv.rendered && !vv.smoMeasure.svg.hideEmptyMeasure) {
           vv.vexNotes.forEach((vnote) => {
             vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
@@ -512,7 +514,7 @@ export class VxSystem {
       smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
     });
     if (lastStaff) {
-      this.vxMeasures.forEach((vv) => {
+      vxMeasures.forEach((vv) => {
         if (!vv.rendered) {
           vv.render();
         }
@@ -532,7 +534,7 @@ export class VxSystem {
       group.classList.add('lineBracket-' + this.lineIndex);
       group.classList.add('lineBracket');
       staff.bracketMap[this.lineIndex].push(group);
-      this.vxMeasures.forEach((vv) => {
+      vxMeasures.forEach((vv) => {
         const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
         if (systemGroup && !renderedConnection[systemGroup.attrs.id] && 
           !vv.smoMeasure.svg.hideEmptyMeasure) {
@@ -548,20 +550,34 @@ export class VxSystem {
           }
         }
       });
-
-      if (!brackets && this.vxMeasures.length > 1 && !this.vxMeasures[0].smoMeasure.svg.hideEmptyMeasure) {
-        const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave,
+      if (!brackets && vxMeasures.length > 1) {
+        const c2 = new VF.StaveConnector(vxMeasures[0].stave, vxMeasures[vxMeasures.length - 1].stave,
           VF.StaveConnector.type.SINGLE_LEFT);
         c2.setContext(this.context.getContext()).draw();
       }
+        // draw outer brace on parts with multiple staves (e.g. keyboards)
+      vxMeasures.forEach((vv) => {
+        if (vv.selection.staff.partInfo.stavesAfter > 0) {
+          if (this.vxMeasures.length > vv.selection.selector.staff + 1) {
+            const endSel = this.vxMeasures[vv.selection.selector.staff + 1];
+            const startSel = vv;
+            if (startSel && startSel.rendered && 
+              endSel && endSel.rendered) {
+                const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+                .setType(VF.StaveConnector.type.BRACE);
+              c1.setContext(this.context.getContext()).draw();                
+            }
+          }
+        };
+      });
       this.context.getContext().closeGroup();
     } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
       if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
         const endMeasure = vxMeasure;
-        const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
+        const startMeasure = vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
           vv.selection.selector.measure === vxMeasure.selection.selector.measure && 
           vv.smoMeasure.svg.hideEmptyMeasure === false);
-        if (endMeasure && startMeasure && !endMeasure.smoMeasure.svg.hideEmptyMeasure) {
+        if (endMeasure && endMeasure.stave && startMeasure && startMeasure.stave) {
           const group = this.context.getContext().openGroup();
           group.classList.add('endBracket-' + this.lineIndex);
           group.classList.add('endBracket');
@@ -573,6 +589,8 @@ export class VxSystem {
         }
       }
     }
+    
+
 
     // keep track of left-hand side for system connectors
     if (systemIndex === 0) {
