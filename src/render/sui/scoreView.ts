@@ -465,7 +465,7 @@ export abstract class SuiScoreView {
    * @returns 
    */
   isPartExposed(): boolean {
-    return this.score.isPartExposed() && this.storeScore.staves.length > 1;
+    return this.score.isPartExposed();
   }
   /**
    * Parts have different formatting options from the parent score, indluding layout.  Reset
@@ -585,6 +585,9 @@ export abstract class SuiScoreView {
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this.synchronizeTextGroups();
+    if (this.storeScore.isPartExposed()) {
+      this.exposePart(this.score.staves[0]);
+    }
     const rv = this.renderPromise();
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;

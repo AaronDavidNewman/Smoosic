@@ -281,7 +281,7 @@ export interface SmoLayoutManagerParams {
 export class SmoLayoutManager extends SmoScoreModifierBase {
   static get defaultLayout(): SmoGlobalLayout {
     return {
-      svgScale: 1.0,
+      svgScale: 0.55,
       zoomScale: 2.0,
       noteSpacing: 1.0,
       pageWidth: 8 * 96 + 48,

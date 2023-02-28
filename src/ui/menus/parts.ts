@@ -131,9 +131,8 @@ export class SuiPartMenu extends SuiMenuBase {
       });
   }
   preAttach() {
-    const fullScore = this.view.storeScore.staves.length === this.view.score.staves.length;
+    const fullScore = this.view.score.staves.length < this.view.storeScore.staves.length;
     const defs: MenuChoiceDefinition[] = [];
-    const partInfo = this.view.getPartMap();
     this.menuItems.forEach((item) => {
       // Only show 'display all' if the full score is not already displayed
       if (item.value === 'viewAll') {
@@ -151,7 +150,7 @@ export class SuiPartMenu extends SuiMenuBase {
           defs.push(item);
         }
       } else if (item.value === 'editPart') {
-        if (this.view.isPartExposed() && this.view.storeScore.staves.length > 1) {
+        if (this.view.isPartExposed()) {
           item.text = 'Part Properties';
           defs.push(item);
         }

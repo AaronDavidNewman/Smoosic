@@ -89,6 +89,12 @@ export class VxMeasure {
     }
   }
 
+  isWholeRest() {
+    return (this.smoMeasure.voices.length === 1 &&
+      this.smoMeasure.voices[0].notes.length === 1 &&
+      this.smoMeasure.voices[0].notes[0].isRest()
+      );
+  }
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote: SmoNote, vexNote: any) {
     const tones = smoNote.getMicrotones();
@@ -136,7 +142,9 @@ export class VxMeasure {
     }
     for (i = 0; i < smoNote.dots; ++i) {
       for (var j = 0; j < smoNote.pitches.length; ++j) {
-        vexNote.addModifier(new VF.Dot(), j);
+        if (!this.isWholeRest()) {
+          vexNote.addModifier(new VF.Dot(), j);
+        }
       }
     }
     this._createMicrotones(smoNote, vexNote);
@@ -346,14 +354,10 @@ export class VxMeasure {
       if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
         vexNote.setXShift(-10);
       }
-      if (this.smoMeasure.voices.length === 1 &&
-        this.smoMeasure.voices[0].notes.length === 1) {
-        const sn = this.smoMeasure.voices[0].notes[0];
-        if (sn.isRest()) {
-          noteParams.duration = 'wr';
-          vexNote = new VF.StaveNote(noteParams);
-          vexNote.setCenterAlignment(true);
-        }
+      if (this.isWholeRest()) {
+        noteParams.duration = 'wr';
+        vexNote = new VF.StaveNote(noteParams);
+        vexNote.setCenterAlignment(true);
       }
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
