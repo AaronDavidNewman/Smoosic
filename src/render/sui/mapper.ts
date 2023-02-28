@@ -415,7 +415,9 @@ export abstract class SuiMapper {
     // Keep track of any current selections in this measure, we will try to restore them.
     const sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(measure);
-    vix = measure.getActiveVoice();
+    if (sels.selectors.length) {
+      vix = sels.selectors[0].voice;
+    }
     sels.selectors.forEach((sel) => {
       sel.voice = vix;
     });

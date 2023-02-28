@@ -350,6 +350,8 @@ export class VxMeasure {
         this.smoMeasure.voices[0].notes.length === 1) {
         const sn = this.smoMeasure.voices[0].notes[0];
         if (sn.isRest()) {
+          noteParams.duration = 'wr';
+          vexNote = new VF.StaveNote(noteParams);
           vexNote.setCenterAlignment(true);
         }
       }

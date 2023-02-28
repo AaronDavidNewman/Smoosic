@@ -2,8 +2,14 @@
 // Copyright (c) Aaron David Newman 2021.
 import { buildDom, createTopDomContainer } from '../common/htmlHelpers';
 import { SuiEventHandler } from '../application/eventHandler';
+import { SuiScoreView } from '../render/sui/scoreView';
+declare var $: any;
+
 export class SuiExceptionHandler {
-  constructor(params) {
+  view: SuiScoreView;
+  thrown: boolean;
+  static _instance: SuiExceptionHandler;
+  constructor(params: any) {
     this.view = params.view;
     this.thrown = false;
     SuiExceptionHandler._instance = this;
@@ -11,7 +17,7 @@ export class SuiExceptionHandler {
   static get instance() {
     return SuiExceptionHandler._instance;
   }
-  exceptionHandler(e) {
+  exceptionHandler(e: any) {
     let stack = '';
     let doing = '';
     let scoreString = '';
@@ -19,18 +25,18 @@ export class SuiExceptionHandler {
       return;
     }
     this.thrown = true;
-    if (window.SuiEventHandler && window.SuiEventHandler.reentry) {
+    if (SuiEventHandler.reentry) {
       return;
     }
 
-    if (window.SuiEventHandler) {
-      SuiEventHandler.reentry = true;
-    }
+    SuiEventHandler.reentry = true;
     scoreString = 'Could not serialize score.';
     try {
       scoreString = this.view.score.serialize();
-    } catch (e) {
-      scoreString += ' ' + e.message;
+    } catch (e: any) {
+      if (e.message) {
+        scoreString += ' ' + e.message;
+      }
     }
     const message = e.message;
     stack = 'No stack trace available';
@@ -41,12 +47,12 @@ export class SuiExceptionHandler {
       } else if (e.stack) {
         stack = e.stack;
       }
-    } catch (e2) {
+    } catch (e2: any) {
       stack = 'Error with stack: ' + e2.message;
     }
     doing = 'Last operation not available.';
 
-    const lastOp = this.view.undoBuffer.peek();
+    const lastOp = this.view.storeUndo.peek();
     if (lastOp) {
       doing = lastOp.title;
     }
@@ -75,7 +81,7 @@ export class SuiExceptionHandler {
     $('.bug-dismiss-button').off('click').on('click', () => {
       $('body').removeClass('bugReport');
       if (lastOp) {
-        this.view.undoBuffer.undo(this.view.score);
+        this.view.storeUndo.undo(this.view.score, {}, true);
         this.view.renderer.render();
         SuiEventHandler.reentry = false;
       }

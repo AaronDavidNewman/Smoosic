@@ -398,6 +398,10 @@ export abstract class SuiScoreView {
    */
   startRenderingEngine() {
     if (!this.renderer.score) {
+      // If there is only one part, display the part.
+      if (this.storeScore.isPartExposed()) {
+        this.exposePart(this.score.staves[0]);
+      }
       // If the score is transposing, hide the instrument xpose settings
       this._setTransposing();
       this.renderer.score = this.score;
@@ -498,7 +502,9 @@ export abstract class SuiScoreView {
       const row = rows[i];
       if (row.show) {
         const srcStave = this.storeScore.staves[i];
-        const nStave = SmoSystemStaff.deserialize(srcStave.serialize());
+        const jsonObj = srcStave.serialize();
+        jsonObj.staffId = staffMap.length;
+        const nStave = SmoSystemStaff.deserialize(jsonObj);
         nStave.mapStaffFromTo(i, nscore.staves.length);
         nscore.staves.push(nStave);
         if (srcStave.keySignatureMap) {

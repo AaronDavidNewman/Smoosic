@@ -148,6 +148,9 @@ export class PasteBuffer {
       return;
     }
     const measure = measureSelection.measure;
+    while (measure.voices.length <= this.destination.voice) {
+      measure.populateVoice(measure.voices.length);
+    }
     const tickmap = measure.tickmapForVoice(this.destination.voice);
     let currentDuration = tickmap.durationMap[this.destination.tick];
     this.measures = [];
@@ -235,6 +238,10 @@ export class PasteBuffer {
     measureVoices.push(voice);
     while (this.measureIndex < measures.length) {
       measure = measures[this.measureIndex];
+      while (measure.voices.length <= this.destination.voice) {
+        const nvoice = { notes : SmoMeasure.getDefaultNotes(measure) };
+        measure.voices.push(nvoice);
+      }
       tickmap = measure.tickmapForVoice(this.destination.voice);
       this._populateNew(voice, measure, tickmap, startSelector);
       if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
@@ -413,7 +420,7 @@ export class PasteBuffer {
 
   _pasteVoiceSer(ser: any, vobj: any, voiceIx: number) {
     const voices: any[] = [];
-    let ix = 0;
+    let ix = 0;    
     ser.voices.forEach((vc: any) => {
       if (ix !== voiceIx) {
         voices.push(vc);
@@ -422,11 +429,17 @@ export class PasteBuffer {
       }
       ix += 1;
     });
+    // If we are pasting into a measure that doesn't contain this voice, add the voice
+    if (ser.voices.length <= voiceIx) {
+      voices.push(vobj);
+    }
     ser.voices = voices;
   }
 
-  pasteSelections(score: SmoScore, selector: SmoSelector) {
+  pasteSelections(selector: SmoSelector) {
     let i = 0;
+    const maxCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
+    const minCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
     const backupNotes: PasteNote[] = [];
     this.notes.forEach((bb) => {
       const note = (SmoNote.deserialize(bb.note.serialize()));
@@ -434,6 +447,10 @@ export class PasteBuffer {
       backupNotes.push({ note, selector, originalKey: bb.originalKey });
     });
     this.destination = selector;
+    if (minCutVoice === maxCutVoice && minCutVoice > this.destination.voice) {
+      this.destination.voice = minCutVoice;
+      
+    }
     this.modifiersToPlace = [];
     if (this.notes.length < 1) {
       return;

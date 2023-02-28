@@ -309,6 +309,7 @@ export class SuiTracker extends SuiMapper {
     if (ticksLeft === 0) {
       if (rightmost.selector.measure < rightmost.staff.measures.length) {
         const mix = rightmost.selector.measure + 1;
+        rightmost.staff.measures[mix].setActiveVoice(rightmost.selector.voice);
         toSelect = rightmost.staff.measures[mix]
           .voices[rightmost.staff.measures[mix].activeVoice].notes.length;
       }
@@ -336,6 +337,7 @@ export class SuiTracker extends SuiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
+    artifact.measure.setActiveVoice(nselect.voice);
     this.selections.push(artifact);
     if (this.autoPlay && this.score) {
       SuiOscillator.playSelectionNow(artifact, this.score, 1);
@@ -353,9 +355,12 @@ export class SuiTracker extends SuiMapper {
     // const original = JSON.parse(JSON.stringify(this.getExtremeSelection(-1).selector));
     const nselect = this._getOffsetSelection(1);
     // skip any measures that are not displayed due to rest or repetition
-    const mselect = SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
+    const mselect = SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);    
     if (mselect?.measure.svg.multimeasureLength) {
       nselect.measure += mselect?.measure.svg.multimeasureLength;
+    }
+    if (mselect) {
+      mselect.measure.setActiveVoice(nselect.voice);
     }
     this._replaceSelection(nselect, skipPlay);
   }
@@ -370,6 +375,9 @@ export class SuiTracker extends SuiMapper {
     while (nselect.measure > 0 && mselect && (mselect.measure.svg.hideMultimeasure || mselect.measure.svg.multimeasureLength > 0)) {
       nselect.measure -= 1;
     }
+    if (mselect) {
+      mselect.measure.setActiveVoice(nselect.voice);
+    }    
     this._replaceSelection(nselect, false);
   }
   moveSelectionLeftMeasure() {
@@ -390,15 +398,6 @@ export class SuiTracker extends SuiMapper {
     }
     this.deferHighlight();
     this._createLocalModifiersList();
-  }
-
-  setSelection(selection: SmoSelector) {
-    const selObj = this._getClosestTick(selection);
-    this.idleTimer = Date.now();
-    if (selObj) {
-      this.selections = [selObj];
-    }
-    this.deferHighlight();
   }
 
   _moveStaffOffset(offset: number) {
@@ -482,6 +481,7 @@ export class SuiTracker extends SuiMapper {
     if (!artifact) {
       return;
     }
+    artifact.measure.setActiveVoice(nselector.voice);
 
     // clear modifier selections
     this.clearModifierSelections();
@@ -542,13 +542,15 @@ export class SuiTracker extends SuiMapper {
   }
 
   _selectFromToInStaff(score: SmoScore, sel1: SmoSelection, sel2: SmoSelection) {
-    const selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => 
+    const selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector);
+    /* .filter((ff) => 
       ff.selector.voice === sel1.measure.activeVoice
-    );
+    ); */
     this.selections = [];
     // Get the actual selections from our map, since the client bounding boxes are already computed
     selections.forEach((sel) => {
       const key = SmoSelector.getNoteKey(sel.selector);
+      sel.measure.setActiveVoice(sel.selector.voice);
       // Skip measures that are not rendered because they are part of a multi-rest
       if (this.measureNoteMap && this.measureNoteMap[key]) {
         this.selections.push(this.measureNoteMap[key]);

@@ -50,6 +50,7 @@ export class SuiEventHandler implements ModalEventHandler {
     SuiEventHandler.keyboardUi = Qwerty;
     Qwerty.displayKb();
   }
+  static instance: SuiEventHandler;
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
@@ -65,7 +66,7 @@ export class SuiEventHandler implements ModalEventHandler {
   piano: SuiPiano | null = null;
   exhandler: SuiExceptionHandler;  
   constructor(params: EventHandlerParams) {
-    (globalThis as any).SuiEventHandlerInstance = this;
+    SuiEventHandler.instance = this;
 
     this.view = params.view;
     this.config = params.config;

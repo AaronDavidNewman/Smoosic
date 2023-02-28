@@ -16,7 +16,7 @@ export class DisplaySettings extends SuiButton {
   }
   enablePartSelection() {
     const partMap = this.view.getPartMap();
-    const disable = partMap.keys.length < 2;
+    const disable = partMap.keys.length < 1;
     $(this.buttonElement[0]).prop('disabled', disable);
   }
   handleScoreChange(ev: any) {

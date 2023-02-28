@@ -1037,8 +1037,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const pasteTarget = firstSelection.selector;
     const altSelection = this._getEquivalentSelection(firstSelection);
     const altTarget = altSelection!.selector;
-    this.pasteBuffer.pasteSelections(this.score, pasteTarget);
-    this.storePaste.pasteSelections(this.storeScore, altTarget);
+    this.pasteBuffer.pasteSelections(pasteTarget);
+    this.storePaste.pasteSelections(altTarget);
     this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
     return this.renderer.updatePromise();
   }
