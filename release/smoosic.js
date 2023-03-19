@@ -704,7 +704,7 @@ exports.SuiDom = SuiDom;
 // Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiEventHandler = void 0;
-const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
+const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.ts");
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.ts");
 const factory_1 = __webpack_require__(/*! ../ui/dialogs/factory */ "./src/ui/dialogs/factory.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
@@ -728,7 +728,7 @@ class SuiEventHandler {
         this.trackScrolling = false;
         this.keyHandlerObj = null;
         this.piano = null;
-        globalThis.SuiEventHandlerInstance = this;
+        SuiEventHandler.instance = this;
         this.view = params.view;
         this.config = params.config;
         this.menus = params.menus;
@@ -966,7 +966,7 @@ exports.Smo = void 0;
 // ui application components
 const application_1 = __webpack_require__(/*! ./application */ "./src/application/application.ts");
 const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
-const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
+const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.ts");
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
@@ -6584,7 +6584,9 @@ class SuiMapper {
         // Keep track of any current selections in this measure, we will try to restore them.
         const sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
         this.clearMeasureMap(measure);
-        vix = measure.getActiveVoice();
+        if (sels.selectors.length) {
+            vix = sels.selectors[0].voice;
+        }
         sels.selectors.forEach((sel) => {
             sel.voice = vix;
         });
@@ -7188,7 +7190,7 @@ const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const scoreRender_1 = __webpack_require__(/*! ./scoreRender */ "./src/render/sui/scoreRender.ts");
-const exceptions_1 = __webpack_require__(/*! ../../ui/exceptions */ "./src/ui/exceptions.js");
+const exceptions_1 = __webpack_require__(/*! ../../ui/exceptions */ "./src/ui/exceptions.ts");
 const VF = eval('Vex.Flow');
 exports.scoreChangeEvent = 'smoScoreChangeEvent';
 /**
@@ -8588,6 +8590,10 @@ class SuiScoreView {
      */
     startRenderingEngine() {
         if (!this.renderer.score) {
+            // If there is only one part, display the part.
+            if (this.storeScore.isPartExposed()) {
+                this.exposePart(this.score.staves[0]);
+            }
             // If the score is transposing, hide the instrument xpose settings
             this._setTransposing();
             this.renderer.score = this.score;
@@ -8653,7 +8659,7 @@ class SuiScoreView {
      * @returns
      */
     isPartExposed() {
-        return this.score.isPartExposed() && this.storeScore.staves.length > 1;
+        return this.score.isPartExposed();
     }
     /**
      * Parts have different formatting options from the parent score, indluding layout.  Reset
@@ -8689,7 +8695,9 @@ class SuiScoreView {
             const row = rows[i];
             if (row.show) {
                 const srcStave = this.storeScore.staves[i];
-                const nStave = systemStaff_1.SmoSystemStaff.deserialize(srcStave.serialize());
+                const jsonObj = srcStave.serialize();
+                jsonObj.staffId = staffMap.length;
+                const nStave = systemStaff_1.SmoSystemStaff.deserialize(jsonObj);
                 nStave.mapStaffFromTo(i, nscore.staves.length);
                 nscore.staves.push(nStave);
                 if (srcStave.keySignatureMap) {
@@ -8771,6 +8779,9 @@ class SuiScoreView {
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this.synchronizeTextGroups();
+        if (this.storeScore.isPartExposed()) {
+            this.exposePart(this.score.staves[0]);
+        }
         const rv = this.renderPromise();
         window.dispatchEvent(new CustomEvent(renderState_1.scoreChangeEvent, { detail: { view: this } }));
         return rv;
@@ -9842,8 +9853,8 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const pasteTarget = firstSelection.selector;
         const altSelection = this._getEquivalentSelection(firstSelection);
         const altTarget = altSelection.selector;
-        this.pasteBuffer.pasteSelections(this.score, pasteTarget);
-        this.storePaste.pasteSelections(this.storeScore, altTarget);
+        this.pasteBuffer.pasteSelections(pasteTarget);
+        this.storePaste.pasteSelections(altTarget);
         this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
         return this.renderer.updatePromise();
     }
@@ -14259,6 +14270,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (ticksLeft === 0) {
             if (rightmost.selector.measure < rightmost.staff.measures.length) {
                 const mix = rightmost.selector.measure + 1;
+                rightmost.staff.measures[mix].setActiveVoice(rightmost.selector.voice);
                 toSelect = rightmost.staff.measures[mix]
                     .voices[rightmost.staff.measures[mix].activeVoice].notes.length;
             }
@@ -14286,6 +14298,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.selections.find((sel) => selections_1.SmoSelector.sameNote(sel.selector, artifact.selector))) {
             return 0;
         }
+        artifact.measure.setActiveVoice(nselect.voice);
         this.selections.push(artifact);
         if (this.autoPlay && this.score) {
             oscillator_1.SuiOscillator.playSelectionNow(artifact, this.score, 1);
@@ -14306,6 +14319,9 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (mselect === null || mselect === void 0 ? void 0 : mselect.measure.svg.multimeasureLength) {
             nselect.measure += mselect === null || mselect === void 0 ? void 0 : mselect.measure.svg.multimeasureLength;
         }
+        if (mselect) {
+            mselect.measure.setActiveVoice(nselect.voice);
+        }
         this._replaceSelection(nselect, skipPlay);
     }
     moveSelectionLeft() {
@@ -14317,6 +14333,9 @@ class SuiTracker extends mapper_1.SuiMapper {
         const mselect = selections_1.SmoSelection.measureSelection(this.score, nselect.staff, nselect.measure);
         while (nselect.measure > 0 && mselect && (mselect.measure.svg.hideMultimeasure || mselect.measure.svg.multimeasureLength > 0)) {
             nselect.measure -= 1;
+        }
+        if (mselect) {
+            mselect.measure.setActiveVoice(nselect.voice);
         }
         this._replaceSelection(nselect, false);
     }
@@ -14338,14 +14357,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
         this.deferHighlight();
         this._createLocalModifiersList();
-    }
-    setSelection(selection) {
-        const selObj = this._getClosestTick(selection);
-        this.idleTimer = Date.now();
-        if (selObj) {
-            this.selections = [selObj];
-        }
-        this.deferHighlight();
     }
     _moveStaffOffset(offset) {
         if (this.selections.length === 0 || this.score === null) {
@@ -14424,6 +14435,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!artifact) {
             return;
         }
+        artifact.measure.setActiveVoice(nselector.voice);
         // clear modifier selections
         this.clearModifierSelections();
         this.score.setActiveStaff(nselector.staff);
@@ -14475,11 +14487,15 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.selections = ar;
     }
     _selectFromToInStaff(score, sel1, sel2) {
-        const selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => ff.selector.voice === sel1.measure.activeVoice);
+        const selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector);
+        /* .filter((ff) =>
+          ff.selector.voice === sel1.measure.activeVoice
+        ); */
         this.selections = [];
         // Get the actual selections from our map, since the client bounding boxes are already computed
         selections.forEach((sel) => {
             const key = selections_1.SmoSelector.getNoteKey(sel.selector);
+            sel.measure.setActiveVoice(sel.selector.voice);
             // Skip measures that are not rendered because they are part of a multi-rest
             if (this.measureNoteMap && this.measureNoteMap[key]) {
                 this.selections.push(this.measureNoteMap[key]);
@@ -15139,6 +15155,11 @@ class VxMeasure {
             vxParams.stem_direction = 1;
         }
     }
+    isWholeRest() {
+        return (this.smoMeasure.voices.length === 1 &&
+            this.smoMeasure.voices[0].notes.length === 1 &&
+            this.smoMeasure.voices[0].notes[0].isRest());
+    }
     // We add microtones to the notes, without regard really to how they interact
     _createMicrotones(smoNote, vexNote) {
         const tones = smoNote.getMicrotones();
@@ -15185,7 +15206,9 @@ class VxMeasure {
         }
         for (i = 0; i < smoNote.dots; ++i) {
             for (var j = 0; j < smoNote.pitches.length; ++j) {
-                vexNote.addModifier(new VF.Dot(), j);
+                if (!this.isWholeRest()) {
+                    vexNote.addModifier(new VF.Dot(), j);
+                }
             }
         }
         this._createMicrotones(smoNote, vexNote);
@@ -15385,12 +15408,10 @@ class VxMeasure {
             if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
                 vexNote.setXShift(-10);
             }
-            if (this.smoMeasure.voices.length === 1 &&
-                this.smoMeasure.voices[0].notes.length === 1) {
-                const sn = this.smoMeasure.voices[0].notes[0];
-                if (sn.isRest()) {
-                    vexNote.setCenterAlignment(true);
-                }
+            if (this.isWholeRest()) {
+                noteParams.duration = 'wr';
+                vexNote = new VF.StaveNote(noteParams);
+                vexNote.setCenterAlignment(true);
             }
             layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
             timestamp = new Date().valueOf();
@@ -22319,7 +22340,7 @@ class SmoLayoutManager extends SmoScoreModifierBase {
     }
     static get defaultLayout() {
         return {
-            svgScale: 1.0,
+            svgScale: 0.55,
             zoomScale: 2.0,
             noteSpacing: 1.0,
             pageWidth: 8 * 96 + 48,
@@ -28639,6 +28660,9 @@ class PasteBuffer {
             return;
         }
         const measure = measureSelection.measure;
+        while (measure.voices.length <= this.destination.voice) {
+            measure.populateVoice(measure.voices.length);
+        }
         const tickmap = measure.tickmapForVoice(this.destination.voice);
         let currentDuration = tickmap.durationMap[this.destination.tick];
         this.measures = [];
@@ -28723,6 +28747,10 @@ class PasteBuffer {
         measureVoices.push(voice);
         while (this.measureIndex < measures.length) {
             measure = measures[this.measureIndex];
+            while (measure.voices.length <= this.destination.voice) {
+                const nvoice = { notes: measure_1.SmoMeasure.getDefaultNotes(measure) };
+                measure.voices.push(nvoice);
+            }
             tickmap = measure.tickmapForVoice(this.destination.voice);
             this._populateNew(voice, measure, tickmap, startSelector);
             if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
@@ -28911,10 +28939,16 @@ class PasteBuffer {
             }
             ix += 1;
         });
+        // If we are pasting into a measure that doesn't contain this voice, add the voice
+        if (ser.voices.length <= voiceIx) {
+            voices.push(vobj);
+        }
         ser.voices = voices;
     }
-    pasteSelections(score, selector) {
+    pasteSelections(selector) {
         let i = 0;
+        const maxCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
+        const minCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
         const backupNotes = [];
         this.notes.forEach((bb) => {
             const note = (note_1.SmoNote.deserialize(bb.note.serialize()));
@@ -28922,6 +28956,9 @@ class PasteBuffer {
             backupNotes.push({ note, selector, originalKey: bb.originalKey });
         });
         this.destination = selector;
+        if (minCutVoice === maxCutVoice && minCutVoice > this.destination.voice) {
+            this.destination.voice = minCutVoice;
+        }
         this.modifiersToPlace = [];
         if (this.notes.length < 1) {
             return;
@@ -38156,7 +38193,7 @@ class DisplaySettings extends button_1.SuiButton {
     }
     enablePartSelection() {
         const partMap = this.view.getPartMap();
-        const disable = partMap.keys.length < 2;
+        const disable = partMap.keys.length < 1;
         $(this.buttonElement[0]).prop('disabled', disable);
     }
     handleScoreChange(ev) {
@@ -46466,9 +46503,9 @@ exports.BrowserEventSource = BrowserEventSource;
 
 /***/ }),
 
-/***/ "./src/ui/exceptions.js":
+/***/ "./src/ui/exceptions.ts":
 /*!******************************!*\
-  !*** ./src/ui/exceptions.js ***!
+  !*** ./src/ui/exceptions.ts ***!
   \******************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -46496,18 +46533,18 @@ class SuiExceptionHandler {
             return;
         }
         this.thrown = true;
-        if (window.SuiEventHandler && window.SuiEventHandler.reentry) {
+        if (eventHandler_1.SuiEventHandler.reentry) {
             return;
         }
-        if (window.SuiEventHandler) {
-            eventHandler_1.SuiEventHandler.reentry = true;
-        }
+        eventHandler_1.SuiEventHandler.reentry = true;
         scoreString = 'Could not serialize score.';
         try {
             scoreString = this.view.score.serialize();
         }
         catch (e) {
-            scoreString += ' ' + e.message;
+            if (e.message) {
+                scoreString += ' ' + e.message;
+            }
         }
         const message = e.message;
         stack = 'No stack trace available';
@@ -46523,7 +46560,7 @@ class SuiExceptionHandler {
             stack = 'Error with stack: ' + e2.message;
         }
         doing = 'Last operation not available.';
-        const lastOp = this.view.undoBuffer.peek();
+        const lastOp = this.view.storeUndo.peek();
         if (lastOp) {
             doing = lastOp.title;
         }
@@ -46548,7 +46585,7 @@ class SuiExceptionHandler {
         $('.bug-dismiss-button').off('click').on('click', () => {
             $('body').removeClass('bugReport');
             if (lastOp) {
-                this.view.undoBuffer.undo(this.view.score);
+                this.view.storeUndo.undo(this.view.score, {}, true);
                 this.view.renderer.render();
                 eventHandler_1.SuiEventHandler.reentry = false;
             }
@@ -53984,9 +54021,8 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
         });
     }
     preAttach() {
-        const fullScore = this.view.storeScore.staves.length === this.view.score.staves.length;
+        const fullScore = this.view.score.staves.length < this.view.storeScore.staves.length;
         const defs = [];
-        const partInfo = this.view.getPartMap();
         this.menuItems.forEach((item) => {
             // Only show 'display all' if the full score is not already displayed
             if (item.value === 'viewAll') {
@@ -54007,7 +54043,7 @@ class SuiPartMenu extends menu_1.SuiMenuBase {
                 }
             }
             else if (item.value === 'editPart') {
-                if (this.view.isPartExposed() && this.view.storeScore.staves.length > 1) {
+                if (this.view.isPartExposed()) {
                     item.text = 'Part Properties';
                     defs.push(item);
                 }

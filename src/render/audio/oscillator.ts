@@ -440,6 +440,7 @@ export class SuiSampler extends SuiOscillator {
 
     node.buffer = sample!.sample;
     node.detune.value = cents;
+    
     return node;
   }
   async play() {
