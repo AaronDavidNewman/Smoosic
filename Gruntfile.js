@@ -1,11 +1,7 @@
 const path = require('path');
 
 module.exports = function (grunt) {
-  // Used for eslint and docco
-  const LINTS = [
-  ]
-
-  const BASE_DIR = __dirname;
+ const BASE_DIR = __dirname;
   const BUILD_DIR = path.join(BASE_DIR, 'build');
 
   const webpackConfig = {
@@ -29,23 +25,38 @@ module.exports = function (grunt) {
     module: {      
         rules: [{
         test: /(\.ts?$|\.js?$)/,
-        exclude: /node_modules/,
+        include: { or: [
+          path.resolve(BASE_DIR, 'src'), path.resolve(BASE_DIR, 'tests')
+        ]},
         use: [{
           loader: 'ts-loader',
+          options: {
+            configFile: "tsconfig.json"
+          }
         }]
       }]
-    }
-  }
-
+    },
+  }  
+  const typedocConfig = {
+    options: {
+      out: 'build/docs',
+      name: 'Smoosic',
+      tsconfig: 'tsconfig.json',
+      excludeProtected: true,
+      excludePrivate: true,
+      categorizeByGroup: true,
+      readme: 'readme.md',
+      defaultCategory: ['Other'],
+      categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameters', '*'],
+      excludeNotDocumented: true
+    },  src: ['./typedoc.ts']
+  };
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     webpack: {
       build: webpackConfig
-    },
-    eslint: {
-      target: LINTS,
-    },
+    },    
     copy: {
       dist: {
         files: [{
@@ -56,42 +67,24 @@ module.exports = function (grunt) {
         }]
       }
     },
-    typedoc: {
-      build: {
-        options: {
-          out: 'build/docs',
-          name: 'Smoosic',
-          tsconfig: 'tsconfig.json',
-          excludeProtected: true,
-          excludePrivate: true,
-          categorizeByGroup: true,
-          readme: 'readme.md',
-          defaultCategory: ['Other'],
-          categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameters', '*'],
-          excludeNotDocumented: true
-        },
-        src: ['./typedoc.ts']
-        /* src: ['./src/smo/data/*.ts', './src/smo/xform/*.ts', './src/smo/midi/*.ts',
-          './src/smo/mxml/*.ts', './src/render/sui/*.ts', './src/render/vex/*.ts', './src/render/audio/*.ts',
-          './src/application/*.ts', './src/ui/*.ts',
-          './src/ui/buttons/*.ts',
-          './src/ui/dialogs/*.ts', './src/ui/dialogs/components/*.ts',
-          './src/ui/fileio/*.ts', './src/ui/i18n/*.ts',
-          './src/ui/keyBindings/default/*.ts', './src/ui/menus/*.ts', './src/ui/ribbonLayout/default/defaultRibbon.ts',
-          './src/common/promiseHelpers.ts'
-        ],  */
-      },
+    typedoc: { 
+      build: typedocConfig
     }
   });
 
-  // grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-eslint');
-  // grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-webpack');
   grunt.loadNpmTasks('grunt-typedoc');
   console.log(new Date());
 
   // Default task(s).
-  grunt.registerTask('default', ['eslint', 'webpack:build', 'copy']);
+  grunt.registerTask('default', ['webpack:build', 'copy']);
+  grunt.registerTask('docs', ['typedoc:build']);
+  grunt.registerTask('types', 'Generate types', function() {
+    const rules = grunt.config.get('webpack.build.module.rules');
+    rules[0].use[0].options.configFile = 'tsconfig-types.json';
+    // console.log(JSON.stringify({ rules }, null, ' '));
+    grunt.config.set('webpack.build.module', { rules });
+    grunt.task.run('webpack:build');
+  });
 };

@@ -1,6 +1,6 @@
 {
   "name": "smoosic",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.29.1",
     "@typescript-eslint/parser": "^4.29.1",
@@ -24,7 +24,6 @@
     "grunt-eslint": "^23.0.0",
     "midi-parser-js": "^4.0.4",
     "midi-writer-js": "^1.7.5",
-    "typedoc-custom-theme-demo": "^1.0.0",
     "xmldom": "^0.6.0"
   },
   "description": "<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub>",
