@@ -8,17 +8,18 @@
     "grunt": "^1.5.3",
     "grunt-typedoc": "^0.2.4",
     "grunt-webpack": "^4.0.3",
-    "jquery": "^3.6.0",
-    "ts-loader": "^9.2.5",
-    "typedoc": "^0.22.9",
-    "typescript": "^4.3.5",
-    "webpack": "^5.50.0",
-    "webpack-inject-plugin": "^1.5.5"
+    "jquery": "^3.6.0"
   },
   "dependencies": {
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.24.0",
+    "grunt": "^1.5.3",
+    "typescript": "^4.3.5",
     "grunt-cli": "^1.4.3",
+    "ts-loader": "^9.2.5",
+    "typedoc": "^0.22.9",
+    "webpack": "^5.50.0",
+    "webpack-inject-plugin": "^1.5.5",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-eslint": "^23.0.0",
     "midi-parser-js": "^4.0.4",
@@ -27,12 +28,13 @@
     "xmldom": "^0.6.0"
   },
   "description": "<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub>",
-  "main": "index.js",
+  "main": "build/smoosic.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "exit 0"
+    "test": "exit 0",
+    "build": "node ./node_modules/grunt/bin/grunt"
   },
   "repository": {
     "type": "git",
