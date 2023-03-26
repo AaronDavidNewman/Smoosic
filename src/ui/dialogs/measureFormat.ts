@@ -12,10 +12,13 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   format: SmoMeasureFormat;
   backup: SmoMeasureFormat;
   measure: SmoMeasure;
+  renumberIndex: number;
+  originalIndex: number;
   edited: boolean = false;
   constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
     super(view);
     this.format = measure.format;
+    this.renumberIndex = this.originalIndex = measure.measureNumber.localIndex;
     this.backup = new SmoMeasureFormat(this.format);
     this.measure = measure;
   }
@@ -35,7 +38,10 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   cancel() {
     if (this.edited) {
       this.view.setMeasureFormat(this.backup);
-    }      
+    }
+    if (this.localIndex !== this.originalIndex) {
+      this.view.renumberMeasures(this.measure.measureNumber.measureIndex, this.originalIndex);
+    }
   }
   get padLeft() {
     return this.format.padLeft;
@@ -53,6 +59,15 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   }
   set skipMeasureCount(value: boolean) {
     this.writeBoolean('skipMeasureCount', value);
+  }
+  get localIndex(): number {
+    return this.renumberIndex;
+  }
+  set localIndex(value: number) {
+    if (this.renumberIndex !== value && value >= 0) {
+      this.renumberIndex = value;
+      this.view.renumberMeasures(this.measure.measureNumber.measureIndex, this.localIndex);
+    }
   }
   get forceRest() {
     return this.format.forceRest;
@@ -127,6 +142,11 @@ export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapt
             control: 'SuiRockerComponent',
             increment: 10,
             label: 'Proportionalality'
+          }, {
+            smoName: 'localIndex',
+            control: 'SuiRockerComponent',
+            increment: 1,
+            label: 'Measure Number'
           }, {
             smoName: 'padAllInSystem',
             control: 'SuiToggleComponent',

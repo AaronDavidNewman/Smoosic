@@ -11,7 +11,8 @@ import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
-import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
+import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, 
+  SmoArpeggio, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
@@ -148,6 +149,9 @@ export class VxMeasure {
       }
     }
     this._createMicrotones(smoNote, vexNote);
+    if (smoNote.arpeggio) {
+      vexNote.addModifier(new VF.Stroke(smoNote.arpeggio.typeCode));
+    }
   }
 
   _createJazzOrnaments(smoNote: SmoNote, vexNote: any) {

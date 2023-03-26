@@ -6,7 +6,7 @@
  * @module /smo/data/note
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText } from './noteModifiers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
 const VF = eval('Vex.Flow');
@@ -59,6 +59,7 @@ export interface SmoNoteParams {
   graceNotes: SmoGraceNote[],
   ornaments: SmoOrnament[],
   tones: SmoMicrotone[],
+  arpeggio: SmoArpeggio | undefined,
   tuplet: TupletInfo | undefined,
   endBeam: boolean,
   fillStyle: string | null,
@@ -114,6 +115,7 @@ export class SmoNote implements Transposable {
   ornaments: SmoOrnament[] = [];
   pitches: Pitch[] = [];
   noteHead: string = '';
+  arpeggio?: SmoArpeggio;
   clef: string = 'treble';
   graceNotes: SmoGraceNote[] = [];
   noteType: NoteType = 'n';
@@ -136,7 +138,7 @@ export class SmoNote implements Transposable {
    */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it
@@ -243,7 +245,9 @@ export class SmoNote implements Transposable {
     );
     return ms;
   }
-
+  setArpeggio(arp: SmoArpeggio) {
+    this.arpeggio = arp;
+  }
   /**
    * 
    * @returns the longest lyric, used for formatting
@@ -647,6 +651,9 @@ export class SmoNote implements Transposable {
     params.articulations = SmoNote.serializeModifier(this.articulations);
     params.ornaments = SmoNote.serializeModifier(this.ornaments);
     params.tones = SmoNote.serializeModifier(this.tones);
+    if (this.arpeggio) {
+      params.arpeggio = this.arpeggio.serialize();
+    }
   }
   /**
    * @returns a JSON object that can be used to create this note
@@ -697,6 +704,9 @@ export class SmoNote implements Transposable {
       jsonObj.noteModifiers.forEach((mod: any) => {
         note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
       });
+    }
+    if (jsonObj.arpeggio) {
+      note.arpeggio = SmoNoteModifierBase.deserialize(jsonObj.arpeggio);
     }
     return note;
   }

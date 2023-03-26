@@ -287,6 +287,9 @@ export class SuiLayoutFormatter {
     if (measureIx >= this.score.staves[0].measures.length) {
       return true;
     }
+    if (this.score.staves[0].partInfo.expandMultimeasureRests) {
+      return false;
+    }
     let i = 0;
     for (i = measureIx; i < this.score.staves[0].measures.length; ++i) {
       const mm = this.score.staves[0].measures[i];

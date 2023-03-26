@@ -4,7 +4,6 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
-declare var $: any;
 export class SuiDynamicDialogAdapter extends SuiComponentAdapter {
   modifier: SmoDynamicText;
   backup: SmoDynamicText;

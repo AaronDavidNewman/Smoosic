@@ -1,4 +1,5 @@
-import { SmoSelection } from '../../../release/smoosic';
+import { createAndDisplayDialog } from '../dialogs/dialog';
+import {SuiScoreArpeggioDialog } from '../dialogs/arpeggio';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 declare var $: any;
 export class SuiNoteMenu extends SuiMenuBase {
@@ -9,6 +10,10 @@ export class SuiNoteMenu extends SuiMenuBase {
         icon: '',
         text: 'Toggle Cue',
         value: 'toggleCueCmd'
+      }, {
+        icon: '',
+        text: 'Arpeggio',
+        value: 'arpeggioDialog'
       }, {
         icon: '',
         text: 'Cancel',
@@ -27,6 +32,18 @@ export class SuiNoteMenu extends SuiMenuBase {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'toggleCueCmd') {
       await this.view.toggleCue();
+    } else if (text === 'arpeggioDialog') {
+      createAndDisplayDialog(SuiScoreArpeggioDialog, {
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        startPromise: this.closePromise,
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiArpeggioDialog',
+        id: 'insert-dialog',
+        modifier: null
+      });
+      this.complete();
     }
     this.complete();    
   }

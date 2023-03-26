@@ -119,6 +119,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.measures = params.measures;
     this.modifiers = params.modifiers;
     this.textBrackets = params.textBrackets ?? [];
+    this.renumberingMap = params.renumberingMap;
     if (Object.keys(params.measureInstrumentMap).length === 0) {
       this.measureInstrumentMap[0] = new SmoInstrument(SmoInstrument.defaults);
       this.measureInstrumentMap[0].startSelector.staff = this.staffId;
@@ -187,12 +188,12 @@ export class SmoSystemStaff implements SmoObjectParams {
   // ### deserialize
   // parse formerly serialized staff.
   static deserialize(jsonObj: any): SmoSystemStaff {
-    const defaults = SmoSystemStaff.defaults;
     const params: SmoSystemStaffParams = SmoSystemStaff.defaults;
     params.staffId = jsonObj.staffId ?? 0;
     params.measures = [];
     params.modifiers = [];
     params.textBrackets = [];
+    params.renumberingMap = jsonObj.renumberingMap;
     if (jsonObj.partInfo) {
       // Deserialize the text groups first
       const tgs: SmoTextGroup[] = [];
@@ -323,13 +324,18 @@ export class SmoSystemStaff implements SmoObjectParams {
     return this.measures[index].isRest();
   }
   isRepeat(index: number) {
-    return !(this.measures[index].getEndBarline().barline === SmoBarline.barlines.singleBar &&
+    const specialBar = !(this.measures[index].getEndBarline().barline === SmoBarline.barlines.singleBar &&
       (this.measures[index].getStartBarline().barline === SmoBarline.barlines.singleBar ||
       this.measures[index].getStartBarline().barline === SmoBarline.barlines.noBar));
+    return specialBar || this.measures[index].repeatSymbol;
+  }
+  isRepeatSymbol(index: number) {
+    return this.measures[index].repeatSymbol;
   }
   isRehearsal(index: number) {
     return !(typeof(this.measures[index].getRehearsalMark()) === 'undefined');
   }
+
   // ### addStaffModifier
   // add a staff modifier, or replace a modifier of same type
   // with same endpoints.
@@ -609,12 +615,14 @@ export class SmoSystemStaff implements SmoObjectParams {
   // After anything that might change the measure numbers, update them iteratively
   numberMeasures() {
     let i: number = 0;
-    let renumberIndex = 0;
+    let localIndex = 0;
     for (i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
-
-      renumberIndex = typeof (this.renumberingMap[i]) === 'undefined' ? 0 : this.renumberingMap[i];
-      const localIndex: number = renumberIndex + i;
+      if (typeof(this.renumberingMap[i]) === 'number') {
+        localIndex = this.renumberingMap[i];
+      } else {
+        localIndex += 1;
+      }
       // If this is the first full measure, call it '1'
       const numberObj: MeasureNumber = {
         localIndex,

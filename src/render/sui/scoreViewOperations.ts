@@ -10,7 +10,8 @@ import { KeyEvent, SvgBox, Pitch, PitchLetter, FontInfo } from '../../smo/data/c
 import { SmoRenderConfiguration } from './configuration';
 import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAudioPlayerSettings } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
-import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
+import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
+  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
@@ -205,6 +206,24 @@ export class SuiScoreViewOperations extends SuiScoreView {
 
     SmoOperation.addRemoveMicrotone(null, selections, tone);
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
+    this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise()
+  }
+  addRemoveArpeggio(code: SmoArpeggioType) {
+      const selections = this.tracker.selections;
+      const altSelections = this._getEquivalentSelections(selections);
+      const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
+      [selections, altSelections].forEach((selType) => {
+        selType.forEach((sel) => {
+        if (sel.note) {
+          if (code === 'none') {
+            sel.note.arpeggio = undefined;
+          } else {
+            sel.note.arpeggio = new SmoArpeggio({ type: code });
+          }
+        }
+      });
+    });
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise()
   }
@@ -1427,7 +1446,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const selections = SmoSelection.getMeasureList(this.tracker.selections);
     // THe measures get renumbered, so keep the index at 0
     const index = selections[0].selector.measure;
-    selections.forEach((selection) => {
+    for (var i = 0; i < selections.length; ++i) {
       // Unrender the deleted measure
       this.score.staves.forEach((staff) => {
         this.tracker.clearMeasureMap(staff.measures[index]);
@@ -1449,7 +1468,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
       // Remove the SVG artifacts mapped to this measure.
       this.score.deleteMeasure(index);
       this.storeScore.deleteMeasure(index);
-    });
+      // Note: index doesn't increment since there are now 1 fewer measures
+    };
     this.renderer.setRefresh();
     return this.renderer.updatePromise();
   }
@@ -1670,7 +1690,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(fromSelector, toSelector);
     return this.renderer.updatePromise();
   }
-
+  renumberMeasures(measureIndex: number, localIndex: number) {
+    this.score.updateRenumberingMap(measureIndex, localIndex);
+    this.storeScore.updateRenumberingMap(measureIndex, localIndex);
+    const mmsel = SmoSelection.measureSelection(this.score, 0, measureIndex);
+    if (mmsel) {
+      this._renderChangedMeasures([mmsel]);
+    }
+    return this.renderer.updatePromise();
+  }
   /**
    * Play the music from the starting selection
    * @returns 

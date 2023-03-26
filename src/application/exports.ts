@@ -60,6 +60,7 @@ import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
+import { SuiScoreArpeggioDialog } from '../ui/dialogs/arpeggio'
 import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
@@ -128,7 +129,8 @@ import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
 import { SmoAudioPitch } from '../smo/data/music';
 import { SmoSelection, SmoSelector } from '../smo/xform/selections';
-import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
+import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
+  SmoArpeggio } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
 import { SmoSystemGroup, SmoAudioPlayerSettings } from '../smo/data/scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParams } from '../smo/data/scoreText';
@@ -187,7 +189,7 @@ export const Smo = {
     SuiFontComponent, SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
     SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
-    StaffCheckComponent, TextCheckComponent,
+    StaffCheckComponent, TextCheckComponent, SuiScoreArpeggioDialog,
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,
@@ -220,7 +222,7 @@ export const Smo = {
     SmoVolta, SmoMeasureText, SmoTempoText,
     // note modifiers
     SmoOrnament,
-    SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
+    SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric, SmoArpeggio,
     // Smo Transformers
     SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap

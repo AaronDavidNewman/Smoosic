@@ -165,6 +165,7 @@ export class SmoScore {
   textGroups: SmoTextGroup[] = [];
   systemGroups: SmoSystemGroup[] = [];
   audioSettings: SmoAudioPlayerSettings;
+  renumberingMap: Record<number, number> = {};
   layoutManager?: SmoLayoutManager;
   formattingManager?: SmoFormattingManager
   constructor(params: SmoScoreParams) {
@@ -260,6 +261,7 @@ export class SmoScore {
     const keySignature: Record<number, string> = {};
     const tempo: Record<number, SmoTempoText> = {};
     const timeSignature: Record<number, TimeSignature> = {};
+    const renumberingMap: Record<number, number> = {};
     let previous: ColumnMappedParams | null = null;
     this.staves[0].measures.forEach((measure) => {
       const current = measure.serializeColumnMapped();
@@ -270,8 +272,12 @@ export class SmoScore {
         keySignature[0] = current.keySignature;
         tempo[0] = current.tempo;
         timeSignature[0] = current.timeSignature;
+        renumberingMap[0] = 0;
         previous = current;
       } else {
+        if (typeof(this.renumberingMap[measure.measureNumber.measureIndex]) === 'number') {
+          renumberingMap[measure.measureNumber.measureIndex] = this.renumberingMap[measure.measureNumber.measureIndex];
+        }
         if (current.keySignature !== previous!.keySignature) {
           previous!.keySignature = current.keySignature;
           keySignature[ix] = current.keySignature;
@@ -286,7 +292,7 @@ export class SmoScore {
         }
       }
     });
-    return { keySignature, tempo, timeSignature };
+    return { keySignature, tempo, timeSignature, renumberingMap };
   }
 
   /**
@@ -361,6 +367,7 @@ export class SmoScore {
     if (this.layoutManager) {
       obj.layoutManager = this.layoutManager.serialize();
     }
+    obj.renumberingMap = JSON.stringify(this.renumberingMap);
     if (this.formattingManager) {
       obj.measureFormats = this.formattingManager.serialize();
     }
@@ -448,6 +455,24 @@ export class SmoScore {
   }
 
   /**
+   * Hack: for the case of a score containing only a single part, use the text from the 
+   * part.
+   * @param jsonObj 
+   * @returns 
+   */
+  static fixTextGroupSinglePart(jsonObj: any) {
+    if (jsonObj.staves.length !== 1) {
+      return;
+    }
+    if (!jsonObj.staves[0].partInfo) {
+      return;
+    }
+    if (!jsonObj.staves[0].partInfo.textGroups || jsonObj.staves[0].partInfo.textGroups.length < 1) {
+      return;
+    }
+    jsonObj.textGroups = JSON.parse(JSON.stringify(jsonObj.staves[0].partInfo.textGroups));
+  }
+  /**
    * Deserialize an entire score
    * @param jsonString 
    * @returns SmoScore
@@ -459,6 +484,7 @@ export class SmoScore {
     if (jsonObj.dictionary) {
       jsonObj = smoSerialize.detokenize(jsonObj, jsonObj.dictionary);
     }
+    SmoScore.fixTextGroupSinglePart(jsonObj);
     upconvertFormat = typeof (jsonObj.measureFormats) === 'undefined';
     const params: any = {};
     const staves: SmoSystemStaff[] = [];
@@ -499,9 +525,16 @@ export class SmoScore {
     }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
     params.preferences.hideEmptyLines = params.preferences.hideEmptyLines ?? false;
+    if (jsonObj.columnAttributeMap && jsonObj.columnAttributeMap.renumberingMap) {
+      params.renumberingMap = jsonObj.columnAttributeMap.renumberingMap;
+    } else {
+      params.renumberingMap = {};
+      params.renumberingMap[0] = 0;
+    }
 
     jsonObj.staves.forEach((staffObj: any, staffIx: number) => {
       staffObj.staffId = staffIx;
+      staffObj.renumberingMap = params.renumberingMap;
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
     });
@@ -583,7 +616,44 @@ export class SmoScore {
     score.addStaff(SmoSystemStaff.defaults);
     return score;
   }
+  /**
+   * We have deleted a measure, update the renumber index to
+   * shuffle back.
+   * @param indexToDelete 
+   */
+  updateRenumberForAddDelete(indexToDelete: number, toAdd: boolean) {
+    if (!toAdd && indexToDelete === 0) {
+      return;
+    }
+    const maxIndex = this.staves[0].measures.length - 1;
+    const increment = toAdd ? 1 : -1;
+    for (var i = indexToDelete; i < maxIndex; ++i) {
+      if (typeof(this.renumberingMap[i]) === 'number') {
+        this.renumberingMap[i] = this.renumberingMap[i] + increment;
+      }
+    }
+    if (typeof(this.renumberingMap[maxIndex]) === 'number' && !toAdd) {
+      delete this.renumberingMap[maxIndex];
+    }
+  }
 
+  updateRenumberingMap(measureIndex: number, localIndex: number) {
+    if (measureIndex === 0) {
+      this.renumberingMap[0] = localIndex;
+    } else if (typeof(this.renumberingMap[measureIndex]) === 'number') {
+      if (measureIndex === localIndex) {
+        delete this.renumberingMap[measureIndex];
+      } else {
+        this.renumberingMap[measureIndex] = localIndex;
+      }
+    } else {
+      this.renumberingMap[measureIndex] = localIndex;
+    }
+    this.staves.forEach((staff) => {
+      staff.renumberingMap = this.renumberingMap;
+    });
+    this.numberStaves();
+  }
   /**
    * Iteratively number the staves, like when adding a measure
    */
@@ -609,6 +679,9 @@ export class SmoScore {
         return false;
       }
       if (this.staves[i].getVoltasForMeasure(measureIndex).length > 0) {
+        return false;
+      }
+      if (this.staves[i].isRepeatSymbol(measureIndex)) {
         return false;
       }
       if (!start && measureIndex > 0 && this.staves[i].isRepeat(measureIndex - 1)) {
@@ -650,22 +723,28 @@ export class SmoScore {
    * The defaults per staff may be different depending on the clef, key of the staff.
   */
   addDefaultMeasureWithNotes(measureIndex: number, parameters: SmoMeasureParams) {
+    this.updateRenumberForAddDelete(measureIndex, true);
     this.staves.forEach((staff) => {
       const defaultMeasure =
         SmoMeasure.getDefaultMeasureWithNotes(parameters);
       staff.addMeasure(measureIndex, defaultMeasure);
     });
   }
-  replaceTextGroup(tgr: SmoTextGroup) {
-    const tgar = [];
-    this.textGroups.forEach((tg) => {
-      if (tg.attrs.id !== tgr.attrs.id) {
-        tgar.push(tg);
+  getLocalMeasureIndex(measureIndex: number) {
+    let maxKey = -1;
+    const keys = Object.keys(this.updateRenumberForAddDelete);
+    keys.forEach((key) => {
+      const numKey = parseInt(key, 10);
+      if (numKey <= measureIndex && numKey > maxKey) {
+        maxKey = numKey;
       }
     });
-    tgar.push(tgr);
-    this.textGroups = tgar;
+    if (maxKey < 0) {
+      return measureIndex;
+    }
+    return this.renumberingMap[maxKey] + (measureIndex - maxKey);
   }
+
   /**
    * delete the measure at the supplied index in all the staves
   */
@@ -679,6 +758,7 @@ export class SmoScore {
         (tg.selector as SmoSelector).measure -= 1;
       }
     });
+    this.updateRenumberForAddDelete(measureIndex, false);
   }
   /**
    * get a measure 'compatible' with the measure at the given index, in terms
@@ -727,6 +807,7 @@ export class SmoScore {
         tg.selector.measure += 1;
       }
     });
+    this.updateRenumberForAddDelete(measureIndex, true);
     this.numberStaves();
   }
 

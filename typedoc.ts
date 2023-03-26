@@ -76,6 +76,7 @@ export * from './src/ui/common';
 export * from './src/ui/configuration';
 export * from './src/ui/dialogs/adapter';
 export * from './src/ui/dialogs/addMeasure';
+export * from './src/ui/dialogs/arpeggio';
 export * from './src/ui/dialogs/chordChange';
 export * from './src/ui/dialogs/components/baseComponent';
 export * from './src/ui/dialogs/components/button';

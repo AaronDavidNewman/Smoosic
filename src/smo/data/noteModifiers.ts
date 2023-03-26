@@ -65,7 +65,7 @@ export interface GraceNoteParams extends SmoModifierBase {
   ticks: Ticks,
   pitches: Pitch[],
 }
-/**
+/**ismulti
  * A grace notes has many of the things an 'actual' note can have, but it doesn't take up
  * time against the time signature
  * @category SmoModifier
@@ -132,6 +132,51 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     super('SmoGraceNote');
     smoSerialize.serializedMerge(SmoGraceNote.parameterArray, SmoGraceNote.defaults, this);
     smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
+  }
+}
+export type SmoArpeggioType = 'directionless' | 'rasquedo_up' | 'rasquedo_down' 
+  | 'roll_up' | 'roll_down' | 'brush_up' | 'brush_down' | 'none';
+export  const SmoArpeggioTypes = ['directionless', 'rasquedo_up', 'rasquedo_down',
+  'roll_up', 'roll_down', 'brush_up', 'brush_down', 'none'];
+export interface SmoArpeggioParams {
+   ctor?: string,
+   type: SmoArpeggioType
+}
+export function isArpeggioType(tp: SmoArpeggioType | string): tp is SmoArpeggioType {
+  return SmoArpeggioTypes.indexOf(tp) >= 0;
+}
+/**
+ * A 'splatter' symbol next to a chord.
+ */
+export class SmoArpeggio extends SmoNoteModifierBase {
+  static _types: Record<string, number> = {};
+  static get types() {
+    if (typeof(SmoArpeggio._types['directionless']) === 'undefined') {
+      SmoArpeggio._types['directionless'] = 7;
+      SmoArpeggio._types['rasquedo_up'] = 6;
+      SmoArpeggio._types['rasquedo_down'] = 5;
+      SmoArpeggio._types['roll_up'] = 4;
+      SmoArpeggio._types['roll_down'] = 3;
+      SmoArpeggio._types['brush_up'] = 2;
+      SmoArpeggio._types['brush_down'] = 1;
+      SmoArpeggio._types['none'] = 0;
+    }
+    return SmoArpeggio._types;
+  }    
+  typeCode: number;
+  constructor(params: SmoArpeggioParams) {
+    super('SmoArpeggio');
+    this.typeCode = SmoArpeggio.types[params.type];
+  }
+  get typeString(): SmoArpeggioType {
+    const str = SmoArpeggioTypes.find((x) => SmoArpeggio.types[x] === this.typeCode);
+    const type = str ? str : 'none';
+    return type as SmoArpeggioType;
+  }
+  serialize() {
+    const str = SmoArpeggioTypes.find((x) => SmoArpeggio.types[x] === this.typeCode);
+    const type = str ? str : 'none';
+    return { ctor: 'SmoArpeggio', type };
   }
 }
 /**

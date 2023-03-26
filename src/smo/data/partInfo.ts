@@ -29,7 +29,7 @@ export interface SmoMidiInstrument {
  * Data contained in a part.  A part has its own text, measure formatting and page layouts,
  * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves.
  * Usually you will call
- * {@link PartInfo.defaults}, and modify the parameters you need to change.
+ * {@link SmoPartInfo.defaults}, and modify the parameters you need to change.
  * @param partName Name of the part, can be used in headers
  * @param partAbbreviation
  * @param stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
