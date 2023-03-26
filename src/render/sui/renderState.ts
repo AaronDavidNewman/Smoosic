@@ -101,7 +101,7 @@ export class SuiRenderState {
     return {
       Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
       Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
-      Petaluma: () => { VF.setMusicFont('Petaluma', 'Bravura', 'Custom'); },
+      Petaluma: () => { VF.setMusicFont('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
       Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
     };
   }
