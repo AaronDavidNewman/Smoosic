@@ -209,7 +209,7 @@ export class SmoScore {
         copyright: '',
         version: 1,
       },
-      audioSettings: SmoAudioPlayerSettings.defaults,
+      audioSettings: new SmoAudioPlayerSettings(SmoAudioPlayerSettings.defaults),
       preferences: {
         autoPlay: true,
         autoAdvance: true,

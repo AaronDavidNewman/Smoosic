@@ -49,6 +49,9 @@ export class vexGlyph {
       'n': vexGlyph.dimensions.natural
     };
   }
+  static repeatSymbolWidth(): number {
+    return vexGlyph.width(vexGlyph.dimensions['repeatSymbol']);
+  }
   static get tempo(): GlyphInfo {
     return vexGlyph.dimensions.tempo;
   }
@@ -100,6 +103,13 @@ export class vexGlyph {
         yBottom: 0,
         spacingRight: 5,
         vexGlyph: null
+      }, repeatSymbol: {
+        width: 25,
+        height: 6,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 5,
+        vexGlyph: 'repeat1Bar'
       },
       singleBar: {
         width: 1,

@@ -417,13 +417,13 @@ export class SuiLayoutFormatter {
   
   static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>): number {
     const widths: number[] = [];
-
     // Add up the widths of the music glyphs for each voice, including accidentals etc.  We save the widths in a hash by duration
     // and later consider overlapping/colliding ticks in each voice
     const tmObj = smoMeasure.createMeasureTickmaps();
     smoMeasure.voices.forEach((voice) => {
       let width = 0;
       let duration = 0;
+      const noteCount = voice.notes.length;
       voice.notes.forEach((note) => {
         let noteWidth = 0;
         const dots: number = (note.dots ? note.dots : 0);
@@ -484,6 +484,9 @@ export class SuiLayoutFormatter {
             widths: [],
             tickCounts: [] 
           }
+        }
+        if (smoMeasure.repeatSymbol) {
+          noteWidth = vexGlyph.repeatSymbolWidth() / noteCount;  
         }
         tickContexts[duration].widths.push(noteWidth);
         tickContexts[duration].tickCounts.push(note.tickCount);

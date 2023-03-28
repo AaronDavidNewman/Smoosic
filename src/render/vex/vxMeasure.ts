@@ -389,11 +389,13 @@ export class VxMeasure {
     const i = 0;
     this.smoMeasure.voices[vix].notes.forEach((smoNote) => {
       smoNote.articulations.forEach((art) => {
-        const vx = this.noteToVexMap[smoNote.attrs.id];
-        const position: number = SmoArticulation.positionToVex[art.position];
-        const vexArt = SmoArticulation.articulationToVex[art.articulation];
-        const vxArt = new VF.Articulation(vexArt).setPosition(position);
-        vx.addModifier(vxArt, i);
+        if (smoNote.noteType === 'n') {
+          const vx = this.noteToVexMap[smoNote.attrs.id];
+          const position: number = SmoArticulation.positionToVex[art.position];
+          const vexArt = SmoArticulation.articulationToVex[art.articulation];
+          const vxArt = new VF.Articulation(vexArt).setPosition(position);
+          vx.addModifier(vxArt, i);
+        }
       });
     });
   }
@@ -460,7 +462,9 @@ export class VxMeasure {
         throw ('vxMeasure: NaN in ticks');
       }
     }
-    this._renderArticulations(voiceIx);
+    if (!this.smoMeasure.repeatSymbol) {
+      this._renderArticulations(voiceIx);
+    }
   }
 
   /**

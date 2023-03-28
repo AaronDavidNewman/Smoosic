@@ -145,13 +145,13 @@ export function IsOscillatorType(otype: OscillatorType | string): otype is Oscil
  */
 export class SmoAudioPlayerSettings extends SmoScoreModifierBase {
   static get defaults(): SmoAudioPlayerParameters {
-    return {
+    return ({
       playerType: 'sampler',
       waveform: 'sine',
       reverbEnable: true,
       reverbDelay: 0.5,
       reverbDecay: 2
-    };
+    });
   }
   static get attributes() {
     return ['playerType', 'waveform', 'reverbEnable', 'reverbDelay', 'reverbDecay'];
