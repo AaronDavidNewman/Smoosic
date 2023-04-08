@@ -438,6 +438,9 @@ export class PasteBuffer {
 
   pasteSelections(selector: SmoSelector) {
     let i = 0;
+    if (this.notes.length < 1) {
+      return;
+    }
     const maxCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
     const minCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
     const backupNotes: PasteNote[] = [];
