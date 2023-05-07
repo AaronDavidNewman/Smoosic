@@ -94,7 +94,7 @@ export class SuiFontComponent extends SuiComponentBase {
 
   get html() {
     const b = buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.parameterId);
+    const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.id);
     if (this.label) {
       q.append(b('h3').classes('font-purpose').text(this.label));
     }

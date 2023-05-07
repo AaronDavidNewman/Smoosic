@@ -54,7 +54,7 @@ export class SuiDropdownComponent extends SuiComponentBase {
 
   get html() {
     const b = buildDom;
-    const id = this.parameterId;
+    const id = this.id;
     const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
     const s = b('select');
     this.checkDefault(s, b);
@@ -86,7 +86,7 @@ export class SuiDropdownComponent extends SuiComponentBase {
   }
 
   _getInputElement() {
-    var pid = this.parameterId;
+    var pid = this.id;
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');
   }
   getValue(): string | number {
