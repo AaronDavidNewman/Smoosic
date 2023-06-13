@@ -258,18 +258,18 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-horn-c4',
+      sample: 'sample-horn-e4',
       family: 'brass',
       instrument: 'horn',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 4 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'e', accidental: 'n', octave: 4 }, 0, null),
       dynamic: 100
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',
-      sample: 'sample-horn-c3',
+      sample: 'sample-horn-g3',
       family: 'brass',
       instrument: 'horn',
-      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'c', accidental: 'n', octave: 3 }, 0, null),
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'g', accidental: 'n', octave: 3 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'sustained',

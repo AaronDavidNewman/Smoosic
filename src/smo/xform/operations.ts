@@ -157,7 +157,11 @@ export class SmoOperation {
           (nm as any)[attr] = (rowSelection.measure.svg as any)[attr];
         });
         ticks = 0;
-        nm.voices = [{ notes: SmoMeasure.timeSignatureNotes(timeSignature, params.clef)}];
+        if (!TimeSignature.equal(nm.timeSignature, timeSignature)) {
+          nm.voices = [{ notes: SmoMeasure.timeSignatureNotes(timeSignature, params.clef)}];
+        } else {
+          nm.voices = proto.voices;
+        }
       }
       const original = score.staves[selector.staff].measures[selector.measure];
       // Keep track of original element so it can be replaced.

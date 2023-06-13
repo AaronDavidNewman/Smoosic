@@ -137,7 +137,7 @@ import { SmoTextGroup, SmoTextGroupParams } from '../smo/data/scoreText';
 import { SmoOperation } from '../smo/xform/operations';
 import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
-    SmoVolta, SmoMeasureText, SmoTempoText
+    SmoVolta, SmoMeasureText, SmoTempoText, TimeSignature
 } from '../smo/data/measureModifiers';
 import { SmoToXml } from '../smo/mxml/smoToXml';
 import { MidiToSmo } from '../smo/midi/midiToSmo';
@@ -219,7 +219,7 @@ export const Smo = {
     SmoSystemGroup, SmoAudioPlayerSettings, SmoTextGroup,
     // measure modifiers
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
-    SmoVolta, SmoMeasureText, SmoTempoText,
+    SmoVolta, SmoMeasureText, SmoTempoText, TimeSignature,
     // note modifiers
     SmoOrnament,
     SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric, SmoArpeggio,

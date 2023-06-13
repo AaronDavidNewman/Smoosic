@@ -75,6 +75,13 @@ export class SuiKeyCommands {
     this.view.collapseChord();
   }
 
+  togglePlayer() {
+    if (SuiAudioPlayer.playing) {
+      this.stopPlayer();
+    } else {
+      this.playScore();
+    }
+  }
   playScore() {
     this.view.playFromSelection();
   }

@@ -163,6 +163,13 @@ export class defaultEditorKeys {
         shiftKey: true,
         action: "pausePlayer"
       },
+      { event: "keydown",
+        key: " ",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "togglePlayer"
+      },
             {
         event: "keydown",
         key: "s",
