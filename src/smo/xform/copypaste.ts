@@ -190,7 +190,7 @@ export class PasteBuffer {
     for (i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
       const note = measure.voices[voiceIndex].notes[i];
       // If this is a tuplet, clone all the notes at once.
-      if (note.isTuplet) {
+      if (note.isTuplet && ticksToFill >= note.tickCount) {
         const tuplet = measure.getTupletForNote(note);
         if (!tuplet) {
           continue;  // we remove the tuplet after first iteration
@@ -297,7 +297,22 @@ export class PasteBuffer {
       });
     }
   }
-
+  /**
+   * Figure out if the tuplet overlaps an existing tuplet in the target measure
+   * @param t1 
+   * @param measure 
+   * @returns 
+   */
+  static tupletOverlapIndex(t1: SmoTuplet, measure: SmoMeasure) {
+    for (var i = 0; i < measure.tuplets.length; ++i) {
+      const tt = measure.tuplets[i];
+      // TODO: what about other kinds of overlap?
+      if (tt.startIndex === t1.startIndex) {
+        return i;
+      }
+    }
+    return -1;
+  }
   /**
    * Start copying the paste buffer into the destination by copying the notes and working out
    * the measure overlap
@@ -312,6 +327,7 @@ export class PasteBuffer {
     let currentDuration = tickmap.durationMap[startSelector.tick];
     let i = 0;
     let j = 0;
+    let tupletsPushed = 0;
     const totalDuration = tickmap.totalDuration;
     while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
       if (!this.score) {
@@ -338,7 +354,13 @@ export class PasteBuffer {
           tn.clef = measure.clef;
           voice.notes.push(tn);
         }
-        measure.tuplets.push(ntuplet);
+        const tix = PasteBuffer.tupletOverlapIndex(ntuplet, measure);
+        // If this is overlapping an existing tuplet in the target measure, replace it
+        if (tix >= 0) {
+          measure.tuplets[tix] = ntuplet;
+        } else {
+          measure.tuplets.push(ntuplet);
+        }
       } else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
         // The whole note fits in the measure, paste it.
         const nnote = SmoNote.clone(note);
