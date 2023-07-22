@@ -9,6 +9,56 @@ import { SmoSelector } from '../xform/selections';
 import { SmoAudioScore } from '../xform/audioTrack';
 import { SmoScore } from '../data/score';
 declare var MidiWriter: any;
+/*  options: [{
+
+              value: 1,
+              label: 'Piano (bowed)'
+            }, {
+              value: 34,
+              label: 'Bass (plucked)'
+            }, {
+              value: 27,
+              label: 'Electric Guitar'
+            }, {
+              value: 'cello',
+              label: 'Cello'
+            }, {
+              value: 'violin',
+              label: 'Violin'
+            }, {
+              value: 'trumpet',
+              label: 'Bb Trumpet'
+            }, {
+              value: 'horn',
+              label: 'F Horn'
+            }, {
+              value: 'trombone',
+              label: 'Trombone'
+            }, {
+              value: 'tuba',
+              label: 'Tuba'
+            }, {
+              value: 'clarinet',
+              label: 'Bb Clarinet'
+            },  {
+              value: 'altoSax',
+              label: 'Eb Alto Sax'
+            },  {
+              value: 'tenorSax',
+              label: 'Bb Tenor Sax'
+            },  {
+              value: 'bariSax',
+              label: 'Eb Bari Sax'
+            },  {
+              value: 'pad',
+              label: 'Synth Pad'
+            }, {
+              value: 'percussion',
+              label: 'Percussion'
+            }, {
+              value: 'none',
+              label: 'None'
+            }]*/
 
 export interface MidiTrackHash {
   track: any,
@@ -45,7 +95,7 @@ export class SmoToMidi {
         for (j = measureMap.startMeasure; j <= measureMap.endMeasure; ++j) {
           // eslint-disable-next-line
           const notes = smoTrack.notes.filter((nn) => nn.selector.measure === j);
-          notes.forEach((noteData) => {
+          notes.forEach((noteData) => {            
             const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
             if (smoTrack.tempoMap[selectorKey]) {
               track.setTempo(smoTrack.tempoMap[selectorKey]);

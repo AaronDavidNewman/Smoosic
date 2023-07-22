@@ -97,14 +97,15 @@ export interface SmoInstrumentParams {
   instrument: string,
   abbreviation: string,
   keyOffset: number,
+  midiInstrument: number,
   midichannel: number,
   midiport: number,
   clef: Clef,
   mutes?: string,  
 }
 
-export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport';
-export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
+export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport' | 'midiInstrument';
+export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport', 'midiInstrument'];
 export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation' | 'family' | 'instrument';
 export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation', 'family', 'instrument'];
 /**
@@ -124,11 +125,11 @@ export class SmoInstrument extends StaffModifierBase {
   abbreviation: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
+  midiInstrument: number = 1;
   midichannel: number;
   midiport: number;
   family: string;
   instrument: string;
-  oscillators: SmoOscillatorInfo[] = [];
   articulation?: string;
   mutes?: string;
   static get defaults(): SmoInstrumentParams {
@@ -140,6 +141,7 @@ export class SmoInstrument extends StaffModifierBase {
       family: 'keyboard',
       instrument: 'piano',
       midichannel: 0,
+      midiInstrument: 1,
       midiport: 0,
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default

@@ -442,7 +442,7 @@ export class SuiLayoutFormatter {
         note.pitches.forEach((pitch) => {
           const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
           const accidentals = tmObj.accidentalArray.filter((ar) =>
-            ar.duration < duration && ar.pitches[pitch.letter]);
+            (ar.duration as number) < duration && ar.pitches[pitch.letter]);
           const acLen = accidentals.length;
           const declared = acLen > 0 ?
             accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;

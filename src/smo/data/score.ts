@@ -944,7 +944,11 @@ export class SmoScore {
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
       const measure: SmoMeasure = proto.measures[i];
-      let newMeasure = SmoMeasure.deserialize(measure.serialize());
+      const jsonObj = measure.serialize();
+      // Need to do this since score serialization doesn't include TS in each measure
+      jsonObj.timeSignature = measure.timeSignature.serialize();
+      jsonObj.tempo = measure.tempo.serialize();
+      let newMeasure = SmoMeasure.deserialize(jsonObj);
       newMeasure.measureNumber = measure.measureNumber;
       newMeasure.clef = parameters.measureInstrumentMap[0].clef as Clef;
       newMeasure.modifiers = [];

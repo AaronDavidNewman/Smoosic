@@ -18,8 +18,9 @@ import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
+
 declare var $: any;
-const VF = eval('Vex.Flow');
+// const VF = eval('Vex.Flow');
 
 /**
  * This is the interface for VexFlow library that actually does the engraving.
@@ -124,7 +125,7 @@ export class VxMeasure {
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
       const pitchOctave = pitch.letter + '-' + pitch.octave;
       const accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
-        ar.duration < duration && ar.pitches[pitchOctave]);
+        (ar.duration as number) < duration && ar.pitches[pitchOctave]);
       const acLen = accidentals.length;
       const declared = acLen > 0 ?
         accidentals[acLen - 1].pitches[pitchOctave].pitch.accidental : keyAccidental;

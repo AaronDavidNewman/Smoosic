@@ -206,19 +206,7 @@ export class SuiScoreRender {
       this.renderTextGroup(tg);
     });
   }
-  _getMeasuresInColumn(ix: number): SmoMeasure[] {
-    const rv: SmoMeasure[] = [];
-    if (!this.score) {
-      return [];
-    }
-    this.score.staves.forEach((staff) => {
-      const inst = staff.measures.find((ss) => ss.measureNumber.measureIndex === ix);
-      if (inst) {
-        rv.push(inst);
-      }
-    });
-    return rv;
-  }
+
   /**
    * for music we've just rendered, get the bounding boxes.  We defer this step so we don't force
    * a reflow, which can slow rendering.
