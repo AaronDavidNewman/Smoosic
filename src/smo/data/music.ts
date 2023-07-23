@@ -8,7 +8,9 @@
 import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 import { SmoMicrotone } from './noteModifiers';
+import { Vex } from 'vexflow_smoosic';
 
+const VF = Vex.Flow;
 /**
  * Used for xml clef conversion
  */
@@ -89,7 +91,6 @@ export class SmoAudioPitch {
   }
 }
 
-const VF = eval('Vex.Flow');
 /**
  * description of a scale entry, from vex theory routines
  */
@@ -1123,7 +1124,7 @@ export class SmoMusic {
    */
   static getKeySignatureKey(letter: PitchLetter, keySignature: string): string {
     const km = new VF.KeyManager(keySignature);
-    return km.scaleMap[letter];
+    return (km as any).scaleMap[letter];
   }
 
   static getAccidentalForKeySignature(smoPitch: Pitch, keySignature: string): string {

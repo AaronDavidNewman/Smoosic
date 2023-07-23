@@ -21,9 +21,10 @@ import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SvgPageMap, SvgPage } from './svgPageMap';
+import { Vex, Note } from 'vexflow_smoosic';
 
 declare var $: any;
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 /**
  * a renderer creates the SVG render context for vexflow from the given element. Then it
  * renders the initial score.
@@ -405,9 +406,9 @@ export class SuiScoreRender {
   renderModifiers(staff: SmoSystemStaff, system: VxSystem): StaffModifierBase[] {
     let nextNote: SmoSelection | null = null;
     let lastNote: SmoSelection | null = null;
-    let testNote: VxMeasure | null = null;
-    let vxStart: VxMeasure | null = null;
-    let vxEnd: VxMeasure | null = null;
+    let testNote: Note | null = null;
+    let vxStart: Note | null = null;
+    let vxEnd: Note | null = null;
     const modifiersToBox: StaffModifierBase[] = [];
     const removedModifiers: StaffModifierBase[] = [];
     if (this.score === null || this.measureMapper === null) {

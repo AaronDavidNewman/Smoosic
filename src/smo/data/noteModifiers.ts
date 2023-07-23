@@ -9,8 +9,9 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 // const Smo = eval('globalThis.Smo');
 
 /**
@@ -26,7 +27,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   element: SVGSVGElement | null = null;
   constructor(ctor: string) {
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: ctor
     };
     this.ctor = ctor;
@@ -713,12 +714,12 @@ export class SmoLyric extends SmoNoteModifierBase {
         if (isGlyph) {
           const glyph = SmoLyric._chordGlyphFromCode(token);
           blocks.push({
-            glyph, symbolModifier: mod,
+            glyph, symbolModifier: mod.toString(),
             symbolType: VF.ChordSymbol.symbolTypes.GLYPH
           });
         } else {
           blocks.push({
-            text: token, symbolModifier: mod,
+            text: token, symbolModifier: mod.toString(),
             symbolType: VF.ChordSymbol.symbolTypes.TEXT
           });
         }
@@ -747,7 +748,7 @@ export class SmoLyric extends SmoNoteModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: parameters.ctor
       };
     }
@@ -834,13 +835,13 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   }
   constructor(parameters: SmoDynamicTextParams) {
     super('SmoDynamicText');
-    Vex.Merge(this, SmoDynamicText.defaults);
+    smoSerialize.vexMerge(this, SmoDynamicText.defaults);
     smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
     this.selector = parameters.selector;
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: 'SmoDynamicText'
       };
     }

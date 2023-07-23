@@ -10,8 +10,6 @@ import { SmoLayoutManager } from './scoreModifiers';
 import { SmoTextGroup } from './scoreText';
 import { StaffModifierBase } from './staffModifiers';
 
-const VF = eval('Vex.Flow');
-
 export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
 export const SmoPartInfoStringTypes: SmoPartInfoStringType[] = ['partName', 'partAbbreviation'];
 export type SmoPartInfoNumType = 'stavesAfter' | 'stavesBefore';

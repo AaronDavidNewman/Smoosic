@@ -22,7 +22,7 @@ import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
 import { SmoSelector } from '../xform/selections';
-
+import { Vex } from 'vexflow_smoosic';
 /**
  * Voice is just a container for {@link SmoNote}
  */
@@ -44,7 +44,7 @@ export interface MeasureTick {
   tickIndex: number
 }
 // @internal
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 /**
  * Break up a circlar dependency with {@link SmoBeamGroup}
@@ -347,7 +347,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       this.format = new SmoMeasureFormat(params.format);
     }
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: 'SmoMeasure'
     };
   }

@@ -5,7 +5,6 @@ import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SvgPageMap } from './svgPageMap';
 import { layoutDebug } from './layoutDebug';
 declare var $: any;
-const VF = eval('Vex.Flow');
 
 /**
  * Respond to scroll events in music DOM, and handle the scroll of the viewport

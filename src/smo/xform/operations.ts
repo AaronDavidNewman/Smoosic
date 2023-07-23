@@ -23,7 +23,8 @@ import {
 } from './tickDuration';
 import { SmoBeamer } from './beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration
@@ -639,7 +640,7 @@ export class SmoOperation {
     const endMeasure = parameters.endBar;
 
     // Ending ID ties all the instances of an ending across staves
-    parameters.endingId = VF.Element.newID();
+    parameters.endingId = (VF.Element as any).newID();
     score.staves.forEach((staff) => {
       m = 0;
       staff.measures.forEach((measure) => {

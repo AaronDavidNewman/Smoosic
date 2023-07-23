@@ -9,8 +9,9 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
 import { FontInfo, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 /**
  * Parameters for a single text block, which makes up a text group.
@@ -469,8 +470,8 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       params = {} as SmoTextGroupParams;
     }
     this.textBlocks = [];
-    Vex.Merge(this, SmoTextGroup.defaults);
-    Vex.Merge(this, params);
+    smoSerialize.vexMerge(this, SmoTextGroup.defaults);
+    smoSerialize.vexMerge(this, params);
     if (params.blocks) {
       params.blocks.forEach((block: SmoTextBlock) => {
         this.textBlocks.push(block);

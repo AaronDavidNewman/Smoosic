@@ -9,7 +9,8 @@ import { SmoNote } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoAttrs, Clef } from './common';
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * Parameters for tuplet construction
@@ -87,11 +88,11 @@ export class SmoTuplet {
     return stemTicks * 2;
   }
   constructor(params: SmoTupletParams) {
-    Vex.Merge(this, SmoTuplet.defaults);
+    smoSerialize.vexMerge(this, SmoTuplet.defaults);
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
     this.notes = params.notes;
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: 'SmoTuplet'
     };
     this._adjustTicks();

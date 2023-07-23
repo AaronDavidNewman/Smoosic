@@ -10,8 +10,8 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
 import { SmoAttrs, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
@@ -33,7 +33,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: ctor
     };
   }
@@ -277,7 +277,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
   }
   constructor(params: SmoStaffHairpinParams) {
     super('SmoStaffHairpin');
-    Vex.Merge(this, SmoStaffHairpin.defaults);
+    smoSerialize.vexMerge(this, SmoStaffHairpin.defaults);
     smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
     // If start/end selector on same note, make sure the hairpin extends
     if (SmoSelector.eq(this.startSelector, this.endSelector)) {
@@ -290,7 +290,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: 'SmoStaffHairpin'
       };
     }
@@ -367,7 +367,7 @@ export class SmoStaffTextBracket extends StaffModifierBase {
     this.endSelector = JSON.parse(JSON.stringify(params.endSelector));
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: 'SmoStaffTextBracket'
       };
     }
@@ -511,7 +511,7 @@ export class SmoSlur extends StaffModifierBase {
     // Fix some earlier serialization error.    
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: 'SmoSlur'
       };
     }
@@ -624,7 +624,7 @@ export class SmoTie extends StaffModifierBase {
     smoSerialize.serializedMerge(SmoTie.parameterArray, params, this);
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: (VF.Element as any).newID(),
         type: 'SmoTie'
       };
     }

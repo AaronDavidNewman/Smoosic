@@ -5,6 +5,7 @@ import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { ModifierTab } from '../../smo/xform/selections';
+import { Vex } from 'vexflow_smoosic';
 /**
  * classes for managing the SVG containers where the music is rendered.  Each
  * page is a different SVG element.  Screen coordinates need to be mapped to the
@@ -12,7 +13,7 @@ import { ModifierTab } from '../../smo/xform/selections';
  * @module /render/sui/svgPageMap
  */
 declare var $: any;
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 /**
  * A selection map maps a sub-section of music (a measure, for instance) to a region
@@ -451,7 +452,7 @@ export class SvgPageMap {
       container.setAttribute('id', 'smoosic-svg-div-' + ix.toString());
       this._container.append(container);
       const vexRenderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
-      const svg = vexRenderer.getContext().svg as SVGSVGElement;
+      const svg = (vexRenderer.getContext() as any).svg as SVGSVGElement;
       SvgHelpers.svgViewport(svg, 0, 0, this.pageDivWidth, this.pageDivHeight, this.renderScale * this.zoomScale);
       const topY = this.pageHeight * ix;
       const box = SvgHelpers.boxPoints(0, topY, this.pageWidth, this.pageHeight);

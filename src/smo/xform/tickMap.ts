@@ -4,7 +4,8 @@ import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoNote } from '../data/note';
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 export interface TickAccidental {
   duration: number,
   pitch: Pitch

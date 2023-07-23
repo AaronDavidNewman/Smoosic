@@ -169,8 +169,8 @@ export class SmoScore {
   layoutManager?: SmoLayoutManager;
   formattingManager?: SmoFormattingManager
   constructor(params: SmoScoreParams) {
-    Vex.Merge(this, SmoScore.defaults);
-    Vex.Merge(this, params);
+    smoSerialize.vexMerge(this, SmoScore.defaults);
+    smoSerialize.vexMerge(this, params);
     if (!this.layoutManager) {
       this.layoutManager = new SmoLayoutManager(SmoLayoutManager.defaults);
     }

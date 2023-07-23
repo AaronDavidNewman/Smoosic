@@ -2,8 +2,9 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 export interface GlyphInfo {
   width: number,

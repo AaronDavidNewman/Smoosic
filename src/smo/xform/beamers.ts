@@ -5,7 +5,9 @@ import { SmoNote } from '../data/note';
 import { SmoAttrs } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
 import { TickMap } from './tickMap';
-const VF = eval('Vex.Flow');
+import { smoSerialize } from '../../common/serializationHelpers';
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 export interface SmoBeamGroupParams {
   notes: SmoNote[],
@@ -24,10 +26,10 @@ class SmoBeamGroup implements ISmoBeamGroup {
     let i = 0;
     this.voice = params.voice;
     this.notes = params.notes;
-    Vex.Merge(this, params);
+    smoSerialize.vexMerge(this, params);
 
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: 'SmoBeamGroup'
     };
     for (i = 0; i < this.notes.length; ++i) {
