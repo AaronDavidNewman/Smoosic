@@ -19,8 +19,9 @@ import { SmoNote, NoteType } from './note';
 import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
-import { TickMap, TickAccidental } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
+import { TickMap } from '../xform/tickMap';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, 
+  TickAccidental, AccidentalArray } from './common';
 import { SmoSelector } from '../xform/selections';
 import { Vex } from 'vexflow_smoosic';
 /**
@@ -150,13 +151,7 @@ export interface SmoMeasureParams {
   repeatSymbol: boolean,
   repeatCount: number
 }
-/**
- * Used to create {@link MeasureTickmaps}
- */
-export interface AccidentalArray {
-  duration: string | number,
-  pitches: Record<string, TickAccidental>
-}
+
 
 /**
  * Data for a measure of music.  Many rules of musical engraving are

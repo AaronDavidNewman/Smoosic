@@ -2,14 +2,10 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
-import { Pitch, PitchLetter } from '../data/common';
+import { Pitch, PitchLetter, TickAccidental } from '../data/common';
 import { SmoNote } from '../data/note';
 import { Vex } from 'vexflow_smoosic';
 const VF = Vex.Flow;
-export interface TickAccidental {
-  duration: number,
-  pitch: Pitch
-}
 
 /**
  * create a map note durations at each index into the voice, including the accidentals at each duration.

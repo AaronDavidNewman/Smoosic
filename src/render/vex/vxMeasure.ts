@@ -20,6 +20,7 @@ import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 import { Vex, Stave, StaveNote, StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct } from 'vexflow_smoosic';
+
 const VF = Vex.Flow;
 
 declare var $: any;
@@ -121,22 +122,17 @@ export class VxMeasure {
     if (smoNote.noteType === '/') {
       return;
     }
+    if (smoNote.noteType !== 'n') {
+      return;
+    }
     smoNote.accidentalsRendered = [];
     for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
       const pitch = smoNote.pitches[i];
-      const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
-      const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
-      const pitchOctave = pitch.letter + '-' + pitch.octave;
-      const accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
-        (ar.duration as number) < duration && ar.pitches[pitchOctave]);
-      const acLen = accidentals.length;
-      const declared = acLen > 0 ?
-        accidentals[acLen - 1].pitches[pitchOctave].pitch.accidental : keyAccidental;
-      if ((declared !== pitch.accidental
-        || pitch.cautionary) && smoNote.noteType === 'n') {
-        const acc = new VF.Accidental(pitch.accidental);
-
-        if (pitch.cautionary) {
+      const zz = SmoMusic.accidentalDisplay(pitch, this.smoMeasure.keySignature,
+        this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex], this.tickmapObject.accidentalArray);
+      if (zz) {
+        const acc = new VF.Accidental(zz.symbol);
+        if (zz.courtesy) {
           acc.setAsCautionary();
         }
         smoNote.accidentalsRendered.push(pitch.accidental);
