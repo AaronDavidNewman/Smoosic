@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
+import { SmoMeasure } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric } from '../data/noteModifiers';
 import { Pitch } from '../data/common';
@@ -93,6 +94,47 @@ export function createStaveNote(smoNote: SmoNote,voiceIx: number, noteIx: number
   }
   return id;
 }
+export function createMeasure(smoMeasure: SmoMeasure, voiceStrings: string[], fmtid: string, strs: string[]) {
+  let voiceAr = '[' + voiceStrings.join(',') + ']';
+  voiceStrings.forEach((vs) => {
+    strs.push(`${fmtid}.joinVoices([${vs}]);`);
+  });
+  const staffWidth = smoMeasure.staffWidth -
+     (smoMeasure.svg.adjX + smoMeasure.svg.adjRight + smoMeasure.format.padLeft) - 10;
+  strs.push(`${fmtid}.format(${voiceAr}, ${staffWidth});`);
+  const ssid = 'stave' + smoMeasure.attrs.id;
+  strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${smoMeasure.svg.staffY}, ${smoMeasure.svg.staffWidth});`);
+  if (smoMeasure.svg.forceClef) {
+    strs.push(`${ssid}.addClef('${smoMeasure.clef}')`);
+  }
+  if (smoMeasure.svg.forceTimeSignature) {
+    const ts = smoMeasure.timeSignature;
+    let tsString = ts.timeSignature;
+    if (smoMeasure.timeSignature.useSymbol && ts.actualBeats === 4 && ts.beatDuration === 4) {
+      tsString = 'C';
+    } else if (smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
+      tsString = 'C|';
+    } else if (smoMeasure.timeSignatureString.length) {
+      tsString = smoMeasure.timeSignatureString;
+    }
+    strs.push(`${ssid}.addTimeSignature('${tsString}');`);
+  }
+  if (smoMeasure.svg.forceKeySignature) {
+    const key = SmoMusic.vexKeySignatureTranspose(smoMeasure.keySignature, 0);
+    const ksid = 'key' + smoMeasure.attrs.id;
+    strs.push(`const ${ksid} = new VF.KeySignature(${key});`);
+    if (smoMeasure.canceledKeySignature) {
+      const canceledKey = SmoMusic.vexKeySignatureTranspose(smoMeasure.canceledKeySignature, 0);
+      strs.push(`${ksid}.cancelKey(${canceledKey}`);
+    }
+    strs.push(`${ksid}.addToStave(${ssid});`);
+  }
+  strs.push(`${ssid}.setContext(context)`);
+  strs.push(`${ssid}.draw();`);
+  voiceStrings.forEach((vs) => {
+    strs.push(`${vs}.draw(context, ${ssid});`);
+  });
+}
 export interface SmoToVexNote {
   ctorInfo: NoteStruct,
   note: SmoNote,
@@ -127,46 +169,21 @@ export class SmoToVex {
         const tickmapObject = smoMeasure.createMeasureTickmaps();
         const measureIx = i;
         const voiceStrings: string[] = [];
-        strs.push('const formatter = new VF.Formatter();');
+        const fmtid = 'fmt' + smoMeasure.attrs.id + measureIx.toString();
+        strs.push(`const ${fmtid} = new VF.Formatter();`);
         smoMeasure.voices.forEach((smoVoice, vix) => {
           const vn = smoMeasure.attrs.id + 'v' + vix.toString();
+          const vc = vn + 'ar';
           strs.push(`const ${vn} = new VF.Voice();`);
-          strs.push(`const vc = [];`)
+          strs.push(`const ${vc} = [];`)
           smoVoice.notes.forEach((smoNote, nix) => {
             const noteId = createStaveNote(smoNote, vix, nix, tickmapObject, strs);
-            strs.push(`vc.push(${noteId});`);
+            strs.push(`${vc}.push(${noteId});`);
           });
-          strs.push(`${vn}.addTickables(vc)`);
+          strs.push(`${vn}.addTickables(${vc})`);
           voiceStrings.push(vn);
         });
-        let voiceAr = '[' + voiceStrings.join(',') + ']';
-        voiceStrings.forEach((vs) => {
-          strs.push(`formatter.joinVoices([${vs}]);`);
-        });
-        const staffWidth = smoMeasure.staffWidth -
-           (smoMeasure.svg.adjX + smoMeasure.svg.adjRight + smoMeasure.format.padLeft) - 10;
-        strs.push(`formatter.format(${voiceAr}, ${staffWidth});`);
-        strs.push(`const ss = new VF.Stave(${smoMeasure.svg.staffX}, ${smoMeasure.svg.staffY}, ${smoMeasure.svg.staffWidth});`);
-        if (smoMeasure.svg.forceClef) {
-          strs.push(`ss.addClef('${smoMeasure.clef}')`);
-        }
-        if (smoMeasure.svg.forceTimeSignature) {
-          const ts = smoMeasure.timeSignature;
-          let tsString = ts.timeSignature;
-          if (smoMeasure.timeSignature.useSymbol && ts.actualBeats === 4 && ts.beatDuration === 4) {
-            tsString = 'C';
-          } else if (smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
-            tsString = 'C|';
-          } else if (smoMeasure.timeSignatureString.length) {
-            tsString = smoMeasure.timeSignatureString;
-          }
-          strs.push(`ss.addTimeSignature('${tsString}');`);
-        }
-        strs.push('ss.setContext(context)');
-        strs.push('ss.draw();');
-        voiceStrings.forEach((vs) => {
-          strs.push(`${vs}.draw(context, ss);`);
-        });
+        createMeasure(smoMeasure, voiceStrings, fmtid, strs);
       };
     });
     console.log(strs.join(`\n`));
