@@ -24,8 +24,13 @@ export function smoNoteToVexKeys(smoNote: SmoNote) {
   return rv;
 }
 export function smoNoteToStaveNote(smoNote: SmoNote) {
+  const duration =
+    smoNote.isTuplet ?
+      SmoMusic.closestVexDuration(smoNote.tickCount) :
+      SmoMusic.ticksToDuration[smoNote.tickCount];
   const sn: StaveNoteStruct = {
-    duration: SmoMusic.ticksToDuration[SmoMusic.closestDurationTickLtEq(smoNote.tickCount)],
+    clef: smoNote.clef,
+    duration,
     dots: smoNote.dots,
     type: smoNote.noteType
   };
@@ -91,8 +96,9 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
         if (text.length) {
           const sn = ll.attrs.id;
           strs.push(`const ${sn} = new VF.Annotation('${text}');`);
-          strs.push(`${sn}.setAttribute('id', '${sn});`)
-          strs.push(`${sn}.setFont('${ll.fontInfo.family}', ${ll.fontInfo.size}, '${ll.fontInfo.weight}');`)
+          strs.push(`${sn}.setAttribute('id', '${sn}');`);
+          const weight = ll.fontInfo.weight ?? 'normal';
+          strs.push(`${sn}.setFont('${ll.fontInfo.family}', ${ll.fontInfo.size}, '${weight}');`)
           strs.push(`${sn}.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);`);
           strs.push(`${id}.addModifier(${sn});`);
           if (ll.isHyphenated()) {
@@ -111,13 +117,17 @@ export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: s
     const music = groups[groupKey];
     // Need to create beam groups before formatting
     music.measures.forEach((smoMeasure) => {
+      strs.push(`// create beam groups and tuplets for measure stave ${smoMeasure.measureNumber.measureIndex}`);
       createBeamGroups(smoMeasure, strs);
+      createTuplets(smoMeasure, strs);
     });
+    strs.push(' ');
+    strs.push(`// formatting measures in ${groupKey}`);
     const joinVoiceStr = '[' + music.voiceStrings.join(',') + ']';
     const widthMeasure = music.measures[0];
     const staffWidth = widthMeasure.staffWidth -
     (widthMeasure.svg.adjX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10;
-       strs.push(`${music.formatter}.format(${joinVoiceStr}, ${staffWidth});`);
+    strs.push(`${music.formatter}.format(${joinVoiceStr}, ${staffWidth});`);
     music.measures.forEach((smoMeasure) => {
       createMeasure(smoMeasure, strs);
     });
@@ -133,7 +143,7 @@ export function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
       const nar: string[] = [];
       for (var j = 0; j < bg.notes.length; ++j) {
         const note = bg.notes[j];
-        const vexNote = note.attrs.id;
+        const vexNote = `noteHash['${note.attrs.id}']`;
         if (note.noteType !== '/') {
           nar.push(vexNote);
         }
@@ -150,11 +160,38 @@ export function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
+export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
+  smoMeasure.voices.forEach((voice, voiceIx) => {
+    const tps = smoMeasure.tuplets.filter((tp) => tp.voice === voiceIx);
+    for (var i = 0; i < tps.length; ++i) {
+      const tp = tps[i];
+      const nar: string[] = [];
+      for (var j = 0; j < tp.notes.length; ++j) {
+        const note = tp.notes[j];
+        const vexNote = `note_hash['${note.attrs.id}']`;
+        nar.push(vexNote);
+      }
+      const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
+          Vex.Flow.Tuplet.LOCATION_TOP : Vex.Flow.Tuplet.LOCATION_BOTTOM;
+      const tpParams = {
+          num_notes: tp.num_notes,
+          notes_occupied: tp.notes_occupied,
+          ratioed: false,
+          bracketed: true,
+          location: direction
+      };
+      const tpParamString = JSON.stringify(tpParams);
+      const narString = '[' + nar.join(',') + ']';
+      strs.push(`const ${tp.attrs.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
+    }
+  });
+}
+
 export function createMeasure(smoMeasure: SmoMeasure, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
   strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${smoMeasure.svg.staffY}, ${smoMeasure.svg.staffWidth});`);
   if (smoMeasure.svg.forceClef) {
-    strs.push(`${ssid}.addClef('${smoMeasure.clef}')`);
+    strs.push(`${ssid}.addClef('${smoMeasure.clef}');`);
   }
   if (smoMeasure.svg.forceTimeSignature) {
     const ts = smoMeasure.timeSignature;
@@ -174,11 +211,11 @@ export function createMeasure(smoMeasure: SmoMeasure, strs: string[]) {
     strs.push(`const ${ksid} = new VF.KeySignature(${key});`);
     if (smoMeasure.canceledKeySignature) {
       const canceledKey = SmoMusic.vexKeySignatureTranspose(smoMeasure.canceledKeySignature, 0);
-      strs.push(`${ksid}.cancelKey(${canceledKey}`);
+      strs.push(`${ksid}.cancelKey(${canceledKey};`);
     }
     strs.push(`${ksid}.addToStave(${ssid});`);
   }
-  strs.push(`${ssid}.setContext(context)`);
+  strs.push(`${ssid}.setContext(context);`);
   strs.push(`${ssid}.draw();`);
 
   smoMeasure.voices.forEach((voice, voiceIx) => {
@@ -189,6 +226,9 @@ export function createMeasure(smoMeasure: SmoMeasure, strs: string[]) {
     strs.push(`${bg.attrs.id}.setContext(context);`);
     strs.push(`${bg.attrs.id}.draw();`)
   });
+  smoMeasure.tuplets.forEach((tp) => {
+    strs.push(`${tp.attrs.id}.setContext(context).draw();`)
+  })
 }
 
 // ## SmoToVex
@@ -197,19 +237,15 @@ export function createMeasure(smoMeasure: SmoMeasure, strs: string[]) {
 export class SmoToVex {
 
   static convert(smoScore: SmoScore, options: any) {
-    let useId = false;
-    let page = 0;
-    const groupMap: Record<string, VexStaveGroupMusic> = {};
+    let div = 'boo';
     options = options ?? {};
-    if (typeof(options['id']) === 'boolean') {
-      useId = options.id
-    }
-    if (typeof(options['page'] === 'number')) {
-      page = options.page;
+    if (typeof(options['div']) === 'string') {
+      div = options.div
     }
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
+    strs.push(`const div = document.getElementById('${div}')`);
     strs.push('const VF = Vex.Flow;');
     strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
     const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
@@ -223,21 +259,23 @@ export class SmoToVex {
     strs.push('const context = renderer.getContext();');
     strs.push('const svg = context.svg');
     strs.push(`svg.setAttributeNS('', 'width', '${width}');`);
-    strs.push(`svg.setAttributeNS('', 'width', '${height}');`);
+    strs.push(`svg.setAttributeNS('', 'height', '${height}');`);
     strs.push(`svg.setAttributeNS('', 'viewBox', '0 0 ${vbWidth} ${vbHeight}');`);
     strs.push('const noteHash = {};');
     strs.push('const voiceHash = {}');
-    smoScore.staves.forEach((smoStaff, staffIx) => {
-      for (var i = 0; i < smoStaff.measures.length; ++i) {
-        const smoMeasure = smoStaff.measures[i];
+    const measureCount = smoScore.staves[0].measures.length;
+    for (var k = 0; k < measureCount; ++k) {
+      const groupMap: Record<string, VexStaveGroupMusic> = {};
+      smoScore.staves.forEach((smoStaff, staffIx) => {
+        const smoMeasure = smoStaff.measures[k];
         const selection = SmoSelection.measureSelection(smoScore, smoStaff.staffId, smoMeasure.measureNumber.measureIndex);
         if (!selection) {
-          continue;
+          throw('ouch no selection');
         }
-        const systemGroup = smoScore.getSystemGroupForStaff(selection);      
+        const systemGroup = smoScore.getSystemGroupForStaff(selection);
         const justifyGroup: string = (systemGroup && smoMeasure.format.autoJustify) ? systemGroup.attrs.id : selection.staff.attrs.id;
         const tickmapObject = smoMeasure.createMeasureTickmaps();
-        const measureIx = i;
+        const measureIx = smoMeasure.measureNumber.measureIndex;
         const voiceStrings: string[] = [];
         const fmtid = 'fmt' + smoMeasure.attrs.id + measureIx.toString();
         strs.push(`const ${fmtid} = new VF.Formatter();`);
@@ -249,11 +287,17 @@ export class SmoToVex {
           }
         }
         groupMap[justifyGroup].measures.push(smoMeasure);
+        strs.push(' ');
+        strs.push(`// voices and notes for stave ${smoStaff.staffId} ${smoMeasure.measureNumber.measureIndex}`);
         smoMeasure.voices.forEach((smoVoice, voiceIx) => {        
           const vn = getVoiceId(smoMeasure, voiceIx);
           groupMap[justifyGroup].voiceStrings.push(vn);
           const vc = vn + 'ar';
-          strs.push(`const ${vn} = new VF.Voice();`);
+          const ts = JSON.stringify({
+            num_beats: smoMeasure.timeSignature.actualBeats,
+            beat_value: smoMeasure.timeSignature.beatDuration
+          });
+          strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
           strs.push(`const ${vc} = [];`)
           smoVoice.notes.forEach((smoNote, noteIx) => {
             const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject };
@@ -265,11 +309,11 @@ export class SmoToVex {
           strs.push(`${fmtid}.joinVoices([${vn}]);`);
         });
 
-        if (smoMeasure.svg.lineIndex === smoScore.staves.length - 1) {
+        if (smoMeasure.svg.rowInSystem === smoScore.staves.length - 1) {
           createColumn(groupMap, strs);
         }
-      };
-    });
+      });
+    }
     console.log(strs.join(`\n`));
   }
 }
