@@ -2,13 +2,20 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
-import { SmoMeasure } from '../data/measure';
+import { SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric } from '../data/noteModifiers';
 import { Pitch } from '../data/common';
 import { Vex, StaveNoteStruct, NoteStruct, Element } from 'vexflow_smoosic';
 import { MeasureTickmaps } from '../data/measure';
+import { SmoSelection } from './selections';
 
+export interface VexNoteRenderInfo {
+  smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps
+}
+export interface VexStaveGroupMusic {
+  formatter: string, measures: SmoMeasure[], voiceStrings: string[]
+}
 export function smoNoteToVexKeys(smoNote: SmoNote) {
   const rv: string[] = [];
   smoNote.pitches.forEach((pitch: Pitch) => {
@@ -32,8 +39,12 @@ export function smoNoteToStaveNote(smoNote: SmoNote) {
   return sn;
 }
 export const getId = () => (Element as any).newID();
+export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
+  return smoMeasure.attrs.id + 'v' + voiceIx.toString();
+}
 
-export function createStaveNote(smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps, strs: string[]) {
+export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
+  const { smoNote, voiceIx, noteIx, tickmapObject } = { ...renderInfo };
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
   const ctorString = JSON.stringify(ctorInfo);
@@ -94,14 +105,52 @@ export function createStaveNote(smoNote: SmoNote,voiceIx: number, noteIx: number
   }
   return id;
 }
-export function createMeasure(smoMeasure: SmoMeasure, voiceStrings: string[], fmtid: string, strs: string[]) {
-  let voiceAr = '[' + voiceStrings.join(',') + ']';
-  voiceStrings.forEach((vs) => {
-    strs.push(`${fmtid}.joinVoices([${vs}]);`);
+export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]) {
+  const groupKeys = Object.keys(groups);
+  groupKeys.forEach((groupKey) => {
+    const music = groups[groupKey];
+    // Need to create beam groups before formatting
+    music.measures.forEach((smoMeasure) => {
+      createBeamGroups(smoMeasure, strs);
+    });
+    const joinVoiceStr = '[' + music.voiceStrings.join(',') + ']';
+    const widthMeasure = music.measures[0];
+    const staffWidth = widthMeasure.staffWidth -
+    (widthMeasure.svg.adjX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10;
+       strs.push(`${music.formatter}.format(${joinVoiceStr}, ${staffWidth});`);
+    music.measures.forEach((smoMeasure) => {
+      createMeasure(smoMeasure, strs);
+    });
   });
-  const staffWidth = smoMeasure.staffWidth -
-     (smoMeasure.svg.adjX + smoMeasure.svg.adjRight + smoMeasure.format.padLeft) - 10;
-  strs.push(`${fmtid}.format(${voiceAr}, ${staffWidth});`);
+}
+export function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
+  smoMeasure.voices.forEach((voice, voiceIx) => {
+    const bgs = smoMeasure.beamGroups.filter((bb) => bb.voice === voiceIx);
+    for (var i = 0; i < bgs.length; ++i) {
+      const bg = bgs[i];
+      let  keyNoteIx = bg.notes.findIndex((nn) => nn.noteType === 'n');
+      keyNoteIx = (keyNoteIx >= 0) ? keyNoteIx : 0;
+      const nar: string[] = [];
+      for (var j = 0; j < bg.notes.length; ++j) {
+        const note = bg.notes[j];
+        const vexNote = note.attrs.id;
+        if (note.noteType !== '/') {
+          nar.push(vexNote);
+        }
+        if (note.noteType !== 'n') {
+          continue;
+        }
+        if (note.flagState !== SmoNote.flagStates.auto) {
+          const noteStem = note.toVexStemDirection();
+          strs.push(`${vexNote}.setStemDirection(${noteStem});`);
+        }
+      }
+      const narString = '[' + nar.join(',') + ']';
+      strs.push(`const ${bg.attrs.id} = new VF.Beam(${narString});`);
+    }
+  });
+}
+export function createMeasure(smoMeasure: SmoMeasure, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
   strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${smoMeasure.svg.staffY}, ${smoMeasure.svg.staffWidth});`);
   if (smoMeasure.svg.forceClef) {
@@ -131,15 +180,17 @@ export function createMeasure(smoMeasure: SmoMeasure, voiceStrings: string[], fm
   }
   strs.push(`${ssid}.setContext(context)`);
   strs.push(`${ssid}.draw();`);
-  voiceStrings.forEach((vs) => {
+
+  smoMeasure.voices.forEach((voice, voiceIx) => {
+    const vs = getVoiceId(smoMeasure, voiceIx);
     strs.push(`${vs}.draw(context, ${ssid});`);
   });
+  smoMeasure.beamGroups.forEach((bg) => {
+    strs.push(`${bg.attrs.id}.setContext(context);`);
+    strs.push(`${bg.attrs.id}.draw();`)
+  });
 }
-export interface SmoToVexNote {
-  ctorInfo: NoteStruct,
-  note: SmoNote,
-  type: string
-}
+
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
@@ -148,6 +199,7 @@ export class SmoToVex {
   static convert(smoScore: SmoScore, options: any) {
     let useId = false;
     let page = 0;
+    const groupMap: Record<string, VexStaveGroupMusic> = {};
     options = options ?? {};
     if (typeof(options['id']) === 'boolean') {
       useId = options.id
@@ -159,31 +211,63 @@ export class SmoToVex {
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
     strs.push('const VF = Vex.Flow;');
-    strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`)
-    strs.push(`renderer.resize(${pageWidth}, ${pageHeight});`);
+    strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
+    const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
+    const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
+    const width = zoomScale * pageWidth;
+    const height = zoomScale * pageHeight;
+    const scale = svgScale * zoomScale;
+    const vbWidth = Math.round(width / scale);
+    const vbHeight = Math.round(height / scale);
+
     strs.push('const context = renderer.getContext();');
+    strs.push('const svg = context.svg');
+    strs.push(`svg.setAttributeNS('', 'width', '${width}');`);
+    strs.push(`svg.setAttributeNS('', 'width', '${height}');`);
+    strs.push(`svg.setAttributeNS('', 'viewBox', '0 0 ${vbWidth} ${vbHeight}');`);
     strs.push('const noteHash = {};');
+    strs.push('const voiceHash = {}');
     smoScore.staves.forEach((smoStaff, staffIx) => {
       for (var i = 0; i < smoStaff.measures.length; ++i) {
         const smoMeasure = smoStaff.measures[i];
+        const selection = SmoSelection.measureSelection(smoScore, smoStaff.staffId, smoMeasure.measureNumber.measureIndex);
+        if (!selection) {
+          continue;
+        }
+        const systemGroup = smoScore.getSystemGroupForStaff(selection);      
+        const justifyGroup: string = (systemGroup && smoMeasure.format.autoJustify) ? systemGroup.attrs.id : selection.staff.attrs.id;
         const tickmapObject = smoMeasure.createMeasureTickmaps();
         const measureIx = i;
         const voiceStrings: string[] = [];
         const fmtid = 'fmt' + smoMeasure.attrs.id + measureIx.toString();
         strs.push(`const ${fmtid} = new VF.Formatter();`);
-        smoMeasure.voices.forEach((smoVoice, vix) => {
-          const vn = smoMeasure.attrs.id + 'v' + vix.toString();
+        if (!groupMap[justifyGroup]) {
+          groupMap[justifyGroup] = {
+            formatter: fmtid,
+            measures: [],
+            voiceStrings: []
+          }
+        }
+        groupMap[justifyGroup].measures.push(smoMeasure);
+        smoMeasure.voices.forEach((smoVoice, voiceIx) => {        
+          const vn = getVoiceId(smoMeasure, voiceIx);
+          groupMap[justifyGroup].voiceStrings.push(vn);
           const vc = vn + 'ar';
           strs.push(`const ${vn} = new VF.Voice();`);
           strs.push(`const ${vc} = [];`)
-          smoVoice.notes.forEach((smoNote, nix) => {
-            const noteId = createStaveNote(smoNote, vix, nix, tickmapObject, strs);
+          smoVoice.notes.forEach((smoNote, noteIx) => {
+            const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject };
+            const noteId = createStaveNote(renderInfo, strs);
             strs.push(`${vc}.push(${noteId});`);
           });
           strs.push(`${vn}.addTickables(${vc})`);
           voiceStrings.push(vn);
+          strs.push(`${fmtid}.joinVoices([${vn}]);`);
         });
-        createMeasure(smoMeasure, voiceStrings, fmtid, strs);
+
+        if (smoMeasure.svg.lineIndex === smoScore.staves.length - 1) {
+          createColumn(groupMap, strs);
+        }
       };
     });
     console.log(strs.join(`\n`));

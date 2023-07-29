@@ -32,7 +32,7 @@ declare var $: any;
  */
 export class VxMeasure {
   context: SvgPage;
-  static readonly musicFontScaleNote: number = 38;
+  static readonly musicFontScaleNote: number = 39;
   static readonly musicFontScaleCue: number = 28;
   printing: boolean;
   selection: SmoSelection;
