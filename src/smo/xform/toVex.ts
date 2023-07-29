@@ -17,11 +17,9 @@ export interface VexStaveGroupMusic {
   formatter: string, measures: SmoMeasure[], voiceStrings: string[]
 }
 export function smoNoteToVexKeys(smoNote: SmoNote) {
-  const rv: string[] = [];
-  smoNote.pitches.forEach((pitch: Pitch) => {
-    rv.push(SmoMusic.pitchToVexKey(pitch));
-  });
-  return rv;
+  const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
+  const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
+  return keys;
 }
 export function smoNoteToStaveNote(smoNote: SmoNote) {
   const duration =
@@ -53,7 +51,12 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
   const ctorString = JSON.stringify(ctorInfo);
-  strs.push(`const ${id} = new VF.StaveNote(JSON.parse('${ctorString}'))`);
+  let ctor = 'VF.StaveNote';
+  if (smoNote.noteType === '/') {
+    strs.push(`const ${id} = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration: '${ctorInfo.duration}' });`)
+  } else {
+      strs.push(`const ${id} = new VF.StaveNote(JSON.parse('${ctorString}'))`);
+  }
   strs.push(`noteHash['${id}'] = ${id};`);
   strs.push(`${id}.setAttribute('id', '${id}');`);
   if (smoNote.noteType === 'n') {
@@ -116,8 +119,8 @@ export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: s
   groupKeys.forEach((groupKey) => {
     const music = groups[groupKey];
     // Need to create beam groups before formatting
+    strs.push(`// create beam groups and tuplets for format grp ${groupKey} before formatting`);
     music.measures.forEach((smoMeasure) => {
-      strs.push(`// create beam groups and tuplets for measure stave ${smoMeasure.measureNumber.measureIndex}`);
       createBeamGroups(smoMeasure, strs);
       createTuplets(smoMeasure, strs);
     });
