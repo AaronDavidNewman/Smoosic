@@ -84,7 +84,7 @@ export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
   return smoMeasure.attrs.id + 'v' + voiceIx.toString();
 }
 
-export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
+export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, strs: string[]) {
   const { smoNote, voiceIx, noteIx, tickmapObject } = { ...renderInfo };
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
@@ -100,7 +100,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
   strs.push(`${id}.setAttribute('id', '${id}');`);
   if (smoNote.noteType === 'n') {
     smoNote.pitches.forEach((pitch, ix) => {
-      const zz = SmoMusic.accidentalDisplay(pitch, smoNote.keySignature,
+      const zz = SmoMusic.accidentalDisplay(pitch, key,
         tickmapObject.tickmaps[voiceIx].durationMap[noteIx], tickmapObject.accidentalArray);
       if (zz) {
         const aname = id + ix.toString() + 'acc';
@@ -356,7 +356,7 @@ export class SmoToVex {
           strs.push(`const ${vc} = [];`)
           smoVoice.notes.forEach((smoNote, noteIx) => {
             const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject };
-            const noteId = createStaveNote(renderInfo, strs);
+            const noteId = createStaveNote(renderInfo, smoMeasure.keySignature, strs);
             strs.push(`${vc}.push(${noteId});`);
           });
           strs.push(`${vn}.addTickables(${vc})`);
