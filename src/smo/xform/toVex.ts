@@ -21,6 +21,44 @@ export function smoNoteToVexKeys(smoNote: SmoNote) {
   const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
   return keys;
 }
+export function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
+  const gar = smoNote.getGraceNotes();
+  var toBeam = true;
+  if (gar && gar.length) {
+    const grGroup: string[] = [];
+    gar.forEach((g) => {
+      const grid = g.attrs.id;
+      const args = JSON.stringify(g.toVexGraceNote());
+      strs.push(`const ${grid} = new VF.GraceNote(JSON.parse('${args}'))`);
+      strs.push(`${grid}.setAttribute('id', '${grid}');`);
+      for (var i = 0; i < g.pitches.length; ++i) {
+        const pitch = g.pitches[i];
+        if (!pitch.accidental) {
+          console.warn('no accidental in grace note');
+        }
+        if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary) {
+          const acid = 'acc' + i.toString() + grid;
+          strs.push(`const ${acid} = new VF.Accidental('${pitch.accidental});`);
+          if (pitch.cautionary) {
+            strs.push(`${acid}.setAsCautionary();`);
+          }
+          strs.push(`${grid}.addModifier(${acid}, ${i})`);
+        }
+      }
+      if (g.tickCount() >= 4096) {
+        toBeam = false;
+      }
+      grGroup.push(grid);
+    });
+    const ggid = 'ggrp' + smoNote.attrs.id;
+    const grString = '[' + grGroup.join(',') + ']';
+    strs.push(`const ${ggid} = new VF.GraceNoteGroup(${grString});`);
+    if (toBeam) {
+      strs.push(`${ggid}.beamNotes();`);
+    }
+    strs.push(`${smoNote.attrs.id}.addModifier(${ggid}, 0);`);
+  }
+}
 export function smoNoteToStaveNote(smoNote: SmoNote) {
   const duration =
     smoNote.isTuplet ?
@@ -57,6 +95,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, strs: string[]) {
   } else {
       strs.push(`const ${id} = new VF.StaveNote(JSON.parse('${ctorString}'))`);
   }
+  smoNoteToGraceNotes(smoNote, strs);
   strs.push(`noteHash['${id}'] = ${id};`);
   strs.push(`${id}.setAttribute('id', '${id}');`);
   if (smoNote.noteType === 'n') {
