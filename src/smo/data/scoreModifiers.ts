@@ -10,8 +10,8 @@ import { SmoMeasureFormat } from './measureModifiers';
 import { SmoAttrs, FontInfo, SmoModifierBase, SvgBox } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
-
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * Base class for all {@link SmoScore} modifiers. 
@@ -28,7 +28,7 @@ export abstract class SmoScoreModifierBase implements SmoModifierBase {
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: ctor
     };
   }
@@ -493,7 +493,7 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
     smoSerialize.serializedMerge(SmoSystemGroup.attributes, SmoSystemGroup.defaults, this);
     smoSerialize.serializedMerge(SmoSystemGroup.attributes, params, this);
     this.attrs = {
-      id: VF.Element.newID(),
+      id: (VF.Element as any).newID(),
       type: 'SmoSystemGroup'
     };
   }

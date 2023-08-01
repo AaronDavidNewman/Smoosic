@@ -2,19 +2,24 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
-import { SmoMeasure, SmoVoice } from '../data/measure';
+import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric } from '../data/noteModifiers';
+import { smoSerialize } from '../../common/serializationHelpers';
 import { Pitch } from '../data/common';
 import { Vex, StaveNoteStruct, NoteStruct, Element } from 'vexflow_smoosic';
-import { MeasureTickmaps } from '../data/measure';
+import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection } from './selections';
+import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoSystemGroup } from '../data/scoreModifiers';
+import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 
 export interface VexNoteRenderInfo {
   smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps
 }
 export interface VexStaveGroupMusic {
-  formatter: string, measures: SmoMeasure[], voiceStrings: string[], heightOffset: number
+  formatter: string, measures: SmoMeasure[], voiceStrings: string[], heightOffset: number, 
+  systemGroup?: SmoSystemGroup
 }
 export function smoNoteToVexKeys(smoNote: SmoNote) {
   const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
@@ -83,7 +88,140 @@ export const getId = () => (Element as any).newID();
 export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
   return smoMeasure.attrs.id + 'v' + voiceIx.toString();
 }
-
+export function lastNoteInSystem(smoScore: SmoScore, selection: SmoSelection) {
+    let rv = selection;
+    let next: SmoSelection | null = null;
+    next = SmoSelection.nextNoteSelection(smoScore, selection.selector.staff,
+      selection.selector.measure, selection.selector.voice, selection.selector.tick);
+    while (next) {
+      if (next.measure.svg.rowInSystem !== selection.measure.svg.rowInSystem) {
+        return rv;
+        break;
+      }
+      rv = next;
+      next = SmoSelection.nextNoteSelection(smoScore, next.selector.staff,
+        next.selector.measure, next.selector.voice, next.selector.tick);
+    }
+    return rv;
+}
+export function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
+  const sb = smoMeasure.getStartBarline();
+  const eb = smoMeasure.getEndBarline();
+  const sym = smoMeasure.getRepeatSymbol();
+  const vxStave = 'stave' + smoMeasure.attrs.id;
+  if (smoMeasure.measureNumber.systemIndex !== 0 && sb.barline === SmoBarline.barlines.singleBar
+    && smoMeasure.format.padLeft === 0) {
+      strs.push(`${vxStave}.setBegBarType(VF.Barline.type.NONE);`);
+  } else {
+    strs.push(`${vxStave}.setBegBarType(${sb.toVexBarline()});`);
+  }
+  if (smoMeasure.svg.multimeasureLength > 0 && !smoMeasure.svg.hideMultimeasure) {
+    const bl = SmoBarline.toVexBarline[smoMeasure.svg.multimeasureEndBarline];
+    strs.push(`${vxStave}.setEndBarType(${bl});`);
+  } else if (eb.barline !== SmoBarline.barlines.singleBar) {
+    const bl = eb.toVexBarline();
+    strs.push(`${vxStave}.setEndBarType(${bl});`);
+  }
+  if (smoMeasure.svg.rowInSystem === 0) {
+    const rmb = smoMeasure.getRehearsalMark();
+    const rm = rmb as SmoRehearsalMark;
+    if (rm) {
+      strs.push(`${vxStave}.setSection('${rm.symbol}', 0);`);
+    }
+  }
+  const tempo = smoMeasure.getTempo();
+  if (tempo && smoMeasure.svg.forceTempo) {
+    const vexTempo = tempo.toVexTempo();
+    const tempoString = JSON.stringify(vexTempo);
+    strs.push(`${vxStave}.setTempo(JSON.parse('${tempoString}'));`);
+  }
+}
+export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasure: number, strs: string[]) {
+  const voltas = smoScore.staves[0].getVoltaMap(startMeasure, endMeasure);
+  for (var i = 0; i < voltas.length; ++i) {
+    const ending = voltas[i];
+    for (var j = ending.startBar; j <= ending.endBar; ++j) {
+      const smoMeasure = smoScore.staves[0].measures[j];
+      const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
+      const vx = smoMeasure.staffX + ending.xOffsetStart;
+      const vxStave = 'stave' + smoMeasure.attrs.id;
+      strs.push(`const ${ending.attrs.id} = new VF.Volta(${vtype}, '${ending.number.toString()}', ${vx}, ${ending.yOffset});`);
+      strs.push(`${ending.attrs.id}.setContext(context).draw(${vxStave}, -1 * ${ending.xOffsetEnd});`);
+    }
+  }
+}
+export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote, endNote: SmoNote, strs: string[]) {
+  if (modifier.ctor === 'SmoStaffHairpin') {
+    const hp = modifier as SmoStaffHairpin;    
+    const vxStart = startNote.attrs.id;
+    const vxEnd = startNote.attrs.id;
+    const hpParams = { first_note: vxStart, last_note: vxEnd };
+    strs.push(`const ${modifier.attrs.id} = new VF.StaveHairpin({ first_note: ${vxStart}, last_note: ${vxEnd} );`);
+    strs.push(`${modifier.attrs.id}.setRenderOptions({ height: ${hp.height}, y_shift: ${hp.yOffset}, left_shift_px: ${hp.xOffsetLeft},right_shift_px: ${hp.xOffsetRight} });`);
+    strs.push(`${modifier.attrs.id}.setContext(context).setPosition(${hp.position}).draw();`);
+  } else if (modifier.ctor === 'SmoSlur') {
+    const slur = modifier as SmoSlur;    
+    const vxStart = startNote.attrs.id;
+    const vxEnd = endNote.attrs.id;
+    const svgPoint: SVGPoint[] = JSON.parse(JSON.stringify(slur.controlPoints));
+    const hpParams = {
+      thickness: slur.thickness,
+      x_shift: 0,
+      y_shift: slur.yOffset,
+      cps: svgPoint,
+      invert: slur.invert,
+      position: slur.position,
+      position_end: slur.position_end
+    };
+    const paramStrings = JSON.stringify(hpParams);
+    strs.push(`const ${modifier.attrs.id} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
+    strs.push(`${modifier.attrs.id}.setContext(context).draw();`);
+  } else if (modifier.ctor === 'SmoTie') {
+    const ctie = modifier as SmoTie; 
+    const vxStart = startNote.attrs.id;
+    const vxEnd = endNote.attrs.id;
+    if (ctie.lines.length > 0) {
+      // Hack: if a chord changed, the ties may no longer be valid.  We should check
+      // this when it changes.
+      ctie.checkLines(startNote, endNote);
+      const fromLines = ctie.lines.map((ll) => ll.from);
+      const toLines = ctie.lines.map((ll) => ll.to);
+      const tieParams = {
+        first_note: vxStart,
+        last_note: vxEnd,
+        first_indices: fromLines,
+        last_indices: toLines          
+      };
+      strs.push(`const ${ctie.attrs.id} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
+      strs.push(`${ctie.attrs.id}.setContext(context).draw();`);
+    }
+  }
+}
+export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff, 
+  startMeasure: number, endMeasure: number, strs: string[]) {
+  const modifiers = staff.renderableModifiers.filter((mm) => mm.startSelector.measure >= startMeasure && mm.endSelector.measure <= endMeasure);
+  modifiers.forEach((modifier) => {
+    const startNote = SmoSelection.noteSelection(smoScore,
+      modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+    const endNote = SmoSelection.noteSelection(smoScore,
+      modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+    if (startNote && startNote.note && endNote && endNote.note) {
+      if (endNote.staff.staffId !== startNote.staff.staffId) {
+        const endFirst = lastNoteInSystem(smoScore, startNote);
+        if (endFirst && endFirst.note) {
+          const startLast = SmoSelection.noteSelection(smoScore, endNote.selector.staff,
+            endNote.selector.measure, 0, 0);
+            if (startLast && startLast.note) {
+              renderModifier(modifier, startNote.note, endFirst.note, strs);
+              renderModifier(modifier, startLast.note, endNote.note, strs);
+            }
+        }
+      } else {
+        renderModifier(modifier, startNote.note, endNote.note, strs);
+      }
+    }
+  });
+}
 export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, strs: string[]) {
   const { smoNote, voiceIx, noteIx, tickmapObject } = { ...renderInfo };
   const id = smoNote.attrs.id;
@@ -210,7 +348,7 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
       const nar: string[] = [];
       for (var j = 0; j < tp.notes.length; ++j) {
         const note = tp.notes[j];
-        const vexNote = `note_hash['${note.attrs.id}']`;
+        const vexNote = `${note.attrs.id}`;
         nar.push(vexNote);
       }
       const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
@@ -233,6 +371,7 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
   const ssid = 'stave' + smoMeasure.attrs.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
   strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${staffY}, ${smoMeasure.svg.staffWidth});`);
+  createMeasureModifiers(smoMeasure, strs);
   if (smoMeasure.svg.forceClef) {
     strs.push(`${ssid}.addClef('${smoMeasure.clef}');`);
   }
@@ -289,6 +428,8 @@ export class SmoToVex {
     if (typeof(options['page']) === 'number') {
       page = options.page;
     }
+    let startMeasure = -1;
+    let endMeasure = -1;
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
@@ -299,8 +440,8 @@ export class SmoToVex {
     const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
     const width = zoomScale * pageWidth;
     const height = zoomScale * pageHeight;
-    const heightOffset = -1 * (height * page);
     const scale = svgScale * zoomScale;
+    const heightOffset = -1 * (height * page) / scale;
     const vbWidth = Math.round(width / scale);
     const vbHeight = Math.round(height / scale);
 
@@ -320,6 +461,8 @@ export class SmoToVex {
       if (smoScore.staves[0].measures[k].svg.pageIndex > page) {
         break;
       }
+      startMeasure = startMeasure > 0 ? startMeasure : k;
+      endMeasure = Math.max(k, endMeasure);
       smoScore.staves.forEach((smoStaff, staffIx) => {
         const smoMeasure = smoStaff.measures[k];
         const selection = SmoSelection.measureSelection(smoScore, smoStaff.staffId, smoMeasure.measureNumber.measureIndex);
@@ -338,7 +481,8 @@ export class SmoToVex {
             formatter: fmtid,
             measures: [],
             heightOffset,
-            voiceStrings: []
+            voiceStrings: [],
+            systemGroup
           }
         }
         groupMap[justifyGroup].measures.push(smoMeasure);
@@ -366,9 +510,41 @@ export class SmoToVex {
 
         if (smoMeasure.svg.rowInSystem === smoScore.staves.length - 1) {
           createColumn(groupMap, strs);
+          const mapKeys = Object.keys(groupMap);
+          mapKeys.forEach((mapKey) => {
+            const tmpGroup = groupMap[mapKey];
+            if (tmpGroup.systemGroup) {
+              const systemIndex = smoMeasure.measureNumber.systemIndex;
+              const startMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.startSelector.staff].measures[k].attrs.id;
+              const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].attrs.id;
+              const leftConnector = tmpGroup.systemGroup.leftConnectorVx();
+              const rightConnector = tmpGroup.systemGroup.rightConnectorVx();
+              if (systemIndex === 0 && smoScore.staves.length > 1) {
+                strs.push(`const left${justifyGroup} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${leftConnector});`);
+                strs.push(`left${justifyGroup}.setContext(context).draw();`);
+              }
+              let endStave = false;
+              if (smoMeasure.measureNumber.systemIndex !== 0) {
+                if (smoMeasure.measureNumber.systemIndex === smoScore.staves[0].measures.length - 1) {
+                  endStave = true;
+                } else if (smoScore.staves[0].measures.length > k + 1 &&
+                  smoScore.staves[0].measures[k + 1].measureNumber.systemIndex === 0) {
+                    endStave = true;
+                }
+              }
+              if (endStave) {
+                strs.push(`const right${justifyGroup} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${rightConnector});`);
+                strs.push(`right${justifyGroup}.setContext(context).draw();`);
+              }    
+            }
+          });
         }
       });
     }
+    smoScore.staves.forEach((staff) => {
+      renderModifiers(smoScore, staff, startMeasure, endMeasure, strs);
+    });
+    renderVoltas(smoScore, startMeasure, endMeasure, strs);
     console.log(strs.join(`\n`));
   }
 }

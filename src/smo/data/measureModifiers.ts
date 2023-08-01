@@ -600,6 +600,10 @@ export interface SmoTempoTextParams {
   display: boolean,
   customText: string
 }
+export interface VexTempoTextParams {
+  duration?: string, dots?: number, bpm?: number, name?: string 
+}
+
 /**
  * Information about both playback tempo and how the tempo is notated.
  * @category SmoModifier
@@ -655,7 +659,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   display: boolean = false;
   customText: string = '';
 
-  _toVexTextTempo() {
+  _toVexTextTempo(): VexTempoTextParams {
     return { name: this.tempoText };
   }
 
@@ -703,7 +707,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
     return rv as Record<string, number>;
   }
 
-  _toVexDurationTempo() {
+  _toVexDurationTempo(): VexTempoTextParams {
     var vd = SmoMusic.ticksToDuration[this.beatDuration];
     var dots = (vd.match(/d/g) || []).length;
     vd = vd.replace(/d/g, '');
@@ -713,7 +717,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
     }
     return rv;
   }
-  toVexTempo() {
+  toVexTempo(): VexTempoTextParams {
     if (this.tempoMode === SmoTempoText.tempoModes.durationMode ||
       this.tempoMode === SmoTempoText.tempoModes.customMode) {
       return this._toVexDurationTempo();
