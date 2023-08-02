@@ -475,7 +475,7 @@ export class SmoArticulation extends SmoNoteModifierBase {
 
 export interface VexAnnotationParams {
   glyph?: string,
-  symbolModifier?: string,
+  symbolModifier?: number,
   symbolType: number,
   text?: string
 }
@@ -714,12 +714,12 @@ export class SmoLyric extends SmoNoteModifierBase {
         if (isGlyph) {
           const glyph = SmoLyric._chordGlyphFromCode(token);
           blocks.push({
-            glyph, symbolModifier: mod.toString(),
+            glyph, symbolModifier: mod,
             symbolType: VF.ChordSymbol.symbolTypes.GLYPH
           });
         } else {
           blocks.push({
-            text: token, symbolModifier: mod.toString(),
+            text: token, symbolModifier: mod,
             symbolType: VF.ChordSymbol.symbolTypes.TEXT
           });
         }
