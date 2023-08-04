@@ -5,7 +5,7 @@
  * **/
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
-import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
 import { Vex, StaveModifierPosition, TextJustification } from 'vexflow_smoosic';
 
@@ -22,7 +22,7 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: ctor
     };
   }

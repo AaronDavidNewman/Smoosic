@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
-import { SmoAttrs } from '../data/common';
+import { SmoAttrs, getId } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
 import { TickMap } from './tickMap';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -29,7 +29,7 @@ class SmoBeamGroup implements ISmoBeamGroup {
     smoSerialize.vexMerge(this, params);
 
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: 'SmoBeamGroup'
     };
     for (i = 0; i < this.notes.length; ++i) {

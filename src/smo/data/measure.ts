@@ -21,7 +21,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, 
-  TickAccidental, AccidentalArray } from './common';
+  TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
 import { Vex } from 'vexflow_smoosic';
 /**
@@ -342,7 +342,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       this.format = new SmoMeasureFormat(params.format);
     }
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: 'SmoMeasure'
     };
   }

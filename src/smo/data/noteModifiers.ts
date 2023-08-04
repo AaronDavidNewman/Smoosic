@@ -5,7 +5,7 @@
  * pitch itself.  This includes grace notes, and note-text like lyrics.
  * @module /smo/data/noteModifiers
  */
-import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
@@ -27,7 +27,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   element: SVGSVGElement | null = null;
   constructor(ctor: string) {
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: ctor
     };
     this.ctor = ctor;
@@ -748,7 +748,7 @@ export class SmoLyric extends SmoNoteModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: (VF.Element as any).newID(),
+        id: getId().toString(),
         type: parameters.ctor
       };
     }
@@ -841,7 +841,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: (VF.Element as any).newID(),
+        id: getId().toString(),
         type: 'SmoDynamicText'
       };
     }

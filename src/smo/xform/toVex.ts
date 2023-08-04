@@ -5,17 +5,19 @@ import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric } from '../data/noteModifiers';
-import { smoSerialize } from '../../common/serializationHelpers';
-import { Pitch } from '../data/common';
-import { Vex, StaveNoteStruct, NoteStruct, Element } from 'vexflow_smoosic';
+import { Vex, StaveNoteStruct } from 'vexflow_smoosic';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 
+export interface LyricAdjust {
+  verse: number, lyric: SmoLyric, 
+}
 export interface VexNoteRenderInfo {
-  smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps
+  smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps, lyricAdj: string[]
 }
 export interface VexStaveGroupMusic {
   formatter: string, measures: SmoMeasure[], voiceStrings: string[], heightOffset: number, 
@@ -84,7 +86,6 @@ export function smoNoteToStaveNote(smoNote: SmoNote) {
   sn.keys = smoNoteToVexKeys(smoNote);
   return sn;
 }
-export const getId = () => (Element as any).newID();
 export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
   return smoMeasure.attrs.id + 'v' + voiceIx.toString();
 }
@@ -222,8 +223,8 @@ export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff,
     }
   });
 }
-export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, strs: string[]) {
-  const { smoNote, voiceIx, noteIx, tickmapObject } = { ...renderInfo };
+export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number, strs: string[]) {
+  const { smoNote, voiceIx, noteIx, tickmapObject, lyricAdj } = { ...renderInfo };
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
   const ctorString = JSON.stringify(ctorInfo);
@@ -282,6 +283,9 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, strs
           strs.push(`${sn}.setFont('${ll.fontInfo.family}', ${ll.fontInfo.size}, '${weight}');`)
           strs.push(`${sn}.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);`);
           strs.push(`${id}.addModifier(${sn});`);
+          if (ll.adjY > 0) {
+            lyricAdj.push(`context.svg.getElementById('vf-${sn}').setAttributeNS('', 'transform', 'translate(0 ${ll.adjY})');`);
+          }
           if (ll.isHyphenated()) {
             classString += ' lyric-hyphen';
           }
@@ -290,6 +294,23 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, strs
       }
     });
   }
+  const chords = smoNote.getChords();
+  chords.forEach((chord) => {
+    strs.push(`const ${chord.attrs.id} = new VF.ChordSymbol();`);
+    strs.push(`${chord.attrs.id}.setAttribute('id', '${chord.attrs.id}');`);
+    const vblocks = chord.getVexChordBlocks();
+    vblocks.forEach((vblock) => {
+      const glyphParams = JSON.stringify(vblock);
+      if (vblock.glyph) {
+        strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
+      } else {
+        const btext = vblock.text ?? '';
+        strs.push(`${chord.attrs.id}.addGlyphOrText('${btext}', JSON.parse('${glyphParams}'));`);
+      }
+    });
+    strs.push(`${chord.attrs.id}.setFont('${chord.fontInfo.family}', ${chord.fontInfo.size}).setReportWidth(${chord.adjustNoteWidth});`);
+    strs.push(`${id}.addModifier(${chord.attrs.id}, 0);`);
+  });
   return id;
 }
 export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]) {
@@ -371,6 +392,7 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
   const ssid = 'stave' + smoMeasure.attrs.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
   strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${staffY}, ${smoMeasure.svg.staffWidth});`);
+  strs.push(`${ssid}.setAttribute('id', '${ssid}');`);
   createMeasureModifiers(smoMeasure, strs);
   if (smoMeasure.svg.forceClef) {
     strs.push(`${ssid}.addClef('${smoMeasure.clef}');`);
@@ -453,6 +475,8 @@ export class SmoToVex {
     strs.push('const noteHash = {};');
     strs.push('const voiceHash = {}');
     const measureCount = smoScore.staves[0].measures.length;
+    const lyricAdj: string[] = [];
+
     for (var k = 0; k < measureCount; ++k) {
       const groupMap: Record<string, VexStaveGroupMusic> = {};
       if (smoScore.staves[0].measures[k].svg.pageIndex < page) {
@@ -499,8 +523,8 @@ export class SmoToVex {
           strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
           strs.push(`const ${vc} = [];`)
           smoVoice.notes.forEach((smoNote, noteIx) => {
-            const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject };
-            const noteId = createStaveNote(renderInfo, smoMeasure.keySignature, strs);
+            const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject, lyricAdj };
+            const noteId = createStaveNote(renderInfo, smoMeasure.keySignature, smoMeasure.svg.rowInSystem, strs);
             strs.push(`${vc}.push(${noteId});`);
           });
           strs.push(`${vn}.addTickables(${vc})`);
@@ -545,6 +569,7 @@ export class SmoToVex {
       renderModifiers(smoScore, staff, startMeasure, endMeasure, strs);
     });
     renderVoltas(smoScore, startMeasure, endMeasure, strs);
-    console.log(strs.join(`\n`));
+    const render = strs.concat(lyricAdj);
+    console.log(render.join(`\n`));
   }
 }

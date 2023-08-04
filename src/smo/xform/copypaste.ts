@@ -10,6 +10,7 @@ import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { SmoScore } from '../data/score';
 import { TickMap } from './tickMap';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { getId } from '../data/common';
 import { Vex } from 'vexflow_smoosic';
 const VF = Vex.Flow;
 
@@ -89,7 +90,7 @@ export class PasteBuffer {
       if (mod.length) {
         mod.forEach((modifier: StaffModifierBase) => {
           const cp: StaffModifierBase = StaffModifierBase.deserialize(modifier.serialize());
-          cp.attrs.id = (VF.Element as any).newID();
+          cp.attrs.id = getId().toString();
           this.modifiers.push(cp);
         });
       }

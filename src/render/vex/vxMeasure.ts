@@ -625,6 +625,7 @@ export class VxMeasure {
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
     const staffY = this.smoMeasure.staffY - this.context.box.y;
     this.stave = new VF.Stave(staffX, staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft);
+    this.stave.setAttribute('id', this.smoMeasure.attrs.id);
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.format.padLeft) {
       this.context.getContext().rect(this.smoMeasure.staffX, staffY, this.smoMeasure.format.padLeft, 50, {

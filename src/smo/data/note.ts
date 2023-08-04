@@ -8,7 +8,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
+import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox, getId } from './common';
 import { Vex } from 'vexflow_smoosic';
 const VF = Vex.Flow;
 
@@ -101,7 +101,7 @@ export class SmoNote implements Transposable {
       this.tuplet = params.tuplet;
     }
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: 'SmoNote'
     }; // else inherit
   }
@@ -619,7 +619,7 @@ export class SmoNote implements Transposable {
 
     // make sure id is unique
     rv.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: 'SmoNote'
     };
     return rv;

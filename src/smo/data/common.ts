@@ -12,6 +12,8 @@ export interface SmoAttrs {
     type: string
 }
 
+var nextId = 32768;
+export const getId = () => `smo` + (nextId++).toString();
 /**
  * All note, measure, staff, and score objects have
  * a serialize method and are deserializable with constructor `ctor`

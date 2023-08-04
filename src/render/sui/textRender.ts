@@ -4,7 +4,7 @@ import { SvgHelpers, OutlineInfo } from './svgHelpers';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreText';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
-import { SmoAttrs, SvgBox } from '../../smo/data/common';
+import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { Vex, TextFormatter, Element, FontGlyph } from 'vexflow_smoosic';
@@ -226,7 +226,7 @@ export class SuiInlineText {
     this.startY = params.startY;
     this.purpose = params.purpose;
     this.attrs = {
-      id: (Element as any).newID(),
+      id: getId().toString(),
       type: 'SuiInlineText'
     };
     this.context = params.context;

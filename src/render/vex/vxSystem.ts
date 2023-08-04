@@ -106,34 +106,40 @@ export class VxSystem {
       });
     }
   }
-  _lowestYLowestVerse(lyrics: SmoLyric[]) {
-    let lowVerse = 5;
-    let lowestY = 0;
-    lyrics.forEach((lyric: SmoLyric) => {
-      if (lyric.logicalBox && lyric.verse < lowVerse) {
-        lowestY = lyric.logicalBox.y;
-        lowVerse = lyric.verse;
-      }
-      if (lyric.verse === lowVerse && lyric.logicalBox && lyric.logicalBox.y > lowestY) {
-        lowestY = lyric.logicalBox.y;
-      }
-    });
-    this.vxMeasures.forEach((vxMeasure) => {
-      vxMeasure.smoMeasure.voices.forEach((voice) => {
-        voice.notes.forEach((note) => {
-          const lyrics = note.getTrueLyrics();
-          if (lyrics.length) {
-            const topVerse = lyrics.reduce((a, b) => a.verse < b.verse ? a : b);
-            if (topVerse && topVerse.logicalBox) {
-              const offset = lowestY - topVerse.logicalBox.y;
-              lyrics.forEach((lyric) => {
-                lyric.adjY = offset + lyric.translateY;
-              });
+  _lowestYLowestVerse(lyrics: SmoLyric[], vxMeasures: VxMeasure[]) {
+    // Move each verse down, according to the lowest lyric on that line/verse,
+    // and the accumulation of the verses above it
+    // lyrics.forEach((ll) => ll.adjY = 0);
+    let maxOffset = 0;
+    let calcMaxOffset = 0;
+    for (var lowVerse = 0; lowVerse < 4; ++lowVerse) {
+      let lowestY = 0;
+      maxOffset = calcMaxOffset;
+      calcMaxOffset = 0;
+      lyrics.forEach((lyric: SmoLyric) => {
+        if (lyric.logicalBox && lyric.verse === lowVerse) {
+          // 'lowest' Y on screen is Y with largest value...
+          lowestY = Math.max(lyric.logicalBox.y, lowestY);
+        }
+      });
+      vxMeasures.forEach((vxMeasure) => {
+        vxMeasure.smoMeasure.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            const noteLyrics = note.getTrueLyrics().filter((ll) => ll.verse >= lowVerse);
+            if (noteLyrics.length) {
+              const topVerse = noteLyrics.reduce((a, b) => a.verse < b.verse ? a : b);
+              if (topVerse && topVerse.logicalBox) {
+                const offset = Math.max(0, lowestY - topVerse.logicalBox.y);
+                calcMaxOffset = Math.max(calcMaxOffset, offset);
+                noteLyrics.forEach((lyric) => {
+                  lyric.adjY = offset + lyric.translateY + maxOffset;
+                });
+              }
             }
-          }
+          });
         });
       });
-    });
+    }
   }
 
   // ### updateLyricOffsets
@@ -178,7 +184,7 @@ export class VxSystem {
         });
       });
       // calculate y offset so the lyrics all line up
-      this._lowestYLowestVerse(lyrics);
+      this._lowestYLowestVerse(lyrics, vxMeasures);
       const vkey: string[] = Object.keys(lyricVerseMap).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
       vkey.forEach((sverse) => {
         const verse = parseInt(sverse, 10);
@@ -220,9 +226,9 @@ export class VxSystem {
         if (parent && lyric.logicalBox !== null) {
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
-          text.setAttributeNS('', 'x', lyric.hyphenX.toString());
+          text.setAttributeNS('', 'x', (lyric.hyphenX - (lyric.fontInfo.size / 2)).toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
-          const fontSize = lyric.fontInfo.size * 1.2;
+          const fontSize = lyric.fontInfo.size;
           text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
           parent.appendChild(text);
         }

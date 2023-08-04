@@ -5,7 +5,7 @@
  * staff modifiers.
  * @module /smo/data/systemStaff
  * **/
-import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
+import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber, getId } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
@@ -135,7 +135,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       this.numberMeasures();
     }
     this.attrs = {
-      id: (VF.Element as any).newID(),
+      id: getId().toString(),
       type: 'SmoSystemStaff'
     };
     if (params.partInfo) {
