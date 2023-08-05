@@ -4,7 +4,7 @@ import {
   SuiSaveFileDialog, SuiPrintFileDialog, 
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
   SuiLoadFileDialog, SuiLoadMidiDialog,
-  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog
+  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
 
@@ -52,6 +52,10 @@ export class SuiFileMenu extends SuiMenuBase {
       icon: '',
       text: 'Import Midi',
       value: 'importMidi'
+    },  {
+      icon: '',
+      text: 'Export Vex',
+      value: 'exportVex'
     }, {
       icon: '',
       text: 'Cancel',
@@ -113,6 +117,17 @@ export class SuiFileMenu extends SuiMenuBase {
     } else if (text === 'exportXml') {
       createAndDisplayDialog(SuiSaveXmlDialog, {
         ctor: 'SuiSaveXmlDialog',
+        id: 'save',
+        modifier: null,
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        eventSource: this.eventSource,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+    } else if (text === 'exportVex') {
+      createAndDisplayDialog(SuiSaveVexDialog, {
+        ctor: 'SuiSaveVexDialog',
         id: 'save',
         modifier: null,
         completeNotifier: this.completeNotifier,

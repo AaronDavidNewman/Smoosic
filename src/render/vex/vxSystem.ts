@@ -226,7 +226,7 @@ export class VxSystem {
         if (parent && lyric.logicalBox !== null) {
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
-          text.setAttributeNS('', 'x', (lyric.hyphenX - (lyric.fontInfo.size / 2)).toString());
+          text.setAttributeNS('', 'x', (lyric.hyphenX - lyric.fontInfo.size / 3).toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
           const fontSize = lyric.fontInfo.size;
           text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');

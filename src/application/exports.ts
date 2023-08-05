@@ -65,7 +65,7 @@ import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog } from '../ui/dialogs/fileDialogs';
+    SuiSaveMidiDialog, SuiSaveVexDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
 import { SuiTextInputComponent, SuiTextInputComposite } from '../ui/dialogs/components/textInput';
 import { SuiDropdownComponent, SuiDropdownComposite } from '../ui/dialogs/components/dropdown';
@@ -178,7 +178,7 @@ export const Smo = {
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
     SuiPartInfoDialog,
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
-    SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
+    SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog, SuiSaveVexDialog,
     SuiSaveMidiDialog, SuiDialogBase,
     // Dialog components
     SuiTreeComponent,

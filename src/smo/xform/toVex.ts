@@ -4,14 +4,21 @@ import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
-import { SmoArticulation, SmoLyric } from '../data/noteModifiers';
+import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { Vex, StaveNoteStruct } from 'vexflow_smoosic';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
-import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
+import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
+
+export const fontStacks: Record<string, string[]> =     {
+  Bravura: ['"Bravura"', '"Gonville"', '"Custom"'],
+  Gonville: ['"Gonville"', '"Bravura"', '"Custom"'],
+  Petaluma: ['"Petaluma"', '"Bravura"', '"Gonville"', '"Custom"'],
+  Leland: ['"Leland"', '"Bravura"', '"Gonville"', '"Custom"'] 
+}
 
 export interface LyricAdjust {
   verse: number, lyric: SmoLyric, 
@@ -134,7 +141,7 @@ export function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
   if (tempo && smoMeasure.svg.forceTempo) {
     const vexTempo = tempo.toVexTempo();
     const tempoString = JSON.stringify(vexTempo);
-    strs.push(`${vxStave}.setTempo(JSON.parse('${tempoString}'));`);
+    strs.push(`${vxStave}.setTempo(JSON.parse('${tempoString}'), -1 * ${tempo.yOffset});`);
   }
 }
 export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasure: number, strs: string[]) {
@@ -196,6 +203,14 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote, 
       strs.push(`const ${ctie.attrs.id} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
       strs.push(`${ctie.attrs.id}.setContext(context).draw();`);
     }
+  } else if (modifier.ctor === 'SmoStaffTextBracket') {
+    const ctext = modifier as SmoStaffTextBracket;
+    const vxStart = startNote.attrs.id;
+    const vxEnd = endNote.attrs.id;
+    if (vxStart  && vxEnd) {
+      strs.push(`const ${modifier.attrs.id} = new VF.TextBracket({ start: ${vxStart}, stop: ${vxEnd}, text: '${ctext.text}', position: ${ctext.position} });`);
+      strs.push(`${modifier.attrs.id}.setLine(${ctext.line}).setContext(context).draw();`);
+    }
   }
 }
 export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff, 
@@ -247,7 +262,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
         if (zz.courtesy) {
           strs.push(`${aname}.setAsCautionary();`);
         }
-        strs.push(`${id}.addModifier(${aname});`);
+        strs.push(`${id}.addModifier(${aname}, ${ix});`);
       }
     });    
   }
@@ -263,6 +278,20 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     strs.push(`const  ${sn} = new VF.Articulation('${vexArt}').setPosition(${position});`);
     strs.push(`${id}.addModifier(${sn}, 0);`);
   });
+  smoNote.getJazzOrnaments().forEach((ll) => {
+    const vexCode = ll.toVex();
+    strs.push(`const ${ll.attrs.id} = new VF.Ornament('${vexCode}');`)
+    strs.push(`${id}.addModifier(${ll.attrs.id}, 0);`);
+  });
+  smoNote.getOrnaments().forEach((ll) => {
+    const vexCode = ll.ornament;
+    strs.push(`const ${ll.attrs.id} = new VF.Ornament('${vexCode}');`);
+    if (ll.offset === SmoOrnament.offsets.after) {
+      strs.push(`${ll.attrs.id}.setDelayed(true);`);
+    }
+    strs.push(`${id}.addModifier(${ll.attrs.id}, 0);`);
+  });
+
   const lyrics = smoNote.getTrueLyrics();
   if (smoNote.noteType !== '/') {
     lyrics.forEach((bll) => {
@@ -284,7 +313,8 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
           strs.push(`${sn}.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);`);
           strs.push(`${id}.addModifier(${sn});`);
           if (ll.adjY > 0) {
-            lyricAdj.push(`context.svg.getElementById('vf-${sn}').setAttributeNS('', 'transform', 'translate(0 ${ll.adjY})');`);
+            const adjy = Math.round(ll.adjY);
+            lyricAdj.push(`context.svg.getElementById('vf-${sn}').setAttributeNS('', 'transform', 'translate(0 ${adjy})');`);
           }
           if (ll.isHyphenated()) {
             classString += ' lyric-hyphen';
@@ -324,11 +354,11 @@ export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: s
       createTuplets(smoMeasure, strs);
     });
     strs.push(' ');
-    strs.push(`// formatting measures in ${groupKey}`);
+    strs.push(`// formatting measures in staff group ${groupKey}`);
     const joinVoiceStr = '[' + music.voiceStrings.join(',') + ']';
     const widthMeasure = music.measures[0];
-    const staffWidth = widthMeasure.staffWidth -
-    (widthMeasure.svg.adjX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10;
+    const staffWidth = Math.round(widthMeasure.staffWidth -
+      (widthMeasure.svg.adjX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10);
     strs.push(`${music.formatter}.format(${joinVoiceStr}, ${staffWidth});`);
     music.measures.forEach((smoMeasure) => {
       createMeasure(smoMeasure, music.heightOffset, strs);
@@ -391,7 +421,8 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
 export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
-  strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${staffY}, ${smoMeasure.svg.staffWidth});`);
+  const staffWidth = Math.round(smoMeasure.svg.staffWidth);
+  strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${staffY}, ${staffWidth});`);
   strs.push(`${ssid}.setAttribute('id', '${ssid}');`);
   createMeasureModifiers(smoMeasure, strs);
   if (smoMeasure.svg.forceClef) {
@@ -440,7 +471,7 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
 // for vex EasyScore (for easier bug reports and test cases)
 export class SmoToVex {
 
-  static convert(smoScore: SmoScore, options: any) {
+  static convert(smoScore: SmoScore, options: any): string {
     let div = 'boo';
     let page = 0;
     options = options ?? {};
@@ -455,9 +486,12 @@ export class SmoToVex {
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
-    strs.push(`const div = document.getElementById('${div}')`);
+    strs.push('// create the div and svg element for the music')
+    strs.push(`const div = document.getElementById('${div}');`);
     strs.push('const VF = Vex.Flow;');
     strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
+    strs.push('//');
+    strs.push('// create the musical objects');
     const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
     const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
     const width = zoomScale * pageWidth;
@@ -472,6 +506,11 @@ export class SmoToVex {
     strs.push(`svg.setAttributeNS('', 'width', '${width}');`);
     strs.push(`svg.setAttributeNS('', 'height', '${height}');`);
     strs.push(`svg.setAttributeNS('', 'viewBox', '0 0 ${vbWidth} ${vbHeight}');`);
+    const font = smoScore.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
+    if (font) {
+      const fs = fontStacks[font.family].join(',');
+      strs.push(`VF.setMusicFont(${fs});`);
+    }
     strs.push('const noteHash = {};');
     strs.push('const voiceHash = {}');
     const measureCount = smoScore.staves[0].measures.length;
@@ -510,7 +549,7 @@ export class SmoToVex {
           }
         }
         groupMap[justifyGroup].measures.push(smoMeasure);
-        strs.push(' ');
+        strs.push('//');
         strs.push(`// voices and notes for stave ${smoStaff.staffId} ${smoMeasure.measureNumber.measureIndex}`);
         smoMeasure.voices.forEach((smoVoice, voiceIx) => {        
           const vn = getVoiceId(smoMeasure, voiceIx);
@@ -543,9 +582,10 @@ export class SmoToVex {
               const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].attrs.id;
               const leftConnector = tmpGroup.systemGroup.leftConnectorVx();
               const rightConnector = tmpGroup.systemGroup.rightConnectorVx();
+              const jgname = justifyGroup + smoMeasure.measureNumber.measureIndex.toString() + 's' + staffIx.toString();
               if (systemIndex === 0 && smoScore.staves.length > 1) {
-                strs.push(`const left${justifyGroup} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${leftConnector});`);
-                strs.push(`left${justifyGroup}.setContext(context).draw();`);
+                strs.push(`const left${jgname} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${leftConnector});`);
+                strs.push(`left${jgname}.setContext(context).draw();`);
               }
               let endStave = false;
               if (smoMeasure.measureNumber.systemIndex !== 0) {
@@ -557,8 +597,8 @@ export class SmoToVex {
                 }
               }
               if (endStave) {
-                strs.push(`const right${justifyGroup} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${rightConnector});`);
-                strs.push(`right${justifyGroup}.setContext(context).draw();`);
+                strs.push(`const right${jgname} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${rightConnector});`);
+                strs.push(`right${jgname}.setContext(context).draw();`);
               }    
             }
           });
@@ -569,7 +609,12 @@ export class SmoToVex {
       renderModifiers(smoScore, staff, startMeasure, endMeasure, strs);
     });
     renderVoltas(smoScore, startMeasure, endMeasure, strs);
+    if (lyricAdj.length) {
+      strs.push('// ');
+      strs.push('// Align lyrics on different measures, once they are rendered.');
+    }
     const render = strs.concat(lyricAdj);
-    console.log(render.join(`\n`));
+    return render.join(`\n`);
+    // console.log(render.join(`\n`));
   }
 }

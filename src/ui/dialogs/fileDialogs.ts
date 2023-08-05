@@ -10,6 +10,7 @@ import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
 import { addFileLink } from '../../common/htmlHelpers';
 import { SmoToMidi } from '../../smo/midi/smoToMidi';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
+import { SmoToVex } from '../../smo/xform/toVex';
 declare var $: any;
 // declare var MidiParser: any;
 declare var parseMidi: any;
@@ -241,6 +242,75 @@ export class SuiPrintFileDialog extends SuiDialogBase {
     $(dgDom.element).find('.remove-button').remove();
   }
   commit() { }
+}
+export class SuiVexSaveAdapter extends SuiComponentAdapter {
+  fileName: string = '';
+  page: number = 0;
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.fileName = this.view.score.scoreInfo.name;
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+
+  get pageToRender() {
+    return this.page;
+  }
+  set pageToRender(val: number) {
+    this.page = val;
+  }
+
+  _saveScore() {
+    const vexText = SmoToVex.convert(this.view.score, { div: 'smoo', page: this.page });
+    if (!this.fileName.endsWith('.js')) {
+      this.fileName = this.fileName + '.js';
+    }
+    addFileLink(this.fileName, vexText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  commit() {
+    let filename = this.fileName;
+    const rawFile = filename.split('.')[0];
+    if (!filename) {
+      filename = 'vexRender.js';
+    }
+    if (filename.indexOf('.js') < 0) {
+      filename = filename + '.js';
+    }
+    this._saveScore();
+  }
+  cancel() {}
+}
+export class SuiSaveVexDialog extends SuiDialogAdapterBase<SuiVexSaveAdapter>{
+  static dialogElements: DialogDefinition =
+    {
+      label: 'Save as Vex Code',
+      elements: [{
+        smoName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      }, {
+        smoName: 'pageToRender',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Page',
+        dataType: 'int',
+      }],
+      staticText: []
+    };
+  constructor(parameters: SuiDialogParams) {    
+    parameters.ctor = 'SuiVexSaveDialog';
+    const adapter = new SuiVexSaveAdapter(parameters.view);
+    super(SuiSaveVexDialog.dialogElements, { adapter, ...parameters });
+  }
+  commit() {
+    this.adapter.commit();
+  }
 }
 export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
