@@ -52,7 +52,7 @@ export function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
         }
         if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary) {
           const acid = 'acc' + i.toString() + grid;
-          strs.push(`const ${acid} = new VF.Accidental('${pitch.accidental});`);
+          strs.push(`const ${acid} = new VF.Accidental('${pitch.accidental}');`);
           if (pitch.cautionary) {
             strs.push(`${acid}.setAsCautionary();`);
           }
@@ -486,6 +486,7 @@ export class SmoToVex {
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
+    strs.push('function main() {');
     strs.push('// create the div and svg element for the music')
     strs.push(`const div = document.getElementById('${div}');`);
     strs.push('const VF = Vex.Flow;');
@@ -582,7 +583,7 @@ export class SmoToVex {
               const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].attrs.id;
               const leftConnector = tmpGroup.systemGroup.leftConnectorVx();
               const rightConnector = tmpGroup.systemGroup.rightConnectorVx();
-              const jgname = justifyGroup + smoMeasure.measureNumber.measureIndex.toString() + 's' + staffIx.toString();
+              const jgname = justifyGroup + startMeasure + staffIx.toString();
               if (systemIndex === 0 && smoScore.staves.length > 1) {
                 strs.push(`const left${jgname} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${leftConnector});`);
                 strs.push(`left${jgname}.setContext(context).draw();`);
@@ -614,6 +615,7 @@ export class SmoToVex {
       strs.push('// Align lyrics on different measures, once they are rendered.');
     }
     const render = strs.concat(lyricAdj);
+    render.push('}');
     return render.join(`\n`);
     // console.log(render.join(`\n`));
   }
