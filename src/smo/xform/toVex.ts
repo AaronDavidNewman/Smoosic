@@ -153,8 +153,9 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
       const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
       const vx = smoMeasure.staffX + ending.xOffsetStart;
       const vxStave = 'stave' + smoMeasure.attrs.id;
-      strs.push(`const ${ending.attrs.id} = new VF.Volta(${vtype}, '${ending.number.toString()}', ${vx}, ${ending.yOffset});`);
-      strs.push(`${ending.attrs.id}.setContext(context).draw(${vxStave}, -1 * ${ending.xOffsetEnd});`);
+      const endingName = ending.attrs.id + smoMeasure.attrs.id;
+      strs.push(`const ${endingName} = new VF.Volta(${vtype}, '${ending.number.toString()}', ${vx}, ${ending.yOffset});`);
+      strs.push(`${endingName}.setContext(context).draw(${vxStave}, -1 * ${ending.xOffsetEnd});`);
     }
   }
 }
@@ -305,7 +306,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
         // no text, no hyphen, don't add it.
         if (text.length) {
           const sn = ll.attrs.id;
-          text = text.replace("'","''");
+          text = text.replace("'","\\'");
           strs.push(`const ${sn} = new VF.Annotation('${text}');`);
           strs.push(`${sn}.setAttribute('id', '${sn}');`);
           const weight = ll.fontInfo.weight ?? 'normal';
@@ -335,7 +336,9 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
         strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
       } else {
         const btext = vblock.text ?? '';
-        strs.push(`${chord.attrs.id}.addGlyphOrText('${btext}', JSON.parse('${glyphParams}'));`);
+        if (btext.trim().length) {
+          strs.push(`${chord.attrs.id}.addGlyphOrText('${btext}', JSON.parse('${glyphParams}'));`);
+        }
       }
     });
     strs.push(`${chord.attrs.id}.setFont('${chord.fontInfo.family}', ${chord.fontInfo.size}).setReportWidth(${chord.adjustNoteWidth});`);
