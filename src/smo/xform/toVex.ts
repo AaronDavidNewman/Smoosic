@@ -159,58 +159,57 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
     }
   }
 }
-export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote, endNote: SmoNote, strs: string[]) {
-  if (modifier.ctor === 'SmoStaffHairpin') {
+export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, endNote: SmoNote | null, strs: string[]) {
+  const modifierName = getId();
+  if (modifier.ctor === 'SmoStaffHairpin' && startNote && endNote) {
     const hp = modifier as SmoStaffHairpin;    
     const vxStart = startNote.attrs.id;
     const vxEnd = startNote.attrs.id;
     const hpParams = { first_note: vxStart, last_note: vxEnd };
-    strs.push(`const ${modifier.attrs.id} = new VF.StaveHairpin({ first_note: ${vxStart}, last_note: ${vxEnd} );`);
-    strs.push(`${modifier.attrs.id}.setRenderOptions({ height: ${hp.height}, y_shift: ${hp.yOffset}, left_shift_px: ${hp.xOffsetLeft},right_shift_px: ${hp.xOffsetRight} });`);
-    strs.push(`${modifier.attrs.id}.setContext(context).setPosition(${hp.position}).draw();`);
+    strs.push(`const ${modifierName} = new VF.StaveHairpin({ first_note: ${vxStart}, last_note: ${vxEnd} });`);
+    strs.push(`${modifierName}.setRenderOptions({ height: ${hp.height}, y_shift: ${hp.yOffset}, left_shift_px: ${hp.xOffsetLeft},right_shift_px: ${hp.xOffsetRight} });`);
+    strs.push(`${modifierName}.setContext(context).setPosition(${hp.position}).draw();`);
   } else if (modifier.ctor === 'SmoSlur') {
     const slur = modifier as SmoSlur;    
-    const vxStart = startNote.attrs.id;
-    const vxEnd = endNote.attrs.id;
+    const vxStart = startNote?.attrs?.id ?? 'null';
+    const vxEnd = endNote?.attrs?.id ?? 'null'; 
     const svgPoint: SVGPoint[] = JSON.parse(JSON.stringify(slur.controlPoints));
-    const hpParams = {
-      thickness: slur.thickness,
-      x_shift: 0,
-      y_shift: slur.yOffset,
-      cps: svgPoint,
-      invert: slur.invert,
-      position: slur.position,
-      position_end: slur.position_end
-    };
-    const paramStrings = JSON.stringify(hpParams);
-    strs.push(`const ${modifier.attrs.id} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
-    strs.push(`${modifier.attrs.id}.setContext(context).draw();`);
-  } else if (modifier.ctor === 'SmoTie') {
-    const ctie = modifier as SmoTie; 
-    const vxStart = startNote.attrs.id;
-    const vxEnd = endNote.attrs.id;
-    if (ctie.lines.length > 0) {
-      // Hack: if a chord changed, the ties may no longer be valid.  We should check
-      // this when it changes.
-      ctie.checkLines(startNote, endNote);
-      const fromLines = ctie.lines.map((ll) => ll.from);
-      const toLines = ctie.lines.map((ll) => ll.to);
-      const tieParams = {
-        first_note: vxStart,
-        last_note: vxEnd,
-        first_indices: fromLines,
-        last_indices: toLines          
+    if (modifier.startSelector.staff === modifier.endSelector.staff) {
+      const hpParams = {
+        thickness: slur.thickness,
+        x_shift: 0,
+        y_shift: slur.yOffset,
+        cps: svgPoint,
+        invert: slur.invert,
+        position: slur.position,
+        position_end: slur.position_end
       };
-      strs.push(`const ${ctie.attrs.id} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
-      strs.push(`${ctie.attrs.id}.setContext(context).draw();`);
+      const paramStrings = JSON.stringify(hpParams);
+      strs.push(`const ${modifierName} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
+      strs.push(`${modifierName}.setContext(context).draw();`);
     }
-  } else if (modifier.ctor === 'SmoStaffTextBracket') {
+  } else if (modifier.ctor === 'SmoTie') {
+    const ctie = modifier as SmoTie;
+    const vxStart = startNote?.attrs?.id ?? 'null';
+    const vxEnd = endNote?.attrs?.id ?? 'null'; 
+    // TODO: handle case of overlap
+    if (modifier.startSelector.staff === modifier.endSelector.staff) {
+      if (ctie.lines.length > 0) {
+        // Hack: if a chord changed, the ties may no longer be valid.  We should check
+        // this when it changes.
+        const fromLines = ctie.lines.map((ll) => ll.from);
+        const toLines = ctie.lines.map((ll) => ll.to);
+        strs.push(`const ${modifierName} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
+        strs.push(`${modifierName}.setContext(context).draw();`);
+      }
+    }
+  } else if (modifier.ctor === 'SmoStaffTextBracket' && startNote && endNote) {
     const ctext = modifier as SmoStaffTextBracket;
     const vxStart = startNote.attrs.id;
     const vxEnd = endNote.attrs.id;
     if (vxStart  && vxEnd) {
-      strs.push(`const ${modifier.attrs.id} = new VF.TextBracket({ start: ${vxStart}, stop: ${vxEnd}, text: '${ctext.text}', position: ${ctext.position} });`);
-      strs.push(`${modifier.attrs.id}.setLine(${ctext.line}).setContext(context).draw();`);
+      strs.push(`const ${modifierName} = new VF.TextBracket({ start: ${vxStart}, stop: ${vxEnd}, text: '${ctext.text}', position: ${ctext.position} });`);
+      strs.push(`${modifierName}.setLine(${ctext.line}).setContext(context).draw();`);
     }
   }
 }
@@ -222,15 +221,16 @@ export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff,
       modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
     const endNote = SmoSelection.noteSelection(smoScore,
       modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+    // TODO: handle case of multiple line slur/tie
     if (startNote && startNote.note && endNote && endNote.note) {
-      if (endNote.staff.staffId !== startNote.staff.staffId) {
-        const endFirst = lastNoteInSystem(smoScore, startNote);
-        if (endFirst && endFirst.note) {
-          const startLast = SmoSelection.noteSelection(smoScore, endNote.selector.staff,
+        if (endNote.measure.svg.lineIndex !== startNote.measure.svg.lineIndex) {
+          const endFirst = lastNoteInSystem(smoScore, startNote);
+          if (endFirst && endFirst.note) {
+            const startLast = SmoSelection.noteSelection(smoScore, endNote.selector.staff,
             endNote.selector.measure, 0, 0);
             if (startLast && startLast.note) {
-              renderModifier(modifier, startNote.note, endFirst.note, strs);
-              renderModifier(modifier, startLast.note, endNote.note, strs);
+              renderModifier(modifier, startNote.note, null, strs);
+              renderModifier(modifier, null, endNote.note, strs);
             }
         }
       } else {
