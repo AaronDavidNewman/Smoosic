@@ -6,6 +6,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { SmoMeasure } from '../../smo/data/measure';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -39,11 +40,11 @@ export class SuiTempoAdapter extends SuiComponentAdapter {
     this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
-  remove() {
-    this.view.removeTempo(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
+  async remove() {
+    await this.view.removeTempo(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
   }
-  cancel() {
-    this.view.updateTempoScore(this.measure, this.backup, this.applyToAll, this.applyToSelection);
+  async cancel() {
+    await this.view.updateTempoScore(this.measure, this.backup, this.applyToAll, this.applyToSelection);
   }
   get applyToAll() {
     return this.applyToAllVal;
@@ -53,7 +54,9 @@ export class SuiTempoAdapter extends SuiComponentAdapter {
     this.view.updateTempoScore(this.measure, this.smoTempoText, this.applyToAll, this.applyToSelection);
     this.edited = true;
   }
-  commit(){}
+  async commit(){
+    return PromiseHelpers.emptyPromise();
+  }
   get tempoText() {
     return this.smoTempoText.tempoText;
   }

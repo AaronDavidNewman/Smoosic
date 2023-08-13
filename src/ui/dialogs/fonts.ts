@@ -5,6 +5,7 @@ import { SmoScore, FontPurpose, isEngravingFont } from '../../smo/data/score';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 export class SuiScoreFontAdapter extends SuiComponentAdapter {
@@ -25,7 +26,7 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
     this.backups = JSON.parse(JSON.stringify(this.fonts));
     this.view = view;
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
       this.fonts = this.backups;
       // This takes advantage of setter/getter side-effect
@@ -33,8 +34,10 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
       this.lyricFont = this.lyricFont;
       this.chordFont = this.chordFont;
     }
+    return PromiseHelpers.emptyPromise()
   }
-  commit() {
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
   changeFont(purpose: number, name: string, fontInfo: FontInfo): FontPurpose {
     const fp: FontPurpose = {

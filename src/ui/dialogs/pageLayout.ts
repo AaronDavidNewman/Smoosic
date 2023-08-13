@@ -7,6 +7,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinitionOption } from './components/baseComponent';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -27,7 +28,7 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
   view: SuiScoreViewOperations
   applyTo: number = SuiPageLayoutAdapter.layoutTypes.all;
   options: DialogDefinitionOption[] = [];
-  updateLayouts() {
+  async updateLayouts() {
     let i = 0;
     let startPage = this.currentPage;
     let endPage = this.layouts.length;
@@ -36,7 +37,7 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
     } else if (this.applyTo === SuiPageLayoutAdapter.layoutTypes.all) {
       startPage = 0;
     }
-    this.view.setPageLayouts(this.currentLayout, startPage, endPage);
+    await this.view.setPageLayouts(this.currentLayout, startPage, endPage);
     this.changed = true;
   }
   get enablePages() {
@@ -91,7 +92,7 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
     this.currentLayout.intraGap = value;
     this.updateLayouts();
   }
-  cancel() {
+  async cancel() {
     let i = 0;
     if (!this.changed) {
       return;
@@ -100,9 +101,11 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
       // Avoid multiple page rerender...
       this.view._setPageLayout(this.backup[i], i);
     }
-    this.view.refreshViewport();
+    await this.view.refreshViewport();
   }
-  commit() { }
+  async commit() { 
+    return PromiseHelpers.emptyPromise();
+  }
 
   constructor(view: SuiScoreViewOperations) {
     super(view);

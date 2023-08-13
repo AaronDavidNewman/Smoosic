@@ -3,6 +3,7 @@ import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 export class SuiDynamicDialogAdapter extends SuiComponentAdapter {
   modifier: SmoDynamicText;
@@ -14,15 +15,17 @@ export class SuiDynamicDialogAdapter extends SuiComponentAdapter {
     this.backup = new SmoDynamicText(this.modifier);
     this.selection = this.view.tracker.modifierSelections[0].selection!;
   }
-  cancel() {
-    this.view.addDynamic(this.selection, this.backup);
+  async cancel() {
+    await this.view.addDynamic(this.selection, this.backup);
   }
-  commit() {}
+  async commit() {
+    return PromiseHelpers.emptyPromise();
+  }
   get xOffset() {
     return this.modifier.xOffset;
   }
-  remove() {
-    this.view.removeDynamic(this.modifier);
+  async remove() {
+    await this.view.removeDynamic(this.modifier);
   }
   set xOffset(value: number) {
     this.modifier.xOffset = value;

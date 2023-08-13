@@ -12,6 +12,7 @@ import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
+import { ArrayType } from 'typedoc';
 
 export const fontStacks: Record<string, string[]> =     {
   Bravura: ['"Bravura"', '"Gonville"', '"Custom"'],
@@ -504,7 +505,7 @@ export class SmoToVex {
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
     const pageLength = smoScore.staves[0].measures[smoScore.staves[0].measures.length - 1].svg.pageIndex;
     let scoreName = smoScore.scoreInfo.title + ' p ' + (page + 1).toString() + '/' + pageLength.toString();
-    const scoreSub = smoScore.scoreInfo.subTitle.length ? `(${smoScore.scoreInfo.subTitle})` : '';
+    const scoreSub = smoScore.scoreInfo.subTitle?.length ? `(${smoScore.scoreInfo.subTitle})` : '';
     scoreName = `${scoreName} ${scoreSub} by ${smoScore.scoreInfo.composer}`;
     strs.push(`// @@ ${scoreName}`);
     strs.push('function main() {');
@@ -580,7 +581,7 @@ export class SmoToVex {
             beat_value: smoMeasure.timeSignature.beatDuration
           });
           strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
-          strs.push(`const ${vc} = [];`)
+          strs.push(`const ${vc} = [];`);
           smoVoice.notes.forEach((smoNote, noteIx) => {
             const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject, lyricAdj };
             const noteId = createStaveNote(renderInfo, smoMeasure.keySignature, smoMeasure.svg.rowInSystem, strs);

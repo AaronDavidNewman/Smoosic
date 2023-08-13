@@ -75,13 +75,11 @@ export class SuiLibraryAdapter extends SuiComponentAdapter {
     this.tree = {};
     this.buildTreeRecurse(this.topLib.children);
   }
-  commit() {
-
+  async commit() {    
   }
-  cancel() {
-
+  async cancel() {
   }
-  loadOptions(options: TreeComponentOption[]): Promise<void> {
+  async loadOptions(options: TreeComponentOption[]): Promise<void> {
     const self = this;
     return new Promise<void>((resolve) => {
       if (self.selectedLib!.format === 'library') {
@@ -107,8 +105,8 @@ export class SuiLibraryAdapter extends SuiComponentAdapter {
       }
     });
   }
-  _loadScore() {
-    this.view.loadRemoteScore(this.selectedScore!.url!);
+  async _loadScore() {
+    await this.view.loadRemoteScore(this.selectedScore!.url!);
   }
   get selectedLibrary(): SmoLibrary | null {
     return this.selectedLib;
@@ -160,9 +158,9 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
   constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, adapter: SuiLibraryAdapter) {
     super(dialogElements, { adapter, ...parameters });
   }
-  commit() {
+  async commit() {
     if (this.adapter.selectedScore !== null) {
-      this.adapter._loadScore();
+      await this.adapter._loadScore();
     } else {
       this.complete();
     }
@@ -170,16 +168,15 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
   get smoLibraryCtrl() {
     return this.cmap.smoLibraryCtrl as SuiTreeComponent;
   }
-  changed() {
+  async changed() {
     const okButton = $(this.dgDom.element).find('.ok-button');
     super.changed();
     if (this.adapter.selectedLib!.format === 'library') {
       $(okButton).prop('disabled', true);
       const options: TreeComponentOption[] = [];
-      this.adapter.loadOptions(options).then(() => {
-        this.smoLibraryCtrl.updateOptions(options);
-        $(this.smoLibraryCtrl._getInputElement()).find('li[data-value="'+this.smoLibraryCtrl.getValue()+'"] button.expander').click();
-      });
+      await this.adapter.loadOptions(options);
+      this.smoLibraryCtrl.updateOptions(options);
+      $(this.smoLibraryCtrl._getInputElement()).find('li[data-value="'+this.smoLibraryCtrl.getValue()+'"] button.expander').click();
     } else {
       $(okButton).prop('disabled', false);
     }

@@ -4,6 +4,7 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -24,11 +25,11 @@ export class SuiStaffGroupDialogAdapter extends SuiComponentAdapter {
       this.staffGroup = staffGroup;
     }
   }
-  commit() {
-
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
   cancel() {
-
+    return PromiseHelpers.emptyPromise();
   }
   get leftConnector() {
     return this.staffGroup.leftConnector;

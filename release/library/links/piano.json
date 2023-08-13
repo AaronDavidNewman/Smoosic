@@ -35,6 +35,18 @@
 		}, {
 			"format": "smoosic",
 			"metadata": {
+				"name": "The Entertainer",
+				"composer": "Scott Joplin",
+				"tags": [
+					"keyboard",
+					"joplin",
+          "stride"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/piano/Joplin-Entertainer.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
 				"name": "Gnossienne No. 3",
 				"composer": "Eric Satie",
 				"tags": [

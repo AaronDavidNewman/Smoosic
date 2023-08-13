@@ -6,6 +6,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { SmoOperation } from '../../smo/xform/operations';
 import { SmoScore } from '../../smo/data/score';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -38,14 +39,14 @@ writeSlurBool(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurBool, value:
   view.addOrUpdateStaffModifier(current, slur);
   this.changed = true;
 }
-cancel() {
+async cancel() {
   if (!this.changed) {
     return;
   }
-  this.view.addOrUpdateStaffModifier(this.slur, this.backup);
+  await this.view.addOrUpdateStaffModifier(this.slur, this.backup);
 }
-commit() {
-
+async commit() {
+  return PromiseHelpers.emptyPromise();
 }
 get resetAll(): boolean {
   return false;
@@ -55,13 +56,13 @@ set resetAll(value: boolean) {
   const slurs: SmoSlur[] = [];
   const self = this;
   this.updating = true;
-  const updateSlur = (score: SmoScore, slur: SmoSlur) => {
+  const updateSlur = async (score: SmoScore, slur: SmoSlur) => {
     const params = SmoOperation.getDefaultSlurDirection(score, slur.startSelector, slur.endSelector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
     const original = new SmoSlur(slur);
     SlurNumberParams.forEach((key) => {
       slur[key] = params[key];    
     });
-    return self.view.addOrUpdateStaffModifier(original, slur);
+    await self.view.addOrUpdateStaffModifier(original, slur);
   }
   new Promise<void>((resolve) => {
     const nextSlur = () => {
@@ -164,8 +165,8 @@ get spacing(): number {
 set spacing(value: number) {
   this.writeSlurNumber(this.view, this.slur, 'spacing', value);
 }
-remove() {
-  this.view.removeStaffModifier(this.backup);
+async remove() {
+  await this.view.removeStaffModifier(this.backup);
 }
 }
 export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter> {

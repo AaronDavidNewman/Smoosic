@@ -5,6 +5,7 @@ import { TimeSignature } from '../../smo/data/measureModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -60,11 +61,12 @@ export class SuiTimeSignatureAdapter extends SuiComponentAdapter {
     }
     this.measure.timeSignatureString = tr;
   }
-  commit() {
-    this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);
+  async commit() {
+    await this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);
   }
-  cancel() {
+  async cancel() {
     this.measure.timeSignature = this.backup;
+    return PromiseHelpers.emptyPromise();
   }
 }
 export class SuiTimeSignatureDialog extends SuiDialogAdapterBase<SuiTimeSignatureAdapter> {

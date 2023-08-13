@@ -8,6 +8,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { TextCheckPair } from './components/textCheck';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -28,7 +29,7 @@ export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
       }
     });
   }
-  updateValues(purpose: SmoTextGroupPurpose, infoKey: SmoScoreInfoKeys, value: TextCheckPair) {
+  async updateValues(purpose: SmoTextGroupPurpose, infoKey: SmoScoreInfoKeys, value: TextCheckPair) {
     const grp = this.view.score.textGroups.find((tg) => tg.purpose === SmoTextGroup.purposes[purpose]);
     if (grp) {
       if (value.checked) {
@@ -40,7 +41,7 @@ export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
     } else {
       if (value.checked) {
         const tg = SmoTextGroup.createTextForLayout(SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager!.getScaledPageLayout(0));
-        this.view.addTextGroup(tg);
+        await this.view.addTextGroup(tg);
       }
     }
     this.current[purpose] = value;
@@ -76,11 +77,11 @@ export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
   set name(value: string) {
     this.scoreInfo.name = value;
   }
-  commit() {
-    this.view.updateScoreInfo(this.scoreInfo);
+  async commit() {
+    await this.view.updateScoreInfo(this.scoreInfo);
   }
   cancel() {
-
+    return PromiseHelpers.emptyPromise();
   }
 }
 // ## SuiScoreIdentificationDialog

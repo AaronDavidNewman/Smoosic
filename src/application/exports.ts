@@ -147,6 +147,7 @@ import { SmoToVex } from '../smo/xform/toVex';
 // utilities
 import { buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer } from '../common/htmlHelpers';
 
+import { renderVexTests } from './generateVexTests';
 const getClass = (jsonString: string) => {
     return eval('Smo.' + jsonString);
 };
@@ -235,6 +236,7 @@ export const Smo = {
       getClass,
     createLoadTests,
     // utilities
-    buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer
+    buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer,
+    renderVexTests
 }
 export default Smo;

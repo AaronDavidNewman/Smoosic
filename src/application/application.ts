@@ -192,26 +192,22 @@ export class SuiApplication {
    * 4. if all else fails, return an 'empty' score.
    * @returns promise for a remote load.  If a local load, will resolve immediately
    */
-  createScore(): Promise<any> {
+  async createScore(): Promise<SmoScore | null> {
     if (this.config.mode === 'translate') {
       return PromiseHelpers.emptyPromise();
     }
     if (this.config.remoteScore) {
       const loader = new SuiXhrLoader(this.config.remoteScore);
-      const self = this;
-      return new Promise((resolve: any) => {
-        loader.loadAsync().then(() => {
-          self.score = this._tryParse(loader.value);
-          resolve(self);
-        });
-      });
+      const file = await loader.loadAsync();
+      this.score = this._tryParse(file as string);
+      return this.score;
     } else if (this.config.initialScore) {
       if (typeof(this.config.initialScore) === 'string') {
         this.score = this._tryParse(this.config.initialScore);
-        return PromiseHelpers.emptyPromise();
+        return (this.score);
       } else {
         this.score = this.config.initialScore;
-        return PromiseHelpers.emptyPromise();
+        return null;
       }
     } else {
       const localScore = localStorage.getItem(smoSerialize.localScore);
@@ -224,7 +220,7 @@ export class SuiApplication {
         }
       }
     }
-    return PromiseHelpers.emptyPromise();
+    return this.score;
   }
   _tryParse(scoreJson: string) {
     try {

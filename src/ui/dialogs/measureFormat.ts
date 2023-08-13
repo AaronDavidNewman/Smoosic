@@ -5,6 +5,7 @@ import { SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBool
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -34,13 +35,15 @@ export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
     this.view.setMeasureFormat(this.format);
     this.edited = true;
   }
-  commit(){}
-  cancel() {
+  async commit(){
+    return PromiseHelpers.emptyPromise();
+  }
+  async cancel() {
     if (this.edited) {
-      this.view.setMeasureFormat(this.backup);
+      await this.view.setMeasureFormat(this.backup);
     }
     if (this.localIndex !== this.originalIndex) {
-      this.view.renumberMeasures(this.measure.measureNumber.measureIndex, this.originalIndex);
+      await this.view.renumberMeasures(this.measure.measureNumber.measureIndex, this.originalIndex);
     }
   }
   get padLeft() {

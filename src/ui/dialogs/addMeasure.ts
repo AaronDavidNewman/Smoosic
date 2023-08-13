@@ -45,8 +45,8 @@ export class SuiInsertMeasures extends SuiDialogBase {
       });
     }
   }
-  commit() { 
-    this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
+  async commit() { 
+    await this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
   }
 
   get measureCountCtrl(): SuiRockerComponent {

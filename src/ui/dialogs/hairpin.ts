@@ -5,6 +5,7 @@ import { SmoStaffHairpin, } from '../../smo/data/staffModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SvgBox } from '../../smo/data/common';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -21,20 +22,21 @@ export class SuiHairpinAdapter extends SuiComponentAdapter {
     this.backup.attrs.id = hairpin.attrs.id;
     this.backup.associatedStaff = hairpin.associatedStaff;
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
-      this.view.addOrUpdateStaffModifier(this.hairpin, this.backup);
+      await this.view.addOrUpdateStaffModifier(this.hairpin, this.backup);
     }
   }
-  remove() {
-    this.view.removeStaffModifier(this.hairpin);
+  async remove() {
+    await this.view.removeStaffModifier(this.hairpin);
   }
-  commit() {
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
-  updateValue(param: SmoHairpinNumberParams, val: number) {
+  async updateValue(param: SmoHairpinNumberParams, val: number) {
     const current = new SmoStaffHairpin(this.hairpin);
     this.hairpin[param] = val;
-    this.view.addOrUpdateStaffModifier(current, this.hairpin);
+    await this.view.addOrUpdateStaffModifier(current, this.hairpin);
     this.changed = true;
   }
   get xOffsetLeft() {

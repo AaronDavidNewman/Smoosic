@@ -4,6 +4,7 @@ import { SmoAudioPlayerSettings, SmoAudioPlayerType, IsOscillatorType } from '..
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -56,10 +57,11 @@ export class SuiAudioSettingsAdapter extends SuiComponentAdapter {
     this.settings.reverbDecay = value;
     this.view.updateAudioSettings(this.settings);
   }
-  cancel() {
-    this.view.updateAudioSettings(this.backup);
+  async cancel() {
+    await this.view.updateAudioSettings(this.backup);
   }
-  commit() {
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
 }
 export class SuiAudioSettingsDialog extends SuiDialogAdapterBase<SuiAudioSettingsAdapter> {

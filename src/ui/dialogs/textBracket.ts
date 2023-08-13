@@ -4,6 +4,7 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SmoStaffTextBracket, SmoTextBracketNumberType, SmoTextBracketStringType} from '../../smo/data/staffModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -19,27 +20,28 @@ export class SuiTextBracketAdapter extends SuiComponentAdapter {
     this.backup.attrs.id = bracket.attrs.id;
     this.backup.associatedStaff = bracket.associatedStaff;
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
-      this.view.removeTextBracket(this.bracket);
-      this.view.addOrReplaceTextBracket(this.backup);
+      await this.view.removeTextBracket(this.bracket);
+      await this.view.addOrReplaceTextBracket(this.backup);
     }
   }
-  remove() {
-    this.view.removeStaffModifier(this.bracket);
+  async remove() {
+    await this.view.removeStaffModifier(this.bracket);
   }
-  commit() {
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
-  updateValue(param: SmoTextBracketNumberType, val: number) {
+  async updateValue(param: SmoTextBracketNumberType, val: number) {
     const current = new SmoStaffTextBracket(this.bracket);
     this.bracket[param] = parseInt(val.toString(), 10);
-    this.view.addOrUpdateStaffModifier(current, this.bracket);
+    await this.view.addOrUpdateStaffModifier(current, this.bracket);
     this.changed = true;
   }
-  updateText(param: SmoTextBracketStringType, val: string) {
+  async updateText(param: SmoTextBracketStringType, val: string) {
     const current = new SmoStaffTextBracket(this.bracket);
     this.bracket[param] = val;
-    this.view.addOrUpdateStaffModifier(current, this.bracket);
+    await this.view.addOrUpdateStaffModifier(current, this.bracket);
     this.changed = true;
   }
   get text() {

@@ -165,15 +165,15 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     this.partInfo.preserveTextGroups = value;
     this.update();
   }
-  commit() {
+  async commit() {
     if (this.changed) {
-      this.update();
+      await this.update();
     }
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
       this.partInfo = this.backup;
-      this.update();
+      await this.update();
     }
   }
 }
