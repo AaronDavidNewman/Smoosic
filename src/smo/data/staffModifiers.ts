@@ -573,7 +573,7 @@ export class SmoTie extends StaffModifierBase {
     return ['startSelector', 'endSelector', 'invert', 'lines', 'y_shift', 'tie_spacing', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
   static get vexParameters() {
-    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift', 'y_shift'];
   }
   static isTie(modifier: SmoTie | SmoModifierBase): modifier is SmoTie {
     return modifier.ctor === 'SmoTie';

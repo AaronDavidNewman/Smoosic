@@ -166,7 +166,8 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     const vxStart = startNote.attrs.id;
     const vxEnd = startNote.attrs.id;
     const hpParams = { first_note: vxStart, last_note: vxEnd };
-    strs.push(`const ${modifierName} = new VF.StaveHairpin({ first_note: ${vxStart}, last_note: ${vxEnd} });`);
+    strs.push(`const ${modifierName} = new VF.StaveHairpin({ first_note: ${vxStart}, last_note: ${vxEnd},
+       firstNote: ${vxStart}, lastNote: ${vxEnd} });`);
     strs.push(`${modifierName}.setRenderOptions({ height: ${hp.height}, y_shift: ${hp.yOffset}, left_shift_px: ${hp.xOffsetLeft},right_shift_px: ${hp.xOffsetRight} });`);
     strs.push(`${modifierName}.setContext(context).setPosition(${hp.position}).draw();`);
   } else if (modifier.ctor === 'SmoSlur') {
@@ -174,10 +175,16 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     const vxStart = startNote?.attrs?.id ?? 'null';
     const vxEnd = endNote?.attrs?.id ?? 'null'; 
     const svgPoint: SVGPoint[] = JSON.parse(JSON.stringify(slur.controlPoints));
+    let slurX = 0;
+    if (startNote === null || endNote === null) {
+      slurX = -5;
+      svgPoint[0].y = 10;
+      svgPoint[1].y = 10;
+    }
     if (modifier.startSelector.staff === modifier.endSelector.staff) {
       const hpParams = {
         thickness: slur.thickness,
-        x_shift: 0,
+        x_shift: slurX,
         y_shift: slur.yOffset,
         cps: svgPoint,
         invert: slur.invert,
@@ -199,7 +206,8 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
         // this when it changes.
         const fromLines = ctie.lines.map((ll) => ll.from);
         const toLines = ctie.lines.map((ll) => ll.to);
-        strs.push(`const ${modifierName} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
+        strs.push(`const ${modifierName} = new VF.StaveTie({ first_note: ${vxStart}, last_note: ${vxEnd}, 
+          firstNote: ${vxStart}, lastNote: ${vxEnd}, first_indices: [${fromLines}], last_indices: [${toLines}]});`);
         strs.push(`${modifierName}.setContext(context).draw();`);
       }
     }
@@ -244,15 +252,20 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
   const ctorString = JSON.stringify(ctorInfo);
-  let ctor = 'VF.StaveNote';
   if (smoNote.noteType === '/') {
     strs.push(`const ${id} = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration: '${ctorInfo.duration}' });`)
   } else {
       strs.push(`const ${id} = new VF.StaveNote(JSON.parse('${ctorString}'))`);
   }
   smoNoteToGraceNotes(smoNote, strs);
-  strs.push(`noteHash['${id}'] = ${id};`);
   strs.push(`${id}.setAttribute('id', '${id}');`);
+  if (smoNote.fillStyle) {
+    strs.push(`${id}.setStyle({ fillStyle: '${smoNote.fillStyle}' });`);
+  } else if (voiceIx > 0) {
+    strs.push(`${id}.setStyle({ fillStyle: "#115511" });`);
+  } else if (smoNote.isHidden()) {
+    strs.push(`${id}.setStyle({ fillStyle: "#ffffff00" });`);
+  }
   if (smoNote.noteType === 'n') {
     smoNote.pitches.forEach((pitch, ix) => {
       const zz = SmoMusic.accidentalDisplay(pitch, key,
@@ -489,13 +502,16 @@ export class SmoToVex {
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
+    const pageLength = smoScore.staves[0].measures[smoScore.staves[0].measures.length - 1].svg.pageIndex;
+    let scoreName = smoScore.scoreInfo.title + ' p ' + (page + 1).toString() + '/' + pageLength.toString();
+    const scoreSub = smoScore.scoreInfo.subTitle.length ? `(${smoScore.scoreInfo.subTitle})` : '';
+    scoreName = `${scoreName} ${scoreSub} by ${smoScore.scoreInfo.composer}`;
+    strs.push(`// @@ ${scoreName}`);
     strs.push('function main() {');
-    strs.push('// create the div and svg element for the music')
+    strs.push('// create the div and svg element for the music');
     strs.push(`const div = document.getElementById('${div}');`);
     strs.push('const VF = Vex.Flow;');
     strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
-    strs.push('//');
-    strs.push('// create the musical objects');
     const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
     const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
     const width = zoomScale * pageWidth;
@@ -510,13 +526,13 @@ export class SmoToVex {
     strs.push(`svg.setAttributeNS('', 'width', '${width}');`);
     strs.push(`svg.setAttributeNS('', 'height', '${height}');`);
     strs.push(`svg.setAttributeNS('', 'viewBox', '0 0 ${vbWidth} ${vbHeight}');`);
+    strs.push('//');
+    strs.push('// create the musical objects');
     const font = smoScore.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (font) {
       const fs = fontStacks[font.family].join(',');
       strs.push(`VF.setMusicFont(${fs});`);
     }
-    strs.push('const noteHash = {};');
-    strs.push('const voiceHash = {}');
     const measureCount = smoScore.staves[0].measures.length;
     const lyricAdj: string[] = [];
 
@@ -528,7 +544,7 @@ export class SmoToVex {
       if (smoScore.staves[0].measures[k].svg.pageIndex > page) {
         break;
       }
-      startMeasure = startMeasure > 0 ? startMeasure : k;
+      startMeasure = startMeasure < 0 ? startMeasure : k;
       endMeasure = Math.max(k, endMeasure);
       smoScore.staves.forEach((smoStaff, staffIx) => {
         const smoMeasure = smoStaff.measures[k];
