@@ -506,7 +506,7 @@ export class SmoToVex {
     const strs: string[] = [];
     const pageHeight = smoScore.layoutManager?.getGlobalLayout().pageHeight ?? 1056;
     const pageWidth = smoScore.layoutManager?.getGlobalLayout().pageWidth ?? 816;
-    const pageLength = smoScore.staves[0].measures[smoScore.staves[0].measures.length - 1].svg.pageIndex;
+    const pageLength = smoScore.staves[0].measures[smoScore.staves[0].measures.length - 1].svg.pageIndex + 1;
     let scoreName = smoScore.scoreInfo.title + ' p ' + (page + 1).toString() + '/' + pageLength.toString();
     const scoreSub = smoScore.scoreInfo.subTitle?.length ? `(${smoScore.scoreInfo.subTitle})` : '';
     scoreName = `${scoreName} ${scoreSub} by ${smoScore.scoreInfo.composer}`;
