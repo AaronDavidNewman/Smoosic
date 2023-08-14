@@ -7,7 +7,7 @@ import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { Vex, StaveNoteStruct } from 'vexflow_smoosic';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
-import { SmoSelection } from './selections';
+import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
@@ -162,6 +162,9 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
 }
 export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, endNote: SmoNote | null, strs: string[]) {
   const modifierName = getId();
+  const startKey = SmoSelector.getNoteKey(modifier.startSelector);
+  const endKey = SmoSelector.getNoteKey(modifier.endSelector);
+  strs.push(`// modifier from ${startKey} to ${endKey}`);
   if (modifier.ctor === 'SmoStaffHairpin' && startNote && endNote) {
     const hp = modifier as SmoStaffHairpin;    
     const vxStart = startNote.attrs.id;
@@ -545,7 +548,7 @@ export class SmoToVex {
       if (smoScore.staves[0].measures[k].svg.pageIndex > page) {
         break;
       }
-      startMeasure = startMeasure < 0 ? startMeasure : k;
+      startMeasure = startMeasure < 0 ? k : startMeasure;
       endMeasure = Math.max(k, endMeasure);
       smoScore.staves.forEach((smoStaff, staffIx) => {
         const smoMeasure = smoStaff.measures[k];
