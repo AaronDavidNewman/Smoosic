@@ -16,6 +16,7 @@ import { SuiScroller } from '../../render/sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { EventHandler } from '../eventSource';
 import { SmoUiConfiguration } from '../configuration';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 /**
@@ -285,10 +286,10 @@ export interface DialogDom {
   getStaticText() {
     return SuiDialogBase.getStaticText(this.staticText);
   }
-  commit() {
-    
+  async commit(): Promise<any> {
+    return PromiseHelpers.emptyPromise();
   }
-  get closeModalPromise() {
+  get closeModalPromise(): Promise<any> {
     return this.closeDialogPromise;
   }
   // ### position

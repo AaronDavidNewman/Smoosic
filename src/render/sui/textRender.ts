@@ -4,11 +4,12 @@ import { SvgHelpers, OutlineInfo } from './svgHelpers';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreText';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
-import { SmoAttrs, SvgBox } from '../../smo/data/common';
+import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
-
+import { smoSerialize } from '../../common/serializationHelpers';
+import { Vex, TextFormatter, Element, FontGlyph } from 'vexflow_smoosic';
 declare var $: any;
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 // From textfont.ts in VF
 export interface VexTextFontMetrics {
@@ -21,7 +22,7 @@ export interface VexTextFontMetrics {
   advanceWidth: number;
 }
 export interface VexTextFont {
-  famliy: string,
+  family: string,
   weight: string,
   style: string,
   size: number,
@@ -29,7 +30,7 @@ export interface VexTextFont {
   maxHeight: number,
   resolution: number,
   setFontSize(fontSize: number): void,
-  getGlyphMetrics(ch: string): VexTextFontMetrics
+  getGlyphMetrics(ch: string): FontGlyph
 }
 /**
  * parameters to render text
@@ -188,12 +189,30 @@ export class SuiInlineText {
   element: SVGSVGElement | null = null;
 
   updateFontInfo(): VexTextFont {
-    return VF.TextFormatter.create({
+    const tf = TextFormatter.create({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,
       style: this.fontStyle
     });
+    const setFontSize = (nn: number) => {
+      tf.setFontSize(nn);
+    }
+    const getGlyphMetrics = (cc: string) => {
+      return tf.getGlyphMetrics(cc);
+    }
+    const vtf: VexTextFont = {
+      family: this.fontFamily,
+      weight: this.fontWeight,
+      size: this.fontSize,
+      style: this.fontStyle,
+      pointsToPixels: 4 / 3,
+      maxHeight: tf.maxHeight,
+      resolution: tf.getResolution(),
+      setFontSize,
+      getGlyphMetrics
+    };
+    return vtf;
   }
   // ### constructor just creates an empty svg
   constructor(params: SuiInlineTextParams) {
@@ -207,7 +226,7 @@ export class SuiInlineText {
     this.startY = params.startY;
     this.purpose = params.purpose;
     this.attrs = {
-      id: VF.Element.newID(),
+      id: getId().toString(),
       type: 'SuiInlineText'
     };
     this.context = params.context;
@@ -312,9 +331,8 @@ export class SuiInlineText {
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
         for (i = 0; i < block.text.length; ++i) {
           const ch = block.text[i];
-
           const glyph = this.textFont.getGlyphMetrics(ch);
-          block.width += ((glyph.advanceWidth) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
+          block.width += ((glyph.advanceWidth ?? 0) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
           const blockHeight = (glyph.ha / this.textFont.resolution) * this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
           block.y = this.startY + (subOffset * block.scale);
@@ -448,7 +466,7 @@ export class SuiInlineText {
   // {text:'xxx'}
   addTextBlockAt(position: number, params: SuiInlineBlock) {
     const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
-    Vex.Merge(block, params);
+    smoSerialize.vexMerge(block, params);
     block.text = params.text;
     block.scale = params.scale ? params.scale : 1;
     this._addBlockAt(position, block);

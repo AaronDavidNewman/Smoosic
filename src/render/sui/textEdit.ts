@@ -17,8 +17,9 @@ import { SvgPage } from './svgPageMap';
 import { SuiScoreViewOperations } from './scoreViewOperations';
 import { SuiScoreRender } from './scoreRender';
 import { SvgPageMap } from './svgPageMap';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 declare var $: any;
 
 /**

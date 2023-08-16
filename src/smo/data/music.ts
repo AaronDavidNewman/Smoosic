@@ -6,9 +6,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoNote } from './note';
-import { Pitch, PitchKey, Clef, PitchLetter } from './common';
+import { Pitch, PitchKey, Clef, PitchLetter, TickAccidental, 
+  AccidentalArray, AccidentalDisplay } from './common';
 import { SmoMicrotone } from './noteModifiers';
+import { Vex } from 'vexflow_smoosic';
 
+const VF = Vex.Flow;
 /**
  * Used for xml clef conversion
  */
@@ -89,7 +92,6 @@ export class SmoAudioPitch {
   }
 }
 
-const VF = eval('Vex.Flow');
 /**
  * description of a scale entry, from vex theory routines
  */
@@ -186,6 +188,26 @@ export class SmoMusic {
       bb: { root_index: 6, int_val: 10 },
       bbb: { root_index: 6, int_val: 9 },
     };
+  }
+  static accidentalDisplay(pitch: Pitch, keySignature: string, duration: number, accArray: AccidentalArray[]):
+   AccidentalDisplay | null {
+    const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, keySignature);
+      const pitchOctave = pitch.letter + '-' + pitch.octave;
+      const accidentals = accArray.filter((ar) =>
+        (ar.duration as number) < duration && ar.pitches[pitchOctave]);
+      const acLen = accidentals.length;
+      const declared = acLen > 0 ?
+        accidentals[acLen - 1].pitches[pitchOctave].pitch.accidental : keyAccidental;
+        if ((declared !== pitch.accidental
+          || pitch.cautionary)) {        
+            const rv: AccidentalDisplay = {
+              symbol: pitch.accidental,
+              courtesy: pitch.cautionary ?? false,
+              forced: pitch.forced ?? false
+            }
+            return rv;
+          }
+      return null;
   }
   /**
    * return Vex canonical note enharmonic - e.g. Bb to A#
@@ -1123,7 +1145,7 @@ export class SmoMusic {
    */
   static getKeySignatureKey(letter: PitchLetter, keySignature: string): string {
     const km = new VF.KeyManager(keySignature);
-    return km.scaleMap[letter];
+    return (km as any).scaleMap[letter];
   }
 
   static getAccidentalForKeySignature(smoPitch: Pitch, keySignature: string): string {

@@ -8,6 +8,7 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -55,17 +56,16 @@ export class SuiNewPartAdapter extends SuiComponentAdapter {
   set clef(value: Clef)  {
     this.instrument.clef = value;
   }
-  commit() {
+  async commit() {
     const staffParams: SmoSystemStaffParams = SmoSystemStaff.defaults;
     staffParams.staffId = this.view.storeScore.staves.length;
     staffParams.measureInstrumentMap[0] = this.instrument;
     staffParams.alignWithPrevious = this.alignWithPreviousVal;
-    this.view.addStaff(staffParams);
+    await this.view.addStaff(staffParams);
   }
-  cancel() {
-
+  async cancel() {
+    return PromiseHelpers.emptyPromise();
   }
-  remove() { }
 }
 export class SuiNewPartDialog extends SuiDialogAdapterBase<SuiNewPartAdapter> {
   static get applyTo() {

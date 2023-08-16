@@ -20,7 +20,8 @@ module.exports = function (grunt) {
     },
     devtool: 'source-map',
     externals: {
-      jszip: 'JSZip'
+      jszip: 'JSZip',
+      vexflow_smoosic: 'Vex'
     },
     module: {      
         rules: [{

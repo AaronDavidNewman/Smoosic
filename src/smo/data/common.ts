@@ -12,6 +12,8 @@ export interface SmoAttrs {
     type: string
 }
 
+var nextId = 32768;
+export const getId = () => `smo` + (nextId++).toString();
 /**
  * All note, measure, staff, and score objects have
  * a serialize method and are deserializable with constructor `ctor`
@@ -63,6 +65,7 @@ export interface Pitch {
     accidental: string,
     octave: number,
     cautionary?: boolean,
+    forced?: boolean,
     role?: string
 }
 
@@ -194,4 +197,21 @@ export interface KeyEvent {
   event: string | null
 }
 
+export interface TickAccidental {
+  duration: number,
+  pitch: Pitch
+}
 
+/**
+ * Used to create {@link MeasureTickmaps}
+ */
+export interface AccidentalArray {
+  duration: string | number,
+  pitches: Record<string, TickAccidental>
+}
+
+export interface AccidentalDisplay {
+  symbol: string,
+  courtesy: boolean,
+  forced: boolean
+}

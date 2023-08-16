@@ -5,12 +5,13 @@
  * pitch itself.  This includes grace notes, and note-text like lyrics.
  * @module /smo/data/noteModifiers
  */
-import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 // const Smo = eval('globalThis.Smo');
 
 /**
@@ -26,7 +27,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   element: SVGSVGElement | null = null;
   constructor(ctor: string) {
     this.attrs = {
-      id: VF.Element.newID(),
+      id: getId().toString(),
       type: ctor
     };
     this.ctor = ctor;
@@ -474,7 +475,7 @@ export class SmoArticulation extends SmoNoteModifierBase {
 
 export interface VexAnnotationParams {
   glyph?: string,
-  symbolModifier?: string,
+  symbolModifier?: number,
   symbolType: number,
   text?: string
 }
@@ -747,7 +748,7 @@ export class SmoLyric extends SmoNoteModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: parameters.ctor
       };
     }
@@ -834,13 +835,13 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   }
   constructor(parameters: SmoDynamicTextParams) {
     super('SmoDynamicText');
-    Vex.Merge(this, SmoDynamicText.defaults);
+    smoSerialize.vexMerge(this, SmoDynamicText.defaults);
     smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
     this.selector = parameters.selector;
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: 'SmoDynamicText'
       };
     }

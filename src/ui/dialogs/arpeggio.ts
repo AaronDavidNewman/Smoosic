@@ -4,6 +4,7 @@ import { SmoArpeggio, SmoArpeggioType, isArpeggioType } from '../../smo/data/not
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 export class SuiArpeggioAdapter extends SuiComponentAdapter {
   arpeggio: SmoArpeggio;
@@ -22,12 +23,13 @@ export class SuiArpeggioAdapter extends SuiComponentAdapter {
     }
     this.view = view;
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
-     this.view.addRemoveArpeggio(this.backup.typeString);
+     await this.view.addRemoveArpeggio(this.backup.typeString);
     }
   }
-  commit() {
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
   get arpeggioType() {
     return this.arpeggio.typeString;

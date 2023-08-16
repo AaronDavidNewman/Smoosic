@@ -6,6 +6,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { StaffCheckComponent } from './components/staffComponents';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -18,19 +19,21 @@ export class SuiScoreViewAdapter extends SuiComponentAdapter {
     this.currentView = this.view.getView();
     this.originalView = JSON.parse(JSON.stringify(this.currentView));
   }
-  cancel() {
+  async cancel() {
     const s1 = JSON.stringify(this.originalView);
     const s2 = JSON.stringify(this.currentView);
     if (s1 !== s2) {
       this.view.setView(this.originalView);
     }
+    return PromiseHelpers.emptyPromise();
   }
-  commit() {
+  async commit() {
     const s1 = JSON.stringify(this.originalView);
     const s2 = JSON.stringify(this.currentView);
     if (s1 !== s2) {
       this.view.setView(this.currentView);
     }
+    return PromiseHelpers.emptyPromise();
   }
   get scoreView(): ViewMapEntry[] {
     return this.currentView;

@@ -5,6 +5,7 @@ import { GlobalLayoutAttributes, SmoLayoutManager, SmoGlobalLayout } from '../..
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -18,12 +19,13 @@ export class SuiGlobalLayoutAdapter extends SuiComponentAdapter {
     this.backup = this.view.score.layoutManager!.getGlobalLayout();
     this.view = view;
   }
-  writeValue(attr: GlobalLayoutAttributes, value: number) {
+  // TODO: writeValue is not called in a global context
+  async writeValue(attr: GlobalLayoutAttributes, value: number) {
     if (this.scoreLayout[attr] === value) {
       return;
     }
     this.scoreLayout[attr] = value;
-    this.view.setGlobalLayout(this.scoreLayout)
+    await this.view.setGlobalLayout(this.scoreLayout)
     this.changed = true;
   }
   get noteSpacing() {
@@ -81,10 +83,12 @@ export class SuiGlobalLayoutAdapter extends SuiComponentAdapter {
     }
     this.view.setGlobalLayout(this.scoreLayout)
   }
-  commit() { }
-  cancel() {
+  async commit() { 
+    return PromiseHelpers.emptyPromise();
+  }
+  async cancel() {
     if (this.changed) {
-      this.view.setGlobalLayout(this.backup);
+      await this.view.setGlobalLayout(this.backup);
     }
   }
 }

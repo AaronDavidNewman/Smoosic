@@ -7,8 +7,9 @@ import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoSelector } from '../xform/selections';
 import { SmoBarline } from '../data/measureModifiers';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 export interface XmlOrnamentData {
   ctor: string,

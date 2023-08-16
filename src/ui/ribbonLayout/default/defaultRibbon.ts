@@ -875,7 +875,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '=',
-      icon: 'icon-flat',
+      icon: 'icon-bravura icon-accidentalFlat',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',

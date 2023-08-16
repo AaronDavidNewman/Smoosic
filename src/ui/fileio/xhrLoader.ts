@@ -22,39 +22,35 @@ export class SuiXhrLoader {
       this.binary = true;
     }
   }
-  _uncompress(result: any): Promise<void> {
+  async _uncompress(result: any): Promise<string> {
     const self = this;
-    return new Promise((resolve) => {
-      JSZip.loadAsync(result).then((zip: any) => {
-        // Find the real xml file in the zip (not metadata)
-        const filename = Object.keys(zip.files).find((ss) => ss.indexOf('META') < 0 && ss.endsWith('xml'));
-        zip.file(filename).async('text').then((str: any) => {
-          self.value = str;
-          resolve();
-        });
-      });
-    });
+    const zip = await JSZip.loadAsync(result);
+    // Find the real xml file in the zip (not metadata)
+    const filename = Object.keys(zip.files).find((ss) => ss.indexOf('META') < 0 && ss.endsWith('xml'));
+    self.value = await zip.file(filename).async('text');
+    return self.value
   }
   /**
    * 
    * @returns promise resolved when the target file is loaded
    */
-  loadAsync(): Promise<void> {
+  loadAsync(): Promise<string | ArrayBuffer> {
     const req = new XMLHttpRequest();
     const self = this;
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<string>((resolve) => {
       req.addEventListener('load', () => {
         const reader = new FileReader();
-        reader.addEventListener('loadend', () => {
+        reader.addEventListener('loadend', async () => {
           if (self.isMidi) {
             self.value = new Uint8Array(reader.result as ArrayBuffer);
-            resolve();
+            resolve(self.value);
           }
           else if (!self.compressed) {
             self.value = reader.result;
-            resolve();
+            resolve(self.value);
           } else {
-            self._uncompress(reader.result).then(() => { resolve(); });
+            self.value = await self._uncompress(reader.result);
+            resolve(self.value);
           }
         });
         if (this.isMidi) {

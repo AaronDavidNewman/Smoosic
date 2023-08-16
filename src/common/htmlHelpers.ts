@@ -1,8 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { SuiModalButtonStrings } from "../../release/smoosic";
-
 declare var $: any;
 /**
 * returns an object that  lets you build a DOM in a somewhat readable way.

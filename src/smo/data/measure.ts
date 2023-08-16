@@ -19,10 +19,11 @@ import { SmoNote, NoteType } from './note';
 import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
-import { TickMap, TickAccidental } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
+import { TickMap } from '../xform/tickMap';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, 
+  TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-
+import { Vex } from 'vexflow_smoosic';
 /**
  * Voice is just a container for {@link SmoNote}
  */
@@ -44,7 +45,7 @@ export interface MeasureTick {
   tickIndex: number
 }
 // @internal
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 /**
  * Break up a circlar dependency with {@link SmoBeamGroup}
@@ -150,13 +151,7 @@ export interface SmoMeasureParams {
   repeatSymbol: boolean,
   repeatCount: number
 }
-/**
- * Used to create {@link MeasureTickmaps}
- */
-export interface AccidentalArray {
-  duration: string | number,
-  pitches: Record<string, TickAccidental>
-}
+
 
 /**
  * Data for a measure of music.  Many rules of musical engraving are
@@ -347,7 +342,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       this.format = new SmoMeasureFormat(params.format);
     }
     this.attrs = {
-      id: VF.Element.newID(),
+      id: getId().toString(),
       type: 'SmoMeasure'
     };
   }

@@ -189,6 +189,7 @@ export class SuiAudioPlayer {
           selector.tick = tickIx;
           let ties: SmoTie[] = [];
           const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
+          let tiedNote = false;
           if (smoNote.noteType === 'n' && !smoNote.isHidden()) {
             ties = staff.getTiesStartingAt(selector);
             smoNote.pitches.forEach((pitch, pitchIx) => {
@@ -210,9 +211,6 @@ export class SuiAudioPlayer {
             });
             const duration = smoNote.tickCount;
             const volume = SmoAudioScore.volumeFromNote(smoNote, SmoAudioScore.dynamicVolumeMap.mf);
-            if (!measureNotes[curTick]) {
-              measureNotes[curTick] = [];
-            }
             const soundData: SoundParams = {
               frequencies,
               volume,
@@ -223,6 +221,12 @@ export class SuiAudioPlayer {
               instrument: instrument.instrument,
               selector
             };
+            const pushTickArray = (curTick: number, soundData: SoundParams) => {
+              if (typeof(measureNotes[curTick]) === 'undefined') {
+                measureNotes[curTick] = [];
+              }
+              measureNotes[curTick].push(soundData);
+            }
             // If this is continuation of tied note, just change duration
             if (this.openTies[tieIx]) {
               this.openTies[tieIx]!.duration += duration;
@@ -233,9 +237,9 @@ export class SuiAudioPlayer {
               // If start of tied note, record the tie note, the next note in this voice
               // will adjust duration
               this.openTies[tieIx] = soundData;
-              measureNotes[curTick].push(soundData);
+              pushTickArray(curTick, soundData);
             } else {
-              measureNotes[curTick].push(soundData);
+              pushTickArray(curTick, soundData);
             }
           }
           curTick += Math.round(smoNote.tickCount);

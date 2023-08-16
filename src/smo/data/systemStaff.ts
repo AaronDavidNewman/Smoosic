@@ -5,7 +5,7 @@
  * staff modifiers.
  * @module /smo/data/systemStaff
  * **/
-import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
+import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber, getId } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
@@ -16,8 +16,9 @@ import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { Vex } from 'vexflow_smoosic';
 
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 /**
  * Constructor parameters for {@link SmoSystemStaff}.
  * Usually you will call
@@ -134,7 +135,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       this.numberMeasures();
     }
     this.attrs = {
-      id: VF.Element.newID(),
+      id: getId().toString(),
       type: 'SmoSystemStaff'
     };
     if (params.partInfo) {

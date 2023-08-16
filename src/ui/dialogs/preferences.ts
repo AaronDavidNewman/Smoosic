@@ -4,6 +4,7 @@ import { SmoScorePreferences } from '../../smo/data/score';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -66,14 +67,15 @@ export class SuiScorePreferencesAdapter extends SuiComponentAdapter {
     this.preferences.transposingScore = value;
     this.view.updateScorePreferences(this.preferences);
   }
-  cancel() {
+  async cancel() {
     const p1 = JSON.stringify(this.preferences);
     const p2 = JSON.stringify(this.backup);
     if (p1 !== p2) {
-      this.view.updateScorePreferences(this.backup);
+      await this.view.updateScorePreferences(this.backup);
     }
   }
   commit() {
+    return PromiseHelpers.emptyPromise();
   }
 }
 export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePreferencesAdapter> {

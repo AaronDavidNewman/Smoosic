@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { Pitch, PitchLetter, Clef } from '../data/common';
+import { Pitch, PitchLetter, Clef, getId } from '../data/common';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
@@ -23,7 +23,8 @@ import {
 } from './tickDuration';
 import { SmoBeamer } from './beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-const VF = eval('Vex.Flow');
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration
@@ -639,7 +640,7 @@ export class SmoOperation {
     const endMeasure = parameters.endBar;
 
     // Ending ID ties all the instances of an ending across staves
-    parameters.endingId = VF.Element.newID();
+    parameters.endingId = getId().toString();
     score.staves.forEach((staff) => {
       m = 0;
       staff.measures.forEach((measure) => {

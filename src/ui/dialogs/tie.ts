@@ -4,6 +4,7 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SmoTie, TieLine } from '../../smo/data/staffModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -69,16 +70,16 @@ export class SuiTieAdapter extends SuiComponentAdapter {
   set cp2(value: number) {
     this.writeTieNumber(value, 'cp2');
   }
-  commit() {
-
+  async commit() {
+    return PromiseHelpers.emptyPromise();
   }
-  cancel() {
+  async cancel() {
     if (this.changed) {
-      this.view.addOrUpdateStaffModifier(this.backup, this.backup);
+      await this.view.addOrUpdateStaffModifier(this.backup, this.backup);
     }
   }
-  remove() {
-    this.view.removeStaffModifier(this.backup);
+  async remove() {
+    await this.view.removeStaffModifier(this.backup);
   }
 }
 export class SuiTieAttributesDialog extends SuiDialogAdapterBase<SuiTieAdapter> {

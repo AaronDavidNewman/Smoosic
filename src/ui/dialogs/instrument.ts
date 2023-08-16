@@ -7,6 +7,7 @@ import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
@@ -73,13 +74,15 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
       this.selections = this.view.tracker.selections;
     }
   }
-  commit() {
-    this.view.changeInstrument(this.instrument, this.selections);
+  async commit() {
+    await this.view.changeInstrument(this.instrument, this.selections);
   }
-  cancel() {
-    this.view.changeInstrument(this.backup, this.selections);
+  async cancel() {
+    await this.view.changeInstrument(this.backup, this.selections);
   }
-  remove() { }
+  async remove() { 
+    return PromiseHelpers.emptyPromise();
+  }
 }
 export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapter> {
   static get applyTo() {

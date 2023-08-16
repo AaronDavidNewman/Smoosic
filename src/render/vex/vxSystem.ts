@@ -15,9 +15,10 @@ import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SvgPage } from '../sui/svgPageMap';
-
+import { smoSerialize } from '../../common/serializationHelpers';
 declare var $: any;
-const VF = eval('Vex.Flow');
+import { Vex, Voice, Note } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 export interface VoltaInfo {
   smoMeasure: SmoMeasure,
@@ -25,7 +26,7 @@ export interface VoltaInfo {
 }
 export interface SuiSystemGroup {
   firstMeasure: VxMeasure,
-  voices: SmoVoice[]
+  voices: Voice[]
 }
 /**
  * Create a system of staves and draw music on it.  This calls the Vex measure
@@ -78,7 +79,7 @@ export class VxSystem {
     return null;
   }
 
-  getVxNote(smoNote: SmoNote): VxMeasure | null {
+  getVxNote(smoNote: SmoNote): Note | null {
     let i = 0;
     if (!smoNote) {
       return null;
@@ -105,34 +106,40 @@ export class VxSystem {
       });
     }
   }
-  _lowestYLowestVerse(lyrics: SmoLyric[]) {
-    let lowVerse = 5;
-    let lowestY = 0;
-    lyrics.forEach((lyric: SmoLyric) => {
-      if (lyric.logicalBox && lyric.verse < lowVerse) {
-        lowestY = lyric.logicalBox.y;
-        lowVerse = lyric.verse;
-      }
-      if (lyric.verse === lowVerse && lyric.logicalBox && lyric.logicalBox.y > lowestY) {
-        lowestY = lyric.logicalBox.y;
-      }
-    });
-    this.vxMeasures.forEach((vxMeasure) => {
-      vxMeasure.smoMeasure.voices.forEach((voice) => {
-        voice.notes.forEach((note) => {
-          const lyrics = note.getTrueLyrics();
-          if (lyrics.length) {
-            const topVerse = lyrics.reduce((a, b) => a.verse < b.verse ? a : b);
-            if (topVerse && topVerse.logicalBox) {
-              const offset = lowestY - topVerse.logicalBox.y;
-              lyrics.forEach((lyric) => {
-                lyric.adjY = offset + lyric.translateY;
-              });
+  _lowestYLowestVerse(lyrics: SmoLyric[], vxMeasures: VxMeasure[]) {
+    // Move each verse down, according to the lowest lyric on that line/verse,
+    // and the accumulation of the verses above it
+    // lyrics.forEach((ll) => ll.adjY = 0);
+    let maxOffset = 0;
+    let calcMaxOffset = 0;
+    for (var lowVerse = 0; lowVerse < 4; ++lowVerse) {
+      let lowestY = 0;
+      maxOffset = calcMaxOffset;
+      calcMaxOffset = 0;
+      lyrics.forEach((lyric: SmoLyric) => {
+        if (lyric.logicalBox && lyric.verse === lowVerse) {
+          // 'lowest' Y on screen is Y with largest value...
+          lowestY = Math.max(lyric.logicalBox.y, lowestY);
+        }
+      });
+      vxMeasures.forEach((vxMeasure) => {
+        vxMeasure.smoMeasure.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            const noteLyrics = note.getTrueLyrics().filter((ll) => ll.verse >= lowVerse);
+            if (noteLyrics.length) {
+              const topVerse = noteLyrics.reduce((a, b) => a.verse < b.verse ? a : b);
+              if (topVerse && topVerse.logicalBox) {
+                const offset = Math.max(0, lowestY - topVerse.logicalBox.y);
+                calcMaxOffset = Math.max(calcMaxOffset, offset);
+                noteLyrics.forEach((lyric) => {
+                  lyric.adjY = offset + lyric.translateY + maxOffset;
+                });
+              }
             }
-          }
+          });
         });
       });
-    });
+    }
   }
 
   // ### updateLyricOffsets
@@ -177,7 +184,7 @@ export class VxSystem {
         });
       });
       // calculate y offset so the lyrics all line up
-      this._lowestYLowestVerse(lyrics);
+      this._lowestYLowestVerse(lyrics, vxMeasures);
       const vkey: string[] = Object.keys(lyricVerseMap).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
       vkey.forEach((sverse) => {
         const verse = parseInt(sverse, 10);
@@ -219,9 +226,9 @@ export class VxSystem {
         if (parent && lyric.logicalBox !== null) {
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
-          text.setAttributeNS('', 'x', lyric.hyphenX.toString());
+          text.setAttributeNS('', 'x', (lyric.hyphenX - lyric.fontInfo.size / 3).toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
-          const fontSize = lyric.fontInfo.size * 1.2;
+          const fontSize = lyric.fontInfo.size;
           text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
           parent.appendChild(text);
         }
@@ -290,7 +297,7 @@ export class VxSystem {
       vxEnd = setSameIfNull(vxEnd, vxStart);
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
-        last_note: vxEnd
+        last_note: vxEnd,
       }, hp.hairpinType);
       hairpin.setRenderOptions({
         height: hp.height,
@@ -321,7 +328,6 @@ export class VxSystem {
           thickness: slur.thickness,
           x_shift: slurX,
           y_shift: slur.yOffset,
-          spacing: slur.spacing,
           cps: svgPoint,
           invert: slur.invert,
           position: slur.position,
@@ -342,13 +348,9 @@ export class VxSystem {
           first_note: vxStart,
           last_note: vxEnd,
           first_indices: fromLines,
-          last_indices: toLines,
-          options: {
-            cp1: ctie.cp1,
-            cp2: ctie.cp2
-          }
+          last_indices: toLines          
         });
-        Vex.Merge(tie.render_options, ctie.vexOptions);
+        smoSerialize.vexMerge(tie.render_options, ctie.vexOptions);
         tie.setContext(this.context.getContext()).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {
@@ -407,7 +409,7 @@ export class VxSystem {
           group.classList.add(ending.endingId);
           ending.elements.push(group);
           const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
-          const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
+          const vxVolta = new VF.Volta(vtype, ending.number.toString(), smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.getContext().closeGroup();
           // ending.logicalBox = this.context.offsetBbox(group);
@@ -415,7 +417,7 @@ export class VxSystem {
             voAr.push({ smoMeasure, ending });
             pushed = true;
           }
-          vxMeasure.stave.modifiers.push(vxVolta);
+          vxMeasure.stave.getModifiers().push(vxVolta);
         }
       }
       // Adjust real height of measure to match volta height
@@ -543,7 +545,7 @@ export class VxSystem {
           const endSel = this.vxMeasures[systemGroup.endSelector.staff];
           if (startSel && startSel.rendered && 
              endSel && endSel.rendered) {
-            const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+            const c1 = new VF.StaveConnector(startSel.stave!, endSel.stave!)
               .setType(systemGroup.leftConnectorVx());
             c1.setContext(this.context.getContext()).draw();
             brackets = true;
@@ -551,8 +553,8 @@ export class VxSystem {
         }
       });
       if (!brackets && vxMeasures.length > 1) {
-        const c2 = new VF.StaveConnector(vxMeasures[0].stave, vxMeasures[vxMeasures.length - 1].stave,
-          VF.StaveConnector.type.SINGLE_LEFT);
+        const c2 = new VF.StaveConnector(vxMeasures[0].stave!, vxMeasures[vxMeasures.length - 1].stave!);
+        c2.setType(VF.StaveConnector.type.SINGLE_RIGHT);
         c2.setContext(this.context.getContext()).draw();
       }
         // draw outer brace on parts with multiple staves (e.g. keyboards)
@@ -563,7 +565,7 @@ export class VxSystem {
             const startSel = vv;
             if (startSel && startSel.rendered && 
               endSel && endSel.rendered) {
-                const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+                const c1 = new VF.StaveConnector(startSel.stave!, endSel.stave!)
                 .setType(VF.StaveConnector.type.BRACE);
               c1.setContext(this.context.getContext()).draw();                
             }

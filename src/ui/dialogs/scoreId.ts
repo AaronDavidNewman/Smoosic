@@ -8,67 +8,41 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { TextCheckPair } from './components/textCheck';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 
 declare var $: any;
 
 export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
   scoreInfo: SmoScoreInfo;
   backup: SmoScoreInfo;
-  current: Partial<Record<SmoTextGroupPurpose, TextCheckPair>> = {};
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.scoreInfo = this.view.score.scoreInfo;
     this.backup = JSON.parse(JSON.stringify(this.scoreInfo));
-    (Object.keys(SmoTextGroup.purposes) as SmoTextGroupPurpose[]).forEach((purpose) => {
-      const grp = this.view.score.textGroups.find((tg) => tg.purpose === SmoTextGroup.purposes[purpose]);
-      if (grp) {
-        this.current[purpose] = { checked: true, text: grp.textBlocks[0].text.text }
-      } else {
-        this.current[purpose] = { checked: false, text: '' }
-      }
-    });
   }
-  updateValues(purpose: SmoTextGroupPurpose, infoKey: SmoScoreInfoKeys, value: TextCheckPair) {
-    const grp = this.view.score.textGroups.find((tg) => tg.purpose === SmoTextGroup.purposes[purpose]);
-    if (grp) {
-      if (value.checked) {
-        grp.textBlocks[0].text.text = value.text;
-        this.view.updateTextGroup(grp, grp);
-      } else {
-        this.view.removeTextGroup(grp);
-      }
-    } else {
-      if (value.checked) {
-        const tg = SmoTextGroup.createTextForLayout(SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager!.getScaledPageLayout(0));
-        this.view.addTextGroup(tg);
-      }
-    }
-    this.current[purpose] = value;
-    this.scoreInfo[infoKey] = value.text;
+  get title(): string {
+    return this.scoreInfo.title;
   }
-  get title(): TextCheckPair {
-    return this.current.TITLE!;
+  set title(value: string) {
+    this.scoreInfo.title = value;
   }
-  set title(value: TextCheckPair) {
-    this.updateValues('TITLE', 'title', value);
+  get subTitle(): string {
+    return this.scoreInfo.subTitle;
   }
-  get subTitle(): TextCheckPair {
-    return this.current.SUBTITLE!;
+  set subTitle(value: string) {
+    this.scoreInfo.subTitle = value;
   }
-  set subTitle(value: TextCheckPair) {
-    this.updateValues('SUBTITLE', 'subTitle', value);
+  get composer(): string {
+    return this.scoreInfo.composer;
   }
-  get composer(): TextCheckPair {
-    return this.current.COMPOSER!;
+  set composer(value: string) {
+    this.scoreInfo.composer = value;
   }
-  set composer(value: TextCheckPair) {
-    this.updateValues('COMPOSER', 'composer', value);
+  get copyright(): string {
+    return this.scoreInfo.copyright;
   }
-  get copyright(): TextCheckPair {
-    return this.current.COPYRIGHT!;
-  }
-  set copyright(value: TextCheckPair) {
-    this.updateValues('COPYRIGHT', 'copyright', value);
+  set copyright(value: string) {
+    this.scoreInfo.copyright = value;
   }
   get name() {
     return this.scoreInfo.name;
@@ -76,11 +50,11 @@ export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
   set name(value: string) {
     this.scoreInfo.name = value;
   }
-  commit() {
-    this.view.updateScoreInfo(this.scoreInfo);
+  async commit() {
+    await this.view.updateScoreInfo(this.scoreInfo);
   }
   cancel() {
-
+    return PromiseHelpers.emptyPromise();
   }
 }
 // ## SuiScoreIdentificationDialog
@@ -97,19 +71,19 @@ export class SuiScoreIdentificationDialog extends SuiDialogAdapterBase<SuiScoreI
         }, {
           smoName: 'title',
           defaultValue: '',
-          control: 'TextCheckComponent',
+          control: 'SuiTextInputComponent',
           label: 'Title',
         }, {
           smoName: 'subTitle',
-          control: 'TextCheckComponent',
+          control: 'SuiTextInputComponent',
           label: 'Sub Title',
         }, {
           smoName: 'composer',
-          control: 'TextCheckComponent',
+          control: 'SuiTextInputComponent',
           label: 'Composer',
         }, {
           smoName: 'copyright',
-          control: 'TextCheckComponent',
+          control: 'SuiTextInputComponent',
           label: 'Copyright'
         }],
       staticText: [

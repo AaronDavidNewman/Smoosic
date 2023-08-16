@@ -16,9 +16,9 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiScoreRender, ScoreRenderParams } from './scoreRender';
 import { SuiExceptionHandler } from '../../ui/exceptions';
-
+import { Vex } from 'vexflow_smoosic';
 declare var $: any;
-const VF = eval('Vex.Flow');
+const VF = Vex.Flow;
 
 export var scoreChangeEvent = 'smoScoreChangeEvent';
 /**

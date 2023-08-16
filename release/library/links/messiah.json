@@ -12,7 +12,7 @@
 	"format": "library",
 	"children": [
 		{
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json",
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/messiah/Messiah-I-1.json",
 			"format": "smoosic",
 			"metadata": {
 				"name": "Sinfonia",
@@ -21,7 +21,7 @@
 			}
 		},
 		{
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messia Pt 1-2.json",
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/messiah/Messiah-I-2.json",
 			"format": "smoosic",
 			"metadata": {
 				"name": "Recitativo: Comfort ye, my people",

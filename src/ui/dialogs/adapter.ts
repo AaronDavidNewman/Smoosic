@@ -10,6 +10,7 @@ import { CompleteNotifier } from '../common';
 import { BrowserEventSource } from '../eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { DialogDefinition, SuiDialogBase } from './dialog';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;
 
 /**
@@ -30,9 +31,11 @@ export abstract class SuiComponentAdapter {
   constructor(view: SuiScoreViewOperations) {
     this.view = view;
   }
-  abstract commit(): void;
-  abstract cancel(): void;
-  remove(): void { };
+  abstract commit(): Promise<any>;
+  abstract cancel(): Promise<any>;
+  remove(): Promise<any> {
+    return PromiseHelpers.emptyPromise();
+   };
 }
 
 /** 
@@ -118,21 +121,21 @@ export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDial
    * If there is any 'saving' to be done when the dialog clicks OK, 
    * that is handled by the adapter.  Else it can be a noop.
    */
-  commit() {
-    this.adapter.commit();
+  async commit(): Promise<any> {
+    await this.adapter.commit();
   }
   /**
    * If there is any undo or restore to be done when the dialog clicks OK, 
    * that is handled by the adapter.  Else it can be a noop.
    */
-   cancel() {
-    this.adapter.cancel();
+  async cancel(): Promise<any> {
+    await this.adapter.cancel();
   }
   /**
    * For score artifacts that can be removed, 
    */
-  remove() {
-    this.adapter.remove();
+  async remove() {
+    await this.adapter.remove();
   }
   /**
    * Binds the main dialog buttons.  For OK/Cancel/remove, the logic calls the appropriate 

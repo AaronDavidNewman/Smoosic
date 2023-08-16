@@ -9,9 +9,9 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-
-const VF = eval('Vex.Flow');
+import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
+import { Vex } from 'vexflow_smoosic';
+const VF = Vex.Flow;
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
@@ -33,7 +33,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
-      id: VF.Element.newID(),
+      id: getId().toString(),
       type: ctor
     };
   }
@@ -97,14 +97,15 @@ export interface SmoInstrumentParams {
   instrument: string,
   abbreviation: string,
   keyOffset: number,
+  midiInstrument: number,
   midichannel: number,
   midiport: number,
   clef: Clef,
   mutes?: string,  
 }
 
-export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport';
-export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
+export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport' | 'midiInstrument';
+export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport', 'midiInstrument'];
 export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation' | 'family' | 'instrument';
 export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation', 'family', 'instrument'];
 /**
@@ -124,11 +125,11 @@ export class SmoInstrument extends StaffModifierBase {
   abbreviation: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
+  midiInstrument: number = 1;
   midichannel: number;
   midiport: number;
   family: string;
   instrument: string;
-  oscillators: SmoOscillatorInfo[] = [];
   articulation?: string;
   mutes?: string;
   static get defaults(): SmoInstrumentParams {
@@ -140,6 +141,7 @@ export class SmoInstrument extends StaffModifierBase {
       family: 'keyboard',
       instrument: 'piano',
       midichannel: 0,
+      midiInstrument: 1,
       midiport: 0,
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default
@@ -275,7 +277,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
   }
   constructor(params: SmoStaffHairpinParams) {
     super('SmoStaffHairpin');
-    Vex.Merge(this, SmoStaffHairpin.defaults);
+    smoSerialize.vexMerge(this, SmoStaffHairpin.defaults);
     smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
     // If start/end selector on same note, make sure the hairpin extends
     if (SmoSelector.eq(this.startSelector, this.endSelector)) {
@@ -288,7 +290,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
 
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: 'SmoStaffHairpin'
       };
     }
@@ -365,7 +367,7 @@ export class SmoStaffTextBracket extends StaffModifierBase {
     this.endSelector = JSON.parse(JSON.stringify(params.endSelector));
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: 'SmoStaffTextBracket'
       };
     }
@@ -509,7 +511,7 @@ export class SmoSlur extends StaffModifierBase {
     // Fix some earlier serialization error.    
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: 'SmoSlur'
       };
     }
@@ -571,7 +573,7 @@ export class SmoTie extends StaffModifierBase {
     return ['startSelector', 'endSelector', 'invert', 'lines', 'y_shift', 'tie_spacing', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
   static get vexParameters() {
-    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift', 'y_shift'];
   }
   static isTie(modifier: SmoTie | SmoModifierBase): modifier is SmoTie {
     return modifier.ctor === 'SmoTie';
@@ -622,7 +624,7 @@ export class SmoTie extends StaffModifierBase {
     smoSerialize.serializedMerge(SmoTie.parameterArray, params, this);
     if (!this.attrs) {
       this.attrs = {
-        id: VF.Element.newID(),
+        id: getId().toString(),
         type: 'SmoTie'
       };
     }
