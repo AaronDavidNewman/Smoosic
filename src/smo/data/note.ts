@@ -9,7 +9,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox, getId } from './common';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 const VF = Vex.Flow;
 
 export interface TupletInfo {
@@ -400,7 +400,7 @@ export class SmoNote implements Transposable {
    * @param note 
    */
   static sortPitches(note: Transposable) {
-    const canon = VF.Music.canonical_notes;
+    const canon = VF.Music.canonicalNotes;
     const keyIndex = ((pitch: Pitch) =>
       canon.indexOf(pitch.letter) + pitch.octave * 12
     );

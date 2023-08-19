@@ -17,7 +17,7 @@ import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/dat
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
 import { SvgPageMap } from './svgPageMap';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 const VF = Vex.Flow;
 
 export interface SuiTickContext {

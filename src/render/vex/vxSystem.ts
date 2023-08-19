@@ -17,7 +17,7 @@ import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SvgPage } from '../sui/svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
 declare var $: any;
-import { Vex, Voice, Note } from 'vexflow_smoosic';
+import { Vex, Voice, Note } from 'vex5_smoosic';
 const VF = Vex.Flow;
 
 export interface VoltaInfo {
@@ -301,9 +301,9 @@ export class VxSystem {
       }, hp.hairpinType);
       hairpin.setRenderOptions({
         height: hp.height,
-        y_shift: hp.yOffset,
-        left_shift_px: hp.xOffsetLeft,
-        right_shift_px: hp.xOffsetRight
+        yShift: hp.yOffset,
+        leftShiftPx: hp.xOffsetLeft,
+        rightShiftPx: hp.xOffsetRight
       });
       hairpin.setContext(this.context.getContext()).setPosition(hp.position).draw();
     } else if (modifier.ctor === 'SmoSlur') {
@@ -326,12 +326,12 @@ export class VxSystem {
       const curve = new VF.Curve(vxStart, vxEnd,
         {
           thickness: slur.thickness,
-          x_shift: slurX,
-          y_shift: slur.yOffset,
+          xShift: slurX,
+          yShift: slur.yOffset,
           cps: svgPoint,
           invert: slur.invert,
           position: slur.position,
-          position_end: slur.position_end
+          positionEnd: slur.position_end
         });
       curve.setContext(this.context.getContext()).draw();
     } else if (modifier.ctor === 'SmoTie') {
@@ -345,12 +345,12 @@ export class VxSystem {
         const fromLines = ctie.lines.map((ll) => ll.from);
         const toLines = ctie.lines.map((ll) => ll.to);
         const tie = new VF.StaveTie({
-          first_note: vxStart,
-          last_note: vxEnd,
-          first_indices: fromLines,
-          last_indices: toLines          
+          firstNote: vxStart,
+          lastNote: vxEnd,
+          firstIndexes: fromLines,
+          lastIndexes: toLines          
         });
-        smoSerialize.vexMerge(tie.render_options, ctie.vexOptions);
+        smoSerialize.vexMerge(tie.renderOptions, ctie.vexOptions);
         tie.setContext(this.context.getContext()).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {

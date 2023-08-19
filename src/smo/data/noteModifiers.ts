@@ -9,7 +9,7 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable,
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 // const Smo = eval('globalThis.Smo');
@@ -476,7 +476,6 @@ export class SmoArticulation extends SmoNoteModifierBase {
 export interface VexAnnotationParams {
   glyph?: string,
   symbolModifier?: number,
-  symbolType: number,
   text?: string
 }
 
@@ -669,7 +668,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph) => VF.ChordSymbol.glyphs[glyph].code === code);
+    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph) => VF.ChordSymbol.glyphs[glyph] === code);
     return obj;
   }
   static _tokenizeChordString(str: string) {
@@ -714,13 +713,11 @@ export class SmoLyric extends SmoNoteModifierBase {
         if (isGlyph) {
           const glyph = SmoLyric._chordGlyphFromCode(token);
           blocks.push({
-            glyph, symbolModifier: mod,
-            symbolType: VF.ChordSymbol.symbolTypes.GLYPH
+            glyph, symbolModifier: mod
           });
         } else {
           blocks.push({
-            text: token, symbolModifier: mod,
-            symbolType: VF.ChordSymbol.symbolTypes.TEXT
+            text: token, symbolModifier: mod
           });
         }
       }

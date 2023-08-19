@@ -16,7 +16,7 @@ import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 /**

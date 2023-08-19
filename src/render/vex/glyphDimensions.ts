@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 
@@ -26,7 +26,7 @@ export class vexGlyph {
   static width(smoGlyph: GlyphInfo) {
     if (smoGlyph.vexGlyph) {
       const vf: any = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
-      return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
+      return (vf.xMax - vf.xMin) * vexGlyph.glyphPixels;
     }
     return smoGlyph.width;
   }

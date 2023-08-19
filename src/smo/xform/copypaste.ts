@@ -11,7 +11,7 @@ import { SmoScore } from '../data/score';
 import { TickMap } from './tickMap';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 const VF = Vex.Flow;
 
 interface PasteNote {

@@ -9,7 +9,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
 import { FontInfo, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 

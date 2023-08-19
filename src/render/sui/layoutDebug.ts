@@ -4,7 +4,7 @@ import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoSelector } from '../../smo/xform/selections';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 const VF = Vex.Flow;
 declare var $: any;
 

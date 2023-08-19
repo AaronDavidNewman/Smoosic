@@ -23,7 +23,7 @@ import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, 
   TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 /**
  * Voice is just a container for {@link SmoNote}
  */

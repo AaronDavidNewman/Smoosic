@@ -19,7 +19,7 @@ import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 import { Vex, Stave, StaveNote, StemmableNote, Note, Beam, Tuplet, Voice,
-  Formatter, Accidental, Annotation, StaveNoteStruct } from 'vexflow_smoosic';
+  Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 
@@ -85,13 +85,13 @@ export class VxMeasure {
    */
   applyStemDirection(vxParams: StaveNoteStruct, voiceIx: number, flagState: number) {
     if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
-      vxParams.auto_stem = true;
+      vxParams.autoStem = true;
     } else if (flagState !== SmoNote.flagStates.auto) {
-      vxParams.stem_direction = flagState === SmoNote.flagStates.up ? 1 : -1;
+      vxParams.stemDirection = flagState === SmoNote.flagStates.up ? 1 : -1;
     } else if (voiceIx % 2) {
-      vxParams.stem_direction = -1;
+      vxParams.stemDirection = -1;
     } else {
-      vxParams.stem_direction = 1;
+      vxParams.stemDirection = 1;
     }
   }
 
@@ -341,7 +341,7 @@ export class VxMeasure {
       clef: smoNote.clef,
       keys,
       duration: duration + smoNote.noteType,
-      glyph_font_scale: VxMeasure.musicFontScaleNote
+      glyphFontScale: VxMeasure.musicFontScaleNote
     };
 
     if (smoNote.noteType === '/') {
@@ -352,7 +352,7 @@ export class VxMeasure {
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
       if (smoNote.isCue || this.allCues) {
-        noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
+        noteParams.glyphFontScale = VxMeasure.musicFontScaleCue;
       }
       vexNote = new VF.StaveNote(noteParams);
       if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
@@ -535,8 +535,8 @@ export class VxMeasure {
       const direction = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
         VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
       const vexTuplet = new VF.Tuplet(vexNotes, {
-        num_notes: tp.num_notes,
-        notes_occupied: tp.notes_occupied,
+        numNotes: tp.num_notes,
+        notesOccupied: tp.notes_occupied,
         ratioed: false,
         bracketed: true,
         location: direction
@@ -578,10 +578,12 @@ export class VxMeasure {
     tms.forEach((tmb: SmoMeasureModifierBase) => {
       const tm = tmb as SmoMeasureText;
       const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
-      this.stave!.setText(
-        tm.text, tm.toVexPosition(), {
-        shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
-      });
+      const staveText = new StaveText(tm.text, tm.toVexPosition(), 
+      {
+        shiftX: tm.adjustX + offset, shiftY: tm.adjustY, justification: tm.toVexJustification()
+      }
+      );
+      this.stave?.addModifier(staveText);
 
       // hack - we can't create staveText directly so this is the only way I could set the font
       const ar = this.stave!.getModifiers();
@@ -599,7 +601,7 @@ export class VxMeasure {
     const tempo = this.smoMeasure.getTempo();
     if (tempo && this.smoMeasure.svg.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
-      const vexTempo = this.stave.getModifiers().find((mod: any) => mod.attrs.type === 'StaveTempo');
+      const vexTempo = this.stave.getModifiers().find((mod: StaveModifier) => mod.getAttribute('type') === 'StaveTempo');
       if (vexTempo) {
         vexTempo.setFont({ family: SourceSerifProFont.fontFamily, size: 13, weight: 'bold' });
       }
@@ -633,7 +635,7 @@ export class VxMeasure {
       });
     }
 
-    this.stave.options.space_above_staff_ln = 0; // don't let vex place the staff, we want to.
+    this.stave.options.spaceAboveStaffLn = 0; // don't let vex place the staff, we want to.
 
     // Add a clef and time signature.
     if (this.smoMeasure.svg.forceClef) {
@@ -679,8 +681,8 @@ export class VxMeasure {
 
         // Create a voice in 4/4 and add above notes
         const voice = new VF.Voice({
-          num_beats: this.smoMeasure.timeSignature.actualBeats,
-          beat_value: this.smoMeasure.timeSignature.beatDuration
+          numBeats: this.smoMeasure.timeSignature.actualBeats,
+          beatValue: this.smoMeasure.timeSignature.beatDuration
         }).setMode(VF.Voice.Mode.SOFT);
         voice.addTickables(this.voiceNotes);
         this.voiceAr.push(voice);
@@ -689,8 +691,8 @@ export class VxMeasure {
         this.createRepeatSymbol();
         // Create a voice in 4/4 and add above notes
         const voice = new VF.Voice({
-          num_beats: this.smoMeasure.timeSignature.actualBeats,
-          beat_value: this.smoMeasure.timeSignature.beatDuration
+          numBeats: this.smoMeasure.timeSignature.actualBeats,
+          beatValue: this.smoMeasure.timeSignature.beatDuration
         }).setMode(VF.Voice.Mode.SOFT);
         voice.addTickables(this.voiceNotes);
         this.voiceAr.push(voice);
@@ -718,7 +720,8 @@ export class VxMeasure {
     }
 
     if (this.smoMeasure.svg.multimeasureLength > 0) {
-      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
+      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength,
+         { numberOfMeasures: this.smoMeasure.svg.multimeasureLength });
       this.multimeasureRest.setContext(this.context.getContext());
       this.multimeasureRest.setStave(this.stave);
       return;

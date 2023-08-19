@@ -70,7 +70,7 @@ export class SuiPiano {
   }
   _fadeGlow(el: SVGSVGElement) {
     if (this.suggestFadeTimer) {
-      clearTimeout(this.suggestFadeTimer);
+      clearTimeout(this.suggestFadeTimer as any);
     }
     // Make selection fade if there is a selection.
     this.suggestFadeTimer = setTimeout(() => {

@@ -9,7 +9,7 @@ import { SmoNote } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from 'vex5_smoosic';
 const VF = Vex.Flow;
 
 /**
