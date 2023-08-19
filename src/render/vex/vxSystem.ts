@@ -296,8 +296,8 @@ export class VxSystem {
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
       const hairpin = new VF.StaveHairpin({
-        first_note: vxStart,
-        last_note: vxEnd,
+        firstNote: vxStart,
+        lastNote: vxEnd,
       }, hp.hairpinType);
       hairpin.setRenderOptions({
         height: hp.height,
