@@ -204,7 +204,8 @@ export class VxMeasure {
     const blocks = lyric.getVexChordBlocks();
     blocks.forEach((block) => {
       if (block.glyph) {
-        cs.addGlyph(block.glyph, block);
+        // Vex 5 broke this, does not distinguish between glyph and text
+        cs.addGlyphOrText(block.glyph, block);
       } else {
         cs.addGlyphOrText(block.text ?? '', block);
       }

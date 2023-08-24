@@ -668,8 +668,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph) => VF.ChordSymbol.glyphs[glyph] === code);
-    return obj;
+    return (VF.ChordSymbol as any).glyphCodes[code];
   }
   static _tokenizeChordString(str: string) {
     // var str = this._text;

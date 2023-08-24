@@ -454,8 +454,14 @@ export class SuiInlineText {
     this.updatedMetrics = false;
   }
   _getGlyphBlock(params: SuiInlineBlock): SuiInlineBlock {
-    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    smoSerialize.vexMerge(block, params);
+    params.text = params.glyphCode;
+    block.text = params.text;
+    block.scale = params.scale ? params.scale : 1;
+    /* const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     block.symbolType = SuiInlineText.symbolTypes.GLYPH;
+
     block.glyphCode = params.glyphCode;
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
     block.scale = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
@@ -463,7 +469,7 @@ export class SuiInlineText {
 
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
 
-    block.glyph.scale = block.glyph.scale * block.scale;
+    block.glyph.scale = block.glyph.scale * block.scale; */
     return block;
   }
   // ### addGlyphBlockAt
