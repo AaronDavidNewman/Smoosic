@@ -346,7 +346,7 @@ export class VxMeasure {
     };
 
     if (smoNote.noteType === '/') {
-      vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
+      vexNote = new VF.GlyphNote('\uE504', { duration });
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     } else {
       this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
@@ -438,7 +438,7 @@ export class VxMeasure {
   }
   createRepeatSymbol() {
     this.voiceNotes = [];
-    const vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+    const vexNote = new VF.GlyphNote('\uE500', { duration: 'w' }, { line: 2 });
     vexNote.setCenterAlignment(true);
     this.vexNotes.push(vexNote);
     this.voiceNotes.push(vexNote);
