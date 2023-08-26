@@ -350,7 +350,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     vblocks.forEach((vblock) => {
       const glyphParams = JSON.stringify(vblock);
       if (vblock.glyph) {
-        strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
+        strs.push(`${chord.attrs.id}.addGlyphOrText('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
       } else {
         const btext = vblock.text ?? '';
         if (btext.trim().length) {
