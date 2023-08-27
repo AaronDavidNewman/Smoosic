@@ -188,12 +188,12 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     if (modifier.startSelector.staff === modifier.endSelector.staff) {
       const hpParams = {
         thickness: slur.thickness,
-        x_shift: slurX,
-        y_shift: slur.yOffset,
+        xShift: slurX,
+        yShift: slur.yOffset,
         cps: svgPoint,
         invert: slur.invert,
         position: slur.position,
-        position_end: slur.position_end
+        positionEnd: slur.position_end
       };
       const paramStrings = JSON.stringify(hpParams);
       strs.push(`const ${modifierName} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
