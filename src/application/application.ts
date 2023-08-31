@@ -35,7 +35,7 @@ import { KeyBinding, ModalEventHandlerProxy } from './common';
 import { SmoMeasure } from '../../typedoc';
 import { getDomContainer } from '../common/htmlHelpers';
 import { SuiHelp } from '../ui/help';
-import { Vex } from 'vex5_smoosic';
+import { SmoVex } from '../common/vex';
 
 declare var $: any;
 
@@ -64,7 +64,7 @@ export interface SuiInstance {
   eventHandler: SuiEventHandler;
   ribbon: RibbonButtons
 }
-const VF = Vex.Flow;
+const VF = SmoVex.Flow;
 
 /**
  * Parse query string for application

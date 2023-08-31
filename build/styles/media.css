@@ -59,7 +59,7 @@
 @font-face {
   font-family: 'Bravura';
   src:
-    url('fonts/BravuraText_1-393.woff') format('woff');
+    url('fonts/Bravura_1.392.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -68,7 +68,7 @@
 @font-face {
   font-family: 'Gonville';
   src:
-    url('../fonts/Gonville-18_20200703.woff') format('woff');
+    url('fonts/Gonville-18_20200703.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -77,7 +77,7 @@
 @font-face {
   font-family: 'Leland';
   src:
-    url('../fonts/Leland_0.75.woff') format('woff');
+    url('fonts/Leland_0.75.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -86,7 +86,7 @@
 @font-face {
   font-family: 'Petaluma';
   src:
-    url('../fonts/Petaluma_1.065.woff') format('woff');
+    url('fonts/Petaluma_1.065.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: block;
