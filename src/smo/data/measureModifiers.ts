@@ -7,7 +7,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex, StaveModifierPosition, TextJustification } from 'vex5_smoosic';
+import { Vex, StaveModifierPosition, TextJustification } from '../../common/vex';
 
 const VF = Vex.Flow;
 /**

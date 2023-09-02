@@ -19,7 +19,8 @@ import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 import { Vex, Stave, StaveNote, StemmableNote, Note, Beam, Tuplet, Voice,
-  Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier } from 'vex5_smoosic';
+  Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
+  StemmableNoteClass, createStaveText } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -32,8 +33,8 @@ declare var $: any;
  */
 export class VxMeasure {
   context: SvgPage;
-  static readonly musicFontScaleNote: number = 39;
-  static readonly musicFontScaleCue: number = 28;
+  static readonly musicFontScaleNote: number = 30;
+  static readonly musicFontScaleCue: number = 19.8;
   printing: boolean;
   selection: SmoSelection;
   softmax: number;
@@ -411,9 +412,9 @@ export class VxMeasure {
     textObj.text.split('').forEach((ch) => {
       const glyphCode = VF.TextDynamics.GLYPHS[ch];
       if (glyphCode) {
-        const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
+        const glyph = new VF.Glyph(glyphCode, textObj.fontSize);
         glyph.render(this.context.getContext(), x, y);
-        x += VF.TextDynamics.GLYPHS[ch].width;
+        x += glyph.getWidth();
         const metrics = glyph.getMetrics();
         textObj.logicalBox = SvgHelpers.boxPoints(x, y + this.context.box.y, metrics.width, metrics.height);
       }
@@ -442,7 +443,7 @@ export class VxMeasure {
     vexNote.setCenterAlignment(true);
     this.vexNotes.push(vexNote);
     this.voiceNotes.push(vexNote);
-}
+  }
   /**
    * create an a array of VF.StaveNote objects to render the active voice.
    * @param voiceIx 
@@ -495,14 +496,14 @@ export class VxMeasure {
         }
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
-        if (!(vexNote instanceof StemmableNote)) {
+        if (!(vexNote instanceof StemmableNoteClass)) {
           return;
         }
         if (keyNoteIx === j) {
           stemDirection = note.flagState === SmoNote.flagStates.auto ?
             vexNote.getStemDirection() : note.toVexStemDirection();
         }
-        if (vexNote instanceof StemmableNote) {
+        if (vexNote instanceof StemmableNoteClass) {
           vexNote.setStemDirection(stemDirection);
           vexNotes.push(vexNote);  
         }
@@ -579,7 +580,7 @@ export class VxMeasure {
     tms.forEach((tmb: SmoMeasureModifierBase) => {
       const tm = tmb as SmoMeasureText;
       const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
-      const staveText = new StaveText(tm.text, tm.toVexPosition(), 
+      const staveText = createStaveText(tm.text, tm.toVexPosition(), 
       {
         shiftX: tm.adjustX + offset, shiftY: tm.adjustY, justification: tm.toVexJustification()
       }

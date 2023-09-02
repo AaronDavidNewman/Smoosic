@@ -9,7 +9,7 @@ import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter, TickAccidental, 
   AccidentalArray, AccidentalDisplay } from './common';
 import { SmoMicrotone } from './noteModifiers';
-import { Vex } from 'vex5_smoosic';
+import { Vex } from '../../common/vex';
 
 const VF = Vex.Flow;
 /**

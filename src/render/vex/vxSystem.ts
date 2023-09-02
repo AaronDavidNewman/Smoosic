@@ -17,7 +17,7 @@ import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SvgPage } from '../sui/svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
 declare var $: any;
-import { Vex, Voice, Note } from 'vex5_smoosic';
+import { Vex, Voice, Note } from '../../common/vex';
 const VF = Vex.Flow;
 
 export interface VoltaInfo {

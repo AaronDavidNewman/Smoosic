@@ -5,7 +5,7 @@ import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { ModifierTab } from '../../smo/xform/selections';
-import { SmoVex as Vex } from '../../common/vex';
+import { Vex } from '../../common/vex';
 /**
  * classes for managing the SVG containers where the music is rendered.  Each
  * page is a different SVG element.  Screen coordinates need to be mapped to the

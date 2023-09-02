@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { Vex } from 'vex5_smoosic';
+import { Vex } from '../../common/vex';
 
 const VF = Vex.Flow;
 

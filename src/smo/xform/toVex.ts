@@ -5,12 +5,11 @@ import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
-import { Vex, StaveNoteStruct } from 'vex5_smoosic';
+import { Vex, StaveNoteStruct, TupletOptions } from '../../common/vex';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
-import { TupletOptions } from "vex5_smoosic";
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
 

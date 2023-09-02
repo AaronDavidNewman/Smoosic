@@ -9,7 +9,7 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable,
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { Vex } from 'vex5_smoosic';
+import { Vex } from '../../common/vex';
 
 const VF = Vex.Flow;
 // const Smo = eval('globalThis.Smo');

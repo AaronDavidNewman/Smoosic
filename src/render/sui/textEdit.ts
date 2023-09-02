@@ -16,7 +16,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SvgPage } from './svgPageMap';
 import { SuiScoreViewOperations } from './scoreViewOperations';
 import { SvgPageMap } from './svgPageMap';
-import { SmoVex as Vex, ChordSymbolGlyphs } from '../../common/vex';
+import { Vex, ChordSymbolGlyphs } from '../../common/vex';
 
 const VF = Vex.Flow;
 declare var $: any;

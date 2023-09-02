@@ -7,9 +7,9 @@ import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoVex, VexTextFormatter as TextFormatter, TextFormatterClass } from '../../common/vex';
+import { Vex, TextFormatter as TextFormatter, TextFormatterClass } from '../../common/vex';
 declare var $: any;
-const VF = SmoVex.Flow;
+const VF = Vex.Flow;
 
 // From textfont.ts in VF
 

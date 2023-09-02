@@ -6,7 +6,7 @@ import { SmoAttrs, getId } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
 import { TickMap } from './tickMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex } from 'vex5_smoosic';
+import { Vex } from '../../common/vex';
 const VF = Vex.Flow;
 
 export interface SmoBeamGroupParams {
