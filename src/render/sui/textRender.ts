@@ -7,7 +7,8 @@ import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex, TextFormatter as TextFormatter, TextFormatterClass } from '../../common/vex';
+import { Vex, TextFormatter as TextFormatter, TextFormatterClass,
+  chordSubscriptOffset, chordSuperscriptOffset } from '../../common/vex';
 declare var $: any;
 const VF = Vex.Flow;
 
@@ -119,14 +120,6 @@ export class SuiInlineText {
     }
     return rv;
   }
-  static get superscriptOffset(): number {
-    return VF.ChordSymbol.superscriptOffset;
-  }
-
-  static get subscriptOffset(): number {
-    return VF.ChordSymbol.subscriptOffset;
-  }
-
   get spacing(): number {
     return VF.ChordSymbol.spacingBetweenBlocks;
   }
@@ -176,24 +169,7 @@ export class SuiInlineText {
       size: this.fontSize,
       style: this.fontStyle
     });
-    const setFontSize = (nn: number) => {
-      tf.setFontSize(nn);
-    }
-    const getGlyphMetrics = (cc: string) => {
-      return tf.getGlyphMetrics(cc);
-    }
     return tf;
-    /* const vtf: TextFormatter = {
-      family: this.fontFamily,
-      weight: this.fontWeight,
-      size: this.fontSize,
-      style: this.fontStyle,
-      pointsToPixels: 4 / 3,
-      maxHeight: tf.maxHeight,
-      resolution: tf.getResolution(),
-      getGlyphMetrics
-    };
-    return vtf;  */
   }
   // ### constructor just creates an empty svg
   constructor(params: SuiInlineTextParams) {
@@ -301,9 +277,9 @@ export class SuiInlineText {
       // offset for super/sub
       let subOffset = 0;
       if (sp) {
-        subOffset = SuiInlineText.superscriptOffset * this.pointsToPixels;
+        subOffset = chordSuperscriptOffset() * this.pointsToPixels;
       } else if (sub) {
-        subOffset = SuiInlineText.subscriptOffset * this.pointsToPixels;
+        subOffset = chordSubscriptOffset() * this.pointsToPixels;
       } else {
         subOffset = 0;
       }
