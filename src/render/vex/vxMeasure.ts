@@ -20,7 +20,8 @@ import { Clef, IsClef, SvgBox } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 import { Vex, Stave, StaveNote, StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
-  StemmableNoteClass, createStaveText } from '../../common/vex';
+  StemmableNoteClass, createStaveText, renderDynamics } from '../../common/vex';
+import { TextDynamics } from 'vex5_smoosic';
 
 const VF = Vex.Flow;
 
@@ -406,19 +407,19 @@ export class VxMeasure {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave!.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
+    let maxh = 0;
+    const minx = x;
     var group = this.context.getContext().openGroup();
     group.classList.add(textObj.attrs.id + '-' + smoNote.attrs.id);
     group.classList.add(textObj.attrs.id);
-    textObj.text.split('').forEach((ch) => {
-      const glyphCode = VF.TextDynamics.GLYPHS[ch];
-      if (glyphCode) {
-        const glyph = new VF.Glyph(glyphCode, textObj.fontSize);
-        glyph.render(this.context.getContext(), x, y);
-        x += glyph.getWidth();
-        const metrics = glyph.getMetrics();
-        textObj.logicalBox = SvgHelpers.boxPoints(x, y + this.context.box.y, metrics.width, metrics.height);
-      }
-    });
+    // const duration = SmoMusic.closestVexDuration(smoNote.tickCount);
+    for (var i = 0; i < textObj.text.length; i += 1 ) {
+      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]],
+        textObj.fontSize, x, y);
+      x += width;
+      maxh = Math.max(height, maxh);      
+    }
+    textObj.logicalBox = SvgHelpers.boxPoints(minx, y + this.context.box.y, x - minx, maxh);
     textObj.element = group;
     this.modifiersToBox.push(textObj);
     this.context.getContext().closeGroup();

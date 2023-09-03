@@ -9,7 +9,7 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable,
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { Vex } from '../../common/vex';
+import { Vex, ChordSymbolGlyphs, defaultNoteScale } from '../../common/vex';
 
 const VF = Vex.Flow;
 // const Smo = eval('globalThis.Smo');
@@ -668,7 +668,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    return (VF.ChordSymbol as any).glyphs[code];
+    return ChordSymbolGlyphs[code];
   }
   static _tokenizeChordString(str: string) {
     // var str = this._text;
@@ -798,7 +798,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     return JSON.parse(JSON.stringify({
       ctor: 'SmoDynamicText',
       xOffset: 0,
-      fontSize: 38,
+      fontSize: defaultNoteScale,
       yOffsetLine: 11,
       yOffsetPixels: 0,
       text: SmoDynamicText.dynamics.MP,
@@ -822,7 +822,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   yOffsetLine: number = 11;
   yOffsetPixels: number = 0;
   xOffset: number = 0;
-  fontSize: number = 38;
+  fontSize: number = defaultNoteScale;
   serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
