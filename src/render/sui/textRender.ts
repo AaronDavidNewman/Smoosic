@@ -249,7 +249,8 @@ export class SuiInlineText {
   }
 
   _glyphOffset(block: SuiInlineBlock): number {
-    return block.glyph.getMetrics().yShift * this.pointsToPixels * block.scale;
+    // Vex 5 compatibility.  yShift
+    return block.glyph.getMetrics().y_shift * this.pointsToPixels * block.scale;
   }
 
   /**
@@ -295,9 +296,14 @@ export class SuiInlineText {
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
         // TODO: vexflow broke leftSideBearing and advanceWidth
+        /* vex5
         block.width = (block.glyph.getMetrics().width) * this.pointsToPixels * block.scale;
         block.height = (block.glyph.getMetrics().ha) * this.pointsToPixels * block.scale;
         block.x += block.glyph.getMetrics().xMin * this.pointsToPixels * block.scale;
+         */
+        block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;        
+        block.x += block.metrics.leftSideBearing / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
         block.y = this.startY + this._glyphOffset(block) + subOffset;
       }
       // Line subscript up with super if the follow each other
@@ -430,22 +436,26 @@ export class SuiInlineText {
     this.updatedMetrics = false;
   }
   _getGlyphBlock(params: SuiInlineBlock): SuiInlineBlock {
+    /* vex 5
     const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     smoSerialize.vexMerge(block, params);
     params.text = params.glyphCode;
     block.text = params.text;
     block.scale = params.scale ? params.scale : 1;
-    /* const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    */
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     block.symbolType = SuiInlineText.symbolTypes.GLYPH;
 
     block.glyphCode = params.glyphCode;
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
+    // Vex 4 feature, vex 5 elimitated metrics here
+    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);    
     block.scale = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
       2 * VF.ChordSymbol.superSubRatio : 2;
 
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
 
-    block.glyph.scale = block.glyph.scale * block.scale; */
+    block.glyph.scale = block.glyph.scale * block.scale;
     return block;
   }
   // ### addGlyphBlockAt

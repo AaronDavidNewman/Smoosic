@@ -214,7 +214,7 @@ export class SmoMusic {
    * */
   static vexToCannonical(vexKey: string): string {
     vexKey = SmoMusic.stripVexOctave(vexKey);
-    return VF.Music.canonicalNotes[SmoMusic.noteValues[vexKey].int_val];
+    return VF.Music.canonical_notes[SmoMusic.noteValues[vexKey].int_val];
   }
 
   /**
@@ -376,7 +376,7 @@ export class SmoMusic {
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
     return -1.0 * (VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
-      - VF.clefProperties(clef).lineShift;
+      - VF.clefProperties(clef).line_shift;
   }
   /**
    * Return the number of ledger lines based on the pitch and clef
@@ -1307,7 +1307,7 @@ export class SmoMusic {
    * @returns
    */
   static getKeyOffset(pitch: Pitch, offset: number): Pitch {
-    const canon = VF.Music.canonicalNotes;
+    const canon = VF.Music.canonical_notes;
     // Convert to vex keys, where f# is a string like 'f#'.
     let vexKey = SmoMusic.pitchToVexKey(pitch);
     vexKey = SmoMusic.vexToCannonical(vexKey);

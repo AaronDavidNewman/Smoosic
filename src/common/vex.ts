@@ -4,13 +4,14 @@ import { Vex as SmoVex, Note as VexNote, TextFormatter as VexTextFormatter,
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition, TextJustification as VexTextJustification,
-TupletOptions as VexTupletOptions, Curve, StaveTie } from "vex5_smoosic";
+TupletOptions as VexTupletOptions, Curve, StaveTie } from "vexflow_smoosic";
 import { SmoStaffHairpin, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
 import { SmoNote } from '../smo/data/note';
 import { SmoVoice, SmoMeasure } from '../smo/data/measure';
 import { smoSerialize } from "./serializationHelpers";
 import { SmoMusic } from '../smo/data/music';
 import { SmoTuplet } from '../smo/data/tuplet';
+import { GlyphInfo } from '../render/vex/glyphDimensions';
 
 const VF = SmoVex.Flow;
 export type Vex = SmoVex;
@@ -34,7 +35,16 @@ export const StaveModifierPosition = VexStaveModifierPosition;
 export type StaveText = VexStaveText;
 export type Stave = VexStave;
 export const TextJustification = VexTextJustification;
-
+export function glyphPixels() {
+  return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
+}
+export function getGlyphWidth(smoGlyph: GlyphInfo) {
+  if (smoGlyph.vexGlyph) {
+    const vf: any = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+    return (vf.x_max - vf.x_min) * glyphPixels();
+  }
+  return smoGlyph.width;
+}
 export function chordSubscriptOffset() {
   return VF.ChordSymbol.subscriptOffset;
 }
@@ -43,8 +53,8 @@ export function chordSuperscriptOffset() {
 }
 export function createVoice(smoMeasure: SmoMeasure, notes: Note[]) {
   const voice = new VF.Voice({
-    numBeats: smoMeasure.timeSignature.actualBeats,
-    beatValue: smoMeasure.timeSignature.beatDuration
+    num_beats: smoMeasure.timeSignature.actualBeats,
+    beat_value: smoMeasure.timeSignature.beatDuration
   }).setMode(VF.Voice.Mode.SOFT);
   voice.addTickables(notes);
   return voice;
@@ -61,7 +71,7 @@ export function createStave(x: number, y: number, smoMeasure: SmoMeasure, contex
     });
   }
 
-  stave.options.spaceAboveStaffLn = 0; // don't let vex place the staff, we want to.
+  stave.options.space_above_staff_ln = 0; // don't let vex place the staff, we want to.
 
   // Add a clef and time signature.
   if (smoMeasure.svg.forceClef) {
@@ -78,8 +88,8 @@ export function createStave(x: number, y: number, smoMeasure: SmoMeasure, contex
 }
 export function getVexTimeSignature(smoMeasure: SmoMeasure) {
   const voice = new VF.Voice({
-      numBeats: smoMeasure.timeSignature.actualBeats,
-      beatValue: smoMeasure.timeSignature.beatDuration
+      num_beats: smoMeasure.timeSignature.actualBeats,
+      beat_value: smoMeasure.timeSignature.beatDuration
     }).setMode(VF.Voice.Mode.SOFT);
   return voice;
 }
@@ -87,8 +97,8 @@ export function getVexTuplets(vexNotes: Note[], tp: SmoTuplet, smoMeasure: SmoMe
   const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
     VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
   const vexTuplet = new VF.Tuplet(vexNotes, {
-    numNotes: tp.num_notes,
-    notesOccupied: tp.notes_occupied,
+    num_notes: tp.num_notes,
+    notes_occupied: tp.notes_occupied,
     ratioed: false,
     bracketed: true,
     location: direction
@@ -114,20 +124,20 @@ export function getVexNoteParameters(smoNote: SmoNote, noteScale: number, measur
       clef: smoNote.clef,
       keys,
       duration: duration + smoNote.noteType,
-      glyphFontScale: noteScale
+      glyph_font_scale: noteScale
     };
 
     return { noteParams, duration };
 }
 export function applyStemDirection(voices: SmoVoice[], vxParams: StaveNoteStruct, voiceIx: number, flagState: number) {
   if (voices.length === 1 && flagState === SmoNote.flagStates.auto) {
-    vxParams.autoStem = true;
+    vxParams.auto_stem = true;
   } else if (flagState !== SmoNote.flagStates.auto) {
-    vxParams.stemDirection = flagState === SmoNote.flagStates.up ? 1 : -1;
+    vxParams.stem_direction = flagState === SmoNote.flagStates.up ? 1 : -1;
   } else if (voiceIx % 2) {
-    vxParams.stemDirection = -1;
+    vxParams.stem_direction = -1;
   } else {
-    vxParams.stemDirection = 1;
+    vxParams.stem_direction = 1;
   }
 }
 const setSameIfNull = (a: any, b: any) => {
@@ -142,17 +152,17 @@ export function createStaveText(text: string, position: number, options: any) {
 export function createHairpin(hp: SmoStaffHairpin, vxStart: Note | null, vxEnd: Note | null) {
   const params: Record<string, Note> = {};
   if (vxStart) {
-    params['firstNote'] = vxStart;
+    params.first_note = vxStart;
   }
   if (vxEnd) {
-    params['lastNote'] = vxEnd;
+    params.last_note = vxEnd;
   }
   const hairpin = new VF.StaveHairpin(params, hp.hairpinType);
   hairpin.setRenderOptions({
     height: hp.height,
-    yShift: hp.yOffset,
-    leftShiftPx: hp.xOffsetLeft,
-    rightShiftPx: hp.xOffsetRight
+    y_shift: hp.yOffset,
+    left_shift_px: hp.xOffsetLeft,
+    right_shift_px: hp.xOffsetRight
   });
   return hairpin;
 }
@@ -165,12 +175,12 @@ export function createSlur(slur: SmoSlur, slurX: number, svgPoint: DOMPoint[], v
   const curve = new VF.Curve(vxStart!, vxEnd!,
     {
       thickness: slur.thickness,
-      xShift: slurX,
-      yShift: slur.yOffset,
+      x_shift: slurX,
+      y_shift: slur.yOffset,
       cps: svgPoint,
       invert: slur.invert,
       position: slur.position,
-      positionEnd: slur.position_end
+      position_end: slur.position_end
     });
   return curve;
 }
@@ -181,16 +191,16 @@ export function createTie(ctie: SmoTie,
   const fromLines = ctie.lines.map((ll) => ll.from);
   const toLines = ctie.lines.map((ll) => ll.to);
   const tie = new VF.StaveTie({
-    firstNote: vxStart,
-    lastNote: vxEnd,
-    firstIndexes: fromLines,
-    lastIndexes: toLines          
+    first_note: vxStart,
+    last_note: vxEnd,
+    first_indices: fromLines,
+    last_indices: toLines          
   });
-  smoSerialize.vexMerge(tie.renderOptions, ctie.vexOptions);
+  smoSerialize.vexMerge(tie.render_options, ctie.vexOptions);
   return tie;
 }
-export const defaultNoteScale: number = 30;
-export const defaultCueScale: number = 19.8;
+export const defaultNoteScale: number = 38;
+export const defaultCueScale: number = 28;
 /**
  * Render a dynamics glyph.  Return the height of width/height of the glyph
  * @param context 
@@ -201,37 +211,134 @@ export const defaultCueScale: number = 19.8;
  * @returns 
  */
 export function renderDynamics(context: any, text: string, fontSize: number, x: number, y: number) {
-  const glyph = new VF.Element();
-  glyph.setText(text);
-  glyph.setFontSize(fontSize);
-  glyph.renderText(context, x, y);
-  return { width: glyph.getWidth(), height: glyph.getHeight() };
+  const glyph = new VF.Glyph(text, fontSize);
+  glyph.render(context, x, y);
+  // vex 5 incompatibility.
+  // x += VF.TextDynamics.GLYPHS[text].width;
+  const metrics = glyph.getMetrics();
+  return { width: metrics.width, height: metrics.height };
 }
-// Glyph data
-export const ChordSymbolGlyphs: Record<string, string> = {
-  csymDiminished: '\ue870' /*csymDiminished*/,
-  dim: '\ue870' /*csymDiminished*/,
-  csymHalfDiminished: '\ue871' /*csymHalfDiminished*/,
-  '+': '\ue872' /*csymAugmented*/,
-  augmented: '\ue872' /*csymAugmented*/,
-  csymAugmented: '\ue872' /*csymAugmented*/,
-  majorSeventh: '\ue873' /*csymMajorSeventh*/,
-  minor: '\ue874' /*csymMinor*/,
-  '-': '\ue874' /*csymMinor*/,
-  rightBracket: '\ue878' /*csymBracketRightTall*/,
-  leftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-  rightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-  csymParensRightTall: '\u0029' /*csymParensRightTall*/,
-  csymLeftBracket: '\ue877' /*csymBracketLeftTall*/,
-  csymRightBracket: '\ue878' /*csymBracketRightTall*/,
-  csymLeftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-  csymRightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-  '/': '\ue87c' /*csymDiagonalArrangementSlash*/,
-  over: '\ue87c' /*csymDiagonalArrangementSlash*/,
-  '#': '\ued62' /*csymAccidentalSharp*/,
-  accidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-  accidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-  csymAccidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-  csymAccidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-  b: '\ued60' /*csymAccidentalFlat*/,
+// Glyph data.  Note Vex4 and Vex5 have different requirements.  Vex5 expects the unicode identifier (16-bit number)
+// where vex4 expects a string glyph
+export const ChordSymbolGlyphs: Record<string, { code: string }> = {
+  diminished: {
+    code: 'csymDiminished',
+  },
+  dim: {
+    code: 'csymDiminished',
+  },
+  csymDiminished: {
+    code: 'csymDiminished'
+  },
+  halfDiminished: {
+    code: 'csymHalfDiminished',
+  },
+  csymHalfDiminished: {
+    code: 'csymHalfDiminished'
+  },
+  '+': {
+    code: 'csymAugmented',
+  },
+  augmented: {
+    code: 'csymAugmented',
+  },
+  csymAugmented: {
+    code: 'csymAugmented',
+  },  
+  majorSeventh: {
+    code: 'csymMajorSeventh',
+  },
+  csymMajorSeventh: {
+    code: 'csymMajorSeventh',
+  },
+  csymMinor: {
+    code: 'csymMinor',
+  },
+  minor: {
+    code: 'csymMinor',
+  },
+  '-': {
+    code: 'csymMinor',
+  },
+  '(': {
+    code: 'csymParensLeftTall',
+  },  
+  csymParensLeftTall: {
+    code: 'csymParensLeftTall',
+  },
+  leftParen: {
+    code: 'csymParensLeftTall',
+  },
+  ')': {
+    code: 'csymParensRightTall',
+  },
+  rightParen: {
+    code: 'csymParensRightTall',
+  },
+  csymParensRightTall: {
+    code: 'csymParensRightTall',
+  },
+  leftBracket: {
+    code: 'csymBracketLeftTall',
+  },
+  csymBracketLeftTall: {
+    code: 'csymBracketLeftTall',
+  },  
+  csymBracketRightTall: {
+    code: 'csymBracketRightTall',
+  },
+  rightBracket: {
+    code: 'csymBracketRightTall',
+  },  
+  csymParensLeftVeryTall: {
+    code: 'csymParensLeftVeryTall',
+  },
+  leftParenTall: {
+    code: 'csymParensLeftVeryTall',
+  },
+  csymParensRightVeryTall: {
+    code: 'csymParensRightVeryTall',
+  },
+    rightParenTall: {
+    code: 'csymParensRightVeryTall',
+  },
+  '/': {
+    code: 'csymDiagonalArrangementSlash',
+  },
+  csymDiagonalArrangementSlash: {
+    code: 'csymDiagonalArrangementSlash',
+  }, over: {
+    code: 'csymDiagonalArrangementSlash',
+  },
+  'accidentalSharp': {
+    code: 'accidentalSharp',
+  },
+  'accidentalFlat': {
+    code: 'accidentalFlat',
+  },
+  '#': {
+    code: 'accidentalSharp',
+  },
+  b: {
+    code: 'accidentalFlat',
+  },
 };
+
+export const ChordSymbolGlyphsReverse: Record<string, string> = {
+  csymDiminished: 'diminished',
+  csymHalfDiminished: 'halfDiminished',
+  csymAugmented: 'augmented',
+  csymMajorSeventh: 'majorSeventh',
+  csymMinor: 'minor',
+  csymParensLeftTall: 'leftParen',
+  csymParensRightTall: 'rightParen',
+  csymBracketLeftTall: 'leftBracket',
+  csymBracketRightTall: 'rightBracket',
+  csymParensLeftVeryTall: 'leftParenTall',
+  csymParensRightVeryTall: 'rightParenTall',
+  csymDiagonalArrangementSlash: 'over',
+  'accidentalSharp': '#',
+  '#': '#',
+  'b': 'b',
+  'accidentalFlat': 'b'
+}
