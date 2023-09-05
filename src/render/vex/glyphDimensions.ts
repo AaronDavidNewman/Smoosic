@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { Vex } from 'vexflow_smoosic';
+import { Vex, getGlyphWidth } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -16,19 +16,8 @@ export interface GlyphInfo {
 }
 
 export class vexGlyph {
-  // ### glyphPixels
-  // Used to convert vex glyph sizes to pixels for computation.
-  // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
-  // and divide by glyph resolution
-  static get glyphPixels() {
-    return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
-  }
   static width(smoGlyph: GlyphInfo) {
-    if (smoGlyph.vexGlyph) {
-      const vf: any = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
-      return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
-    }
-    return smoGlyph.width;
+    return getGlyphWidth(smoGlyph);
   }
   static accidental(a: string): GlyphInfo {
     return vexGlyph.accidentals[a];

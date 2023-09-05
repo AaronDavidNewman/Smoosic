@@ -10,7 +10,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
 import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 const VF = Vex.Flow;
 
 /**

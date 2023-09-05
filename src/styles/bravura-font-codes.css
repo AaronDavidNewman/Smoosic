@@ -1,12 +1,4 @@
 
-@font-face {
-  font-family: 'Bravura';
-  src:
-    url('fonts/BravuraText_1-393.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
 .icon-bravura {
   font-family: 'Bravura'!important;
   font-size: 24px;

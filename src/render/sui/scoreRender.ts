@@ -21,7 +21,8 @@ import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SvgPageMap, SvgPage } from './svgPageMap';
-import { Vex, Note } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
+import { Note } from '../../common/vex';
 
 declare var $: any;
 const VF = Vex.Flow;

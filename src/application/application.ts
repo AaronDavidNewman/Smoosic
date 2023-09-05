@@ -35,7 +35,7 @@ import { KeyBinding, ModalEventHandlerProxy } from './common';
 import { SmoMeasure } from '../../typedoc';
 import { getDomContainer } from '../common/htmlHelpers';
 import { SuiHelp } from '../ui/help';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../common/vex';
 
 declare var $: any;
 

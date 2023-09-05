@@ -9,7 +9,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox, getId } from './common';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 const VF = Vex.Flow;
 
 export interface TupletInfo {

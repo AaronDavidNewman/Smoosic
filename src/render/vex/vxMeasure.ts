@@ -10,16 +10,18 @@ import { SmoMusic } from '../../smo/data/music';
 import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, 
   SmoArpeggio, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
-import { Clef, IsClef, SvgBox } from '../../smo/data/common';
+import { Clef, IsClef } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
-import { Vex, Stave, StaveNote, StemmableNote, Note, Beam, Tuplet, Voice,
-  Formatter, Accidental, Annotation, StaveNoteStruct } from 'vexflow_smoosic';
+import { Vex, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
+  Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
+  StemmableNoteClass, createStaveText, renderDynamics, applyStemDirection,
+  getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
+  getVexTimeSignature, createStave, createVoice, ChordSymbolGlyphsReverse } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -32,8 +34,8 @@ declare var $: any;
  */
 export class VxMeasure {
   context: SvgPage;
-  static readonly musicFontScaleNote: number = 39;
-  static readonly musicFontScaleCue: number = 28;
+  static readonly musicFontScaleNote: number = 30;
+  static readonly musicFontScaleCue: number = 19.8;
   printing: boolean;
   selection: SmoSelection;
   softmax: number;
@@ -74,25 +76,6 @@ export class VxMeasure {
 
   static get fillStyle() {
     return '#000';
-  }
-
-  /**
-   * decide whether to force stem direction for multi-voice, or use the default.
-   * @param vxParams - params that go do the VX stem constructor
-   * @param voiceIx 
-   * @param flagState 
-   * @todo use x position of ticks in other voices, pitch of note, to avoid collisions
-   */
-  applyStemDirection(vxParams: StaveNoteStruct, voiceIx: number, flagState: number) {
-    if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
-      vxParams.auto_stem = true;
-    } else if (flagState !== SmoNote.flagStates.auto) {
-      vxParams.stem_direction = flagState === SmoNote.flagStates.up ? 1 : -1;
-    } else if (voiceIx % 2) {
-      vxParams.stem_direction = -1;
-    } else {
-      vxParams.stem_direction = 1;
-    }
   }
 
   isWholeRest() {
@@ -204,7 +187,10 @@ export class VxMeasure {
     const blocks = lyric.getVexChordBlocks();
     blocks.forEach((block) => {
       if (block.glyph) {
-        cs.addGlyph(block.glyph, block);
+        // Vex 5 broke this, does not distinguish between glyph and text
+        // the reverse is for vex4 which expects the non-mangled identifier here,
+        // e.g. 'diminished' and not 'csymDiminished'
+        cs.addGlyph(ChordSymbolGlyphsReverse[block.glyph], block);
       } else {
         cs.addGlyphOrText(block.text ?? '', block);
       }
@@ -323,37 +309,17 @@ export class VxMeasure {
   _createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: Note | null = null;
     let timestamp = new Date().valueOf();
-    // If this is a tuplet, we only get the duration so the appropriate stem
-    // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
-    var duration =
-      smoNote.isTuplet ?
-        SmoMusic.closestVexDuration(smoNote.tickCount) :
-        SmoMusic.ticksToDuration[smoNote.tickCount];
-
-    if (typeof (duration) === 'undefined') {
-      console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
-      duration = '8';
-    }
-    // transpose for instrument-specific keys
-    const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
-    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
-    const noteParams: StaveNoteStruct = {
-      clef: smoNote.clef,
-      keys,
-      duration: duration + smoNote.noteType,
-      glyph_font_scale: VxMeasure.musicFontScaleNote
-    };
-
+    const noteScale = (smoNote.isCue || this.allCues) ? defaultCueScale : defaultNoteScale;
+    const { noteParams, duration } = getVexNoteParameters(smoNote, 
+      noteScale, 
+      this.smoMeasure.measureNumber.measureIndex);
     if (smoNote.noteType === '/') {
-      vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
+      vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     } else {
-      this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+      applyStemDirection(this.smoMeasure.voices, noteParams, voiceIx, smoNote.flagState);
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
-      if (smoNote.isCue || this.allCues) {
-        noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
-      }
       vexNote = new VF.StaveNote(noteParams);
       if (voiceIx > 0 && this.isCollision(voiceIx, tickIndex)) {
         vexNote.setXShift(-10);
@@ -404,19 +370,19 @@ export class VxMeasure {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave!.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
+    let maxh = 0;
+    const minx = x;
     var group = this.context.getContext().openGroup();
     group.classList.add(textObj.attrs.id + '-' + smoNote.attrs.id);
     group.classList.add(textObj.attrs.id);
-    textObj.text.split('').forEach((ch) => {
-      const glyphCode = VF.TextDynamics.GLYPHS[ch];
-      if (glyphCode) {
-        const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
-        glyph.render(this.context.getContext(), x, y);
-        x += VF.TextDynamics.GLYPHS[ch].width;
-        const metrics = glyph.getMetrics();
-        textObj.logicalBox = SvgHelpers.boxPoints(x, y + this.context.box.y, metrics.width, metrics.height);
-      }
-    });
+    // const duration = SmoMusic.closestVexDuration(smoNote.tickCount);
+    for (var i = 0; i < textObj.text.length; i += 1 ) {
+      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]].code,
+        textObj.fontSize, x, y);
+      x += width;
+      maxh = Math.max(height, maxh);      
+    }
+    textObj.logicalBox = SvgHelpers.boxPoints(minx, y + this.context.box.y, x - minx, maxh);
     textObj.element = group;
     this.modifiersToBox.push(textObj);
     this.context.getContext().closeGroup();
@@ -441,7 +407,7 @@ export class VxMeasure {
     vexNote.setCenterAlignment(true);
     this.vexNotes.push(vexNote);
     this.voiceNotes.push(vexNote);
-}
+  }
   /**
    * create an a array of VF.StaveNote objects to render the active voice.
    * @param voiceIx 
@@ -494,14 +460,14 @@ export class VxMeasure {
         }
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
-        if (!(vexNote instanceof StemmableNote)) {
+        if (!(vexNote instanceof StemmableNoteClass)) {
           return;
         }
         if (keyNoteIx === j) {
           stemDirection = note.flagState === SmoNote.flagStates.auto ?
             vexNote.getStemDirection() : note.toVexStemDirection();
         }
-        if (vexNote instanceof StemmableNote) {
+        if (vexNote instanceof StemmableNoteClass) {
           vexNote.setStemDirection(stemDirection);
           vexNotes.push(vexNote);  
         }
@@ -532,15 +498,7 @@ export class VxMeasure {
         const smoNote = tp.notes[j];
         vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
       }
-      const direction = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
-        VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
-      const vexTuplet = new VF.Tuplet(vexNotes, {
-        num_notes: tp.num_notes,
-        notes_occupied: tp.notes_occupied,
-        ratioed: false,
-        bracketed: true,
-        location: direction
-      });
+      const vexTuplet = getVexTuplets(vexNotes, tp, this.smoMeasure);
       this.tupletToVexMap[tp.attrs.id] = vexTuplet;
       this.vexTuplets.push(vexTuplet);
     }
@@ -578,10 +536,12 @@ export class VxMeasure {
     tms.forEach((tmb: SmoMeasureModifierBase) => {
       const tm = tmb as SmoMeasureText;
       const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
-      this.stave!.setText(
-        tm.text, tm.toVexPosition(), {
-        shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
-      });
+      const staveText = createStaveText(tm.text, tm.toVexPosition(), 
+      {
+        shiftX: tm.adjustX + offset, shiftY: tm.adjustY, justification: tm.toVexJustification()
+      }
+      );
+      this.stave?.addModifier(staveText);
 
       // hack - we can't create staveText directly so this is the only way I could set the font
       const ar = this.stave!.getModifiers();
@@ -599,7 +559,7 @@ export class VxMeasure {
     const tempo = this.smoMeasure.getTempo();
     if (tempo && this.smoMeasure.svg.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
-      const vexTempo = this.stave.getModifiers().find((mod: any) => mod.attrs.type === 'StaveTempo');
+      const vexTempo = this.stave.getModifiers().find((mod: StaveModifier) => mod.getAttribute('type') === 'StaveTempo');
       if (vexTempo) {
         vexTempo.setFont({ family: SourceSerifProFont.fontFamily, size: 13, weight: 'bold' });
       }
@@ -620,32 +580,9 @@ export class VxMeasure {
       return;
     }
     // Note: need to do this to get it into VEX KS format
-    const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
-    const canceledKey = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
     const staffY = this.smoMeasure.staffY - this.context.box.y;
-    this.stave = new VF.Stave(staffX, staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft);
-    this.stave.setAttribute('id', this.smoMeasure.attrs.id);
-    // If there is padLeft, draw an invisible box so the padding is included in the measure box
-    if (this.smoMeasure.format.padLeft) {
-      this.context.getContext().rect(this.smoMeasure.staffX, staffY, this.smoMeasure.format.padLeft, 50, {
-        fill: 'none', 'stroke-width': 1, stroke: 'white'
-      });
-    }
-
-    this.stave.options.space_above_staff_ln = 0; // don't let vex place the staff, we want to.
-
-    // Add a clef and time signature.
-    if (this.smoMeasure.svg.forceClef) {
-      this.stave.addClef(this.smoMeasure.clef);
-    }
-    if (this.smoMeasure.svg.forceKeySignature) {
-      const sig = new VF.KeySignature(key);
-      if (this.smoMeasure.canceledKeySignature) {
-        sig.cancelKey(canceledKey);
-      }
-      sig.addToStave(this.stave);
-    }
+    this.stave = createStave(staffX, staffY, this.smoMeasure, this.context.getContext());
     if (this.smoMeasure.svg.forceTimeSignature) {
       const ts = this.smoMeasure.timeSignature;
       let tsString = ts.timeSignature;
@@ -678,21 +615,13 @@ export class VxMeasure {
         this.createVexBeamGroups(j);
 
         // Create a voice in 4/4 and add above notes
-        const voice = new VF.Voice({
-          num_beats: this.smoMeasure.timeSignature.actualBeats,
-          beat_value: this.smoMeasure.timeSignature.beatDuration
-        }).setMode(VF.Voice.Mode.SOFT);
-        voice.addTickables(this.voiceNotes);
+        const voice = createVoice(this.smoMeasure, this.vexNotes);
         this.voiceAr.push(voice);
       }
       if (this.smoMeasure.repeatSymbol) {
         this.createRepeatSymbol();
         // Create a voice in 4/4 and add above notes
-        const voice = new VF.Voice({
-          num_beats: this.smoMeasure.timeSignature.actualBeats,
-          beat_value: this.smoMeasure.timeSignature.beatDuration
-        }).setMode(VF.Voice.Mode.SOFT);
-        voice.addTickables(this.voiceNotes);
+        const voice = createVoice(this.smoMeasure, this.vexNotes);
         this.voiceAr.push(voice);
       }
     }
@@ -718,7 +647,8 @@ export class VxMeasure {
     }
 
     if (this.smoMeasure.svg.multimeasureLength > 0) {
-      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength, { number_of_measures: this.smoMeasure.svg.multimeasureLength });
+      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength,
+         { number_of_measures: this.smoMeasure.svg.multimeasureLength });
       this.multimeasureRest.setContext(this.context.getContext());
       this.multimeasureRest.setStave(this.stave);
       return;

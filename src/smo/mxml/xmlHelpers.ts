@@ -7,7 +7,7 @@ import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoSelector } from '../xform/selections';
 import { SmoBarline } from '../data/measureModifiers';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 
 const VF = Vex.Flow;
 

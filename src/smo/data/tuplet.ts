@@ -9,8 +9,6 @@ import { SmoNote } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
-import { Vex } from 'vexflow_smoosic';
-const VF = Vex.Flow;
 
 /**
  * Parameters for tuplet construction

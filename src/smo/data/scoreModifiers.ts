@@ -10,7 +10,7 @@ import { SmoMeasureFormat } from './measureModifiers';
 import { SmoAttrs, getId, SmoModifierBase, SvgBox } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 const VF = Vex.Flow;
 
 /**

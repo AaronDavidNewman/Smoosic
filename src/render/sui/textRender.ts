@@ -7,31 +7,13 @@ import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex, TextFormatter, Element, FontGlyph } from 'vexflow_smoosic';
+import { Vex, TextFormatter as TextFormatter, TextFormatterClass,
+  chordSubscriptOffset, chordSuperscriptOffset } from '../../common/vex';
 declare var $: any;
 const VF = Vex.Flow;
 
 // From textfont.ts in VF
-export interface VexTextFontMetrics {
-  x_min: number;
-  x_max: number;
-  y_min: number;
-  y_max: number;
-  ha: number;
-  leftSideBearing: number;
-  advanceWidth: number;
-}
-export interface VexTextFont {
-  family: string,
-  weight: string,
-  style: string,
-  size: number,
-  pointsToPixels: number,
-  maxHeight: number,
-  resolution: number,
-  setFontSize(fontSize: number): void,
-  getGlyphMetrics(ch: string): FontGlyph
-}
+
 /**
  * parameters to render text
  * @category SuiParameters
@@ -138,14 +120,6 @@ export class SuiInlineText {
     }
     return rv;
   }
-  static get superscriptOffset(): number {
-    return VF.ChordSymbol.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
-  }
-
-  static get subscriptOffset(): number {
-    return VF.ChordSymbol.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
-  }
-
   get spacing(): number {
     return VF.ChordSymbol.spacingBetweenBlocks;
   }
@@ -176,7 +150,7 @@ export class SuiInlineText {
   purpose: string;
 
   attrs: SmoAttrs;
-  textFont: VexTextFont;
+  textFont: TextFormatter;
   startX: number;
   startY: number;
   blocks: SuiInlineBlock[] = [];
@@ -188,31 +162,14 @@ export class SuiInlineText {
   logicalBox: SvgBox = SvgBox.default;
   element: SVGSVGElement | null = null;
 
-  updateFontInfo(): VexTextFont {
-    const tf = TextFormatter.create({
+  updateFontInfo(): TextFormatter {
+    const tf = TextFormatterClass.create({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,
       style: this.fontStyle
     });
-    const setFontSize = (nn: number) => {
-      tf.setFontSize(nn);
-    }
-    const getGlyphMetrics = (cc: string) => {
-      return tf.getGlyphMetrics(cc);
-    }
-    const vtf: VexTextFont = {
-      family: this.fontFamily,
-      weight: this.fontWeight,
-      size: this.fontSize,
-      style: this.fontStyle,
-      pointsToPixels: 4 / 3,
-      maxHeight: tf.maxHeight,
-      resolution: tf.getResolution(),
-      setFontSize,
-      getGlyphMetrics
-    };
-    return vtf;
+    return tf;
   }
   // ### constructor just creates an empty svg
   constructor(params: SuiInlineTextParams) {
@@ -262,7 +219,6 @@ export class SuiInlineText {
       width: 0,
       height: 0,
       scale: 1.0,
-      metrics: {},
       glyph: {},
       text: '',
       glyphCode: ''
@@ -272,7 +228,7 @@ export class SuiInlineText {
   // ### pointsToPixels
   // The font size is specified in points, convert to 'pixels' in the svg space
   get pointsToPixels(): number {
-    return (this.textFont.size * 4) / 3;
+    return this.textFont.fontSizeInPixels;
   }
 
   offsetStartX(offset: number) {
@@ -293,7 +249,8 @@ export class SuiInlineText {
   }
 
   _glyphOffset(block: SuiInlineBlock): number {
-    return block.metrics.yOffset / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
+    // Vex 5 compatibility.  yShift
+    return block.glyph.getMetrics().y_shift * this.pointsToPixels * block.scale;
   }
 
   /**
@@ -321,9 +278,9 @@ export class SuiInlineText {
       // offset for super/sub
       let subOffset = 0;
       if (sp) {
-        subOffset = SuiInlineText.superscriptOffset * this.pointsToPixels;
+        subOffset = chordSuperscriptOffset() * this.pointsToPixels;
       } else if (sub) {
-        subOffset = SuiInlineText.subscriptOffset * this.pointsToPixels;
+        subOffset = chordSubscriptOffset() * this.pointsToPixels;
       } else {
         subOffset = 0;
       }
@@ -332,14 +289,20 @@ export class SuiInlineText {
         for (i = 0; i < block.text.length; ++i) {
           const ch = block.text[i];
           const glyph = this.textFont.getGlyphMetrics(ch);
-          block.width += ((glyph.advanceWidth ?? 0) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
-          const blockHeight = (glyph.ha / this.textFont.resolution) * this.pointsToPixels * block.scale;
+          block.width += ((glyph.advanceWidth ?? 0) / this.textFont.getResolution()) * this.pointsToPixels * block.scale * subAdj;
+          const blockHeight = (glyph.ha / this.textFont.getResolution()) * this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
           block.y = this.startY + (subOffset * block.scale);
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+        // TODO: vexflow broke leftSideBearing and advanceWidth
+        /* vex5
+        block.width = (block.glyph.getMetrics().width) * this.pointsToPixels * block.scale;
+        block.height = (block.glyph.getMetrics().ha) * this.pointsToPixels * block.scale;
+        block.x += block.glyph.getMetrics().xMin * this.pointsToPixels * block.scale;
+         */
         block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
-        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;        
         block.x += block.metrics.leftSideBearing / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
         block.y = this.startY + this._glyphOffset(block) + subOffset;
       }
@@ -473,13 +436,22 @@ export class SuiInlineText {
     this.updatedMetrics = false;
   }
   _getGlyphBlock(params: SuiInlineBlock): SuiInlineBlock {
+    /* vex 5
+    const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    smoSerialize.vexMerge(block, params);
+    params.text = params.glyphCode;
+    block.text = params.text;
+    block.scale = params.scale ? params.scale : 1;
+    */
     const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     block.symbolType = SuiInlineText.symbolTypes.GLYPH;
+
     block.glyphCode = params.glyphCode;
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
-    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
+    // Vex 4 feature, vex 5 elimitated metrics here
+    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);    
     block.scale = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
-      2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
+      2 * VF.ChordSymbol.superSubRatio : 2;
 
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
 

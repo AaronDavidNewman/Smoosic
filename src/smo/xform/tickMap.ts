@@ -4,7 +4,7 @@ import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
 import { Pitch, PitchLetter, TickAccidental } from '../data/common';
 import { SmoNote } from '../data/note';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 const VF = Vex.Flow;
 
 /**

@@ -7,7 +7,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex, StaveModifierPosition, TextJustification } from 'vexflow_smoosic';
+import { Vex, StaveModifierPosition, TextJustification } from '../../common/vex';
 
 const VF = Vex.Flow;
 /**
@@ -314,6 +314,9 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   }
   constructor(parameters: SmoRepeatSymbolParams) {
     super('SmoRepeatSymbol');
+    if (!parameters.symbol) {
+      parameters.symbol = SmoRepeatSymbol.symbols.Coda;
+    }
     smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
     this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
     smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);

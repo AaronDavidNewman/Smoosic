@@ -16,7 +16,7 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiScoreRender, ScoreRenderParams } from './scoreRender';
 import { SuiExceptionHandler } from '../../ui/exceptions';
-import { Vex } from 'vexflow_smoosic';
+import { Vex } from '../../common/vex';
 declare var $: any;
 const VF = Vex.Flow;
 

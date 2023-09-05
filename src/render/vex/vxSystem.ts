@@ -16,8 +16,7 @@ import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SvgPage } from '../sui/svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-declare var $: any;
-import { Vex, Voice, Note } from 'vexflow_smoosic';
+import { Vex, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
 const VF = Vex.Flow;
 
 export interface VoltaInfo {
@@ -260,7 +259,8 @@ export class VxSystem {
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(scroller: SuiScroller, modifier: StaffModifierBase, vxStart: any, vxEnd: any, smoStart: SmoSelection, smoEnd: SmoSelection) {
+  renderModifier(scroller: SuiScroller, modifier: StaffModifierBase,
+    vxStart: Note | null, vxEnd: Note | null, smoStart: SmoSelection, smoEnd: SmoSelection) {
     let xoffset = 0;
     const setSameIfNull = (a: any, b: any) => {
       if (typeof (a) === 'undefined' || a === null) {
@@ -295,16 +295,7 @@ export class VxSystem {
       }
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
-      const hairpin = new VF.StaveHairpin({
-        first_note: vxStart,
-        last_note: vxEnd,
-      }, hp.hairpinType);
-      hairpin.setRenderOptions({
-        height: hp.height,
-        y_shift: hp.yOffset,
-        left_shift_px: hp.xOffsetLeft,
-        right_shift_px: hp.xOffsetRight
-      });
+      const hairpin = createHairpin(hp, vxStart, vxEnd);
       hairpin.setContext(this.context.getContext()).setPosition(hp.position).draw();
     } else if (modifier.ctor === 'SmoSlur') {
       const startNote: SmoNote = smoStart!.note as SmoNote;
@@ -323,34 +314,14 @@ export class VxSystem {
         svgPoint[0].y = 10;
         svgPoint[1].y = 10;
       }
-      const curve = new VF.Curve(vxStart, vxEnd,
-        {
-          thickness: slur.thickness,
-          x_shift: slurX,
-          y_shift: slur.yOffset,
-          cps: svgPoint,
-          invert: slur.invert,
-          position: slur.position,
-          position_end: slur.position_end
-        });
+      const curve = createSlur(slur, slurX, svgPoint, vxStart, vxEnd);
       curve.setContext(this.context.getContext()).draw();
     } else if (modifier.ctor === 'SmoTie') {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const endNote: SmoNote = smoEnd!.note as SmoNote;
       if (ctie.lines.length > 0) {
-        // Hack: if a chord changed, the ties may no longer be valid.  We should check
-        // this when it changes.
-        ctie.checkLines(startNote, endNote);
-        const fromLines = ctie.lines.map((ll) => ll.from);
-        const toLines = ctie.lines.map((ll) => ll.to);
-        const tie = new VF.StaveTie({
-          first_note: vxStart,
-          last_note: vxEnd,
-          first_indices: fromLines,
-          last_indices: toLines          
-        });
-        smoSerialize.vexMerge(tie.render_options, ctie.vexOptions);
+        const tie = createTie(ctie, startNote, endNote, vxStart, vxEnd);
         tie.setContext(this.context.getContext()).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {
