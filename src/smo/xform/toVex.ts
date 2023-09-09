@@ -12,7 +12,6 @@ import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
-
 export const fontStacks: Record<string, string[]> =     {
   Bravura: ['"Bravura"', '"Gonville"', '"Custom"'],
   Gonville: ['"Gonville"', '"Bravura"', '"Custom"'],
@@ -187,12 +186,12 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     if (modifier.startSelector.staff === modifier.endSelector.staff) {
       const hpParams = {
         thickness: slur.thickness,
-        xShift: slurX,
-        yShift: slur.yOffset,
+        x_shift: slurX,
+        y_shift: slur.yOffset,
         cps: svgPoint,
         invert: slur.invert,
         position: slur.position,
-        positionEnd: slur.position_end
+        position_end: slur.position_end
       };
       const paramStrings = JSON.stringify(hpParams);
       strs.push(`const ${modifierName} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
@@ -349,7 +348,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     vblocks.forEach((vblock) => {
       const glyphParams = JSON.stringify(vblock);
       if (vblock.glyph) {
-        strs.push(`${chord.attrs.id}.addGlyphOrText('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
+        strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
       } else {
         const btext = vblock.text ?? '';
         if (btext.trim().length) {
@@ -423,7 +422,7 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
       }
       const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
           Vex.Flow.Tuplet.LOCATION_TOP : Vex.Flow.Tuplet.LOCATION_BOTTOM;
-      const tpParams: TupletOptions = {
+      const tpParams = {
           num_notes: tp.num_notes,
           notes_occupied: tp.notes_occupied,
           ratioed: false,
@@ -579,8 +578,8 @@ export class SmoToVex {
           groupMap[justifyGroup].voiceStrings.push(vn);
           const vc = vn + 'ar';
           const ts = JSON.stringify({
-            numBeats: smoMeasure.timeSignature.actualBeats,
-            beatValue: smoMeasure.timeSignature.beatDuration
+            num_beats: smoMeasure.timeSignature.actualBeats,
+            beat_value: smoMeasure.timeSignature.beatDuration
           });
           strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
           strs.push(`const ${vc} = [];`);
