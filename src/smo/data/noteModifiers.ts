@@ -668,7 +668,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    return ChordSymbolGlyphs[code].code;
+    return ChordSymbolGlyphs[code];
   }
   static _tokenizeChordString(str: string) {
     // var str = this._text;

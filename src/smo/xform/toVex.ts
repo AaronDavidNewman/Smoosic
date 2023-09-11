@@ -18,7 +18,6 @@ export const fontStacks: Record<string, string[]> =     {
   Petaluma: ['"Petaluma"', '"Bravura"', '"Gonville"', '"Custom"'],
   Leland: ['"Leland"', '"Bravura"', '"Gonville"', '"Custom"'] 
 }
-
 export interface LyricAdjust {
   verse: number, lyric: SmoLyric, 
 }
@@ -84,10 +83,10 @@ export function smoNoteToStaveNote(smoNote: SmoNote) {
     type: smoNote.noteType
   };
   if (smoNote.flagState !== SmoNote.flagStates.auto) {
-    sn.stem_direction = smoNote.flagState === SmoNote.flagStates.up ? 1 : -1;
-    sn.auto_stem = false; 
+    sn.stemDirection = smoNote.flagState === SmoNote.flagStates.up ? 1 : -1;
+    sn.autoStem = false; 
   } else {
-    sn.auto_stem = true;
+    sn.autoStem = true;
   }
   sn.keys = smoNoteToVexKeys(smoNote);
   return sn;
@@ -186,12 +185,12 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     if (modifier.startSelector.staff === modifier.endSelector.staff) {
       const hpParams = {
         thickness: slur.thickness,
-        x_shift: slurX,
-        y_shift: slur.yOffset,
+        xShift: slurX,
+        yShift: slur.yOffset,
         cps: svgPoint,
         invert: slur.invert,
         position: slur.position,
-        position_end: slur.position_end
+        positionEnd: slur.position_end
       };
       const paramStrings = JSON.stringify(hpParams);
       strs.push(`const ${modifierName} = new VF.Curve(${vxStart}, ${vxEnd}, JSON.parse('${paramStrings}'));`);
@@ -307,7 +306,6 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     }
     strs.push(`${id}.addModifier(${ll.attrs.id}, 0);`);
   });
-
   const lyrics = smoNote.getTrueLyrics();
   if (smoNote.noteType !== '/') {
     lyrics.forEach((bll) => {
@@ -348,7 +346,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     vblocks.forEach((vblock) => {
       const glyphParams = JSON.stringify(vblock);
       if (vblock.glyph) {
-        strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
+        strs.push(`${chord.attrs.id}.addGlyphOrText('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
       } else {
         const btext = vblock.text ?? '';
         if (btext.trim().length) {
@@ -422,9 +420,9 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
       }
       const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
           Vex.Flow.Tuplet.LOCATION_TOP : Vex.Flow.Tuplet.LOCATION_BOTTOM;
-      const tpParams = {
-          num_notes: tp.num_notes,
-          notes_occupied: tp.notes_occupied,
+      const tpParams: TupletOptions = {
+          numNotes: tp.num_notes,
+          notesOccupied: tp.notes_occupied,
           ratioed: false,
           bracketed: true,
           location: direction
@@ -435,7 +433,6 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
-
 export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
@@ -470,7 +467,6 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
   }
   strs.push(`${ssid}.setContext(context);`);
   strs.push(`${ssid}.draw();`);
-
   smoMeasure.voices.forEach((voice, voiceIx) => {
     const vs = getVoiceId(smoMeasure, voiceIx);
     strs.push(`${vs}.draw(context, ${ssid});`);
@@ -483,12 +479,10 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
     strs.push(`${tp.attrs.id}.setContext(context).draw();`)
   })
 }
-
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
 export class SmoToVex {
-
   static convert(smoScore: SmoScore, options: any): string {
     let div = 'boo';
     let page = 0;
@@ -522,7 +516,6 @@ export class SmoToVex {
     const heightOffset = -1 * (height * page) / scale;
     const vbWidth = Math.round(width / scale);
     const vbHeight = Math.round(height / scale);
-
     strs.push('const context = renderer.getContext();');
     strs.push('const svg = context.svg');
     strs.push(`svg.setAttributeNS('', 'width', '${width}');`);
@@ -537,7 +530,6 @@ export class SmoToVex {
     }
     const measureCount = smoScore.staves[0].measures.length;
     const lyricAdj: string[] = [];
-
     for (var k = 0; k < measureCount; ++k) {
       const groupMap: Record<string, VexStaveGroupMusic> = {};
       if (smoScore.staves[0].measures[k].svg.pageIndex < page) {
@@ -578,8 +570,8 @@ export class SmoToVex {
           groupMap[justifyGroup].voiceStrings.push(vn);
           const vc = vn + 'ar';
           const ts = JSON.stringify({
-            num_beats: smoMeasure.timeSignature.actualBeats,
-            beat_value: smoMeasure.timeSignature.beatDuration
+            numBeats: smoMeasure.timeSignature.actualBeats,
+            beatValue: smoMeasure.timeSignature.beatDuration
           });
           strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
           strs.push(`const ${vc} = [];`);
@@ -592,7 +584,6 @@ export class SmoToVex {
           voiceStrings.push(vn);
           strs.push(`${fmtid}.joinVoices([${vn}]);`);
         });
-
         if (smoMeasure.svg.rowInSystem === smoScore.staves.length - 1) {
           createColumn(groupMap, strs);
           const mapKeys = Object.keys(groupMap);

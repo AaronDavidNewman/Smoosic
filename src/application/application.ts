@@ -35,7 +35,7 @@ import { KeyBinding, ModalEventHandlerProxy } from './common';
 import { SmoMeasure } from '../../typedoc';
 import { getDomContainer } from '../common/htmlHelpers';
 import { SuiHelp } from '../ui/help';
-import { Vex } from '../common/vex';
+import { Vex, TextFormatter, TextFormatterClass } from '../common/vex';
 
 declare var $: any;
 
@@ -311,7 +311,7 @@ export class SuiApplication {
     SuiDom.splash(this.config);
   }
   static registerFonts() {
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: ArialFont.name,
       resolution: ArialFont.resolution,
       glyphs: ArialFont.glyphs,
@@ -325,7 +325,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Built-in sans font',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: TimesFont.name,
       resolution: TimesFont.resolution,
       glyphs: TimesFont.glyphs,
@@ -339,7 +339,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Built-in serif font',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: Commissioner_MediumFont.name,
       resolution: Commissioner_MediumFont.resolution,
       glyphs: Commissioner_MediumFont.glyphs,
@@ -353,7 +353,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Low-contrast sans-serif text font',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: Concert_OneFont.name,
       resolution: Concert_OneFont.resolution,
       glyphs: Concert_OneFont.glyphs,
@@ -367,7 +367,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Rounded grotesque typeface inspired by 19th century 3D l',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: MerriweatherFont.name,
       resolution: MerriweatherFont.resolution,
       glyphs: MerriweatherFont.glyphs,
@@ -381,7 +381,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Serif screen font from Sorkin Type',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: SourceSansProFont.name,
       resolution: SourceSansProFont.resolution,
       glyphs: SourceSansProFont.glyphs,
@@ -395,7 +395,7 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Open source Sans screen font from Adobe',
     });
-    VF.TextFormatter.registerInfo({
+    TextFormatterClass.registerInfo({
       name: SourceSerifProFont.name,
       resolution: SourceSerifProFont.resolution,
       glyphs: SourceSerifProFont.glyphs,

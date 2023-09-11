@@ -400,7 +400,7 @@ export class SmoNote implements Transposable {
    * @param note 
    */
   static sortPitches(note: Transposable) {
-    const canon = VF.Music.canonical_notes;
+    const canon = VF.Music.canonicalNotes;
     const keyIndex = ((pitch: Pitch) =>
       canon.indexOf(pitch.letter) + pitch.octave * 12
     );

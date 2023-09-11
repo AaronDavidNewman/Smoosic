@@ -820,7 +820,7 @@ export class SuiChordEditor extends SuiTextEditor {
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
       this.unrender();
       // hack: vexflow 5 broke this
-      this._addGlyphAt(this.textPos, ChordSymbolGlyphs[evdata.key[0]].code);
+      this._addGlyphAt(this.textPos, ChordSymbolGlyphs[evdata.key[0]]);
       this.rerender();
       edited = true;
     } else {

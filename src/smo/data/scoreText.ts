@@ -9,7 +9,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
 import { FontInfo, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex } from '../../common/vex';
+import { Vex, TextFormatter, TextFormatterClass } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -158,7 +158,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
   estimateWidth(): number {
     let i = 0;
     let rv = 0;
-    const textFont = VF.TextFormatter.create({
+    const textFont = TextFormatterClass.create({
       family: this.fontInfo.family,
       size: this.fontInfo.size,
       weight: this.fontInfo.weight,

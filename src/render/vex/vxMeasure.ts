@@ -21,7 +21,7 @@ import { Vex, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   StemmableNoteClass, createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  getVexTimeSignature, createStave, createVoice, ChordSymbolGlyphsReverse } from '../../common/vex';
+  getVexTimeSignature, createStave, createVoice } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -190,7 +190,7 @@ export class VxMeasure {
         // Vex 5 broke this, does not distinguish between glyph and text
         // the reverse is for vex4 which expects the non-mangled identifier here,
         // e.g. 'diminished' and not 'csymDiminished'
-        cs.addGlyph(ChordSymbolGlyphsReverse[block.glyph], block);
+        cs.addGlyphOrText(block.glyph, block);
       } else {
         cs.addGlyphOrText(block.text ?? '', block);
       }
@@ -314,7 +314,7 @@ export class VxMeasure {
       noteScale, 
       this.smoMeasure.measureNumber.measureIndex);
     if (smoNote.noteType === '/') {
-      vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+      vexNote = new VF.GlyphNote('\uE504', { duration });
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     } else {
       applyStemDirection(this.smoMeasure.voices, noteParams, voiceIx, smoNote.flagState);
@@ -377,7 +377,9 @@ export class VxMeasure {
     group.classList.add(textObj.attrs.id);
     // const duration = SmoMusic.closestVexDuration(smoNote.tickCount);
     for (var i = 0; i < textObj.text.length; i += 1 ) {
-      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]].code,
+      /* const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]].code,
+        textObj.fontSize, x, y);  */
+      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]],
         textObj.fontSize, x, y);
       x += width;
       maxh = Math.max(height, maxh);      
@@ -403,7 +405,7 @@ export class VxMeasure {
   }
   createRepeatSymbol() {
     this.voiceNotes = [];
-    const vexNote = new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+    const vexNote = new VF.GlyphNote('\uE500', { duration: 'w' }, { line: 2 });
     vexNote.setCenterAlignment(true);
     this.vexNotes.push(vexNote);
     this.voiceNotes.push(vexNote);
@@ -648,7 +650,7 @@ export class VxMeasure {
 
     if (this.smoMeasure.svg.multimeasureLength > 0) {
       this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength,
-         { number_of_measures: this.smoMeasure.svg.multimeasureLength });
+        { numberOfMeasures: this.smoMeasure.svg.multimeasureLength });
       this.multimeasureRest.setContext(this.context.getContext());
       this.multimeasureRest.setStave(this.stave);
       return;

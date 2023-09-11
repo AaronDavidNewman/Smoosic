@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { Vex, getGlyphWidth } from '../../common/vex';
+import { Vex } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -17,7 +17,14 @@ export interface GlyphInfo {
 
 export class vexGlyph {
   static width(smoGlyph: GlyphInfo) {
-    return getGlyphWidth(smoGlyph);
+    if (smoGlyph.vexGlyph) {
+      const vf: any = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      return (vf.xMax - vf.xMin) * vexGlyph.glyphPixels;
+    }
+    return smoGlyph.width;
+  }
+  static get glyphPixels() {
+    return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
   }
   static accidental(a: string): GlyphInfo {
     return vexGlyph.accidentals[a];
