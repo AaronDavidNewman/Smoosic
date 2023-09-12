@@ -148,7 +148,8 @@ export class VxMeasure {
   _createOrnaments(smoNote: SmoNote, vexNote: Note) {
     const o = smoNote.getOrnaments();
     o.forEach((ll) => {
-      const mod = new VF.Ornament(ll.ornament);
+      const ornamentCode = SmoOrnament.vexOrnaments[ll.ornament];
+      const mod = new VF.Ornament(ornamentCode);
       if (ll.offset === SmoOrnament.offsets.after) {
         mod.setDelayed(true);
       }

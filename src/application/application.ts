@@ -108,7 +108,7 @@ export class SuiApplication {
   score: SmoScore | null = null;
   view: SuiScoreViewOperations | null = null;
   domElement: HTMLElement;
-  static configure(params: Partial<SmoConfigurationParams>): Promise<SuiApplication> {
+  static async configure(params: Partial<SmoConfigurationParams>): Promise<SuiApplication> {
     const config: SmoConfiguration = new SmoConfiguration(params);
     (window as any).SmoConfig = config;
     const application = new SuiApplication(config);
@@ -310,7 +310,12 @@ export class SuiApplication {
     ribbon.display();
     SuiDom.splash(this.config);
   }
-  static registerFonts() {
+  static async loadMusicFont(face: string, url: string) {
+    const new_font = new FontFace('Bravura', `url(${url})`);
+    const loadedFace = await new_font.load();
+    document.fonts.add(loadedFace);    
+  }
+  static async registerFonts() {
     TextFormatterClass.registerInfo({
       name: ArialFont.name,
       resolution: ArialFont.resolution,
@@ -409,6 +414,8 @@ export class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Open source Serif screen font from Adobe',
     });
+    await SuiApplication.loadMusicFont('Bravura', '../styles/fonts/Bravura_1.392.woff');
+    // await SuiApplication.loadMusicFont('Bravura', '../styles/fonts/Bravura_1.392.woff');
   }
   _deferCreateTranslator() {
     SuiDom.createUiDom(this.config.scoreDomContainer);
