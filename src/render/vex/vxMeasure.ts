@@ -21,7 +21,7 @@ import { Vex, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   StemmableNoteClass, createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  getVexTimeSignature, createStave, createVoice } from '../../common/vex';
+  getVexTimeSignature, createStave, createVoice, vexOrnaments } from '../../common/vex';
 
 const VF = Vex.Flow;
 
@@ -148,7 +148,7 @@ export class VxMeasure {
   _createOrnaments(smoNote: SmoNote, vexNote: Note) {
     const o = smoNote.getOrnaments();
     o.forEach((ll) => {
-      const ornamentCode = SmoOrnament.vexOrnaments[ll.ornament];
+      const ornamentCode = vexOrnaments[ll.ornament];
       const mod = new VF.Ornament(ornamentCode);
       if (ll.offset === SmoOrnament.offsets.after) {
         mod.setDelayed(true);

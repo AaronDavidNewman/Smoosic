@@ -292,32 +292,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
     flip: 'flip',
     smear: 'smear'
   }
-  static readonly vexOrnaments: Record<string, string> = {
-      mordent: '\ue56c' /*ornamentShortTrill*/,
-      mordent_inverted: '\ue56d' /*ornamentMordent*/,
-      turn: '\ue567' /*ornamentTurn*/,
-      turn_inverted: '\ue569' /*ornamentTurnSlash*/,
-      tr: '\ue566' /*ornamentTrill*/,
-      upprall: '\ue5b5' /*ornamentPrecompSlideTrillDAnglebert*/,
-      downprall: '\ue5c3' /*ornamentPrecompDoubleCadenceUpperPrefix*/,
-      prallup: '\ue5bb' /*ornamentPrecompTrillSuffixDandrieu*/,
-      pralldown: '\ue5c8' /*ornamentPrecompTrillLowerSuffix*/,
-      upmordent: '\ue5b8' /*ornamentPrecompSlideTrillBach*/,
-      downmordent: '\ue5c4' /*ornamentPrecompDoubleCadenceUpperPrefixTurn*/,
-      lineprall: '\ue5b2' /*ornamentPrecompAppoggTrill*/,
-      prallprall: '\ue56e' /*ornamentTremblement*/,
-      scoop: '\ue5d0' /*brassScoop*/,
-      doit: '\ue5d5' /*brassDoitMedium*/,
-      fall: '\ue5d7' /*brassFallLipShort*/,
-      doitLong: '\ue5d2' /*brassLiftMedium*/,
-      fallLong: '\ue5de' /*brassFallRoughMedium*/,
-      bend: '\ue5e3' /*brassBend*/,
-      plungerClosed: '\ue5e5' /*brassMuteClosed*/,
-      plungerOpen: '\ue5e7' /*brassMuteOpen*/,
-      flip: '\ue5e1' /*brassFlip*/,
-      jazzTurn: '\ue5e4' /*brassJazzTurn*/,
-      smear: '\ue5e2' /*brassSmear*/,
-  }
+
   static readonly xmlOrnaments: Record<string, string> = {
     mordent: 'mordent',
     mordent_inverted: 'inverted-mordent',
