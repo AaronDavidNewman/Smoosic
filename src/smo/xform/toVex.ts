@@ -5,7 +5,7 @@ import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
-import { Vex, StaveNoteStruct, TupletOptions } from '../../common/vex';
+import { Vex, StaveNoteStruct, TupletOptions, vexOrnaments } from '../../common/vex';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -299,7 +299,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     strs.push(`${id}.addModifier(${ll.attrs.id}, 0);`);
   });
   smoNote.getOrnaments().forEach((ll) => {
-    const vexCode = ll.ornament;
+    const vexCode = vexOrnaments[ll.ornament];
     strs.push(`const ${ll.attrs.id} = new VF.Ornament('${vexCode}');`);
     if (ll.offset === SmoOrnament.offsets.after) {
       strs.push(`${ll.attrs.id}.setDelayed(true);`);
