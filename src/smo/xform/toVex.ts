@@ -5,7 +5,7 @@ import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
-import { Vex, StaveNoteStruct, TupletOptions } from '../../common/vex';
+import { Vex, StaveNoteStruct, TupletOptions, ChordSymbolGlyphsReverse } from '../../common/vex';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -348,7 +348,8 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
     vblocks.forEach((vblock) => {
       const glyphParams = JSON.stringify(vblock);
       if (vblock.glyph) {
-        strs.push(`${chord.attrs.id}.addGlyph('${vblock.glyph}', JSON.parse('${glyphParams}'));`);
+        const glyphCode = ChordSymbolGlyphsReverse[vblock.glyph];
+        strs.push(`${chord.attrs.id}.addGlyph('${glyphCode}', JSON.parse('${glyphParams}'));`);
       } else {
         const btext = vblock.text ?? '';
         if (btext.trim().length) {
