@@ -306,6 +306,14 @@ export class SmoSystemStaff implements SmoObjectParams {
   getStaffInstrument(measureIndex: number): SmoInstrument {
     return SmoSystemStaff.getStaffInstrument(this.measureInstrumentMap, measureIndex);
   }
+  getInstrumentList(): SmoInstrument[] {
+    const rv: SmoInstrument[] = [];
+    const keys = Object.keys(this.measureInstrumentMap);
+    keys.forEach((key) => {
+      rv.push(this.getStaffInstrument(parseInt(key)));
+    });
+    return rv;
+  }
   updateInstrumentOffsets() {
     const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);
     ar.forEach((entry) => {

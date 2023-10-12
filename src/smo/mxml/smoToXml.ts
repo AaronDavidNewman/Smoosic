@@ -7,7 +7,7 @@ import { SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoScore } from '../data/score';
 import { SmoBarline, TimeSignature, SmoRehearsalMark, SmoMeasureModifierBase } from '../data/measureModifiers';
-import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
+import { SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
 import { SmoTuplet } from '../data/tuplet';
@@ -16,7 +16,7 @@ import { XmlHelpers } from './xmlHelpers';
 import { SmoTempoText } from '../data/measureModifiers';
 import { XmlToSmo } from './xmlToSmo';
 import { SmoSystemGroup } from '../data/scoreModifiers';
-
+import { SuiSampleMedia } from '../../render/audio/samples';
 
 interface SlurXml {
   startSelector: SmoSelector,
@@ -40,6 +40,8 @@ export interface SmoState {
   partStaves: SmoSystemStaff[],
   staffPartIx: number, // index of staff in part
   slurs: SlurXml[],
+  ties: SlurXml[],
+  tieds: SlurXml[],
   lyricState: Record<number, string>,
   measureTicks: number,
   note?: SmoNote,
@@ -72,6 +74,7 @@ export class SmoToXml {
       keySignature: 'C',
       voiceTickIndex: 0,
       slurs: [],
+      ties: [],
       partStaves: [],
       lyricState: {},
       measureTicks: 0,
@@ -158,6 +161,18 @@ export class SmoToXml {
         const scorePart = nn(partList, 'score-part', null, '');
         XmlHelpers.createAttributes(scorePart, { id });
         nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
+        nn(scorePart, 'part-abbreviation', { name: staff.measureInstrumentMap[0].abbreviation }, 'name');
+        const staffInsts = staff.getInstrumentList();
+        staffInsts.forEach((inst, ix) => {
+          const scoreInstrument = nn(scorePart, 'score-instrument', null, '');
+          XmlHelpers.createAttributes(scoreInstrument, { id: `${id}-${ix}` });
+          const iname = nn(scoreInstrument, 'instrument-name', null, '');
+          iname.textContent = inst.instrumentName;
+          const iinst = nn(scoreInstrument, 'instrument-sound', null, '');
+          // Hack: family is in the sample library, breaks dependency direction
+          const family = SuiSampleMedia.getFamilyForInstrument(inst.instrument);
+          iinst.textContent = `${family}.${inst.instrument}`;
+        });
       }
     });
     const smoState: SmoState = SmoToXml.defaultState;
@@ -179,6 +194,8 @@ export class SmoToXml {
       smoState.tickCount = 0;
       smoState.transposeOffset = 0;
       smoState.slurs = [];
+      smoState.ties = [];
+      smoState.tieds = [];
       smoState.lyricState = {};
       for (smoState.measureIndex = 0; smoState.measureIndex < smoState.partStaves[0].measures.length; ++smoState.measureIndex) {
         const measureElement = nn(part, 'measure', null, '');
@@ -318,6 +335,126 @@ export class SmoToXml {
   }
 
   /**
+   * /score-partwise/part/measure/note/tie
+   * @param notationsElement 
+   * @param smoState 
+   */
+  static tied(notationsElement: Element, smoState: SmoState) {
+    const nn = XmlHelpers.createTextElementChild;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
+    const getNumberForTie = ((ties: SlurXml[]) => {
+      let rv = 1;
+      const hash: Record<number, boolean> = {};
+      ties.forEach((ss) => {
+        hash[ss.number] = true;
+      });
+      while (rv < 100) {
+        if (typeof(hash[rv]) === 'undefined') {
+          break;
+        }
+        rv += 1;
+      }
+      return rv;
+    });
+    const selector: SmoSelector = {
+      staff: staff.staffId,
+      measure: measure.measureNumber.measureIndex,
+      voice: smoState.voiceIndex - 1,
+      tick: smoState.voiceTickIndex,
+      pitches: []
+    };
+    const starts = staff.getTiesStartingAt(selector) as SmoTie[];
+    const ends = staff.getTiesEndingAt(selector) as SmoTie[];
+    const remove: SlurXml[] = [];
+    const newTies: SlurXml[] = [];
+    ends.forEach((tie) => {
+      const match = smoState.tieds.find((ss: any) => SmoSelector.eq(ss.startSelector, tie.startSelector) &&
+        SmoSelector.eq(ss.endSelector, tie.endSelector));
+      if (match) {
+        remove.push(match);
+        const tieElement = nn(notationsElement, 'tied', null, '');
+        XmlHelpers.createAttributes(tieElement, { type: 'stop' });
+      }
+    });
+    smoState.tieds.forEach((tie: any) => {
+      if (remove.findIndex((rr) => rr.number === tie.number) < 0) {
+        newTies.push(tie);
+      }
+    });
+    smoState.tieds = newTies;
+    starts.forEach((tie) => {
+      const number = getNumberForTie(smoState.ties);
+      smoState.tieds.push({
+        startSelector: tie.startSelector,
+        endSelector: tie.endSelector,
+        number
+      });
+      const tieElement = nn(notationsElement, 'tied', null, '');
+      XmlHelpers.createAttributes(tieElement, { type: 'start' });
+    });
+  }
+  /**
+   * /score-partwise/part/measure/note/tie
+   * @param noteElement
+   * @param smoState 
+   */
+  static tie(noteElement: Element, smoState: SmoState) {
+    const nn = XmlHelpers.createTextElementChild;
+    const staff = smoState.partStaves[smoState.staffPartIx];
+    const measure = staff.measures[smoState.measureIndex];
+    const getNumberForTie = ((ties: SlurXml[]) => {
+      let rv = 1;
+      const hash: Record<number, boolean> = {};
+      ties.forEach((ss) => {
+        hash[ss.number] = true;
+      });
+      while (rv < 100) {
+        if (typeof(hash[rv]) === 'undefined') {
+          break;
+        }
+        rv += 1;
+      }
+      return rv;
+    });
+    const selector: SmoSelector = {
+      staff: staff.staffId,
+      measure: measure.measureNumber.measureIndex,
+      voice: smoState.voiceIndex - 1,
+      tick: smoState.voiceTickIndex,
+      pitches: []
+    };
+    const starts = staff.getTiesStartingAt(selector) as SmoTie[];
+    const ends = staff.getTiesEndingAt(selector) as SmoTie[];
+    const remove: SlurXml[] = [];
+    const newTies: SlurXml[] = [];
+    ends.forEach((tie) => {
+      const match = smoState.ties.find((ss: any) => SmoSelector.eq(ss.startSelector, tie.startSelector) &&
+        SmoSelector.eq(ss.endSelector, tie.endSelector));
+      if (match) {
+        remove.push(match);
+        const tieElement = nn(noteElement, 'tie', null, '');
+        XmlHelpers.createAttributes(tieElement, { type: 'stop' });
+      }
+    });
+    smoState.ties.forEach((tie: any) => {
+      if (remove.findIndex((rr) => rr.number === tie.number) < 0) {
+        newTies.push(tie);
+      }
+    });
+    smoState.ties = newTies;
+    starts.forEach((tie) => {
+      const number = getNumberForTie(smoState.ties);
+      smoState.ties.push({
+        startSelector: tie.startSelector,
+        endSelector: tie.endSelector,
+        number
+      });
+      const tieElement = nn(noteElement, 'tie', null, '');
+      XmlHelpers.createAttributes(tieElement, { type: 'start' });
+    });
+  }
+    /**
    * /score-partwise/part/measure/note/notations/slur
    * @param notationsElement 
    * @param smoState 
@@ -648,6 +785,7 @@ export class SmoToXml {
       smoState.measureTicks += duration;
       const tuplet = measure.getTupletForNote(note);
       nn(noteElement, 'duration', { duration }, 'duration');
+      SmoToXml.tie(noteElement, smoState);
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
       let typeTickCount = note.tickCount;
       if (tuplet) {
@@ -682,6 +820,7 @@ export class SmoToXml {
       if (!isChord) {
         SmoToXml.slur(notationsElement, smoState);
       }
+      SmoToXml.tied(notationsElement, smoState);
       if (tuplet) {
         SmoToXml.tupletNotation(notationsElement, tuplet, note);
       }

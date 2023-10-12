@@ -8,6 +8,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { PromiseHelpers } from '../../common/promiseHelpers';
+import { SuiSampleMedia } from '../../render/audio/samples';
 
 declare var $: any;
 
@@ -35,6 +36,7 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
     this.view.changeInstrument(this.instrument, this.selections);
     this.instrument = new SmoInstrument(this.instrument);
   }
+
   get transposeIndex() {
     return this.instrument.keyOffset;
   }
@@ -49,6 +51,7 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   }
   set subFamily(value: string) {
     this.writeStringParam('instrument', value);
+    this.instrument.family = SuiSampleMedia.getFamilyForInstrument(value);
   }
   set instrumentName(value: string) {
     this.writeStringParam('instrumentName', value);
@@ -75,6 +78,8 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
     }
   }
   async commit() {
+    // hack: the family name for musicxml purposes is here.
+    this.instrument.family = SuiSampleMedia.getFamilyForInstrument(this.instrument.instrument);
     await this.view.changeInstrument(this.instrument, this.selections);
   }
   async cancel() {
@@ -143,6 +148,9 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
               value: 'clarinet',
               label: 'Bb Clarinet'
             },  {
+              value: 'flute',
+              label: 'Flute'
+            }, {
               value: 'altoSax',
               label: 'Eb Alto Sax'
             },  {
