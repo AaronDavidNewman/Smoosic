@@ -158,7 +158,7 @@ export class SmoOperation {
           (nm as any)[attr] = (rowSelection.measure.svg as any)[attr];
         });
         ticks = 0;
-        if (!TimeSignature.equal(nm.timeSignature, timeSignature)) {
+        if (!TimeSignature.equal(nm.timeSignature, proto.timeSignature)) {
           nm.voices = [{ notes: SmoMeasure.timeSignatureNotes(timeSignature, params.clef)}];
         } else {
           nm.voices = proto.voices;
