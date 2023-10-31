@@ -1,0 +1,11 @@
+
+.icon-bravura {
+  font-family: 'Bravura'!important;
+  font-size: 24px;
+  position: absolute;
+  top: calc(50% - 12px);
+}
+
+.icon-accidentalFlat:before {
+  content: "\e260";
+}
