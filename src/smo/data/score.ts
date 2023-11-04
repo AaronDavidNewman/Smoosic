@@ -925,7 +925,7 @@ export class SmoScore {
 
   // ### addInstrument
   // add a new staff (instrument) to the score
-  addStaff(parameters: SmoSystemStaffParams) {
+  addStaff(parameters: SmoSystemStaffParams): SmoSystemStaff {
     let i = 0;
     if (this.staves.length === 0) {
       const staff = new SmoSystemStaff(parameters);
@@ -935,7 +935,7 @@ export class SmoScore {
       if (staff.measures.length) {
         this.numberStaves();
       }
-      return;
+      return staff;
     }
     if (!parameters) {
       parameters = SmoSystemStaff.defaults;
@@ -969,6 +969,7 @@ export class SmoScore {
     this.staves.push(staff);
     this.activeStaff = this.staves.length - 1;
     this.numberStaves();
+    return staff;
   }
 
   // ### removeStaff

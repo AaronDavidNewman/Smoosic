@@ -662,7 +662,7 @@ export class VxMeasure {
     }
     const timestamp = new Date().valueOf();
     const staffWidth = this.smoMeasure.staffWidth -
-      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
+      (this.smoMeasure.svg.maxColumnStartX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
     this.dbgLeftX = this.smoMeasure.staffX +  this.smoMeasure.format.padLeft + this.smoMeasure.svg.adjX;
     this.dbgWidth = staffWidth;
     this.formatter.format(voices, staffWidth);

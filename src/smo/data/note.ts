@@ -69,7 +69,8 @@ export interface SmoNoteParams {
   flagState: number,
   ticks: Ticks,
   pitches: Pitch[],
-  isCue: boolean
+  isCue: boolean,
+  clefNote: string | null
 }
 
 /**
@@ -91,6 +92,7 @@ export class SmoNote implements Transposable {
     NoteBooleanParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
+    this.clefNote = params.clefNote;
     const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
     this.ticks = JSON.parse(JSON.stringify(ticks));
@@ -118,6 +120,7 @@ export class SmoNote implements Transposable {
   noteHead: string = '';
   arpeggio?: SmoArpeggio;
   clef: string = 'treble';
+  clefNote: string | null = null;
   graceNotes: SmoGraceNote[] = [];
   noteType: NoteType = 'n';
   fillStyle: string = '';
@@ -139,7 +142,7 @@ export class SmoNote implements Transposable {
    */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it

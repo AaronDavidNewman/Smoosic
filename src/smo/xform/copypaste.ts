@@ -49,6 +49,9 @@ export class PasteBuffer {
     this.replacementMeasures = [];
   }
 
+  setScore(score: SmoScore) {
+    this.score = score;
+  }
   setSelections(score: SmoScore, selections: SmoSelection[]) {
     this.notes = [];
     this.noteIndex = 0;

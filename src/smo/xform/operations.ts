@@ -969,8 +969,8 @@ export class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-  static addStaff(score: SmoScore, parameters: SmoSystemStaffParams) {
-    score.addStaff(parameters);
+  static addStaff(score: SmoScore, parameters: SmoSystemStaffParams): SmoSystemStaff {
+    return score.addStaff(parameters);
   }
   static removeStaff(score: SmoScore, index: number) {
     score.removeStaff(index);
