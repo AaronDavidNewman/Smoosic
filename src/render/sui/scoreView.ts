@@ -553,6 +553,7 @@ export abstract class SuiScoreView {
     this._setTransposing();
     this.synchronizeTextGroups();
     this.renderer.score = this.score;
+    this.pasteBuffer.setScore(this.score);
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
   }

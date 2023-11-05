@@ -57,21 +57,40 @@
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff2') format('woff2'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
+  font-family: 'Bravura';
+  src:
+    url('fonts/Bravura_1.392.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
-    font-family: 'ConcertOne';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff2') format('woff2'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'Gonville';
+  src:
+    url('fonts/Gonville-18_20200703.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
+@font-face {
+  font-family: 'Leland';
+  src:
+    url('fonts/Leland_0.75.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Petaluma';
+  src:
+    url('fonts/Petaluma_1.065.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 .printing #link-hdr {
   display: none;
 }

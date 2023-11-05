@@ -92,6 +92,15 @@ export class VxMeasure {
       vexNote.addModifier(acc, tone.pitchIndex);
     });
   }
+  createDots(smoNote: SmoNote, vexNote: Note) {
+    for (var i = 0; i < smoNote.dots; ++i) {
+      for (var j = 0; j < smoNote.pitches.length; ++j) {
+        if (!this.isWholeRest()) {
+          vexNote.addModifier(new VF.Dot(), j);
+        }
+      }
+    }
+  }
   /**
    * Create accidentals based on the active key and previous accidentals in this voice
    * @param smoNote 
@@ -106,6 +115,7 @@ export class VxMeasure {
       return;
     }
     if (smoNote.noteType !== 'n') {
+      this.createDots(smoNote, vexNote);
       return;
     }
     smoNote.accidentalsRendered = [];
@@ -124,13 +134,7 @@ export class VxMeasure {
         smoNote.accidentalsRendered.push('');
       }
     }
-    for (i = 0; i < smoNote.dots; ++i) {
-      for (var j = 0; j < smoNote.pitches.length; ++j) {
-        if (!this.isWholeRest()) {
-          vexNote.addModifier(new VF.Dot(), j);
-        }
-      }
-    }
+    this.createDots(smoNote, vexNote);
     this._createMicrotones(smoNote, vexNote);
     if (smoNote.arpeggio) {
       vexNote.addModifier(new VF.Stroke(smoNote.arpeggio.typeCode));
@@ -661,7 +665,7 @@ export class VxMeasure {
     }
     const timestamp = new Date().valueOf();
     const staffWidth = this.smoMeasure.staffWidth -
-      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
+      (this.smoMeasure.svg.maxColumnStartX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10;
     this.dbgLeftX = this.smoMeasure.staffX +  this.smoMeasure.format.padLeft + this.smoMeasure.svg.adjX;
     this.dbgWidth = staffWidth;
     this.formatter.format(voices, staffWidth);

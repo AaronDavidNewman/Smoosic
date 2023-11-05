@@ -80,6 +80,9 @@ export function createStave(x: number, y: number, smoMeasure: SmoMeasure, contex
     }
     sig.addToStave(stave);
   }
+  const curX = stave.getNoteStartX();
+  stave.setNoteStartX(curX + (smoMeasure.svg.maxColumnStartX - smoMeasure.svg.adjX));  
+
   return stave;
 }
 export function getVexTimeSignature(smoMeasure: SmoMeasure) {

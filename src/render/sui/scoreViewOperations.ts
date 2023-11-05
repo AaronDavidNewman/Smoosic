@@ -1548,7 +1548,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._undoScore('Add Instrument');
     // if we are looking at a subset of the score, we won't see the new staff.  So
     // revert to the full view
-    SmoOperation.addStaff(this.storeScore, instrument);
+    const staff = SmoOperation.addStaff(this.storeScore, instrument);
+    const instKeys = Object.keys(staff.measureInstrumentMap);
+    // update the key signatures for the new part
+    instKeys.forEach((key) => {
+      const numKey = parseInt(key, 10);
+      const inst = staff.measureInstrumentMap[numKey];
+      const selections = SmoSelection.innerSelections(this.storeScore, inst.startSelector, inst.endSelector);
+      SmoOperation.changeInstrument(inst, selections);
+    })
     if (instrument.alignWithPrevious && instrument.staffId > 0) {
       const sel = SmoSelector.default;
       sel.staff = instrument.staffId - 1;
@@ -1565,6 +1573,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         }
       }
     }
+
     this.viewAll();
     return this.renderer.updatePromise();
   }

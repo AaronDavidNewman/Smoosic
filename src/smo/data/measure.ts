@@ -64,6 +64,7 @@ export interface MeasureSvg {
   staffWidth: number,
   unjustifiedWidth: number,
   adjX: number, // The start point of the music in the stave (after time sig, etc)
+  maxColumnStartX: number,
   staffX: number, // The left-most x position of the staff
   staffY: number,
   logicalBox: SvgBox,
@@ -289,6 +290,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       },
       yTop: 0,
       adjX: 0,
+      maxColumnStartX: 0,
       adjRight: 0,
       history: [],
       lineIndex: 0,

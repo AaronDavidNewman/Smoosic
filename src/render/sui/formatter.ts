@@ -172,20 +172,8 @@ export class SuiLayoutFormatter {
     const contextMap: Record<number, SuiTickContext> = {};
     let forceClefCount = 0;
     let measureToSkip = false;
+    let maxColumnStartX = 0;
     measures.forEach((measure) => {
-      SmoBeamer.applyBeams(measure);
-      voiceCount += measure.voices.length;
-      if (measure.isPickup()) {
-        isPickup = true;
-      }
-      if (measure.format.skipMeasureCount) {
-        measureToSkip = true;
-      }
-      measure.measureNumber.systemIndex = systemIndex;
-      measure.svg.rowInSystem = rowInSystem;
-      measure.svg.lineIndex = lineIndex;
-      measure.svg.pageIndex = this.currentPage;
-
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.
       let measureToLeft = this.measureToLeft(measure);
@@ -198,9 +186,24 @@ export class SuiLayoutFormatter {
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.clef;
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
-      if (measure.svg.forceClef) {
-        forceClefCount += 1;
+      const startX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
+      measure.svg.adjX = startX;
+      maxColumnStartX = Math.max(maxColumnStartX, startX);
+    });
+    measures.forEach((measure) => {
+      measure.svg.maxColumnStartX = maxColumnStartX;
+      SmoBeamer.applyBeams(measure);
+      voiceCount += measure.voices.length;
+      if (measure.isPickup()) {
+        isPickup = true;
       }
+      if (measure.format.skipMeasureCount) {
+        measureToSkip = true;
+      }
+      measure.measureNumber.systemIndex = systemIndex;
+      measure.svg.rowInSystem = rowInSystem;
+      measure.svg.lineIndex = lineIndex;
+      measure.svg.pageIndex = this.currentPage;
 
       // calculate vertical offsets from the baseline
       const offsets = this.estimateMeasureHeight(measure);
@@ -215,17 +218,17 @@ export class SuiLayoutFormatter {
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
-    if (forceClefCount > 0 && forceClefCount < measures.length) {
+    /* if (forceClefCount > 0 && forceClefCount < measures.length) {
       measures.forEach((mm) => {
         // If there are other clefs in this column, compensate for the width here.
         if (!mm.svg.forceClef) {
           mm.svg.adjX += vexGlyph.width(vexGlyph.clef('treble'));
         }
       });
-    }
+    }*/
     // justify this column to the maximum width.
     const startX = measures[0].staffX;
-    const adjX =  measures.reduce((a, b) => a.svg.adjX > b.svg.adjX ? a : b).svg.adjX;
+    const adjX =  measures[0].svg.maxColumnStartX;
     const contexts = Object.keys(contextMap);
     const widths: number[] = [];
     const durations: number[] = [];
@@ -536,7 +539,7 @@ export class SuiLayoutFormatter {
     const noteSpacing = scoreLayout.noteSpacing;
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
-    measure.svg.adjX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
+    // measure.svg.adjX already set based on max column adjX
     measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;
     const y = measure.svg.logicalBox.y;

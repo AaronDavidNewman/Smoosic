@@ -122,13 +122,22 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.textBrackets = params.textBrackets ?? [];
     this.renumberingMap = params.renumberingMap;
     if (Object.keys(params.measureInstrumentMap).length === 0) {
-      this.measureInstrumentMap[0] = new SmoInstrument(SmoInstrument.defaults);
-      this.measureInstrumentMap[0].startSelector.staff = this.staffId;
-      this.measureInstrumentMap[0].endSelector.staff = this.measures.length;
+      const instrument = new SmoInstrument(SmoInstrument.defaults);
+      instrument.startSelector.staff = instrument.endSelector.staff = this.staffId;
+      instrument.endSelector.measure = this.measures.length - 1;
+      this.measureInstrumentMap[0] = instrument;
     } else {
-      Object.keys(params.measureInstrumentMap).forEach((p) => {
+      const keys = Object.keys(params.measureInstrumentMap);
+      keys.forEach((p, ix) => {
         const pnum = parseInt(p, 10);
-        this.measureInstrumentMap[pnum] = new SmoInstrument(params.measureInstrumentMap[pnum]);
+        const instrument = new SmoInstrument(params.measureInstrumentMap[pnum]);
+        instrument.startSelector.staff = instrument.endSelector.staff = this.staffId;
+
+        // Make sure transposition goes to the end stave of the song.
+        if (ix === keys.length - 1) {
+          instrument.endSelector.measure = this.measures.length - 1;
+        }
+        this.measureInstrumentMap[pnum] = instrument;
       });
     }
     if (this.measures.length) {
@@ -305,6 +314,14 @@ export class SmoSystemStaff implements SmoObjectParams {
    */
   getStaffInstrument(measureIndex: number): SmoInstrument {
     return SmoSystemStaff.getStaffInstrument(this.measureInstrumentMap, measureIndex);
+  }
+  getInstrumentList(): SmoInstrument[] {
+    const rv: SmoInstrument[] = [];
+    const keys = Object.keys(this.measureInstrumentMap);
+    keys.forEach((key) => {
+      rv.push(this.getStaffInstrument(parseInt(key)));
+    });
+    return rv;
   }
   updateInstrumentOffsets() {
     const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);

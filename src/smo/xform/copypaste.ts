@@ -49,6 +49,9 @@ export class PasteBuffer {
     this.replacementMeasures = [];
   }
 
+  setScore(score: SmoScore) {
+    this.score = score;
+  }
   setSelections(score: SmoScore, selections: SmoSelection[]) {
     this.notes = [];
     this.noteIndex = 0;
@@ -346,6 +349,7 @@ export class PasteBuffer {
       if (note.isTuplet) {
         const tuplet = this.tupletNoteMap[(note.tuplet as TupletInfo).id];
         const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+        ntuplet.startIndex = voice.notes.length;
         this.noteIndex += ntuplet.notes.length;
         startSelector.tick += ntuplet.notes.length;
         currentDuration += tuplet.tickCount;
