@@ -10,8 +10,8 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
 import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-import { Vex } from '../../common/vex';
-const VF = Vex.Flow;
+import { VexFlow } from '../../common/vex';
+const VF = VexFlow;
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.

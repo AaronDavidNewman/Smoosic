@@ -7,9 +7,9 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { Vex, StaveModifierPosition, TextJustification } from '../../common/vex';
+import { VexFlow } from '../../common/vex';
 
-const VF = Vex.Flow;
+const VF = VexFlow;
 /**
  * Measure modifiers are attached to the measure itself.  Each instance has a
  * `serialize()` method and a `ctor` attribute for deserialization.
@@ -235,7 +235,7 @@ export class SmoBarline extends SmoMeasureModifierBase {
       VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
   }
   static get toVexPosition() {
-    return [StaveModifierPosition.BEGIN, StaveModifierPosition.END];
+    return [VF.StaveModifierPosition.BEGIN, VF.StaveModifierPosition.END];
   }
   barline: number = SmoBarline.barlines.singleBar;
   position: number = SmoBarline.positions.start;
@@ -441,7 +441,7 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
     return [VF.Modifier.Position.ABOVE, VF.Modifier.Position.BELOW, VF.Modifier.Position.LEFT, VF.Modifier.Position.RIGHT];
   }
   static get toVexJustification() {
-    return [TextJustification.LEFT, TextJustification.RIGHT, TextJustification.CENTER];
+    return [VF.TextJustification.LEFT, VF.TextJustification.RIGHT, VF.TextJustification.CENTER];
   }
 
   toVexJustification() {

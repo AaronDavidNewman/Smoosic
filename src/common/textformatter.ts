@@ -1,8 +1,17 @@
 // [VexFlow](https://vexflow.com) - Copyright (c) Mohit Muthanna 2010.
 // MIT License
 
-import { Font, FontGlyph, FontInfo, FontStyle, FontWeight, FontClass, FontWeightClass, FontStyleClass } from './vex';
-
+import { FontInfo, VexFlow } from '../common/vex';
+const VF = VexFlow;
+export interface FontGlyph {
+  xMin: number,
+  xMax: number,
+  yMin: number,
+  yMax: number,
+  ha: number,
+  leftSideBearing: number,
+  advanceWidth: number
+}
 export interface TextFormatterInfo extends Record<string, unknown> {
   family: string;
   resolution?: number;
@@ -68,7 +77,7 @@ export class TextFormatter {
    */
   static create(requestedFont: FontInfo = {}): TextFormatter {
     if (!requestedFont.family) {
-      requestedFont.family = FontClass.SANS_SERIF;
+      requestedFont.family = 'Sans Serif';
     }
 
     // TODO: One potential (small) optimization is to cache the TextFormatter object
@@ -99,8 +108,8 @@ export class TextFormatter {
     } else if (candidates.length === 1) {
       formatter = new TextFormatter(candidates[0]);
     } else {
-      const bold = FontClass.isBold(requestedFont.weight);
-      const italic = FontClass.isItalic(requestedFont.style);
+      const bold = VF.Font.isBold(requestedFont.weight);
+      const italic = VF.Font.isItalic(requestedFont.style);
       const perfectMatch = candidates.find((f) => f.bold === bold && f.italic === italic);
       if (perfectMatch) {
         formatter = new TextFormatter(perfectMatch);
@@ -116,7 +125,7 @@ export class TextFormatter {
 
     const fontSize = requestedFont.size;
     if (typeof fontSize !== 'undefined') {
-      const fontSizeInPt = FontClass.convertSizeToPointValue(fontSize);
+      const fontSizeInPt = VF.Font.convertSizeToPointValue(fontSize);
       formatter.setFontSize(fontSizeInPt);
     }
     return formatter;
@@ -214,8 +223,8 @@ export class TextFormatter {
   updateCacheKey(): void {
     const family = this.family.replace(/\s+/g, '_');
     const size = this.size;
-    const weight = this.bold ? FontWeightClass.BOLD : FontWeightClass.NORMAL;
-    const style = this.italic ? FontStyleClass.ITALIC : FontStyleClass.NORMAL;
+    const weight = this.bold ? VF.FontWeight.BOLD : VF.FontWeight.NORMAL;
+    const style = this.italic ? VF.FontStyle.ITALIC : VF.FontStyle.NORMAL;
     // Use the same key format as SVGContext.
     this.cacheKey = `${family}%${size}%${weight}%${style}`;
   }
@@ -328,7 +337,7 @@ export class TextFormatter {
 
   /** `this.size` is specified in points. Convert to pixels. */
   get fontSizeInPixels(): number {
-    return this.size * FontClass.scaleToPxFrom.pt;
+    return this.size * VF.Font.scaleToPxFrom.pt;
   }
 
   getResolution(): number {

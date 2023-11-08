@@ -17,8 +17,9 @@ import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/dat
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
 import { SvgPageMap } from './svgPageMap';
-import { Vex, TextFormatter, TextFormatterClass } from '../../common/vex';
-const VF = Vex.Flow;
+import { VexFlow } from '../../common/vex';
+import { TextFormatter } from '../../common/textformatter';
+const VF = VexFlow;
 
 export interface SuiTickContext {
   widths: number[],
@@ -468,7 +469,7 @@ export class SuiLayoutFormatter {
           // why did I make this return an array?
           // oh...because of voices
           const textFont =
-            TextFormatterClass.create({ family: lyric.fontInfo.family,
+            TextFormatter.create({ family: lyric.fontInfo.family,
               size: lyric.fontInfo.size, weight: 'normal' });
           const lyricText = lyric.getText();
           for (i = 0; i < lyricText.length; ++i) {
@@ -666,7 +667,7 @@ export class SuiLayoutFormatter {
     return hilo;
   }
   static textFont(lyric: SmoLyric) {
-    return TextFormatterClass.create(lyric.fontInfo);
+    return TextFormatter.create(lyric.fontInfo);
   }
 
   /**

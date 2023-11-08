@@ -17,13 +17,13 @@ import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
-import { Vex, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
+import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
-  StemmableNoteClass, createStaveText, renderDynamics, applyStemDirection,
+  createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  getVexTimeSignature, createStave, createVoice, vexOrnaments } from '../../common/vex';
+  createStave, createVoice, getOrnamentGlyph } from '../../common/vex';
 
-const VF = Vex.Flow;
+const VF = VexFlow;
 
 declare var $: any;
 // const VF = eval('Vex.Flow');
@@ -152,7 +152,7 @@ export class VxMeasure {
   _createOrnaments(smoNote: SmoNote, vexNote: Note) {
     const o = smoNote.getOrnaments();
     o.forEach((ll) => {
-      const ornamentCode = vexOrnaments[ll.ornament];
+      const ornamentCode = getOrnamentGlyph(ll.ornament);
       const mod = new VF.Ornament(ornamentCode);
       if (ll.offset === SmoOrnament.offsets.after) {
         mod.setDelayed(true);
@@ -314,15 +314,27 @@ export class VxMeasure {
   _createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: Note | null = null;
     let timestamp = new Date().valueOf();
-    const noteScale = (smoNote.isCue || this.allCues) ? defaultCueScale : defaultNoteScale;
-    const { noteParams, duration } = getVexNoteParameters(smoNote, 
-      noteScale, 
-      this.smoMeasure.measureNumber.measureIndex);
+    const closestTicks = SmoMusic.closestVexDuration(smoNote.tickCount);
+    const exactTicks = SmoMusic.ticksToDuration[smoNote.tickCount];
+    const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
+    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
+    const smoNoteParams = {
+      isTuplet: smoNote.isTuplet, measureIndex: this.smoMeasure.measureNumber.measureIndex,
+       clef: smoNote.clef,
+      closestTicks, exactTicks, keys,
+      noteType: smoNote.noteType };
+    const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
     if (smoNote.noteType === '/') {
       vexNote = new VF.GlyphNote('\uE504', { duration });
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     } else {
-      applyStemDirection(this.smoMeasure.voices, noteParams, voiceIx, smoNote.flagState);
+      const smoVexStemParams = {
+        voiceCount: this.smoMeasure.voices.length,
+        voiceIx,
+        isAuto: smoNote.flagState === SmoNote.flagStates.auto,
+        isUp: smoNote.flagState === SmoNote.flagStates.up
+      }
+      applyStemDirection(smoVexStemParams, noteParams);
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
       vexNote = new VF.StaveNote(noteParams);
@@ -467,17 +479,15 @@ export class VxMeasure {
         }
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
-        if (!(vexNote instanceof StemmableNoteClass)) {
+        if (!(vexNote instanceof VF.StaveNote || vexNote instanceof VF.GraceNote)) {
           return;
         }
         if (keyNoteIx === j) {
           stemDirection = note.flagState === SmoNote.flagStates.auto ?
             vexNote.getStemDirection() : note.toVexStemDirection();
         }
-        if (vexNote instanceof StemmableNoteClass) {
-          vexNote.setStemDirection(stemDirection);
-          vexNotes.push(vexNote);  
-        }
+        vexNote.setStemDirection(stemDirection);
+        vexNotes.push(vexNote);  
       }
       const vexBeam = new VF.Beam(vexNotes);
       this.beamToVexMap[bg.attrs.id] = vexBeam;
@@ -505,7 +515,15 @@ export class VxMeasure {
         const smoNote = tp.notes[j];
         vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
       }
-      const vexTuplet = getVexTuplets(vexNotes, tp, this.smoMeasure);
+      const location = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
+        VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+      const smoTupletParams = {
+        vexNotes,
+        numNotes: tp.numNotes,
+        notesOccupied: tp.note_ticks_occupied,
+        location
+      }
+      const vexTuplet = getVexTuplets(smoTupletParams);
       this.tupletToVexMap[tp.attrs.id] = vexTuplet;
       this.vexTuplets.push(vexTuplet);
     }
@@ -589,7 +607,26 @@ export class VxMeasure {
     // Note: need to do this to get it into VEX KS format
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
     const staffY = this.smoMeasure.staffY - this.context.box.y;
-    this.stave = createStave(staffX, staffY, this.smoMeasure, this.context.getContext());
+    const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
+    const canceledKey = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
+    const smoVexStaveParams = {
+      x: staffX,
+      y: staffY,
+      padLeft: this.smoMeasure.format.padLeft,
+      id: this.smoMeasure.attrs.id,
+      staffX: this.smoMeasure.staffX,
+      staffY: this.smoMeasure.staffY,
+      staffWidth: this.smoMeasure.staffWidth,
+      forceClef: this.smoMeasure.svg.forceClef,
+      clef: this.smoMeasure.clef,
+      forceKey: this.smoMeasure.svg.forceKeySignature,
+      key,
+      canceledKey,
+      startX: this.smoMeasure.svg.maxColumnStartX,
+      adjX: this.smoMeasure.svg.adjX,
+      context: this.context.getContext()
+    }
+    this.stave = createStave(smoVexStaveParams);
     if (this.smoMeasure.svg.forceTimeSignature) {
       const ts = this.smoMeasure.timeSignature;
       let tsString = ts.timeSignature;
@@ -616,19 +653,24 @@ export class VxMeasure {
 
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (j = 0; j < this.smoMeasure.voices.length; ++j) {
-      if (!this.smoMeasure.svg.multimeasureLength && !this.smoMeasure.repeatSymbol) {
+      const smoVexVoiceParams = {
+        actualBeats: this.smoMeasure.timeSignature.actualBeats,
+        beatDuration: this.smoMeasure.timeSignature.beatDuration,
+        notes: this.vexNotes
+      }
+    if (!this.smoMeasure.svg.multimeasureLength && !this.smoMeasure.repeatSymbol) {
         this.createVexNotes(j);
         this.createVexTuplets(j);
         this.createVexBeamGroups(j);
 
         // Create a voice in 4/4 and add above notes
-        const voice = createVoice(this.smoMeasure, this.vexNotes);
+        const voice = createVoice(smoVexVoiceParams);
         this.voiceAr.push(voice);
       }
       if (this.smoMeasure.repeatSymbol) {
         this.createRepeatSymbol();
         // Create a voice in 4/4 and add above notes
-        const voice = createVoice(this.smoMeasure, this.vexNotes);
+        const voice = createVoice(smoVexVoiceParams);
         this.voiceAr.push(voice);
       }
     }

@@ -5,7 +5,9 @@ import { SmoGlobalLayout, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { ModifierTab } from '../../smo/xform/selections';
-import { Vex } from '../../common/vex';
+import { VexFlow } from '../../common/vex';
+
+const VF = VexFlow;
 /**
  * classes for managing the SVG containers where the music is rendered.  Each
  * page is a different SVG element.  Screen coordinates need to be mapped to the
@@ -13,8 +15,6 @@ import { Vex } from '../../common/vex';
  * @module /render/sui/svgPageMap
  */
 declare var $: any;
-const VF = Vex.Flow;
-
 /**
  * A selection map maps a sub-section of music (a measure, for instance) to a region
  * on the screen.  SelectionMap can contain other SelectionMaps with

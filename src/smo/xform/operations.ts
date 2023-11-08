@@ -23,8 +23,8 @@ import {
 } from './tickDuration';
 import { SmoBeamer } from './beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex } from '../../common/vex';
-const VF = Vex.Flow;
+import { VexFlow } from '../../common/vex';
+const VF = VexFlow;
 
 /**
  * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration

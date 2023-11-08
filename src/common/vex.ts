@@ -1,137 +1,168 @@
-import { Vex as SmoVex, Note as VexNote,  
-  StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
+/* export const { Note, StaveNote, Beam , Tuplet, 
+  Voice, Formatter, Accidental, 
+  Annotation,  
+  StaveText, StaveModifier,
+  Stave, Font, FontStyle, FontWeight,
+  Curve, StaveTie } = SmoVex;  */
+
+
+import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
   Voice as VexVoice, Formatter as VexFormatter, Accidental as VexAccidental, 
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
-Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition, TextJustification as VexTextJustification,
-Font as VexFont, FontGlyph as VexFontGlyph, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
-TupletOptions as VexTupletOptions, Curve, StaveTie } from "vex5_smoosic";
-import { SmoStaffHairpin, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
-import { SmoNote } from '../smo/data/note';
-import { SmoVoice, SmoMeasure } from '../smo/data/measure';
+Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
+Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
+TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
+ Music as VexMusic  } from "vex5_smoosic";
+
+
+import { SmoSlur } from '../smo/data/staffModifiers';
 import { smoSerialize } from "./serializationHelpers";
-import { SmoMusic } from '../smo/data/music';
-import { SmoTuplet } from '../smo/data/tuplet';
-import { TextFormatter as VexTextFormatter} from '../common/textformatter';
-const VF = SmoVex.Flow;
-export type Vex = SmoVex;
-export const Vex = SmoVex;
+// export type Vex = SmoVex;
+const Vex = SmoVex;
+export const VexFlow = Vex.Flow;
+const VF = Vex.Flow;
+export type Music = VexMusic;
 export type Note = VexNote;
 export type StaveNote = VexStaveNote;
 export type StemmableNote = VexStemmableNote;
-export const StemmableNoteClass = VexStemmableNote;
-export type  TextFormatter = VexTextFormatter;
-export const TextFormatterClass = VexTextFormatter;
 export type Beam = VexBeam;
 export type Tuplet = VexTuplet;
 export type TupletOptions = VexTupletOptions;
 export type Voice = VexVoice;
 export type Accidental = VexAccidental;
 export type Font = VexFont;
-export const FontClass = VexFont;
-export type FontGlyph = VexFontGlyph;
 export type FontInfo = VexFontInfo;
 export type FontStyle = VexFontStyle;
-export const FontStyleClass = VexFontStyle;
 export type FontWeight = VexFontWeight;
-export const FontWeightClass = VexFontWeight;
 export type Formatter = VexFormatter;
 export type Annotation = VexAnnotation;
 export type  StaveNoteStruct = VexStaveNoteStruct;
 export type StaveModifier = VexStaveModifier;
-export const StaveModifierPosition = VexStaveModifierPosition;
 export type StaveText = VexStaveText;
 export type Stave = VexStave;
-export const TextJustification = VexTextJustification;
+export type Curve = VexCurve;
+export type StaveTie = VexStaveTie;
+export type StaveModifierPosition = VexStaveModifierPosition;
+
+// DI interfaces to create vexflow objects
+export interface CreateVexNoteParams {
+  isTuplet: boolean, measureIndex: number, clef: string,
+  closestTicks: string, exactTicks: string, keys: string[],
+  noteType: string
+}; 
+
+ export interface SmoVexTupletParams {
+  vexNotes: Note[],
+  numNotes: number,
+  notesOccupied: number,
+  location: number
+};
+
 export function chordSubscriptOffset() {
   return VF.ChordSymbol.subscriptOffset;
 }
 export function chordSuperscriptOffset() {
   return VF.ChordSymbol.superscriptOffset;
 }
-export function createVoice(smoMeasure: SmoMeasure, notes: Note[]) {
+export interface SmoVexVoiceParams {
+  actualBeats: number,
+  beatDuration: number,
+  notes: Note[]
+}
+export function createVoice(params: SmoVexVoiceParams) {
   const voice = new VF.Voice({
-    numBeats: smoMeasure.timeSignature.actualBeats,
-    beatValue: smoMeasure.timeSignature.beatDuration
+    numBeats: params.actualBeats,
+    beatValue: params.beatDuration
   }).setMode(VF.Voice.Mode.SOFT);
-  voice.addTickables(notes);
+  voice.addTickables(params.notes);
   return voice;
 }
-export function createStave(x: number, y: number, smoMeasure: SmoMeasure, context: any) {
-  const key = SmoMusic.vexKeySignatureTranspose(smoMeasure.keySignature, 0);
-  const canceledKey = SmoMusic.vexKeySignatureTranspose(smoMeasure.canceledKeySignature, 0);
-  const stave = new VF.Stave(x, y, smoMeasure.staffWidth - smoMeasure.format.padLeft);
-  stave.setAttribute('id', smoMeasure.attrs.id);
+export interface SmoVexStaveParams {
+  x: number,
+  y: number,
+  padLeft: number,
+  id: string,
+  staffX: number,
+  staffY: number,
+  staffWidth: number,
+  forceClef: boolean,
+  clef: string,
+  forceKey: boolean,
+  key: string,
+  canceledKey: string | null,
+  startX: number,
+  adjX: number,
+  context: any
+}
+export function createStave(params: SmoVexStaveParams) {
+  const stave = new VF.Stave(params.x, params.y, params.staffWidth - params.padLeft);
+  stave.setAttribute('id', params.id);
   // If there is padLeft, draw an invisible box so the padding is included in the measure box
-  if (smoMeasure.format.padLeft) {
-    context.rect(smoMeasure.staffX, y, smoMeasure.format.padLeft, 50, {
-      fill: 'none', 'stroke-width': 1, stroke: 'white'
+  if (params.padLeft) {
+      params.context.rect(params.staffX, params.y, params.padLeft, 50, {
+        fill: 'none', 'stroke-width': 1, stroke: 'white'
     });
   }
   stave.options.spaceAboveStaffLn = 0; // don't let vex place the staff, we want to.
   // Add a clef and time signature.
-  if (smoMeasure.svg.forceClef) {
-    stave.addClef(smoMeasure.clef);
+  if (params.forceClef) {
+    stave.addClef(params.clef);
   }
-  if (smoMeasure.svg.forceKeySignature) {
-    const sig = new VF.KeySignature(key);
-    if (smoMeasure.canceledKeySignature) {
-      sig.cancelKey(canceledKey);
+  if (params.forceKey) {
+    const sig = new VF.KeySignature(params.key);
+    if (params.canceledKey) {
+      sig.cancelKey(params.canceledKey);
     }
     sig.addToStave(stave);
   }
   const curX = stave.getNoteStartX();
-  stave.setNoteStartX(curX + (smoMeasure.svg.maxColumnStartX - smoMeasure.svg.adjX));  
+  stave.setNoteStartX(curX + (params.startX - params.adjX));  
 
   return stave;
 }
-export function getVexTimeSignature(smoMeasure: SmoMeasure) {
-  const voice = new VF.Voice({
-      numBeats: smoMeasure.timeSignature.actualBeats,
-      beatValue: smoMeasure.timeSignature.beatDuration
-    }).setMode(VF.Voice.Mode.SOFT);
-  return voice;
-}
-export function getVexTuplets(vexNotes: Note[], tp: SmoTuplet, smoMeasure: SmoMeasure) {
-  const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
-    VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
-  const vexTuplet = new VF.Tuplet(vexNotes, {
-    numNotes: tp.num_notes,
-    notesOccupied: tp.notes_occupied,
+
+export function getVexTuplets(params: SmoVexTupletParams) {
+  const vexTuplet = new VF.Tuplet(params.vexNotes, {
+    numNotes: params.numNotes,
+    notesOccupied: params.notesOccupied,
     ratioed: false,
     bracketed: true,
-    location: direction
+    location: params.location
   });
   return vexTuplet;
 }
-export function getVexNoteParameters(smoNote: SmoNote, noteScale: number, measureIndex: number) {
+export function getVexNoteParameters(params: CreateVexNoteParams) {
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
-      smoNote.isTuplet ?
-        SmoMusic.closestVexDuration(smoNote.tickCount) :
-        SmoMusic.ticksToDuration[smoNote.tickCount];
+      params.isTuplet ?
+        params.closestTicks :
+        params.exactTicks;
     if (typeof (duration) === 'undefined') {
-      console.warn('bad duration in measure ' + measureIndex);
+      console.warn('bad duration in measure ' + params.measureIndex);
       duration = '8';
     }  
     // transpose for instrument-specific keys
-    const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
-    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
     const noteParams: StaveNoteStruct = {
-      clef: smoNote.clef,
-      keys,
-      duration: duration + smoNote.noteType,
-      glyphFontScale: noteScale
+      clef: params.clef,
+      keys: params.keys,
+      duration: duration + params.noteType
     };
     return { noteParams, duration };
 }
-export function applyStemDirection(voices: SmoVoice[], vxParams: StaveNoteStruct, voiceIx: number, flagState: number) {
-  if (voices.length === 1 && flagState === SmoNote.flagStates.auto) {
+export interface SmoVexStemParams {
+  voiceCount: number,
+  voiceIx: number,
+  isAuto: boolean,
+  isUp: boolean
+}
+export function applyStemDirection(params: SmoVexStemParams, vxParams: StaveNoteStruct) {
+  if (params.voiceCount === 1 && params.isAuto) {
     vxParams.autoStem = true;
-  } else if (flagState !== SmoNote.flagStates.auto) {
-    vxParams.stemDirection = flagState === SmoNote.flagStates.up ? 1 : -1;
-  } else if (voiceIx % 2) {
+  } else if (!params.isAuto) {
+    vxParams.stemDirection = params.isUp ? 1 : -1;
+  } else if (params.voiceIx % 2) {
     vxParams.stemDirection = -1;
   } else {
     vxParams.stemDirection = 1;
@@ -146,54 +177,79 @@ const setSameIfNull = (a: any, b: any) => {
 export function createStaveText(text: string, position: number, options: any) {
   return new VexStaveText(text, position, options);
 }
-export function createHairpin(hp: SmoStaffHairpin, vxStart: Note | null, vxEnd: Note | null) {
-  const params: Record<string, Note> = {};
-  if (vxStart) {
-    params['firstNote'] = vxStart;
+export interface SmoVexHairpinParams {
+  vxStart: Note | null,
+  vxEnd: Note | null,
+  hairpinType: number,
+  height: number,
+  yOffset: number,
+  leftShiftPx: number,
+  rightShiftPx: number
+}
+export function createHairpin(params: SmoVexHairpinParams) {
+  const vexParams: Record<string, Note> = {};
+  if (params.vxStart) {
+    vexParams.firstNote = params.vxStart;
   }
-  if (vxEnd) {
-    params['lastNote'] = vxEnd;
+  if (params.vxEnd) {
+    vexParams.lastNote = params.vxEnd;
   }
-  const hairpin = new VF.StaveHairpin(params, hp.hairpinType);
+  const hairpin = new VF.StaveHairpin(
+    vexParams, params.hairpinType);
   hairpin.setRenderOptions({
-    height: hp.height,
-    yShift: hp.yOffset,
-    leftShiftPx: hp.xOffsetLeft,
-    rightShiftPx: hp.xOffsetRight
+    height: params.height,
+    yShift: params.yOffset,
+    leftShiftPx: params.leftShiftPx,
+    rightShiftPx: params.rightShiftPx
   });
   return hairpin;
 }
-export function createSlur(slur: SmoSlur, slurX: number, svgPoint: DOMPoint[], vxStart: Note | null, vxEnd: Note | null): Curve {
-  if (vxStart === null && vxEnd === null) {
+export interface SmoVexSlurParameters {
+  vxStart: Note | null,
+  vxEnd: Note | null,
+  thickness: number,
+  xShift: number,
+  yShift: number,
+  cps: DOMPoint[],
+  invert: boolean,
+  position: number,
+  positionEnd: number
+}
+export function createSlur(params: SmoVexSlurParameters): Curve {
+  if (params.vxStart === null && params.vxEnd === null) {
     throw(' slur with no points');
   }
-  vxStart = setSameIfNull(vxStart, vxEnd);
-  vxEnd = setSameIfNull(vxEnd, vxStart);
+  const vxStart = setSameIfNull(params.vxStart, params.vxEnd);
+  const vxEnd = setSameIfNull(params.vxEnd, params.vxStart);
   const curve = new VF.Curve(vxStart!, vxEnd!,
     {
-      thickness: slur.thickness,
-      xShift: slurX,
-      yShift: slur.yOffset,
-      cps: svgPoint,
-      invert: slur.invert,
-      position: slur.position,
-      positionEnd: slur.position_end
+      thickness: params.thickness,
+      xShift: params.xShift,
+      yShift: params.yShift,
+      cps: params.cps,
+      invert: params.invert,
+      position: params.position,
+      positionEnd: params.positionEnd
     });
   return curve;
 }
-export function createTie(ctie: SmoTie, 
-  startNote: SmoNote, endNote: SmoNote, 
-  vxStart: Note | null, vxEnd: Note | null): StaveTie {
-  ctie.checkLines(startNote, endNote);
-  const fromLines = ctie.lines.map((ll) => ll.from);
-  const toLines = ctie.lines.map((ll) => ll.to);
+export interface SmoVexTieParams {
+  fromLines: number[],
+  toLines: number[],
+  firstNote: Note | null,
+  lastNote: Note | null,
+  vexOptions: any
+}
+export function createTie(params: SmoVexTieParams): StaveTie {
+  const fromLines = params.fromLines;
+  const toLines = params.toLines;
   const tie = new VF.StaveTie({
-    firstNote: vxStart,
-    lastNote: vxEnd,
+    firstNote: params.firstNote,
+    lastNote: params.lastNote,
     firstIndexes: fromLines,
-    lastIndexes: toLines          
+    lastIndexes: toLines
   });
-  smoSerialize.vexMerge(tie.renderOptions, ctie.vexOptions);
+  smoSerialize.vexMerge(tie.renderOptions, params.vexOptions);
   return tie;
 }
 export const defaultNoteScale: number = 30;
@@ -213,6 +269,9 @@ export function renderDynamics(context: any, text: string, fontSize: number, x: 
   glyph.setFontSize(fontSize);
   glyph.renderText(context, x, y);
   return { width: glyph.getWidth(), height: glyph.getHeight() };
+}
+export function getOrnamentGlyph(glyph: string) {
+  return glyph;
 }
 // Glyph data
 export const ChordSymbolGlyphs: Record<string, string> = {

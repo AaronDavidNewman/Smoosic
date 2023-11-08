@@ -5,13 +5,15 @@ import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
 import { SmoScore } from '../data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
-import { Vex, StaveNoteStruct, TupletOptions, vexOrnaments } from '../../common/vex';
+import { VexFlow, StaveNoteStruct, TupletOptions, vexOrnaments } from '../../common/vex';
 import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
+
+const VF = VexFlow;
 export const fontStacks: Record<string, string[]> =     {
   Bravura: ['"Bravura"', '"Gonville"', '"Custom"'],
   Gonville: ['"Gonville"', '"Bravura"', '"Custom"'],
@@ -419,7 +421,7 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
         nar.push(vexNote);
       }
       const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
-          Vex.Flow.Tuplet.LOCATION_TOP : Vex.Flow.Tuplet.LOCATION_BOTTOM;
+          VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
       const tpParams: TupletOptions = {
           numNotes: tp.num_notes,
           notesOccupied: tp.notes_occupied,

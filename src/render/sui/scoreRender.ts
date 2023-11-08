@@ -21,11 +21,11 @@ import { SmoRenderConfiguration } from './configuration';
 import { createTopDomContainer } from '../../common/htmlHelpers';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SvgPageMap, SvgPage } from './svgPageMap';
-import { Vex } from '../../common/vex';
+import { VexFlow } from '../../common/vex';
 import { Note } from '../../common/vex';
 
 declare var $: any;
-const VF = Vex.Flow;
+const VF = VexFlow;
 /**
  * a renderer creates the SVG render context for vexflow from the given element. Then it
  * renders the initial score.

@@ -7,10 +7,11 @@ import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex, TextFormatter as TextFormatter, TextFormatterClass,
+import { VexFlow,
   chordSubscriptOffset, chordSuperscriptOffset } from '../../common/vex';
+import { TextFormatter  } from '../../common/textformatter';
 declare var $: any;
-const VF = Vex.Flow;
+const VF = VexFlow;
 
 // From textfont.ts in VF
 
@@ -163,7 +164,7 @@ export class SuiInlineText {
   element: SVGSVGElement | null = null;
 
   updateFontInfo(): TextFormatter {
-    const tf = TextFormatterClass.create({
+    const tf = TextFormatter.create({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,

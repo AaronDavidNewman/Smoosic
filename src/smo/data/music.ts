@@ -9,9 +9,9 @@ import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter, TickAccidental, 
   AccidentalArray, AccidentalDisplay } from './common';
 import { SmoMicrotone } from './noteModifiers';
-import { Vex } from '../../common/vex';
+import { VexFlow } from '../../common/vex';
 
-const VF = Vex.Flow;
+const VF = VexFlow;
 /**
  * Used for xml clef conversion
  */
