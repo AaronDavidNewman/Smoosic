@@ -1277,7 +1277,7 @@ export class SuiLyricSession {
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
-      const conditionArray = [];
+      const conditionArray: any = [];
       this.state = SuiTextEditor.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._endLyricCondition, null, null, 100));
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote(), null, 100));

@@ -510,7 +510,7 @@ export class VxMeasure {
       if (tp.voice !== vix) {
         continue;
       }
-      const vexNotes = [];
+      const vexNotes: Note[] = [];
       for (j = 0; j < tp.notes.length; ++j) {
         const smoNote = tp.notes[j];
         vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);

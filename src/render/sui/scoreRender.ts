@@ -285,7 +285,7 @@ export class SuiScoreRender {
           }
           measuresToBox.push(measure);
           if (!printing && !measure.format.isDefault) {
-            const at = [];
+            const at: any[] = [];
             at.push({ y: measure.svg.logicalBox.y - 5 });
             at.push({ x: measure.svg.logicalBox.x + 25 });
             at.push({ 'font-family': SourceSansProFont.fontFamily });
@@ -575,7 +575,7 @@ export class SuiScoreRender {
     measures.forEach((measure) => {
       const context = this.vexContainers.getRenderer(measure.svg.logicalBox);
       if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox && context) {
-        const numAr = [];
+        const numAr: any[] = [];
         const modBox = context.offsetSvgPoint(measure.svg.logicalBox);
         numAr.push({ y: modBox.y - 10 });
         numAr.push({ x: modBox.x });
@@ -585,7 +585,7 @@ export class SuiScoreRender {
 
         // Show line-feed symbol
         if (measure.format.systemBreak && !printing) {
-          const starAr = [];
+          const starAr: any[] = [];
           const symbol = '\u21b0';
           starAr.push({ y: modBox.y - 5 });
           starAr.push({ x: modBox.x + 25 });

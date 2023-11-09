@@ -508,7 +508,7 @@ export class SmoToVex {
     strs.push('function main() {');
     strs.push('// create the div and svg element for the music');
     strs.push(`const div = document.getElementById('${div}');`);
-    strs.push('const VF = Vex.Flow;');
+    strs.push('const VF = VexFlow;');
     strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
     const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
     const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
@@ -528,7 +528,7 @@ export class SmoToVex {
     const font = smoScore.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (font) {
       const fs = fontStacks[font.family].join(',');
-      strs.push(`VF.setMusicFont(${fs});`);
+      strs.push(`VF.setFonts(${fs});`);
     }
     const measureCount = smoScore.staves[0].measures.length;
     const lyricAdj: string[] = [];
@@ -567,7 +567,7 @@ export class SmoToVex {
         groupMap[justifyGroup].measures.push(smoMeasure);
         strs.push('//');
         strs.push(`// voices and notes for stave ${smoStaff.staffId} ${smoMeasure.measureNumber.measureIndex}`);
-        smoMeasure.voices.forEach((smoVoice, voiceIx) => {        
+        smoMeasure.voices.forEach((smoVoice: SmoVoice, voiceIx: number) => {        
           const vn = getVoiceId(smoMeasure, voiceIx);
           groupMap[justifyGroup].voiceStrings.push(vn);
           const vc = vn + 'ar';
@@ -577,7 +577,7 @@ export class SmoToVex {
           });
           strs.push(`const ${vn} = new VF.Voice(JSON.parse('${ts}')).setMode(VF.Voice.Mode.SOFT);`);
           strs.push(`const ${vc} = [];`);
-          smoVoice.notes.forEach((smoNote, noteIx) => {
+          smoVoice.notes.forEach((smoNote: SmoNote, noteIx: number) => {
             const renderInfo: VexNoteRenderInfo = { smoNote, voiceIx, noteIx, tickmapObject, lyricAdj };
             const noteId = createStaveNote(renderInfo, smoMeasure.keySignature, smoMeasure.svg.rowInSystem, strs);
             strs.push(`${vc}.push(${noteId});`);

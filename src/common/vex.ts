@@ -6,22 +6,20 @@
   Curve, StaveTie } = SmoVex;  */
 
 
-import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
+import { VexFlow as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
   Voice as VexVoice, Formatter as VexFormatter, Accidental as VexAccidental, 
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
- Music as VexMusic  } from "vex5_smoosic";
+ Music as VexMusic  } from "vxflw-early-access";
 
 
-import { SmoSlur } from '../smo/data/staffModifiers';
 import { smoSerialize } from "./serializationHelpers";
 // export type Vex = SmoVex;
-const Vex = SmoVex;
-export const VexFlow = Vex.Flow;
-const VF = Vex.Flow;
+export const VexFlow = SmoVex;
+const VF = VexFlow;
 export type Music = VexMusic;
 export type Note = VexNote;
 export type StaveNote = VexStaveNote;
@@ -271,7 +269,7 @@ export function renderDynamics(context: any, text: string, fontSize: number, x: 
   return { width: glyph.getWidth(), height: glyph.getHeight() };
 }
 export function getOrnamentGlyph(glyph: string) {
-  return glyph;
+  return vexOrnaments[glyph];
 }
 // Glyph data
 export const ChordSymbolGlyphs: Record<string, string> = {

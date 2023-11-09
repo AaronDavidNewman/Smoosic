@@ -99,14 +99,14 @@ export class SuiRenderState {
   }
   static get setFontStack(): Record<string, Function> {
     return {
-      /* Bravura: () => { VexFlow.setFonts('Bravura', 'Gonville', 'Custom'); },
+      Bravura: () => { VexFlow.setFonts('Bravura', 'Gonville', 'Custom'); },
       Gonville: () => { VexFlow.setFonts('Gonville', 'Bravura', 'Custom'); },
       Petaluma: () => { VexFlow.setFonts('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
-      Leland: () => { VexFlow.setFonts('Leland', 'Bravura', 'Gonville', 'Custom'); }  */
-      Bravura: () => { VexFlow.setMusicFont('Bravura', 'Gonville', 'Custom'); },
+      Leland: () => { VexFlow.setFonts('Leland', 'Bravura', 'Gonville', 'Custom'); }
+      /* Bravura: () => { VexFlow.setMusicFont('Bravura', 'Gonville', 'Custom'); },
       Gonville: () => { VexFlow.setMusicFont('Gonville', 'Bravura', 'Custom'); },
       Petaluma: () => { VexFlow.setMusicFont('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
-      Leland: () => { VexFlow.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
+      Leland: () => { VexFlow.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); } */
     };
   }
   static get passStates(): Record<string, number> {

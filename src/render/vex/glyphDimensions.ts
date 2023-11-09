@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, defaultNoteScale } from '../../common/vex';
 const VF = VexFlow;
 
 export interface GlyphInfo {
@@ -17,10 +17,14 @@ export interface GlyphInfo {
 export class vexGlyph {
   static width(smoGlyph: GlyphInfo) {
     if (smoGlyph.vexGlyph) {
-      // const width = VF.Element.measureWidth(smoGlyph.vexGlyph);
-      const vf = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
-      return (vf.xMax - vf.xMin) * vexGlyph.glyphPixels;
-    }
+      const vexGlyph = (VF.Glyphs as Record<string, string>)[smoGlyph.vexGlyph];
+      if (vexGlyph) {
+        return VF.Element.measureWidth(vexGlyph);
+      }
+      return VF.Element.measureWidth(smoGlyph.vexGlyph);
+      /* const vf = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      return (vf.xMax - vf.xMin) * vexGlyph.glyphPixels; */
+    } 
     return smoGlyph.width;
   }
   static accidental(a: string): GlyphInfo {
@@ -44,7 +48,8 @@ export class vexGlyph {
     };
   }
   static get glyphPixels() {
-    return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
+    // return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
+    return defaultNoteScale;
   }
   static repeatSymbolWidth(): number {
     return vexGlyph.width(vexGlyph.dimensions['repeatSymbol']);
