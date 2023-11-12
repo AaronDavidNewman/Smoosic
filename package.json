@@ -22,7 +22,7 @@
     "ts-loader": "^9.2.5",
     "typedoc": "^0.25.0",
     "typescript": "^5.2.2",
-    "vxflw-early-access": "5.0.0-alpha.11",
+    "vexflow_smoosic": "4.2.2",
     "webpack": "^5.89.0",
     "xmldom": "^0.6.0"
   },

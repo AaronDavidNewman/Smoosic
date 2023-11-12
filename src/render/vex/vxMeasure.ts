@@ -21,7 +21,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  createStave, createVoice, getOrnamentGlyph } from '../../common/vex';
+  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest } from '../../common/vex';
 
 const VF = VexFlow;
 
@@ -325,7 +325,8 @@ export class VxMeasure {
       noteType: smoNote.noteType };
     const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
     if (smoNote.noteType === '/') {
-      vexNote = new VF.GlyphNote('\uE504', { duration });
+      // vexNote = new VF.GlyphNote('\uE504', { duration });
+      vexNote = getSlashGlyph();
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     } else {
       const smoVexStemParams = {
@@ -394,10 +395,10 @@ export class VxMeasure {
     group.classList.add(textObj.attrs.id);
     // const duration = SmoMusic.closestVexDuration(smoNote.tickCount);
     for (var i = 0; i < textObj.text.length; i += 1 ) {
-      /* const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]].code,
-        textObj.fontSize, x, y);  */
-      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]],
+      const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]].code,
         textObj.fontSize, x, y);
+      /* const { width , height } = renderDynamics(this.context.getContext(), VF.TextDynamics.GLYPHS[textObj.text[i]],
+        textObj.fontSize, x, y); */
       x += width;
       maxh = Math.max(height, maxh);      
     }
@@ -422,7 +423,8 @@ export class VxMeasure {
   }
   createRepeatSymbol() {
     this.voiceNotes = [];
-    const vexNote = new VF.GlyphNote('\uE500', { duration: 'w' }, { line: 2 });
+    // const vexNote = new VF.GlyphNote('\uE500', { duration: 'w' }, { line: 2 });
+    const vexNote = getRepeatBar();
     vexNote.setCenterAlignment(true);
     this.vexNotes.push(vexNote);
     this.voiceNotes.push(vexNote);
@@ -696,8 +698,7 @@ export class VxMeasure {
     }
 
     if (this.smoMeasure.svg.multimeasureLength > 0) {
-      this.multimeasureRest = new VF.MultiMeasureRest(this.smoMeasure.svg.multimeasureLength,
-        { numberOfMeasures: this.smoMeasure.svg.multimeasureLength });
+      this.multimeasureRest = getMultimeasureRest(this.smoMeasure.svg.multimeasureLength);
       this.multimeasureRest.setContext(this.context.getContext());
       this.multimeasureRest.setStave(this.stave);
       return;

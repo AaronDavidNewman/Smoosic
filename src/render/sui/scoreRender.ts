@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgBox, SvgPoint } from '../../smo/data/common';
-import { SmoMeasure } from '../../smo/data/measure';
+import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoSelection } from '../../smo/xform/selections';
@@ -356,7 +356,7 @@ export class SuiScoreRender {
         if (layoutDebug.mask & layoutDebug.values['artifactMap']) {
           this.score?.staves.forEach((staff) => {
             staff.measures.forEach((mm) => {
-              mm.voices.forEach((voice) => {
+              mm.voices.forEach((voice: SmoVoice) => {
                 voice.notes.forEach((note) => {
                   if (note.logicalBox) {
                     const page = this.vexContainers.getRendererFromPoint(note.logicalBox);

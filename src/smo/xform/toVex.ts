@@ -85,10 +85,10 @@ export function smoNoteToStaveNote(smoNote: SmoNote) {
     type: smoNote.noteType
   };
   if (smoNote.flagState !== SmoNote.flagStates.auto) {
-    sn.stemDirection = smoNote.flagState === SmoNote.flagStates.up ? 1 : -1;
-    sn.autoStem = false; 
+    sn.stem_direction = smoNote.flagState === SmoNote.flagStates.up ? 1 : -1;
+    sn.auto_stem = false; 
   } else {
-    sn.autoStem = true;
+    sn.auto_stem = true;
   }
   sn.keys = smoNoteToVexKeys(smoNote);
   return sn;
@@ -423,8 +423,8 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
       const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
           VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
       const tpParams: TupletOptions = {
-          numNotes: tp.num_notes,
-          notesOccupied: tp.notes_occupied,
+          num_notes: tp.num_notes,
+          notes_occupied: tp.notes_occupied,
           ratioed: false,
           bracketed: true,
           location: direction

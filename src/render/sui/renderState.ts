@@ -16,7 +16,7 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiScoreRender, ScoreRenderParams } from './scoreRender';
 import { SuiExceptionHandler } from '../../ui/exceptions';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, setFontStack } from '../../common/vex';
 declare var $: any;
 
 
@@ -97,18 +97,6 @@ export class SuiRenderState {
     const renderer = new SuiRenderState(ctorObj);
     return renderer;
   }
-  static get setFontStack(): Record<string, Function> {
-    return {
-      Bravura: () => { VexFlow.setFonts('Bravura', 'Gonville', 'Custom'); },
-      Gonville: () => { VexFlow.setFonts('Gonville', 'Bravura', 'Custom'); },
-      Petaluma: () => { VexFlow.setFonts('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
-      Leland: () => { VexFlow.setFonts('Leland', 'Bravura', 'Gonville', 'Custom'); }
-      /* Bravura: () => { VexFlow.setMusicFont('Bravura', 'Gonville', 'Custom'); },
-      Gonville: () => { VexFlow.setMusicFont('Gonville', 'Bravura', 'Custom'); },
-      Petaluma: () => { VexFlow.setMusicFont('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
-      Leland: () => { VexFlow.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); } */
-    };
-  }
   static get passStates(): Record<string, number> {
     return { initial: 0, clean: 2, replace: 3 };
   }
@@ -116,7 +104,7 @@ export class SuiRenderState {
     return this.elementId;
   }
   notifyFontChange() {
-    SuiRenderState.setFontStack[this.score!.engravingFont]();
+    setFontStack(this.score!.engravingFont);
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||

@@ -1,24 +1,20 @@
-/* export const { Note, StaveNote, Beam , Tuplet, 
-  Voice, Formatter, Accidental, 
-  Annotation,  
-  StaveText, StaveModifier,
-  Stave, Font, FontStyle, FontWeight,
-  Curve, StaveTie } = SmoVex;  */
-
-
-import { VexFlow as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
+import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNote as VexStemmableNote, Beam as VexBeam, Tuplet as VexTuplet, 
   Voice as VexVoice, Formatter as VexFormatter, Accidental as VexAccidental, 
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
- Music as VexMusic  } from "vxflw-early-access";
+ Music as VexMusic  } from "vexflow_smoosic";
 
-
+ /**
+  * Module vex.ts.  This handles vexflow calls and structures that have changed 
+  * between v4 and v5.  There will be a custom version of this file for each.
+  * Most of the differences are trivial - e.g. different naming conventions for variables.
+  */
 import { smoSerialize } from "./serializationHelpers";
 // export type Vex = SmoVex;
-export const VexFlow = SmoVex;
+export const VexFlow = SmoVex.Flow;
 const VF = VexFlow;
 export type Music = VexMusic;
 export type Note = VexNote;
@@ -42,6 +38,16 @@ export type Stave = VexStave;
 export type Curve = VexCurve;
 export type StaveTie = VexStaveTie;
 export type StaveModifierPosition = VexStaveModifierPosition;
+
+
+export interface GlyphInfo {
+  width: number,
+  height: number,
+  yTop: number,
+  yBottom: number,
+  spacingRight: number,
+  vexGlyph: string | null
+}
 
 // DI interfaces to create vexflow objects
 export interface CreateVexNoteParams {
@@ -70,8 +76,8 @@ export interface SmoVexVoiceParams {
 }
 export function createVoice(params: SmoVexVoiceParams) {
   const voice = new VF.Voice({
-    numBeats: params.actualBeats,
-    beatValue: params.beatDuration
+    num_beats: params.actualBeats,
+    beat_value: params.beatDuration
   }).setMode(VF.Voice.Mode.SOFT);
   voice.addTickables(params.notes);
   return voice;
@@ -93,6 +99,50 @@ export interface SmoVexStaveParams {
   adjX: number,
   context: any
 }
+/**
+ * Vex4 and Vex5 handle width differently.  Vex5, width comes directly from the 
+ * font glyph, vex4 the glyph is a path so it comes from the stored information about 
+ * the path.
+ * 
+ * @param smoGlyph 
+ * @returns 
+ */
+export function getGlyphWidth(smoGlyph: GlyphInfo) {
+  if (smoGlyph.vexGlyph) {
+    /* const vexGlyph = (VF.Glyphs as Record<string, string>)[smoGlyph.vexGlyph];
+    if (vexGlyph) {
+      return VF.Element.measureWidth(vexGlyph);
+    }
+    return VF.Element.measureWidth(smoGlyph.vexGlyph);  */
+    const vf = VF.Glyph.MUSIC_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+    return (vf.x_max - vf.x_min) * glyphPixels();
+  } 
+  return smoGlyph.width;
+}
+/**
+ * V4 uses the glyph name, V5 uses the unicode value
+ * @returns 
+ */
+export function getSlashGlyph() {
+        // vexNote = new VF.GlyphNote('\uE504', { duration });
+       return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+}
+export function getRepeatBar() {
+  return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+}
+export function getMultimeasureRest(multimeasureLength: number) {
+  new VF.MultiMeasureRest(multimeasureLength,
+    // { numberOfMeasures: this.smoMeasure.svg.multimeasureLength });
+    { number_of_measures: multimeasureLength });
+}
+export function pitchToLedgerLine(vexPitch: string, clef: string) {
+  return -1.0 * (VF.keyProperties(vexPitch).line - 4.5)
+  - VF.clefProperties(clef).line_shift;
+}
+export function vexCanonicalNotes(): any {
+      // return VF.Music.canonicalNotes[SmoMusic.noteValues[vexKey].int_val];
+      return VF.Music.canonical_notes;
+}
 export function createStave(params: SmoVexStaveParams) {
   const stave = new VF.Stave(params.x, params.y, params.staffWidth - params.padLeft);
   stave.setAttribute('id', params.id);
@@ -102,7 +152,8 @@ export function createStave(params: SmoVexStaveParams) {
         fill: 'none', 'stroke-width': 1, stroke: 'white'
     });
   }
-  stave.options.spaceAboveStaffLn = 0; // don't let vex place the staff, we want to.
+  // stave.options.spaceAboveStaffLn = 0; // don't let vex place the staff, we want to.
+  stave.options.space_above_staff_ln = 0; // don't let vex place the staff, we want to.
   // Add a clef and time signature.
   if (params.forceClef) {
     stave.addClef(params.clef);
@@ -122,8 +173,8 @@ export function createStave(params: SmoVexStaveParams) {
 
 export function getVexTuplets(params: SmoVexTupletParams) {
   const vexTuplet = new VF.Tuplet(params.vexNotes, {
-    numNotes: params.numNotes,
-    notesOccupied: params.notesOccupied,
+    num_notes: params.numNotes,
+    notes_occupied: params.notesOccupied,
     ratioed: false,
     bracketed: true,
     location: params.location
@@ -157,13 +208,13 @@ export interface SmoVexStemParams {
 }
 export function applyStemDirection(params: SmoVexStemParams, vxParams: StaveNoteStruct) {
   if (params.voiceCount === 1 && params.isAuto) {
-    vxParams.autoStem = true;
+    vxParams.auto_stem = true;
   } else if (!params.isAuto) {
-    vxParams.stemDirection = params.isUp ? 1 : -1;
+    vxParams.stem_direction = params.isUp ? 1 : -1;
   } else if (params.voiceIx % 2) {
-    vxParams.stemDirection = -1;
+    vxParams.stem_direction = -1;
   } else {
-    vxParams.stemDirection = 1;
+    vxParams.stem_direction = 1;
   }
 }
 const setSameIfNull = (a: any, b: any) => {
@@ -187,18 +238,18 @@ export interface SmoVexHairpinParams {
 export function createHairpin(params: SmoVexHairpinParams) {
   const vexParams: Record<string, Note> = {};
   if (params.vxStart) {
-    vexParams.firstNote = params.vxStart;
+    vexParams.first_note = params.vxStart;
   }
   if (params.vxEnd) {
-    vexParams.lastNote = params.vxEnd;
+    vexParams.last_note = params.vxEnd;
   }
   const hairpin = new VF.StaveHairpin(
     vexParams, params.hairpinType);
   hairpin.setRenderOptions({
     height: params.height,
-    yShift: params.yOffset,
-    leftShiftPx: params.leftShiftPx,
-    rightShiftPx: params.rightShiftPx
+    y_shift: params.yOffset,
+    left_shift_px: params.leftShiftPx,
+    right_shift_px: params.rightShiftPx
   });
   return hairpin;
 }
@@ -222,12 +273,12 @@ export function createSlur(params: SmoVexSlurParameters): Curve {
   const curve = new VF.Curve(vxStart!, vxEnd!,
     {
       thickness: params.thickness,
-      xShift: params.xShift,
-      yShift: params.yShift,
+      x_shift: params.xShift,
+      y_shift: params.yShift,
       cps: params.cps,
       invert: params.invert,
       position: params.position,
-      positionEnd: params.positionEnd
+      position_end: params.positionEnd
     });
   return curve;
 }
@@ -242,16 +293,35 @@ export function createTie(params: SmoVexTieParams): StaveTie {
   const fromLines = params.fromLines;
   const toLines = params.toLines;
   const tie = new VF.StaveTie({
-    firstNote: params.firstNote,
-    lastNote: params.lastNote,
-    firstIndexes: fromLines,
-    lastIndexes: toLines
+    first_note: params.firstNote,
+    last_note: params.lastNote,
+    first_indices: fromLines,
+    last_indices: toLines
   });
-  smoSerialize.vexMerge(tie.renderOptions, params.vexOptions);
+  smoSerialize.vexMerge(tie.render_options, params.vexOptions);
   return tie;
 }
 export const defaultNoteScale: number = 30;
 export const defaultCueScale: number = 19.8;
+
+export function glyphPixels() {
+  return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
+  // return defaultNoteScale;
+}
+
+export function setFontStack(font: string) {
+  const fs: Record<string, ()=> void>  = {
+    /* Bravura: () => { VexFlow.setFonts('Bravura', 'Gonville', 'Custom'); },
+    Gonville: () => { VexFlow.setFonts('Gonville', 'Bravura', 'Custom'); },
+    Petaluma: () => { VexFlow.setFonts('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
+    Leland: () => { VexFlow.setFonts('Leland', 'Bravura', 'Gonville', 'Custom'); } */
+    Bravura: () => { VexFlow.setMusicFont('Bravura', 'Gonville', 'Custom'); },
+    Gonville: () => { VexFlow.setMusicFont('Gonville', 'Bravura', 'Custom'); },
+    Petaluma: () => { VexFlow.setMusicFont('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
+    Leland: () => { VexFlow.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
+  };
+  fs[font]();
+}
 /**
  * Render a dynamics glyph.  Return the height of width/height of the glyph
  * @param context 
@@ -262,14 +332,21 @@ export const defaultCueScale: number = 19.8;
  * @returns 
  */
 export function renderDynamics(context: any, text: string, fontSize: number, x: number, y: number) {
-  const glyph = new VF.Element();
+  /* const glyph = new VF.Element();
   glyph.setText(text);
   glyph.setFontSize(fontSize);
   glyph.renderText(context, x, y);
-  return { width: glyph.getWidth(), height: glyph.getHeight() };
+  return { width: glyph.getWidth(), height: glyph.getHeight() };*/
+  const glyph = new VF.Glyph(text, fontSize);
+  glyph.render(context, x, y);
+  // vex 5 incompatibility.
+  // x += VF.TextDynamics.GLYPHS[text].width;
+  const metrics = glyph.getMetrics();
+  return { width: metrics.width, height: metrics.height };  
 }
 export function getOrnamentGlyph(glyph: string) {
-  return vexOrnaments[glyph];
+  return glyph;
+  // return vexOrnaments[glyph];
 }
 // Glyph data
 export const ChordSymbolGlyphs: Record<string, string> = {

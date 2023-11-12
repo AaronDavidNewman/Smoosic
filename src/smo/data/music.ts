@@ -9,7 +9,7 @@ import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter, TickAccidental, 
   AccidentalArray, AccidentalDisplay } from './common';
 import { SmoMicrotone } from './noteModifiers';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, pitchToLedgerLine, vexCanonicalNotes } from '../../common/vex';
 
 const VF = VexFlow;
 /**
@@ -214,7 +214,7 @@ export class SmoMusic {
    * */
   static vexToCannonical(vexKey: string): string {
     vexKey = SmoMusic.stripVexOctave(vexKey);
-    return VF.Music.canonicalNotes[SmoMusic.noteValues[vexKey].int_val];
+    return vexCanonicalNotes()[SmoMusic.noteValues[vexKey].int_val];
   }
 
   /**
@@ -375,8 +375,7 @@ export class SmoMusic {
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
-    return -1.0 * (VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
-      - VF.clefProperties(clef).lineShift;
+    return pitchToLedgerLine(SmoMusic.pitchToVexKey(pitch, clef), clef);
   }
   /**
    * Return the number of ledger lines based on the pitch and clef
@@ -1307,7 +1306,7 @@ export class SmoMusic {
    * @returns
    */
   static getKeyOffset(pitch: Pitch, offset: number): Pitch {
-    const canon = VF.Music.canonicalNotes;
+    const canon = vexCanonicalNotes();
     // Convert to vex keys, where f# is a string like 'f#'.
     let vexKey = SmoMusic.pitchToVexKey(pitch);
     vexKey = SmoMusic.vexToCannonical(vexKey);

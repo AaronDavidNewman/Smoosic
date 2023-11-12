@@ -32,7 +32,7 @@ import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
 import { SuiEventHandler } from './eventHandler';
 import { KeyBinding, ModalEventHandlerProxy } from './common';
-import { SmoMeasure } from '../../typedoc';
+import { SmoMeasure } from '../smo/data/measure';
 import { getDomContainer } from '../common/htmlHelpers';
 import { SuiHelp } from '../ui/help';
 import { VexFlow } from '../common/vex';

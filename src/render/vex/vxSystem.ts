@@ -386,7 +386,7 @@ export class VxSystem {
     }
     const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
     voltas.forEach((ending) => {
-      ending.elements.forEach((element) => {
+      ending.elements.forEach((element: SVGSVGElement) => {
         element.remove();
       });
       ending.elements = [];
