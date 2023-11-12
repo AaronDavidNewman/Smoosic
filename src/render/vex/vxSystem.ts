@@ -16,8 +16,8 @@ import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SvgPage } from '../sui/svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
-const VF = Vex.Flow;
+import { VexFlow, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
+const VF = VexFlow;
 
 export interface VoltaInfo {
   smoMeasure: SmoMeasure,
@@ -295,7 +295,16 @@ export class VxSystem {
       }
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
-      const hairpin = createHairpin(hp, vxStart, vxEnd);
+      const smoVexHairpinParams = {
+        vxStart,
+        vxEnd,
+        hairpinType: hp.hairpinType,
+        height: hp.height,
+        yOffset: hp.yOffset,
+        leftShiftPx: hp.xOffsetLeft,
+        rightShiftPx: hp.xOffsetRight
+      };
+      const hairpin = createHairpin(smoVexHairpinParams);
       hairpin.setContext(this.context.getContext()).setPosition(hp.position).draw();
     } else if (modifier.ctor === 'SmoSlur') {
       const startNote: SmoNote = smoStart!.note as SmoNote;
@@ -314,14 +323,34 @@ export class VxSystem {
         svgPoint[0].y = 10;
         svgPoint[1].y = 10;
       }
-      const curve = createSlur(slur, slurX, svgPoint, vxStart, vxEnd);
+      const smoVexSlurParams = {
+        vxStart, vxEnd,
+        thickness: slur.thickness,
+        xShift: slur.xOffset,
+        yShift: slur.yOffset,
+        cps: svgPoint,
+        invert: slur.invert,
+        position: slur.position,
+        positionEnd: slur.position_end
+      };
+      const curve = createSlur(smoVexSlurParams);
       curve.setContext(this.context.getContext()).draw();
     } else if (modifier.ctor === 'SmoTie') {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const endNote: SmoNote = smoEnd!.note as SmoNote;
       if (ctie.lines.length > 0) {
-        const tie = createTie(ctie, startNote, endNote, vxStart, vxEnd);
+        const fromLines = ctie.lines.map((ll) => ll.from);
+        const toLines = ctie.lines.map((ll) => ll.to);
+        const smoVexTieParams = {
+          fromLines,
+          toLines,
+          firstNote: vxStart,
+          lastNote: vxEnd,
+          vexOptions:  ctie.vexOptions
+        }
+        ctie.checkLines(startNote, endNote);
+        const tie = createTie(smoVexTieParams);
         tie.setContext(this.context.getContext()).draw();
       }
     } else if (modifier.ctor === 'SmoStaffTextBracket') {
@@ -357,7 +386,7 @@ export class VxSystem {
     }
     const voltas = this.staves[0].getVoltaMap(this.minMeasureIndex, this.maxMeasureIndex);
     voltas.forEach((ending) => {
-      ending.elements.forEach((element) => {
+      ending.elements.forEach((element: SVGSVGElement) => {
         element.remove();
       });
       ending.elements = [];

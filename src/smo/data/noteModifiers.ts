@@ -9,9 +9,9 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable,
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { Vex, ChordSymbolGlyphs, defaultNoteScale } from '../../common/vex';
+import { VexFlow, ChordSymbolGlyphs, defaultNoteScale } from '../../common/vex';
 
-const VF = Vex.Flow;
+const VF = VexFlow;
 // const Smo = eval('globalThis.Smo');
 
 /**
@@ -292,6 +292,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
     flip: 'flip',
     smear: 'smear'
   }
+
   static readonly xmlOrnaments: Record<string, string> = {
     mordent: 'mordent',
     mordent_inverted: 'inverted-mordent',
@@ -668,7 +669,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    return ChordSymbolGlyphs[code].code;
+    return ChordSymbolGlyphs[code];
   }
   static _tokenizeChordString(str: string) {
     // var str = this._text;

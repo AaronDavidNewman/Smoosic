@@ -5,6 +5,7 @@ import { SuiXhrLoader } from '../src/ui/fileio/xhrLoader';
 import { MidiToSmo } from '../src/smo/midi/midiToSmo';
 
 declare var $: any;
+declare var parseMidi: any;
 
 export function createLoadTests(): void {
   const jsonPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';

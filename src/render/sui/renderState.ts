@@ -16,9 +16,9 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiScoreRender, ScoreRenderParams } from './scoreRender';
 import { SuiExceptionHandler } from '../../ui/exceptions';
-import { Vex } from '../../common/vex';
+import { VexFlow, setFontStack } from '../../common/vex';
 declare var $: any;
-const VF = Vex.Flow;
+
 
 export var scoreChangeEvent = 'smoScoreChangeEvent';
 /**
@@ -97,14 +97,6 @@ export class SuiRenderState {
     const renderer = new SuiRenderState(ctorObj);
     return renderer;
   }
-  static get setFontStack(): Record<string, Function> {
-    return {
-      Bravura: () => { VF.setMusicFont('Bravura', 'Gonville', 'Custom'); },
-      Gonville: () => { VF.setMusicFont('Gonville', 'Bravura', 'Custom'); },
-      Petaluma: () => { VF.setMusicFont('Petaluma', 'Bravura', 'Gonville', 'Custom'); },
-      Leland: () => { VF.setMusicFont('Leland', 'Bravura', 'Gonville', 'Custom'); }
-    };
-  }
   static get passStates(): Record<string, number> {
     return { initial: 0, clean: 2, replace: 3 };
   }
@@ -112,7 +104,7 @@ export class SuiRenderState {
     return this.elementId;
   }
   notifyFontChange() {
-    SuiRenderState.setFontStack[this.score!.engravingFont]();
+    setFontStack(this.score!.engravingFont);
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||

@@ -4,8 +4,7 @@ import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
 import { Pitch, PitchLetter, TickAccidental } from '../data/common';
 import { SmoNote } from '../data/note';
-import { Vex } from '../../common/vex';
-const VF = Vex.Flow;
+import { VexFlow } from '../../common/vex';
 
 /**
  * create a map note durations at each index into the voice, including the accidentals at each duration.
@@ -51,7 +50,7 @@ export class TickMap {
   // ### _getAccidentalsForKey
   // Update `map` with the correct accidental based on the key signature.
   _getAccidentalsForKey(map: Record<string, TickAccidental>) {
-    const music: any = new VF.Music();
+    const music: any = new VexFlow.Music();
     const keys = music.createScaleMap(this.keySignature);
     const keyKeys = Object.keys(keys);
     keyKeys.forEach((keyKey) => {

@@ -4,7 +4,7 @@
  * Convert midi to Smo object model.  Midi parsing code from:
  * @module /smo/midi/midiToSmo
  */
-import { SmoToMidi } from "../../../release/smoosic";
+import { SmoToMidi } from "./smoToMidi";
 import { Clef, Pitch } from "../data/common";
 import { SmoMeasure } from "../data/measure";
 import { SmoTempoText, TimeSignature } from "../data/measureModifiers";

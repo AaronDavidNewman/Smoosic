@@ -7,10 +7,11 @@ import { SuiScroller } from './scroller';
 import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { Vex, TextFormatter as TextFormatter, TextFormatterClass,
+import { VexFlow,
   chordSubscriptOffset, chordSuperscriptOffset } from '../../common/vex';
+import { TextFormatter  } from '../../common/textformatter';
 declare var $: any;
-const VF = Vex.Flow;
+const VF = VexFlow;
 
 // From textfont.ts in VF
 
@@ -163,7 +164,7 @@ export class SuiInlineText {
   element: SVGSVGElement | null = null;
 
   updateFontInfo(): TextFormatter {
-    const tf = TextFormatterClass.create({
+    const tf = TextFormatter.create({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,
@@ -250,7 +251,7 @@ export class SuiInlineText {
 
   _glyphOffset(block: SuiInlineBlock): number {
     // Vex 5 compatibility.  yShift
-    return block.glyph.getMetrics().y_shift * this.pointsToPixels * block.scale;
+    return block.glyph.getMetrics().yShift * this.pointsToPixels * block.scale;
   }
 
   /**
@@ -296,15 +297,16 @@ export class SuiInlineText {
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
         // TODO: vexflow broke leftSideBearing and advanceWidth
-        /* vex5
+        // vex5
         block.width = (block.glyph.getMetrics().width) * this.pointsToPixels * block.scale;
         block.height = (block.glyph.getMetrics().ha) * this.pointsToPixels * block.scale;
         block.x += block.glyph.getMetrics().xMin * this.pointsToPixels * block.scale;
-         */
+        /*
         block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
         block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;        
         block.x += block.metrics.leftSideBearing / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
         block.y = this.startY + this._glyphOffset(block) + subOffset;
+        */
       }
       // Line subscript up with super if the follow each other
       if (sp) {
@@ -436,13 +438,13 @@ export class SuiInlineText {
     this.updatedMetrics = false;
   }
   _getGlyphBlock(params: SuiInlineBlock): SuiInlineBlock {
-    /* vex 5
+    // vex 5
     const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     smoSerialize.vexMerge(block, params);
     params.text = params.glyphCode;
     block.text = params.text;
     block.scale = params.scale ? params.scale : 1;
-    */
+    /*  vex 4     
     const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     block.symbolType = SuiInlineText.symbolTypes.GLYPH;
 
@@ -456,6 +458,7 @@ export class SuiInlineText {
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
 
     block.glyph.scale = block.glyph.scale * block.scale;
+    */
     return block;
   }
   // ### addGlyphBlockAt

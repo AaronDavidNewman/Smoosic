@@ -1,6 +1,9 @@
 // Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols
 // that need to be created via reflection.
 // ui application components
+// vexflow interface
+import { TextFormatter } from '../common/textformatter';
+import { VexFlow } from '../common/vex';
 import { SuiApplication } from './application';
 import { SuiEventHandler } from './eventHandler';
 import { SuiExceptionHandler } from '../ui/exceptions';
@@ -118,6 +121,7 @@ import { SuiAudioPlayer } from '../render/audio/player';
 import { SuiOscillator, SuiSampler, SuiReverb } from '../render/audio/oscillator';
 import { SuiSampleMedia } from '../render/audio/samples';
 
+
 // SMO object model
 import { SmoScore, SmoScorePreferences, engravingFontTypes, isEngravingFont } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
@@ -194,7 +198,7 @@ export const Smo = {
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,
-    SuiScoreViewOperations,
+    SuiScoreViewOperations, TextFormatter, VexFlow,
 
     // Audio components
     SuiAudioPlayer, SuiOscillator, SuiSampleMedia, SuiSampler, SuiReverb,

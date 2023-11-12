@@ -2,22 +2,13 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { Vex, getGlyphWidth } from '../../common/vex';
+import { VexFlow, glyphPixels, GlyphInfo, getGlyphWidth } from '../../common/vex';
+const VF = VexFlow;
 
-const VF = Vex.Flow;
-
-export interface GlyphInfo {
-  width: number,
-  height: number,
-  yTop: number,
-  yBottom: number,
-  spacingRight: number,
-  vexGlyph: string | null
-}
 
 export class vexGlyph {
   static width(smoGlyph: GlyphInfo) {
-    return getGlyphWidth(smoGlyph);
+   return getGlyphWidth(smoGlyph);
   }
   static accidental(a: string): GlyphInfo {
     return vexGlyph.accidentals[a];
@@ -39,6 +30,7 @@ export class vexGlyph {
       'n': vexGlyph.dimensions.natural
     };
   }
+
   static repeatSymbolWidth(): number {
     return vexGlyph.width(vexGlyph.dimensions['repeatSymbol']);
   }

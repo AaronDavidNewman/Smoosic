@@ -16,9 +16,9 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SvgPage } from './svgPageMap';
 import { SuiScoreViewOperations } from './scoreViewOperations';
 import { SvgPageMap } from './svgPageMap';
-import { Vex, ChordSymbolGlyphs } from '../../common/vex';
+import { VexFlow, ChordSymbolGlyphs } from '../../common/vex';
 
-const VF = Vex.Flow;
+const VF = VexFlow;
 declare var $: any;
 
 /**
@@ -820,7 +820,7 @@ export class SuiChordEditor extends SuiTextEditor {
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
       this.unrender();
       // hack: vexflow 5 broke this
-      this._addGlyphAt(this.textPos, ChordSymbolGlyphs[evdata.key[0]].code);
+      this._addGlyphAt(this.textPos, ChordSymbolGlyphs[evdata.key[0]]);
       this.rerender();
       edited = true;
     } else {
@@ -1277,7 +1277,7 @@ export class SuiLyricSession {
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
-      const conditionArray = [];
+      const conditionArray: any = [];
       this.state = SuiTextEditor.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._endLyricCondition, null, null, 100));
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote(), null, 100));
