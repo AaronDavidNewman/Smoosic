@@ -34,8 +34,6 @@ declare var $: any;
  */
 export class VxMeasure {
   context: SvgPage;
-  static readonly musicFontScaleNote: number = 30;
-  static readonly musicFontScaleCue: number = 19.8;
   printing: boolean;
   selection: SmoSelection;
   softmax: number;
@@ -662,6 +660,7 @@ export class VxMeasure {
       }
     if (!this.smoMeasure.svg.multimeasureLength && !this.smoMeasure.repeatSymbol) {
         this.createVexNotes(j);
+        smoVexVoiceParams.notes = this.voiceNotes;
         this.createVexTuplets(j);
         this.createVexBeamGroups(j);
 
@@ -679,11 +678,12 @@ export class VxMeasure {
 
     // Need to format for x position, then set y position before drawing dynamics.
     this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
-    this.voiceAr.forEach((voice) => {
+    this.formatter.joinVoices(this.voiceAr);
+    /* this.voiceAr.forEach((voice) => {
       if (this.formatter) {
         this.formatter.joinVoices([voice]);
       }
-    });
+    });*/
   }
   /**
    * Create the Vex formatter that calculates the X and Y positions of the notes.  A formatter

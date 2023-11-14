@@ -219,14 +219,6 @@ export class SuiLayoutFormatter {
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
-    /* if (forceClefCount > 0 && forceClefCount < measures.length) {
-      measures.forEach((mm) => {
-        // If there are other clefs in this column, compensate for the width here.
-        if (!mm.svg.forceClef) {
-          mm.svg.adjX += vexGlyph.width(vexGlyph.clef('treble'));
-        }
-      });
-    }*/
     // justify this column to the maximum width.
     const startX = measures[0].staffX;
     const adjX =  measures[0].svg.maxColumnStartX;
@@ -264,7 +256,7 @@ export class SuiLayoutFormatter {
     const davg = dsum / durations.length;
     const dvar = sumArray(durations.map((ll) => Math.pow(ll - davg, 2)));
     const dpads = Math.pow(dvar / durations.length, 0.5) / davg;
-    const unalignedPadding = 5;
+    const unalignedPadding = 2;
 
     const padmax = Math.max(dpads, wpads) * contexts.length * unalignedPadding;
     const unalignedPad = unalignedPadding * unalignedCtxCount;
@@ -420,7 +412,7 @@ export class SuiLayoutFormatter {
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
   }
   
-  static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, tickContexts: Record<number, SuiTickContext>): number {
+  static estimateMusicWidth(smoMeasure: SmoMeasure, tickContexts: Record<number, SuiTickContext>): number {
     const widths: number[] = [];
     // Add up the widths of the music glyphs for each voice, including accidentals etc.  We save the widths in a hash by duration
     // and later consider overlapping/colliding ticks in each voice
@@ -440,7 +432,7 @@ export class SuiLayoutFormatter {
         }
         const dotWidth: number = vexGlyph.width(vexGlyph.dimensions.dot);
         noteWidth += headWidth +
-          vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
+          vexGlyph.dimensions.noteHead.spacingRight;
         // TODO: Consider engraving font and adjust grace note size?
         noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
@@ -537,9 +529,8 @@ export class SuiLayoutFormatter {
   }
 
   estimateMeasureWidth(measure: SmoMeasure, scoreLayout: ScaledPageLayout, tickContexts: Record<number, SuiTickContext>) {
-    const noteSpacing = scoreLayout.noteSpacing;
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, tickContexts);
+    let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, tickContexts);
     // measure.svg.adjX already set based on max column adjX
     measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;

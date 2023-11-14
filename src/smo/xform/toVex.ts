@@ -508,7 +508,7 @@ export class SmoToVex {
     strs.push('function main() {');
     strs.push('// create the div and svg element for the music');
     strs.push(`const div = document.getElementById('${div}');`);
-    strs.push('const VF = VexFlow;');
+    strs.push('const VF = Vex.Flow;');
     strs.push(`const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);`);
     const zoomScale = (smoScore.layoutManager?.getZoomScale() ?? 1.0);
     const svgScale = (smoScore.layoutManager?.getGlobalLayout().svgScale ?? 1.0);
@@ -528,7 +528,7 @@ export class SmoToVex {
     const font = smoScore.fonts.find((x) => x.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (font) {
       const fs = fontStacks[font.family].join(',');
-      strs.push(`VF.setFonts(${fs});`);
+      strs.push(`VF.setMusicFont(${fs});`);
     }
     const measureCount = smoScore.staves[0].measures.length;
     const lyricAdj: string[] = [];

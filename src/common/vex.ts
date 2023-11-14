@@ -131,7 +131,7 @@ export function getRepeatBar() {
   return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
 }
 export function getMultimeasureRest(multimeasureLength: number) {
-  new VF.MultiMeasureRest(multimeasureLength,
+  return new VF.MultiMeasureRest(multimeasureLength,
     // { numberOfMeasures: this.smoMeasure.svg.multimeasureLength });
     { number_of_measures: multimeasureLength });
 }
@@ -305,7 +305,7 @@ export const defaultNoteScale: number = 30;
 export const defaultCueScale: number = 19.8;
 
 export function glyphPixels() {
-  return 96 * (38 / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
+  return 96 * (defaultNoteScale / (VF.Glyph.MUSIC_FONT_STACK[0].getResolution() * 72));
   // return defaultNoteScale;
 }
 

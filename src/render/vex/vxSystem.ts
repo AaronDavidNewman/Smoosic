@@ -339,6 +339,7 @@ export class VxSystem {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const endNote: SmoNote = smoEnd!.note as SmoNote;
+      ctie.checkLines(startNote, endNote);
       if (ctie.lines.length > 0) {
         const fromLines = ctie.lines.map((ll) => ll.from);
         const toLines = ctie.lines.map((ll) => ll.to);
@@ -349,7 +350,6 @@ export class VxSystem {
           lastNote: vxEnd,
           vexOptions:  ctie.vexOptions
         }
-        ctie.checkLines(startNote, endNote);
         const tie = createTie(smoVexTieParams);
         tie.setContext(this.context.getContext()).draw();
       }

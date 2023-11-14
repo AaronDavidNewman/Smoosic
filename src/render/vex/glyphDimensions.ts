@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
-import { VexFlow, glyphPixels, GlyphInfo, getGlyphWidth } from '../../common/vex';
+import { VexFlow, GlyphInfo, getGlyphWidth } from '../../common/vex';
 const VF = VexFlow;
 
 
@@ -138,7 +138,7 @@ export class vexGlyph {
         height: 10.48,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10.71,
+        spacingRight: 5,
         vexGlyph: 'noteheadBlack'
       },
       dot: {
@@ -146,7 +146,7 @@ export class vexGlyph {
         height: 5,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10,
+        spacingRight: 5,
         vexGlyph: 'augmentationDot'
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
