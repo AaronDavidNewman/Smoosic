@@ -9,13 +9,13 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
-import { SuiScroller } from '../sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
 import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoScoreText } from '../../smo/data/scoreText'
 import { SvgPage } from '../sui/svgPageMap';
-import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiScroller } from '../sui/scroller';
 import { VexFlow, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
 const VF = VexFlow;
 
@@ -199,7 +199,8 @@ export class VxSystem {
           if (ll.isHyphenated() && ll.logicalBox !== null) {
             if (ll.attrs.id === lastVerse) {
               // Last word on the system, place the hyphen after the word
-              ll.hyphenX = ll.logicalBox.x + ll.logicalBox.width + ll.fontInfo.size / 2;
+              const fontSize = SmoScoreText.fontPointSize(ll.fontInfo.size);
+              ll.hyphenX = ll.logicalBox.x + ll.logicalBox.width + fontSize / 2;
               lyricHyphens.push(ll);
             } else if (ll.getText().length) {
               // place the hyphen 1/2 between next word and this one.
@@ -225,9 +226,9 @@ export class VxSystem {
         if (parent && lyric.logicalBox !== null) {
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
-          text.setAttributeNS('', 'x', (lyric.hyphenX - lyric.fontInfo.size / 3).toString());
+          const fontSize = SmoScoreText.fontPointSize(lyric.fontInfo.size);
+          text.setAttributeNS('', 'x', (lyric.hyphenX - fontSize / 3).toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
-          const fontSize = lyric.fontInfo.size;
           text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
           parent.appendChild(text);
         }

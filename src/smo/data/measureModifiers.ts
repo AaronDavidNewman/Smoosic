@@ -5,9 +5,9 @@
  * **/
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
-import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
+import { SmoAttrs, MeasureNumber, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, FontInfo } from '../../common/vex';
 
 const VF = VexFlow;
 /**
@@ -64,6 +64,23 @@ export interface SmoMeasureFormatParams {
   padAllInSystem: boolean | null,
   measureIndex: number | null,
 }
+export interface SmoMeasureFormatParamsSer {
+  ctor: string,
+  customStretch: number | null,
+  proportionality: number | null,
+  autoJustify: boolean | null,
+  systemBreak: boolean | null,
+  pageBreak: boolean | null,
+  restBreak: boolean | null,
+  forceRest: boolean | null,
+  skipMeasureCount: boolean | null,
+  padLeft: number | null,
+  padAllInSystem: boolean | null,
+  measureIndex: number | null,
+ }
+ function isSmoMeasureParamsSer(params: Partial<SmoMeasureFormatParamsSer>):params is SmoMeasureFormatParamsSer {
+  return typeof(params.ctor) === 'string';
+ }
 /**
  * ISmoMeasureFormatMgr is the DI interface to the
  * format manager.  Measure formats are often the same to multiple measures
@@ -163,9 +180,12 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
     mm.format = new SmoMeasureFormat(this);
     mm.format.measureIndex = mm.measureNumber.measureIndex;
   }
-  serialize() {
-    const params = { ctor: 'SmoMeasureFormat' };
+  serialize(): SmoMeasureFormatParamsSer {
+    const params: Partial<SmoMeasureFormatParamsSer> = { ctor: 'SmoMeasureFormat' };
     smoSerialize.serializedMergeNonDefault(SmoMeasureFormat.defaults, SmoMeasureFormat.attributes, this, params);
+    if (!isSmoMeasureParamsSer(params)) {
+      throw('bad type SmoMeasureFormatParamsSer');
+    }
     return params;
   }
 }
@@ -177,6 +197,11 @@ export interface SmoBarlineParams {
   barline: number | null
 }
 
+export interface SmoBarlineParamsSer extends SmoBarlineParams {
+  ctor: string,
+  position: number | null,
+  barline: number | null
+}
 /**
  * Barline is just that, there is a start and end in each measure, which defaults to 'single'.
  * @category SmoModifier
@@ -213,7 +238,7 @@ export class SmoBarline extends SmoMeasureModifierBase {
   static get attributes() {
     return ['position', 'barline'];
   }
-  serialize() {
+  serialize(): SmoBarlineParamsSer {
     const params: any = {};
     smoSerialize.serializedMergeNonDefault(SmoBarline.defaults, SmoBarline.attributes, this, params);
     params.ctor = 'SmoBarline';
@@ -257,6 +282,13 @@ export interface SmoRepeatSymbolParams {
   yOffset: number,
   position: number
 }
+
+export interface SmoRepeatSymbolParamsSer extends SmoRepeatSymbolParams {
+  ctor: string
+}
+function isSmoRepeatSymbolParamsSer(params: Partial<SmoRepeatSymbolParamsSer>):params is SmoRepeatSymbolParamsSer {
+  return typeof(params.ctor) === 'string' && params.ctor === 'SmoRepeatSymbol';
+ }
 /**
  * Repeat symbols like DC, Fine etc.  Note: voltas are their own thing,
  * and repeats are types of barlines.
@@ -306,10 +338,13 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   toVexSymbol() {
     return SmoRepeatSymbol.toVexSymbol[this.symbol];
   }
-  serialize() {
-    const params: any = {};
+  serialize(): SmoRepeatSymbolParamsSer {
+    const params: Partial<SmoRepeatSymbolParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults, SmoRepeatSymbol.attributes, this, params);
     params.ctor = 'SmoRepeatSymbol';
+    if (!isSmoRepeatSymbolParamsSer(params)) {
+      throw 'bad type SmoRepeatSymbolParamsSer';
+    }
     return params;
   }
   constructor(parameters: SmoRepeatSymbolParams) {
@@ -340,6 +375,9 @@ export interface SmoVoltaParams {
   xOffsetEnd: number,
   yOffset: number,
   number: number
+}
+export interface SmoVoltaParamsSer extends SmoVoltaParams {
+  ctor: string;
 }
 /**
  * Voltas (2nd endings) behave more like staff modifiers, but they are associated with the measure
@@ -375,7 +413,7 @@ export class SmoVolta extends SmoMeasureModifierBase {
     return ['xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
   }
 
-  serialize() {
+  serialize(): SmoVoltaParamsSer {
     const params: any = {};
     smoSerialize.serializedMergeNonDefault(SmoVolta.defaults, SmoVolta.attributes, this, params);
     params.ctor = 'SmoVolta';
@@ -420,6 +458,12 @@ export interface SmoMeasureTextParams {
   adjustX: number,
   adjustY: number,
   justification: number
+}
+/**
+ * Serialized fields of SmoMeasureTextParams
+ */
+export interface SmoMeasureTextParamsSer extends SmoMeasureTextParams {
+  ctor: string
 }
 /**
  * Measure text is just that.  Now that score text can be associated with musical elements, this
@@ -478,11 +522,11 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
     style: 'normal',
     weight: 'normal'
   };
-  serialize() {
-    var params: any = {};
+  serialize(): SmoMeasureTextParamsSer {
+    var params: Partial<SmoMeasureTextParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoMeasureText.defaults, SmoMeasureText.attributes, this, params);
     params.ctor = 'SmoMeasureText';
-    return params;
+    return params as SmoMeasureTextParamsSer;  // trivial class, no 'is'
   }
 
   constructor(parameters: SmoMeasureTextParams | null) {
@@ -512,6 +556,13 @@ export interface SmoRehearsalMarkParams {
   cardinality: string,
   symbol: string,
   increment: boolean
+}
+
+/**
+ * Serialized fields for rehearsal mark
+ */
+export interface SmoRehearsalMarkParamsSer extends SmoRehearsalMarkParams {
+  ctor: string;
 }
 /**
  * Rehearsal marks are some type of auto-incrementing markers on a measure index.
@@ -560,11 +611,11 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
     return this.cardinality === SmoRehearsalMark.cardinalities.capitals ? 'A' :
       (this.cardinality === SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
   }
-  serialize() {
-    var params: any = {};
+  serialize(): SmoRehearsalMarkParamsSer {
+    var params: Partial<SmoRehearsalMarkParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoRehearsalMark.defaults, SmoRehearsalMark.attributes, this, params);
     params.ctor = 'SmoRehearsalMark';
-    return params;
+    return params as SmoRehearsalMarkParamsSer;
   }
   constructor(parameters: SmoRehearsalMarkParams) {
     super('SmoRehearsalMark');
@@ -603,6 +654,9 @@ export interface SmoTempoTextParams {
   display: boolean,
   customText: string
 }
+export interface SmoTempoTextParamsSer extends SmoTempoTextParams {
+  ctor: string;
+}
 export interface VexTempoTextParams {
   duration?: string, dots?: number, bpm?: number, name?: string 
 }
@@ -640,6 +694,9 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
     };
   }
 
+  /**
+   * create defaults for tempo initialization
+   */
   static get defaults(): SmoTempoTextParams {
     return JSON.parse(JSON.stringify({
       tempoMode: SmoTempoText.tempoModes.durationMode,
@@ -727,11 +784,11 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
     }
     return this._toVexTextTempo();
   }
-  serialize() {
-    var params: any = {};
+  serialize(): SmoTempoTextParamsSer {
+    var params: Partial<SmoTempoTextParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults, SmoTempoText.attributes, this, params);
     params.ctor = 'SmoTempoText';
-    return params;
+    return params as SmoTempoTextParamsSer;
   }
   constructor(parameters: SmoTempoTextParams | null) {
     super('SmoTempoText');
@@ -746,13 +803,26 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
 
 /**
  * Constructor parameters for a time signature
+ * @param actualBeats
+ * @param beatDuration
+ * @param useSymbol - indicates cut time/common time
+ * @param display indicates display, or a silent change
+ * @param displayString - for pickups, display the non-pickup value
  * @category SmoParameters
  */
 export interface TimeSignatureParameters  {
   actualBeats: number,
   beatDuration: number,
   useSymbol: boolean,
-  display: boolean
+  display: boolean,
+  displayString: string
+}
+
+/**
+ * ctor: constructor for deserializer
+ */
+export interface TimeSignatureParametersSer extends TimeSignatureParameters {
+  ctor: string;
 }
 /**
  * Time signatures contain duration information for a measure, and information
@@ -767,27 +837,43 @@ export class TimeSignature extends SmoMeasureModifierBase {
       actualBeats: 4,
       beatDuration: 4,
       useSymbol: false,
-      display: true
+      display: true,
+      displayString: ''
     };
   }
   static equal(ts1: TimeSignature, ts2: TimeSignature): boolean {
     return (ts1.actualBeats === ts2.actualBeats && ts1.beatDuration === ts2.beatDuration);
+  }
+  static createFromPartial(value: Partial<TimeSignatureParameters>) {
+    const params = TimeSignature.defaults;
+    smoSerialize.serializedMerge(TimeSignature.parameters, value, params);
+    return new TimeSignature(params);
   }
   // timeSignature: string = '4/4';
   actualBeats: number = 4;
   beatDuration: number = 4;
   useSymbol: boolean = false;
   display: boolean = true;
+  displayString: string = '';
   get timeSignature() {
     return this.actualBeats.toString() + '/' + this.beatDuration.toString();
+  }
+  static get parameters() {
+    return ['actualBeats', 'beatDuration', 'useSymbol', 'display', 'displayString'];
+  }
+  static get boolParameters() {
+    return [];
   }
   set timeSignature(value: string) {
     const ar = value.split('/');
     this.actualBeats = parseInt(ar[0], 10);
     this.beatDuration = parseInt(ar[1], 10);
   }
-  serialize() {
-    return JSON.parse(JSON.stringify((this as any)));
+  serialize(): TimeSignatureParametersSer {
+    const rv: Partial<TimeSignatureParametersSer> = {};
+    smoSerialize.serializedMergeNonDefault(TimeSignature.defaults, TimeSignature.parameters, this, rv);
+    rv.ctor = 'TimeSignature';
+    return rv as TimeSignatureParametersSer;
   }
   constructor(params: TimeSignatureParameters) {
     super('TimeSignature');
@@ -795,5 +881,6 @@ export class TimeSignature extends SmoMeasureModifierBase {
     this.beatDuration = params.beatDuration;
     this.useSymbol = params.useSymbol;
     this.display = params.display;
+    this.displayString = params.displayString;
   }
 }

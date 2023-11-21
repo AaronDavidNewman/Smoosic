@@ -5,18 +5,18 @@
  * @module /smo/data/score
  */
 import { SmoMusic } from './music';
-import { Clef, FontInfo, SvgDimensions } from './common';
-import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
+import { Clef, SvgDimensions } from './common';
+import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoSystemGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
   SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters } from './scoreModifiers';
-import { SmoTextGroup }   from './scoreText';
+import { SmoTextGroup, SmoScoreText }   from './scoreText';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
-
+import { FontInfo } from '../../common/vex';
 /**
  * For global/default font settings.
  * @param name to distinguish: chord, lyric etc.
@@ -135,7 +135,7 @@ export interface SmoScoreParams {
   fonts: FontPurpose[],
   scoreInfo: SmoScoreInfo,
   preferences: SmoScorePreferences,
-  staves: SmoSystemStaff[],
+  staves: SmoSystemStaffParams[],
   activeStaff: number,
   textGroups: SmoTextGroup[],
   systemGroups: SmoSystemGroup[],
@@ -149,18 +149,52 @@ export interface SmoScoreParams {
  */
 export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
+
 /**
- * SmoScore is the container for the entire score: staves, measures, notes
- * @category SmoObject
+ * score
  */
 export class SmoScore {
-  instrumentMap: any[] = []
-  fonts: FontPurpose[] = []
-  staffWidth: number = 1600
+  /**
+   * Map of instruments to staves, used in serialization.
+   *
+   * @type {any[]}
+   * @memberof SmoScore
+   */
+  instrumentMap: any[] = [];
+  /**
+   * Default fonts in this score, for each type of text (lyrics, etc)
+   *
+   * @type {FontPurpose[]}
+   * @memberof SmoScore
+   */
+  fonts: FontPurpose[] = [];
+  /**
+   * General info about the score, used for export and library
+   *
+   * @type {SmoScoreInfo}
+   * @memberof SmoScore
+   */
   scoreInfo: SmoScoreInfo = new SmoScoreInfo();
+  /**
+   * Default behavior for this score.  Indicates some global behavior like whether to advance the cursor.
+   *
+   * @type {SmoScorePreferences}
+   * @memberof SmoScore
+   */
   preferences: SmoScorePreferences = new SmoScorePreferences(SmoScorePreferences.defaults);
-  startIndex: number = 0;
+  /**
+   * The staves that make up the music of the score
+   *
+   * @type {SmoSystemStaff[]}
+   * @memberof SmoScore
+   */
   staves: SmoSystemStaff[] = [];
+  /**
+   * The active staff in editing.  Not serialized, runtime
+   *
+   * @type {number}
+   * @memberof SmoScore
+   */
   activeStaff: number = 0;
   textGroups: SmoTextGroup[] = [];
   systemGroups: SmoSystemGroup[] = [];
@@ -335,10 +369,7 @@ export class SmoScore {
               ts.timeSignature = curValue;
               measure[attr] = ts;
             } else {
-              if (typeof (curValue.isPickup) === 'undefined') {
-                curValue.isPickup = false;
-              }
-              measure[attr] = new TimeSignature(curValue as TimeSignatureParameters);
+              measure[attr] = TimeSignature.createFromPartial(curValue);
             }
           } else {
             measure[attr] = curValue;
@@ -944,7 +975,7 @@ export class SmoScore {
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
       const measure: SmoMeasure = proto.measures[i];
-      const jsonObj = measure.serialize();
+      const jsonObj: SmoMeasureParamsSer = measure.serialize();
       // Need to do this since score serialization doesn't include TS in each measure
       jsonObj.timeSignature = measure.timeSignature.serialize();
       jsonObj.tempo = measure.tempo.serialize();
@@ -1051,8 +1082,8 @@ export class SmoScore {
     if (typeof (fontInst) === 'undefined') {
       return;
     }
-    fontInst.family = fontInfo.family;
-    fontInst.size = fontInfo.size;
+    fontInst.family = fontInfo.family ?? '';
+    fontInst.size = parseInt(SmoScoreText.fontPointSize(fontInfo.size).toString());
     fontInst.custom = true;
   }
 

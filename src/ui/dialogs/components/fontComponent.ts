@@ -8,7 +8,7 @@ import { SmoScoreText } from '../../../smo/data/scoreText';
 import { buildDom } from '../../../common/htmlHelpers';
 import { SourceSerifProFont } from '../../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../../styles/font_metrics/ssp-sans-metrics';
-import { FontInfo } from '../../../smo/data/common';
+import { FontInfo } from '../../../common/vex';
 declare var $: any;
 
 export interface SuiFontComponentParams {
@@ -131,7 +131,7 @@ export class SuiFontComponent extends SuiComponentBase {
     const bold = boldString === 'bold';
     this.boldCtrl.setValue(bold);
     this.italicsCtrl.setValue(italics);
-    this.familyPart.setValue(value.family);
+    this.familyPart.setValue(value.family ?? 'Arial');
     this.sizePart.setValue(value.size);
   }
 

@@ -5,11 +5,11 @@
  * pitch itself.  This includes grace notes, and note-text like lyrics.
  * @module /smo/data/noteModifiers
  */
-import { SmoAttrs, Ticks, Pitch, FontInfo, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { VexFlow, ChordSymbolGlyphs, defaultNoteScale } from '../../common/vex';
+import { VexFlow, ChordSymbolGlyphs, defaultNoteScale, FontInfo } from '../../common/vex';
 
 const VF = VexFlow;
 // const Smo = eval('globalThis.Smo');

@@ -13,17 +13,18 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import {
   SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat,
-  SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams, TimeSignature
+  SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams, TimeSignature,
+  TimeSignatureParametersSer, SmoMeasureFormatParamsSer, SmoTempoTextParamsSer
 } from './measureModifiers';
 import { SmoNote, NoteType } from './note';
-import { SmoTuplet } from './tuplet';
+import { SmoTuplet, SmoTupletParamsSer } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, 
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, 
   TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, FontInfo } from '../../common/vex';
 /**
  * Voice is just a container for {@link SmoNote}
  */
@@ -104,9 +105,9 @@ export interface ColumnMappedParams {
   tempo: any
 }
 // @internal
-export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'activeVoice' | 'lines' | 'repeatCount';
+export type SmoMeasureNumberParam = 'transposeIndex' | 'activeVoice' | 'lines' | 'repeatCount';
 // @internal
-export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'activeVoice', 'lines', 'repeatCount'];
+export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['transposeIndex', 'activeVoice', 'lines', 'repeatCount'];
 // @internal
 export type SmoMeasureStringParam = 'timeSignatureString' | 'keySignature';
 // @internal
@@ -118,7 +119,6 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureSt
  * @param timeSignature
  * @param timeSignatureString for pickups, the displayed time signature might be different than the actual
  * @param keySignature
- * @param padRight configured offset from previous measure
  * @param tuplets
  * @param transposeIndex calculated from {@link SmoPartInfo} for non-concert-key instruments
  * @param lines number of lines in the stave
@@ -136,7 +136,6 @@ export interface SmoMeasureParams {
   timeSignature: TimeSignature,
   timeSignatureString: string,
   keySignature: string,
-  padRight: number,
   tuplets: SmoTuplet[],
   transposeIndex: number,
   lines: number,
@@ -153,7 +152,58 @@ export interface SmoMeasureParams {
   repeatCount: number
 }
 
+/**
+ * The serializeable bits of SmoMeasure.  Some parameters are 
+ * mapped by the stave if the don't change every measure, e.g.
+ * time signature.
+ * @param timeSignature
+ * @param timeSignatureString for pickups, the displayed time signature might be different than the actual
+ * @param keySignature
+ * @param tuplets
+ * @param transposeIndex calculated from {@link SmoPartInfo} for non-concert-key instruments
+ * @param lines number of lines in the stave
+ * @param staffY Y coordinate (UL corner) of the measure stave
+ * @param measureNumber combination configured/calculated measure number
+ * @param clef
+ * @param voices
+ * @param activeVoice the active voice in the editor
+ * @param tempo
+ * @param format measure format, is managed by the score
+ * @param modifiers All measure modifiers that5 aren't format, timeSignature or tempo
+ * @category serializable
+ */
+export interface SmoMeasureParamsSer {
+  timeSignature?: TimeSignatureParametersSer,
+  keySignature?: string,
+  tuplets: SmoTupletParamsSer[],
+  transposeIndex: number,
+  lines: number,
+  staffY: number,
+  // bars: [1, 1], // follows enumeration in VF.Barline
+  measureNumber: MeasureNumber,
+  clef: Clef,
+  voices: SmoVoice[],
+  activeVoice: number,
+  tempo: SmoTempoTextParamsSer,
+  format: SmoMeasureFormatParamsSer | null,
+  modifiers: SmoMeasureModifierBase[],
+  repeatSymbol: boolean,
+  repeatCount: number
+}
 
+/**
+ * Only arrays and measure numbers are serilialized with default values.
+ * @param params - result of serialization
+ * @returns 
+ */
+function isSmoMeasureParamsSer(params: Partial<SmoMeasureParamsSer>):params is SmoMeasureParamsSer {
+  if (!Array.isArray(params.voices) || 
+      !Array.isArray(params.tuplets) || !Array.isArray(params.modifiers) ||
+      typeof(params?.measureNumber?.measureIndex) !== 'number') {
+        return false;
+  }
+  return true;
+}
 /**
  * Data for a measure of music.  Many rules of musical engraving are
  * enforced at a measure level: the duration of notes, accidentals, etc.
@@ -164,12 +214,7 @@ export interface SmoMeasureParams {
  */
 export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static get timeSignatureDefault(): TimeSignature {
-    return new TimeSignature({
-      actualBeats: 4,
-      beatDuration: 4,
-      useSymbol: false,
-      display: true
-    });
+    return new TimeSignature(TimeSignature.defaults);
   }
   static defaultDupleDuration: number = 4096;
   static defaultTripleDuration: number = 2048 * 3;
@@ -178,7 +223,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     timeSignature: SmoMeasure.timeSignatureDefault,
     timeSignatureString: '',
     keySignature: 'C',
-    padRight: 10,
     tuplets: [],
     transposeIndex: 0,
     modifiers: [],
@@ -233,7 +277,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   timeSignatureString: string = '';
   keySignature: string = '';
   canceledKeySignature: string = '';
-  padRight: number = 10;
   tuplets: SmoTuplet[] = [];
   repeatSymbol: boolean = false;
   repeatCount: number = 0;
@@ -328,7 +371,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       if (typeof (tsAny) === 'string') {
         this.timeSignature = SmoMeasure.convertLegacyTimeSignature(tsAny);
       } else {
-        this.timeSignature = new TimeSignature(tsAny);
+        this.timeSignature = TimeSignature.createFromPartial(tsAny);
       }
     }
     this.voices = params.voices ? params.voices : [];
@@ -406,10 +449,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * Convert this measure object to a JSON object, recursively serializing all the notes,
    * note modifiers, etc.
    */
-  serialize(): any {
-    const params: any = {};
+  serialize(): SmoMeasureParamsSer {
+    const params: Partial<SmoMeasureParamsSer> = {};
     let ser = true;
-    const defaults = SmoMeasure.defaults;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
     // measure number can't be defaulted b/c tempos etc. can map to default measure
     params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
@@ -418,7 +460,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     params.modifiers = [];
 
     this.tuplets.forEach((tuplet) => {
-      params.tuplets.push(tuplet.serialize());
+      params.tuplets!.push(tuplet.serialize());
     });
 
     this.voices.forEach((voice) => {
@@ -428,7 +470,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       voice.notes.forEach((note) => {
         obj.notes.push(note.serialize());
       });
-      params.voices.push(obj);
+      params.voices!.push(obj);
     });
 
     this.modifiers.forEach((modifier) => {
@@ -448,10 +490,13 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         ser = false;
       }
       if (ser) {
-        params.modifiers.push(modifier.serialize());
+        params.modifiers!.push(modifier.serialize());
       }
     });
     // ['timeSignature', 'keySignature', 'tempo']
+    if (!isSmoMeasureParamsSer(params)) {
+      throw 'invalid measure';
+    }
     return params;
   }
 

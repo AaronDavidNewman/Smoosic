@@ -8,7 +8,7 @@ import { SmoAttrs, SvgBox, getId } from '../../smo/data/common';
 import { SvgPage, SvgPageMap } from './svgPageMap';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { VexFlow,
-  chordSubscriptOffset, chordSuperscriptOffset } from '../../common/vex';
+  chordSubscriptOffset, chordSuperscriptOffset, FontInfo } from '../../common/vex';
 import { TextFormatter  } from '../../common/textformatter';
 declare var $: any;
 const VF = VexFlow;
@@ -192,14 +192,15 @@ export class SuiInlineText {
   }
 
   static fromScoreText(scoreText: SmoScoreText, context: SvgPage, pageMap: SvgPageMap, scroller: SuiScroller): SuiInlineText {
+    
     const params: SuiInlineTextParams = {
-      fontFamily: scoreText.fontInfo.family,
-      fontWeight: scoreText.fontInfo.weight,
+      fontFamily: SmoScoreText.familyString(scoreText.fontInfo.family),
+      fontWeight: SmoScoreText.weightString(scoreText.fontInfo.weight),
       fontStyle: scoreText.fontInfo.style ?? 'normal',
       startX: scoreText.x, startY: scoreText.y,
       scroller,
       purpose: SuiInlineText.textPurposes.render,
-      fontSize: scoreText.fontInfo.size, context,
+      fontSize: SmoScoreText.fontPointSize(scoreText.fontInfo.size), context,
       pageMap
     };
     const rv = new SuiInlineText(params);

@@ -448,15 +448,13 @@ export class smoSerialize {
     });
   }
 
-  // ### serializedMergeNonDefault
-  // Used to reduce size of serializations.  Create a serialzation of
-  // the object, but don't serialize attributes that are already the default
-  // since the default will be set when the object is deserialized
-  // #### parameters:
-  //     defaults - default Array
-  //     attrs - array of attributes to save
-  //     src - the object to serialize
-  //     dest - the json object that is the target.
+  /**
+   * Only serialize non-default values.
+   * @param {*} defaults - the class-defined defaults
+   * @param {*} attrs - the list of attributes (untyped)
+   * @param {*} src - the object we're serializing
+   * @param {*} dest - the output json
+   */
   static serializedMergeNonDefault(defaults, attrs, src, dest) {
     attrs.forEach(function (attr) {
       if (typeof (src[attr]) != 'undefined') {

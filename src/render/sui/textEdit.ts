@@ -1031,9 +1031,9 @@ export class SuiTextSession {
         this.textGroup.addScoreText(this.scoreText, SmoTextGroup.relativePositions.RIGHT);
       }
     }
-    this.fontFamily = this.scoreText.fontInfo.family;
-    this.fontWeight = this.scoreText.fontInfo.weight;
-    this.fontSize = this.scoreText.fontInfo.size;
+    this.fontFamily = SmoScoreText.familyString(this.scoreText.fontInfo.family);
+    this.fontWeight = SmoScoreText.weightString(this.scoreText.fontInfo.weight);
+    this.fontSize = SmoScoreText.fontPointSize(this.scoreText.fontInfo.size);
     this.text = this.scoreText.text;
   }
 
@@ -1223,7 +1223,8 @@ export class SuiLyricSession {
       return;
     }
     let startX = this.note.logicalBox.x;
-    let startY = this.note.logicalBox.y + this.note.logicalBox.height + this.lyric.fontInfo.size;
+    let startY = this.note.logicalBox.y + this.note.logicalBox.height + 
+      SmoScoreText.fontPointSize(this.lyric.fontInfo.size);
     this.lyric.skipRender = true;
     const lyricRendered = this.lyric._text.length > 0;
     if (this.lyric.logicalBox !== null) {

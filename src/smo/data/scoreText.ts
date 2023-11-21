@@ -7,10 +7,11 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
-import { FontInfo, SmoModifierBase } from './common';
+import { SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, FontInfo } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
+import { SmoTempoText } from './measureModifiers';
 const VF = VexFlow;
 
 
@@ -49,16 +50,17 @@ export interface SmoScoreTextParams {
  */
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
-  static fontPointSize(size: string) {
+  static fontPointSize(size: string | number | undefined) {
     let rv = 12;
-    if (typeof (size) === 'number') {
-      return size;
+    const szz: string | number = size ?? 14;
+    if (typeof (szz) === 'number') {
+      return szz;
     }
-    const ptString = size.substring(0, size.length - 2);
+    const ptString = szz.substring(0, szz.length - 2);
     rv = parseFloat(ptString);
-    if (size.indexOf('em') > 0) {
+    if (szz.indexOf('em') > 0) {
       rv *= 14;
-    } else if (size.indexOf('px') > 0) {
+    } else if (szz.indexOf('px') > 0) {
       rv *= (96.0 / 72.0);
     }
     return rv;
@@ -69,19 +71,24 @@ export class SmoScoreText extends SmoScoreModifierBase {
    * @param fontWeight 
    * @returns 
    */
-  static weightString(fontWeight: string): string {
-    let rv = 'normal';
+  static weightString(fontWeight: string | number | undefined): string {    
+    let rv: string = 'normal';
     if (fontWeight) {
-      const numForm = parseInt(fontWeight, 10);
+      const numForm = parseInt(fontWeight.toString(), 10);
       if (isNaN(numForm)) {
-        rv = fontWeight;
+        rv = fontWeight.toString();
       } else if (numForm > 500) {
         rv = 'bold';
       }
     }
     return rv;
   }
-
+  static familyString(fam: string | undefined): string {
+    if (!fam) {
+      return SmoScoreText.fontFamilies.sansSerif;
+    }
+    return fam;
+  }
   static get paginations(): Record<string, string> {
     return { every: 'every', even: 'even', odd: 'odd', once: 'once', subsequent: 'subsequent' };
   }
@@ -165,7 +172,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
       weight: this.fontInfo.weight,
       style: this.fontInfo.style
     });
-    textFont.setFontSize(this.fontInfo.size);
+    textFont.setFontSize(SmoScoreText.fontPointSize(this.fontInfo.size));
     for (i = 0; i < this.text.length; ++i) {
       rv += textFont.getWidthForTextInPx(this.text[i]);
     }
@@ -209,7 +216,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
       this.height = parameters.height ? this.height : 150;
     }
     const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
-    this.fontInfo.weight = SmoScoreText.weightString(weight);
+    this.fontInfo.weight = SmoScoreText.weightString(weight ?? 'normal');
     if (this.text) {
       rx = smoSerialize.tryParseUnicode(this.text);
       this.text = rx;

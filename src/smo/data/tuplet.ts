@@ -5,17 +5,36 @@
  * @module /smo/data/tuplet
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNote } from './note';
+import { SmoNote, SmoNoteParams } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
 
 /**
  * Parameters for tuplet construction
+ * @param notes - runtime instance of tuplet has an actual instance of 
+ * notes.  The note instances are created by the deserilization of the 
+ * measure.  We serialize the note parameters so we can identify the correct notes
+ * when deserializing.
  * @category SmoParameters
  */
 export interface SmoTupletParams {
   notes: SmoNote[],
+  numNotes: number,
+  stemTicks: number,
+  totalTicks: number,
+  durationMap: number[],
+  ratioed: boolean,
+  bracketed: boolean,
+  voice: number,
+  startIndex: number
+}
+/**
+ * 
+ */
+export interface SmoTupletParamsSer {
+  ctor: string,
+  notes: SmoNoteParams[],
   numNotes: number,
   stemTicks: number,
   totalTicks: number,
@@ -56,7 +75,7 @@ export class SmoTuplet {
   startIndex: number = 0;
 
   get clonedParams() {
-    const paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
+    const paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap', 'numNotes'];
     const rv = {};
     smoSerialize.serializedMerge(paramAr, this, rv);
     return rv;
@@ -64,14 +83,20 @@ export class SmoTuplet {
 
   static get parameterArray() {
     return ['stemTicks', 'ticks', 'totalTicks',
-      'durationMap', 'attrs', 'ratioed', 'bracketed', 'voice', 'startIndex'];
+      'durationMap', 'attrs', 'ratioed', 'bracketed', 'voice', 'startIndex', 'numNotes'];
   }
 
-  serialize() {
-    const params = {};
+  serialize(): SmoTupletParamsSer {
+    const params:Partial<SmoTupletParamsSer> = {
+      notes: []
+    };
+    this.notes.forEach((nn) => {
+      params.notes!.push(nn.serialize());
+    });
+    params.ctor = 'SmoTuplet';
     smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
       SmoTuplet.parameterArray, this, params);
-    return params;
+    return params as SmoTupletParamsSer;
   }
 
   static calculateStemTicks(totalTicks: number, numNotes: number) {

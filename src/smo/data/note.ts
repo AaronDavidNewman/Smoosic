@@ -8,8 +8,8 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox, getId } from './common';
-import { VexFlow, vexCanonicalNotes } from '../../common/vex';
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
+import { FontInfo, VexFlow, vexCanonicalNotes } from '../../common/vex';
 const VF = VexFlow;
 
 export interface TupletInfo {
@@ -60,7 +60,7 @@ export interface SmoNoteParams {
   graceNotes: SmoGraceNote[],
   ornaments: SmoOrnament[],
   tones: SmoMicrotone[],
-  arpeggio: SmoArpeggio | undefined,
+  arpeggio?: SmoArpeggio,
   tuplet: TupletInfo | undefined,
   endBeam: boolean,
   fillStyle: string | null,

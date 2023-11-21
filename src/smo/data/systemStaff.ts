@@ -5,9 +5,9 @@
  * staff modifiers.
  * @module /smo/data/systemStaff
  * **/
-import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber, getId } from './common';
+import { SmoObjectParams, SmoAttrs, MeasureNumber, getId } from './common';
 import { SmoMusic } from './music';
-import { SmoMeasure } from './measure';
+import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, 
   SmoTie, SmoStaffTextBracket } from './staffModifiers';
@@ -16,7 +16,7 @@ import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { VexFlow } from '../../common/vex';;
+import { VexFlow, FontInfo } from '../../common/vex';
 
 const VF = VexFlow;
 /**
@@ -39,6 +39,18 @@ export interface SmoSystemStaffParams {
   keySignatureMap: Record<number, string>,
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
   measures: SmoMeasure[],
+  modifiers: StaffModifierBase[],
+  partInfo?: SmoPartInfo;
+  textBrackets?: SmoStaffTextBracket[];
+  alignWithPrevious?: boolean;
+}
+
+export interface SmoSystemStaffParamsSer {
+  staffId: number,
+  renumberingMap: Record<number, number>,
+  keySignatureMap: Record<number, string>,
+  measureInstrumentMap: Record<number, SmoInstrumentParams>,
+  measures: SmoMeasureParamsSer[],
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
   textBrackets?: SmoStaffTextBracket[];
@@ -172,27 +184,30 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
   // ### serialize
   // JSONify self.
-  serialize() {
-    const params: any = {};
+  serialize(): SmoSystemStaffParamsSer {
+    const params: Partial<SmoSystemStaffParamsSer> = {};
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
-    params.modifiers = [];
     params.measures = [];
     params.measureInstrumentMap = {};
     const ikeys: string[] = Object.keys(this.measureInstrumentMap);
-    ikeys.forEach((ikey) => {
-      params.measureInstrumentMap[ikey] = this.measureInstrumentMap[parseInt(ikey, 10)].serialize();
+    ikeys.forEach((ikey: string) => {
+      params.measureInstrumentMap![parseInt(ikey, 10)] = this.measureInstrumentMap[parseInt(ikey, 10)].serialize();
     });
     this.measures.forEach((measure) => {
-      params.measures.push(measure.serialize());
+      params.measures!.push(measure.serialize());
     });
+    params.modifiers = [];
     this.modifiers.forEach((modifier) => {
-      params.modifiers.push(modifier.serialize());
+      params.modifiers!.push(modifier.serialize());
     });
     this.textBrackets.forEach((bracket) => {
-      params.modifiers.push(bracket.serialize());
+      params.modifiers!.push(bracket.serialize());
     });
     params.partInfo = this.partInfo.serialize();
-    return params;
+    if (typeof(params.staffId) !== 'number') {
+      throw 'bad stave class';
+    }
+    return params as SmoSystemStaffParamsSer;
   }
 
   // ### deserialize

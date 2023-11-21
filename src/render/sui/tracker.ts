@@ -407,6 +407,7 @@ export class SuiTracker extends SuiMapper {
     this.idleTimer = Date.now();
     const nselector = JSON.parse(JSON.stringify(this.selections[0].selector));
     nselector.staff = this.score.incrementActiveStaff(offset);
+    
     this.selections = [this._getClosestTick(nselector)];
     this.deferHighlight();
     this._createLocalModifiersList();

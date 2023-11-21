@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { FontInfo } from '../../smo/data/common';
+import { FontInfo } from '../../common/vex';
 import { SmoScore, FontPurpose, isEngravingFont } from '../../smo/data/score';
+import { SmoScoreText } from '../../smo/data/scoreText';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogParams } from './dialog';
@@ -40,11 +41,13 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
     return PromiseHelpers.emptyPromise();
   }
   changeFont(purpose: number, name: string, fontInfo: FontInfo): FontPurpose {
+    const fontSize = SmoScoreText.fontPointSize(fontInfo.family);
+    const fontFamily = fontInfo.family ?? 'Arial';
     const fp: FontPurpose = {
       name,
       purpose,
-      family: fontInfo.family,
-      size: fontInfo.size,
+      family: fontFamily,
+      size: fontSize,
       custom: false
     };
     const fonts: FontPurpose[] = this.fonts.filter((ff) => ff.purpose !== purpose);
@@ -72,7 +75,7 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
   get engravingFont(): string {
     const font = this.fonts.find((ff) => ff.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (font) {
-      return this.toInfo(font).family;
+      return this.toInfo(font).family ?? 'Arial';
     }
     return 'Bravura';
   }

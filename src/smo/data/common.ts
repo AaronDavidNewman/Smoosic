@@ -70,16 +70,6 @@ export interface Pitch {
 }
 
 /**
- * Basic text font information.
- */
-export interface FontInfo {
-    size: number;
-    weight: string;
-    family: string;
-    style?: string;
-}
-
-/**
  * A tuple indicating measure location in the score:
  * @param measureIndex - the actual offset from the first measure
  * @param localIndex - the index as shown to the user, considers renumbering

@@ -6,7 +6,7 @@ import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
-import { KeyEvent, SvgBox, Pitch, PitchLetter, FontInfo } from '../../smo/data/common';
+import { KeyEvent, SvgBox, Pitch, PitchLetter } from '../../smo/data/common';
 import { SmoRenderConfiguration } from './configuration';
 import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAudioPlayerSettings } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
@@ -17,6 +17,7 @@ import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { FontInfo } from '../../common/vex';
 import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
 import { XmlToSmo } from '../../smo/mxml/xmlToSmo';

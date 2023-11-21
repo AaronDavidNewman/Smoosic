@@ -45,11 +45,16 @@ module.exports = function (grunt) {
       tsconfig: 'tsconfig.json',
       excludeProtected: true,
       excludePrivate: true,
-      categorizeByGroup: true,
+      hideParameterTypesInTitle: false,
+      navigation: {
+        includeCategories: true,
+        includeGroups: true
+     },
+     categorizeByGroup: true,
       readme: 'readme.md',
       defaultCategory: ['Other'],
       categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameters', '*'],
-      excludeNotDocumented: true
+      excludeNotDocumented: false
     },  src: ['./typedoc.ts']
   };
   // Project configuration.
