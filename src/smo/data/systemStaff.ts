@@ -204,9 +204,6 @@ export class SmoSystemStaff implements SmoObjectParams {
       params.modifiers!.push(bracket.serialize());
     });
     params.partInfo = this.partInfo.serialize();
-    if (typeof(params.staffId) !== 'number') {
-      throw 'bad stave class';
-    }
     return params as SmoSystemStaffParamsSer;
   }
 
