@@ -18,14 +18,14 @@ export function createLoadTests(): void {
     await view.renderPromise();
     QUnit.test('loaded', assert => {
       assert.equal(view.score.staves[0].measures.length, 17);
-      assert.equal($('#boo .vf-annotation').length, 82);
+      assert.equal($('#boo .vf-lyric').length, 82);
     });
     const xml = SmoToXml.convert(view.score);
     const newScore = XmlToSmo.convert(xml);
     await view.changeScore(newScore);
     QUnit.test('loadXml', assert => {
       assert.equal(view.score.staves[0].measures.length, 17);
-      assert.equal($('#boo .vf-annotation').length, 82);
+      assert.equal($('#boo .vf-lyric').length, 82);
     });
     let midiData = new SuiXhrLoader(midiTiesPath);
     await midiData.loadAsync();
