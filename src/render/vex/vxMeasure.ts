@@ -634,8 +634,8 @@ export class VxMeasure {
         tsString = 'C';
       } else if (this.smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
         tsString = 'C|';
-      } else if (this.smoMeasure.timeSignatureString.length) {
-        tsString = this.smoMeasure.timeSignatureString;
+      } else if (this.smoMeasure.timeSignature.displayString.length) {
+        tsString = this.smoMeasure.timeSignature.displayString;
       }
       this.stave.addTimeSignature(tsString);
     }

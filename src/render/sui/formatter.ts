@@ -17,7 +17,7 @@ import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/dat
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { TimeSignature, SmoTempoText } from '../../smo/data//measureModifiers';
 import { SvgPageMap } from './svgPageMap';
-import { VexFlow } from '../../common/vex';
+import { VexFlow, defaultMeasurePadding } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
 const VF = VexFlow;
 
@@ -530,7 +530,7 @@ export class SuiLayoutFormatter {
 
   estimateMeasureWidth(measure: SmoMeasure, scoreLayout: ScaledPageLayout, tickContexts: Record<number, SuiTickContext>) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, tickContexts);
+    let measureWidth = SuiLayoutFormatter.estimateMusicWidth(measure, tickContexts) + defaultMeasurePadding;
     // measure.svg.adjX already set based on max column adjX
     measure.svg.adjRight = SuiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch + measure.format.padLeft;
@@ -680,7 +680,7 @@ export class SuiLayoutFormatter {
     const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
     measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
-      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
+      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignature.displayString.length > 0);
     if (measure.timeSignature.display === false) {
       measure.svg.forceTimeSignature = false;
     }

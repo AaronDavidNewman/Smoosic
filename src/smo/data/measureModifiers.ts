@@ -52,31 +52,61 @@ export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = [
  * @param measureIndex numbered measure index, for re-numbering
  */
 export interface SmoMeasureFormatParams {
+  /**
+   * additional pixels to a measure (plus or minus)
+   */
   customStretch: number | null,
+  /**
+   * softmax factor, controls how tightly rhythms are formatted
+   */
   proportionality: number | null,
+  /**
+   * break justification for this column
+   */
   autoJustify: boolean | null,
+  /**
+   * create a new system before this measure
+   */
   systemBreak: boolean | null,
+  /**
+   * create a new system before this page
+   */
   pageBreak: boolean | null,
+  /**
+   * force a break in multi-measure rest
+   */
   restBreak: boolean | null,
+  /**
+   * treat this measure like a whole rest
+   */
   forceRest: boolean | null,
+  /**
+   * if score is grouping measures per system, skip this measure in the count
+   * (used for short measures, or pickups)
+   */
   skipMeasureCount: boolean | null,
+  /**
+   * pad left, e.g. for the first stave in a system
+   */
   padLeft: number | null,
+  /**
+   * if padding left, pad all the measures in the column
+   */
   padAllInSystem: boolean | null,
+  /**
+   * renumber measures
+   */
   measureIndex: number | null,
 }
-export interface SmoMeasureFormatParamsSer {
-  ctor: string,
-  customStretch: number | null,
-  proportionality: number | null,
-  autoJustify: boolean | null,
-  systemBreak: boolean | null,
-  pageBreak: boolean | null,
-  restBreak: boolean | null,
-  forceRest: boolean | null,
-  skipMeasureCount: boolean | null,
-  padLeft: number | null,
-  padAllInSystem: boolean | null,
-  measureIndex: number | null,
+/**
+ * Serialization for measure formatting customization, like system break
+ * @category serialization
+ */
+export interface SmoMeasureFormatParamsSer extends  SmoMeasureFormatParams{
+  /**
+   * class name for deserialization
+   */
+  ctor: string
  }
  function isSmoMeasureParamsSer(params: Partial<SmoMeasureFormatParamsSer>):params is SmoMeasureFormatParamsSer {
   return typeof(params.ctor) === 'string';
@@ -277,9 +307,21 @@ export class SmoBarline extends SmoMeasureModifierBase {
  * Constructor for SmoRepeatSymbol
  */
 export interface SmoRepeatSymbolParams {
+  /**
+   * The symbol enumeration
+   */
   symbol: number,
+  /**
+   * x offset for DC, sign etc.
+   */
   xOffset: number,
+  /**
+   * y offset for DC, sign etc.
+   */
   yOffset: number,
+  /**
+   * position, above or below
+   */
   position: number
 }
 
@@ -369,14 +411,39 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
  * @category SmoParams
  */
 export interface SmoVoltaParams {
+  /**
+   * start bar of ending
+   */
   startBar: number,
+  /**
+   * end bar (how long it stretches)
+   */
   endBar: number,
+  /**
+   * xoffset for start, for collisions
+   */
   xOffsetStart: number,
+  /**
+   * xoffset for end, for collisions
+   */
   xOffsetEnd: number,
+  /**
+   * yOffset, for collisions
+   */
   yOffset: number,
+  /**
+   * 2nd ending, 3rd etc.
+   */
   number: number
 }
+/**
+ * serializable bits of volta/endings
+ * @category serialization
+ */
 export interface SmoVoltaParamsSer extends SmoVoltaParams {
+  /**
+   * constructor
+   */
   ctor: string;
 }
 /**
@@ -552,16 +619,32 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
  * @category SmoParams
  * */
 export interface SmoRehearsalMarkParams {
+  /**
+   * cardinal position
+   */
   position: number,
-  cardinality: string,
+  /**
+   * Symbol. by default, letters that auto-increment
+   */
   symbol: string,
+  /**
+   * future, define how increment works
+   */
+  cardinality: string,
+  /**
+   * disable to make your own symbols for each new one.
+   */
   increment: boolean
 }
 
 /**
  * Serialized fields for rehearsal mark
+ * @category serialization
  */
 export interface SmoRehearsalMarkParamsSer extends SmoRehearsalMarkParams {
+  /**
+   * constructor
+   */
   ctor: string;
 }
 /**
@@ -646,12 +729,33 @@ export type SmoTempoMode = 'duration' | 'text' | 'custom';
  * @param customText if custom mode, the custom text
  */
 export interface SmoTempoTextParams {
+  /**
+   * text (e.g. Allegro) or bpm
+   */
   tempoMode: string,
+  /**
+   * playback bpm
+   */
   bpm: number,
+  /**
+   * note type for a metronome beat
+   */
   beatDuration: number,
+  /**
+   * if text mode, the text
+   */
   tempoText: string,
+  /**
+   * move the text to keep it from colliding with other things
+   */
   yOffset: number,
+  /**
+   * indicate if we are displaying, false if only affects playback
+   */
   display: boolean,
+  /**
+   * text taht is not a standards notation
+   */
   customText: string
 }
 export interface SmoTempoTextParamsSer extends SmoTempoTextParams {
@@ -811,17 +915,36 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
  * @category SmoParameters
  */
 export interface TimeSignatureParameters  {
+  /**
+   * numerator
+   */
   actualBeats: number,
+  /**
+   * denominator, always power of 2
+   */
   beatDuration: number,
+  /**
+   * indicates cut time/common time
+   */
   useSymbol: boolean,
+  /**
+   * display, else just affects measure lengths.
+   */
   display: boolean,
+  /**
+   * for pickups, display the non-pickup value
+   */
   displayString: string
 }
 
 /**
  * ctor: constructor for deserializer
+ * @category serialization
  */
 export interface TimeSignatureParametersSer extends TimeSignatureParameters {
+  /**
+   * constructor
+   */
   ctor: string;
 }
 /**

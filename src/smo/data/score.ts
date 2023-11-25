@@ -12,7 +12,7 @@ import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, 
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoSystemGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
   SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters } from './scoreModifiers';
-import { SmoTextGroup, SmoScoreText }   from './scoreText';
+import { SmoTextGroup, SmoScoreText, SmoTextGroupParamsSer }   from './scoreText';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -144,14 +144,21 @@ export interface SmoScoreParams {
   formattingManager?: SmoFormattingManager
 }
 
+// dont' deserialize trivial text blocks saved by mistake
+export function isEmptyTextBlock(params: Partial<SmoTextGroupParamsSer>): params is SmoTextGroupParamsSer {
+  if (Array.isArray(params?.textBlocks) || Array.isArray((params as any)?.blocks)) {
+    return false;
+  }
+  return true;
+}
 /**
  * Union of modifier types Smo modifier types
  */
 export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
-
 /**
- * score
+ * Score is a container of staves, and metadata about the score.  Serializing the score serializes the 
+ * child object.  It is the highest-level object in Smoosic.
  */
 export class SmoScore {
   /**
@@ -190,17 +197,53 @@ export class SmoScore {
    */
   staves: SmoSystemStaff[] = [];
   /**
-   * The active staff in editing.  Not serialized, runtime
+   * The active staff, used for some types of selections.  Not serialized.
    *
    * @type {number}
    * @memberof SmoScore
    */
   activeStaff: number = 0;
+  /**
+   * Text associated with the score, but not a specific musical element (e.g. lyrics are contains by notes)
+   *
+   * @type {SmoTextGroup[]}
+   * @memberof SmoScore
+   */
   textGroups: SmoTextGroup[] = [];
+  /**
+   * A logical grouping of staves for justification
+   *
+   * @type {SmoSystemGroup[]}
+   * @memberof SmoScore
+   */
   systemGroups: SmoSystemGroup[] = [];
+  /**
+   * some audio player defaults
+   *
+   * @type {SmoAudioPlayerSettings}
+   * @memberof SmoScore
+   */
   audioSettings: SmoAudioPlayerSettings;
+  /**
+   * Preserve a map of measures to their actual measure numbers
+   *
+   * @type {Record<number, number>}
+   * @memberof SmoScore
+   */
   renumberingMap: Record<number, number> = {};
+  /**
+   * page and rendering layout of the score, including the ppi and scaling of the pages.
+   *
+   * @type {SmoLayoutManager}
+   * @memberof SmoScore
+   */
   layoutManager?: SmoLayoutManager;
+  /**
+   * per-measure formatting customizations.
+   *
+   * @type {SmoFormattingManager}
+   * @memberof SmoScore
+   */
   formattingManager?: SmoFormattingManager
   constructor(params: SmoScoreParams) {
     smoSerialize.vexMerge(this, SmoScore.defaults);
@@ -572,7 +615,9 @@ export class SmoScore {
 
     const textGroups: SmoTextGroup[] = [];
     jsonObj.textGroups.forEach((tg: any) => {
-      textGroups.push(SmoTextGroup.deserializePreserveId(tg));
+      if (!isEmptyTextBlock(tg)) {
+        textGroups.push(SmoTextGroup.deserializePreserveId(tg));
+      }
     });
 
     const systemGroups: SmoSystemGroup[] = [];

@@ -452,8 +452,8 @@ export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs
       tsString = 'C';
     } else if (smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
       tsString = 'C|';
-    } else if (smoMeasure.timeSignatureString.length) {
-      tsString = smoMeasure.timeSignatureString;
+    } else if (smoMeasure.timeSignature.displayString.length) {
+      tsString = smoMeasure.timeSignature.displayString;
     }
     strs.push(`${ssid}.addTimeSignature('${tsString}');`);
   }

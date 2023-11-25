@@ -264,6 +264,7 @@ export interface SmoVexSlurParameters {
   position: number,
   positionEnd: number
 }
+export const defaultMeasurePadding = VF.Stave.defaultPadding;
 export function createSlur(params: SmoVexSlurParameters): Curve {
   if (params.vxStart === null && params.vxEnd === null) {
     throw(' slur with no points');

@@ -71,7 +71,7 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
       this.complete();
       return;
     }
-    this.view.setTimeSignature(SmoMeasure.convertLegacyTimeSignature(text), '');
+    this.view.setTimeSignature(SmoMeasure.convertLegacyTimeSignature(text));
     this.complete();
   }
 

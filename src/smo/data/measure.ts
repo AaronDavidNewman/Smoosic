@@ -16,8 +16,8 @@ import {
   SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams, TimeSignature,
   TimeSignatureParametersSer, SmoMeasureFormatParamsSer, SmoTempoTextParamsSer
 } from './measureModifiers';
-import { SmoNote, NoteType } from './note';
-import { SmoTuplet, SmoTupletParamsSer } from './tuplet';
+import { SmoNote, NoteType, SmoNoteParamsSer } from './note';
+import { SmoTuplet, SmoTupletParamsSer, SmoTupletParams } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
@@ -32,6 +32,9 @@ export interface SmoVoice {
   notes: SmoNote[]
 }
 
+export interface SmoVoiceSer {
+  notes: SmoNoteParamsSer[]
+}
 /**
  * TickMappable breaks up a circular dependency on modifiers
  * like @SmoDuration
@@ -109,15 +112,14 @@ export type SmoMeasureNumberParam = 'transposeIndex' | 'activeVoice' | 'lines' |
 // @internal
 export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['transposeIndex', 'activeVoice', 'lines', 'repeatCount'];
 // @internal
-export type SmoMeasureStringParam = 'timeSignatureString' | 'keySignature';
+export type SmoMeasureStringParam = 'keySignature';
 // @internal
-export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureString', 'keySignature'];
+export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['keySignature'];
 /**
  * constructor parameters for a {@link SmoMeasure}.  Usually you will call
  * {@link SmoMeasure.defaults}, and modify the parameters you need to change.
  *
  * @param timeSignature
- * @param timeSignatureString for pickups, the displayed time signature might be different than the actual
  * @param keySignature
  * @param tuplets
  * @param transposeIndex calculated from {@link SmoPartInfo} for non-concert-key instruments
@@ -134,7 +136,6 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureSt
  */
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
-  timeSignatureString: string,
   keySignature: string,
   tuplets: SmoTuplet[],
   transposeIndex: number,
@@ -156,39 +157,67 @@ export interface SmoMeasureParams {
  * The serializeable bits of SmoMeasure.  Some parameters are 
  * mapped by the stave if the don't change every measure, e.g.
  * time signature.
- * @param timeSignature
- * @param timeSignatureString for pickups, the displayed time signature might be different than the actual
- * @param keySignature
- * @param tuplets
- * @param transposeIndex calculated from {@link SmoPartInfo} for non-concert-key instruments
- * @param lines number of lines in the stave
- * @param staffY Y coordinate (UL corner) of the measure stave
- * @param measureNumber combination configured/calculated measure number
- * @param clef
- * @param voices
- * @param activeVoice the active voice in the editor
- * @param tempo
- * @param format measure format, is managed by the score
- * @param modifiers All measure modifiers that5 aren't format, timeSignature or tempo
- * @category serializable
+ * @category serialization
  */
 export interface SmoMeasureParamsSer {
+  /**
+   * constructor
+   */
+  ctor: string;
+  /**
+   * id of the measure
+   */
+  attrs: SmoAttrs;
+  /**
+   * time signature serialization
+   */
   timeSignature?: TimeSignatureParametersSer,
+  /**
+   * key signature
+   */
   keySignature?: string,
+  /**
+   * a list of tuplets (serialized)
+   */
   tuplets: SmoTupletParamsSer[],
+  /**
+   * transpose the notes up/down.  TODO: this should not be serialized
+   * as its part of the instrument parameters
+   */
   transposeIndex: number,
+  /**
+   * lines in the staff (e.g. percussion)
+   */
   lines: number,
+  /**
+   * y coordinate of stave. TODO:  this should not be serialized
+   *  since it is calculated as part of layout
+   */
   staffY: number,
-  // bars: [1, 1], // follows enumeration in VF.Barline
+  /**
+   * measure number, absolute and relative/remapped
+   */
   measureNumber: MeasureNumber,
+  /**
+   * start clef
+   */
   clef: Clef,
-  voices: SmoVoice[],
-  activeVoice: number,
+  /**
+   * voices contain notes
+   */
+  voices: SmoVoiceSer[],
+  /**
+   * tempo at this point
+   */
   tempo: SmoTempoTextParamsSer,
+  /**
+   * format customizations
+   */
   format: SmoMeasureFormatParamsSer | null,
-  modifiers: SmoMeasureModifierBase[],
-  repeatSymbol: boolean,
-  repeatCount: number
+  /**
+   * all other modifiers (barlines, etc)
+   */
+  modifiers: SmoMeasureModifierBase[]
 }
 
 /**
@@ -221,7 +250,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // @internal
   static readonly _defaults: SmoMeasureParams = {
     timeSignature: SmoMeasure.timeSignatureDefault,
-    timeSignatureString: '',
     keySignature: 'C',
     tuplets: [],
     transposeIndex: 0,
@@ -274,7 +302,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * Overrides display of actual time signature, in the case of
    * pick-up notes where the actual and displayed durations are different
    */
-  timeSignatureString: string = '';
   keySignature: string = '';
   canceledKeySignature: string = '';
   tuplets: SmoTuplet[] = [];
@@ -396,7 +423,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // used for serialization
   static get defaultAttributes() {
     return [
-      'keySignature', 'timeSignatureString',
+      'keySignature', 
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
       'format', 'rightMargin', 'lines', 'repeatSymbol', 'repeatCount'
@@ -507,14 +534,14 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * @param jsonObj the serialized SmoMeasure
    * @returns
    */
-  static deserialize(jsonObj: any): SmoMeasure {
+  static deserialize(jsonObj: SmoMeasureParamsSer): SmoMeasure {
     let j = 0;
     let i = 0;
-    const voices = [];
+    const voices: SmoVoice[] = [];
     const noteSum = [];
     for (j = 0; j < jsonObj.voices.length; ++j) {
       const voice = jsonObj.voices[j];
-      const notes: any = [];
+      const notes: SmoNote[] = [];
       voices.push({
         notes
       });
@@ -528,9 +555,10 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
     const tuplets = [];
     for (j = 0; j < jsonObj.tuplets.length; ++j) {
-      const tupJson = jsonObj.tuplets[j];
+      const tupJson = SmoTuplet.defaults;
+      smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj.tuplets[j], tupJson);
       const noteAr = noteSum.filter((nn: any) =>
-        nn.isTuplet && nn.tuplet.id === tupJson.attrs.id);
+        nn.isTuplet && nn.tuplet.id === tupJson.attrs!.id);
 
       // Bug fix:  A tuplet with no notes may be been overwritten
       // in a copy/paste operation
@@ -548,10 +576,33 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
     const params: SmoMeasureParams = SmoMeasure.defaults;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+
     // explode column-mapped
-    params.tempo = jsonObj.tempo;
-    params.timeSignature = jsonObj.timeSignature;
-    params.keySignature = jsonObj.keySignature;
+    if (jsonObj.tempo) {
+      params.tempo = SmoTempoText.deserialize(jsonObj.tempo);
+    } else {
+      params.tempo = new SmoTempoText(SmoTempoText.defaults);
+    }
+
+    // timeSignatureString is now part of timeSignature.  upconvert old scores
+    let timeSignatureString = '';
+    const jsonLegacy = (jsonObj as any);
+    if (typeof(jsonLegacy.timeSignatureString) === 'string' && jsonLegacy.timeSignatureString.length > 0) {
+      timeSignatureString = jsonLegacy.timeSignatureString;
+    }
+    if (jsonObj.timeSignature) {
+      if (timeSignatureString.length) {
+        jsonObj.timeSignature.displayString = timeSignatureString;  
+      }
+      params.timeSignature = TimeSignature.deserialize(jsonObj.timeSignature);
+    } else {
+      const tparams = TimeSignature.defaults;
+      if (timeSignatureString.length) {
+        tparams.displayString = timeSignatureString;
+      }
+      params.timeSignature = new TimeSignature(tparams);
+    }
+    params.keySignature = jsonObj.keySignature ?? 'C';
     params.voices = voices;
     params.tuplets = tuplets;
     params.modifiers = modifiers;
@@ -644,13 +695,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const maxTicks = SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
     const noteTick = 8192 / (timeSignature.beatDuration / 2);
     let ticks = 0;
-    let beamBeats = 2;
-    if (timeSignature.beatDuration === 8 && (timeSignature.actualBeats % 3 === 0 || timeSignature.actualBeats % 2 !== 0)) {
-      beamBeats = 3;
-    }
-    if (timeSignature.beatDuration === 16) {
-      beamBeats = 4;
-    }
     const pnotes: SmoNote[] = [];
     while (ticks < maxTicks) {
       const nextNote = SmoNote.defaults;
@@ -803,7 +847,81 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     layoutDebug.measureHistory(this, 'staffX', x, description);
     this.svg.staffX = Math.round(x);
   }
-
+  /**
+   * A time signature has possibly changed.  add/remove notes to
+   * match the new length
+   */
+  alignNotesWithTimeSignature() {
+    const tsTicks = SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
+    if (tsTicks === this.getMaxTicksVoice()) {
+      return;
+    }
+    const replaceNoteWithDuration = (target: number, ar: SmoNote[], note: SmoNote) => {
+      const fitNote = new SmoNote(SmoNote.defaults);
+      const duration = SmoMusic.closestDurationTickLtEq(target);
+      if (duration > 128) {
+        fitNote.ticks = { numerator: duration, denominator: 1, remainder: 0 };
+        fitNote.pitches = note.pitches;
+        fitNote.noteType = note.noteType;
+        fitNote.clef = note.clef;
+        ar.push(fitNote);
+      }
+    }
+    const voices: SmoVoice[] = [];
+    const tuplets: SmoTuplet[] = [];
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      const newNotes: SmoNote[] = [];
+      let voiceTicks = 0;
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const note = voice.notes[j];
+        // if a tuplet, make sure the whole tuplet fits.
+        if (note.isTuplet) {
+          const tuplet = this.getTupletForNote(note);
+          if (tuplet) {
+            // remaining notes of an approved tuplet, just add them
+            if (tuplet.startIndex !== j) {
+              newNotes.push(note);
+              continue;
+            }
+            else if (tuplet.tickCount + voiceTicks <= tsTicks) {
+              // first note of the tuplet, it fits, add it
+              voiceTicks += tuplet.tickCount;
+              newNotes.push(note);
+              tuplets.push(tuplet);
+            } else {
+              // tuplet will not fit.  Make a note as close to remainder as possible and add it
+              replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+              voiceTicks = tsTicks;
+              break;
+            }
+          } else { // missing tuplet, now what?
+            console.warn('missing tuplet info');
+            replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+            voiceTicks = tsTicks;
+          }
+        } else {
+          if (note.tickCount + voiceTicks <= tsTicks) {
+            newNotes.push(note);
+            voiceTicks += note.tickCount;
+          } else {
+            replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+            voiceTicks = tsTicks;
+            break;
+          }
+        }
+      }
+      if (tsTicks - voiceTicks > 128) {
+        const np = SmoNote.defaults;
+        np.clef = this.clef;
+        const nnote = new SmoNote(np);
+        replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, nnote);
+      }
+      voices.push({ notes: newNotes });
+    }
+    this.voices = voices;
+    this.tuplets = tuplets;
+  }
   /**
    * Get rendered or estimated start y
    */

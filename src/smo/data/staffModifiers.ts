@@ -49,6 +49,13 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
+export interface StaffModifierBaseSer {
+  attrs: SmoAttrs;
+  ctor: string;
+  associatedStaff: number;
+  startSelector: SmoSelector;
+  endSelector: SmoSelector;
+}
 export type SoundSustain = 'percussive' | 'sustained';
 export type oscillatorType = 'sample' | 'sine' | 'sawtooth' | 'square' | 'triangle' | 'custom';
 export type oscillatorOptions = 'plucked' | 'bowed' | 'muted' | 'accented' | 'frequency-sweep' | 'na';
@@ -90,20 +97,65 @@ export type SmoOscillatorAnyType =  SmoOscillatorInfoNumberType | SmoOscillatorI
  * @category SmoParameters
  */
 export interface SmoInstrumentParams {
+  /**
+   * where instrument starts to take effect
+   */
   startSelector: SmoSelector,
+  /**
+   * where instrument changes
+   */
   endSelector: SmoSelector,
+  /**
+   * name, for metadata
+   */
   instrumentName: string,
+  /**
+   * woodwind, brass etc.
+   */
   family: string,
+  /**
+   * instrument sample
+   */
   instrument: string,
+  /**
+   * abbreviation for score
+   */
   abbreviation: string,
+  /**
+   * -2 indicates key of Bb
+   */
   keyOffset: number,
+  /**
+   * for future
+   */
   midiInstrument: number,
+  /**
+   * for future
+   */
   midichannel: number,
+  /**
+   * for future
+   */
   midiport: number,
+  /**
+   * default clef
+   */
   clef: Clef,
+  /**
+   * future, can be used to set sample
+   */
   mutes?: string,  
 }
 
+export interface SmoInstrumentParamsSer extends SmoInstrumentParams {
+  /**
+   * constructor
+   */
+  ctor: string;
+}
+function isSmoInstrumentParamsSer(params: Partial<SmoInstrumentParamsSer>): params is SmoInstrumentParamsSer {
+  return params?.ctor === 'SmoInstrument';
+}
 export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport' | 'midiInstrument';
 export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport', 'midiInstrument'];
 export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation' | 'family' | 'instrument';
@@ -181,10 +233,13 @@ export class SmoInstrument extends StaffModifierBase {
     this.startSelector = params.startSelector;
     this.endSelector = params.endSelector;
   }
-  serialize() {
-    const params: any = {};
+  serialize(): SmoInstrumentParamsSer {
+    const params: Partial<SmoInstrumentParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoInstrument.defaults, SmoInstrument.attributes, this, params);
     params.ctor = 'SmoInstrument';
+    if (!isSmoInstrumentParamsSer(params)) {
+      throw ('bad instrument ' + JSON.stringify(params));
+    }
     return params;
   }
   eq(other: SmoInstrument): boolean {
@@ -212,16 +267,80 @@ export interface SmoInstrumentMeasure {
  * @category SmoParameters
  */
 export interface SmoStaffHairpinParams {
+  /**
+   * extra x on start of shape
+   */
   xOffsetLeft: number,
+  /**
+   * extra x on end of shape
+   */
   xOffsetRight: number,
+  /**
+   * yOffset
+   */
   yOffset: number,
+  /**
+   * flare-out pixels
+   */
   height: number,
+  /**
+   * above, below
+   */
   position: number,
+  /**
+   * cresc, dim.
+   */
   hairpinType: number,
+  /**
+   * where it starts
+   */
   startSelector: SmoSelector,
+  /**
+   * where it starts
+   */
   endSelector: SmoSelector
 }
 
+export interface SmoStaffHairpinParamsSer extends StaffModifierBaseSer {
+  /**
+   * extra x on start of shape
+   */
+  xOffsetLeft: number,
+  /**
+   * extra x on end of shape
+   */
+  xOffsetRight: number,
+  /**
+   * yOffset
+   */
+  yOffset: number,
+  /**
+   * flare-out pixels
+   */
+  height: number,
+  /**
+   * above, below
+   */
+  position: number,
+  /**
+   * cresc, dim.
+   */
+  hairpinType: number,
+  /**
+   * where it starts
+   */
+  startSelector: SmoSelector,
+  /**
+   * where it starts
+   */
+  endSelector: SmoSelector
+}
+function isSmoStaffHairpinParamsSer(params: Partial<SmoStaffHairpinParamsSer>): params is SmoStaffHairpinParamsSer {
+  if (!params.ctor || !(params.ctor === 'SmoStaffHairpin')) {
+    return false;
+  }
+  return true;
+}
 /**
  * Also called crescendo etc.
  * @category SmoModifier
@@ -269,10 +388,13 @@ export class SmoStaffHairpin extends StaffModifierBase {
   hairpinType: number = SmoStaffHairpin.types.CRESCENDO;
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
-  serialize() {
-    const params: any = {};
+  serialize(): SmoStaffHairpinParamsSer {
+    const params: Partial<SmoStaffHairpinParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults, SmoStaffHairpin.attributes, this, params);
     params.ctor = 'SmoStaffHairpin';
+    if (!isSmoStaffHairpinParamsSer(params)) {
+      throw 'bad hairpin ' + JSON.stringify(params);
+    }
     return params;
   }
   constructor(params: SmoStaffHairpinParams) {
@@ -298,18 +420,77 @@ export class SmoStaffHairpin extends StaffModifierBase {
 }
 
 /**
- * constructor params for {@link SmoStaffHairpin}
+ * constructor params for {@link SmoStaffTextBracket}
  * @category SmoParameters
  */
 export interface SmoStaffTextBracketParams {
+  /**
+   * the ledger line
+   */
   line: number,
+  /**
+   * above or below
+   */
   position: number,
+  /**
+   * the text to display
+   */
   text: string,
+  /**
+   * text can have superscript
+   */
   superscript: string,
+  /**
+   * extend of the line
+   */
   startSelector: SmoSelector,
+  /**
+   * extend of the line
+   */
   endSelector: SmoSelector
 }
 
+/**
+ * serializable bits of SmoStaffTextBracket
+ */
+export interface SmoStaffTextBracketParamsSer extends StaffModifierBaseSer{
+  /**
+   * constructor
+   */
+  ctor: string;
+  attrs: SmoAttrs;
+  /**
+   * the ledger line
+  */
+  line: number;
+  /**
+   * above or below
+   */
+  position: number,
+  /**
+   * the text to display
+   */
+  text: string,
+  /**
+   * text can have superscript
+   */
+  superscript: string,
+  /**
+   * extend of the line
+   */
+  startSelector: SmoSelector,
+  /**
+   * extend of the line
+   */
+  endSelector: SmoSelector
+}
+function isSmoStaffTextBracketParamsSer(params: Partial<SmoStaffTextBracketParamsSer>):
+  params is SmoStaffTextBracketParamsSer {
+    if (params.ctor && params.ctor === 'SmoStaffTextBracket') {
+      return false;
+    }
+    return true;
+}
 export type SmoTextBracketStringType = 'text' | 'superscript';
 export const SmoTextBracketStringTypes: SmoTextBracketStringType[] = ['text', 'superscript'];
 export type SmoTextBracketNumberType = 'line' | 'position';
@@ -353,10 +534,13 @@ export class SmoStaffTextBracket extends StaffModifierBase {
   line: number = 1;
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
-  serialize() {
-    const params: any = {};
+  serialize(): SmoStaffTextBracketParamsSer {
+    const params: Partial<SmoStaffTextBracketParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoStaffTextBracket.defaults, SmoStaffTextBracket.attributes, this, params);
     params.ctor = 'SmoStaffTextBracket';
+    if (!isSmoStaffTextBracketParamsSer(params)) {
+      throw(' bad text bracket ' + JSON.stringify(params));
+    }
     return params;
   }
   constructor(params: SmoStaffTextBracketParams) {
@@ -374,6 +558,9 @@ export class SmoStaffTextBracket extends StaffModifierBase {
   }
 }
 
+/**
+ * used for debugging
+ */
 export interface SlurDefaultParams {
   stemDir1: number,
   stemDir2: number,
@@ -407,21 +594,83 @@ export const SlurNumberParams: SlurNumberParam[] = ['spacing', 'thickness', 'xOf
  * @category SmoParameters
  */
 export interface SmoSlurParams {
+  /** 
+   * spacing between note and curve 
+   * */
   spacing: number,
+  /**
+   * thickness of the curve
+   */
   thickness: number,
+  /**
+   * x offset on both ends
+   */
   xOffset: number,
+  /**
+   * move whole curve up or down
+   */
   yOffset: number,
+  /**
+   * VF position, whether head-end or stem end
+   */
   position: number,
+  /**
+   * VF position for right side of slur
+   */
   position_end: number,
+  /**
+   * indicates whether the user wants up, down or 'auto'.
+   * internally, sets the 'invert' flag
+   */
   orientation: number,
+  /**
+   * reverse the slur from the usual rules in VF
+   */
   invert: boolean,
+  /**
+   * control point for bz curve
+   */
   cp1x: number,
+  /**
+   * control point for bz curve
+   */
   cp1y: number,
+  /**
+   * control point for bz curve
+   */
   cp2x: number,
+  /**
+   * control point for bz curve
+   */
   cp2y: number,
+  /**
+   * start note of the curve
+   */
   startSelector: SmoSelector,
+  /**
+   * start note of the curve
+   */
   endSelector: SmoSelector,
+  /**
+   * optional for debugging
+   */
   debugParams?: SlurDefaultParams
+}
+/**
+ * serializable bits of slur
+ */
+export interface SmoSlurParamsSer extends SmoSlurParams {
+  /**
+   * constructor
+   */
+  ctor: string;
+}
+
+function isSmoSlurParamsSer(params: Partial<SmoSlurParamsSer>): params is SmoSlurParamsSer {
+  if (params && params.ctor && params.ctor === 'SmoSlur') {
+    return true;
+  }
+  return false;
 }
 /**
  * Defines a slur
@@ -483,11 +732,14 @@ export class SmoSlur extends StaffModifierBase {
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
 
-  serialize(): any {
-    const params: any = {};
+  serialize(): SmoSlurParamsSer {
+    const params: Partial<SmoSlurParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
       SmoSlur.parameterArray, this, params);
     params.ctor = 'SmoSlur';
+    if (!isSmoSlurParamsSer(params)) {
+      throw('bad slur ' + JSON.stringify(params));
+    }
     return params;
   }
   get controlPoints(): SvgPoint[] {
@@ -530,15 +782,55 @@ export interface TieLine {
  * @category SmoParameters
  */
 export interface SmoTieParams {
+  /**
+   * future: x offset on both sides
+   */
   tie_spacing: number,
+  /**
+   * x coord of cp for bz curve
+   */
   cp1: number,
+  /**
+   * x coord of cp for bz curve
+   */
   cp2: number,
+  /**
+   * x offset
+   */
   first_x_shift: number,
+  /**
+   * x offset end
+   */
   last_x_shift: number,
+  /**
+   * y offset for all the curves
+   */
   y_shift: number,
+  /**
+   * map of lines for the pitches
+   */
   lines: TieLine[],
+  /**
+   * start note
+   */
   startSelector: SmoSelector | null,
+  /**
+   * end note
+   */
   endSelector: SmoSelector | null
+}
+
+/**
+ * serializable bits of SmoTie
+ */
+export interface SmoTieParamsSer extends SmoTieParams {
+  ctor: string;
+}
+function isSmoTieParamsSer(params: Partial<SmoTieParamsSer>): params is SmoTieParamsSer {
+  if (params.ctor && params.ctor === 'SmoTie') {
+    return true;
+  }
+  return false;
 }
 /**
  * Like slur, but multiple pitches.
@@ -600,12 +892,15 @@ export class SmoTie extends StaffModifierBase {
     return rv;
   }
 
-  serialize() {
-    const params: any = {};
+  serialize(): SmoTieParamsSer {
+    const params: Partial<SmoTieParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoTie.defaults,
       SmoTie.parameterArray, this, params);
 
     params.ctor = 'SmoTie';
+    if (!isSmoTieParamsSer(params)) {
+      throw 'bad tie ' + JSON.stringify(params);
+    }
     return params;
   }
   // ### checkLines

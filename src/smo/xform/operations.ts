@@ -12,7 +12,7 @@ import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
-import { SmoStaffHairpin, SmoSlur, SlurDefaultParams, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
+import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
   SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams } from '../data/staffModifiers';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
@@ -127,10 +127,10 @@ export class SmoOperation {
     selection.measure.populateVoice(voiceIx);
   }
 
-  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature, timeSignatureString: string) {
+  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
     const selectors: SmoSelector[] = [];
     let i = 0;
-    let ticks = 0;
+    // change the time signature for each stave in the score
     selections.forEach((selection) => {
       for (i = 0; i < score.staves.length; ++i) {
         const measureSel: SmoSelector = SmoSelector.measureSelector(i, selection.selector.measure);
@@ -138,36 +138,9 @@ export class SmoOperation {
       }
     });
     selectors.forEach((selector: SmoSelector) => {
-      const params: SmoMeasureParams = {} as SmoMeasureParams;
       const rowSelection: SmoSelection = (SmoSelection.measureSelection(score, selector.staff, selector.measure) as SmoSelection);
-      let nm: SmoMeasure = {} as SmoMeasure;
-      const attrs: string[] = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
-      const psel: SmoSelection | null = SmoSelection.measureSelection(score, selector.staff, selector.measure);
-      if (!psel?.measure) {
-        console.log('Error: score has changed in time signature change');
-      } else {
-        const proto: SmoMeasure = SmoSelection.measureSelection(score, selector.staff, selector.measure)?.measure as SmoMeasure;
-        smoSerialize.serializedMerge(attrs, proto, params);
-        params.timeSignature = timeSignature;
-        nm = SmoMeasure.getDefaultMeasure(params);
-        nm.timeSignatureString = timeSignatureString;
-        nm.setX(rowSelection.measure.staffX, 'op:setTimeSignature');
-        nm.setY(rowSelection.measure.staffY, 'op:setTimeSignature');
-        nm.setWidth(rowSelection.measure.staffWidth, 'op:setTimeSignature');
-        ['forceKeySignature', 'forceTimeSignature', 'forceTempo', 'forceClef'].forEach((attr) => {
-          (nm as any)[attr] = (rowSelection.measure.svg as any)[attr];
-        });
-        ticks = 0;
-        if (!TimeSignature.equal(nm.timeSignature, proto.timeSignature)) {
-          nm.voices = [{ notes: SmoMeasure.timeSignatureNotes(timeSignature, params.clef)}];
-        } else {
-          nm.voices = proto.voices;
-        }
-      }
-      const original = score.staves[selector.staff].measures[selector.measure];
-      // Keep track of original element so it can be replaced.
-      nm.svg.element = original.svg.element;
-      score.replaceMeasure(selector, nm);
+      rowSelection.measure.timeSignature = new TimeSignature(timeSignature);
+      rowSelection.measure.alignNotesWithTimeSignature();
     });
   }
 
@@ -858,7 +831,8 @@ export class SmoOperation {
    * @param toSelection 
    * @returns 
    */
-  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector, forcePosition: number, forceOrientation: number):SmoSlurParams {
+  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector, 
+    forcePosition: number, forceOrientation: number):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
     const sels = SmoSelector.order(fromSelector, toSelector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));

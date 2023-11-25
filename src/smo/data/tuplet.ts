@@ -5,7 +5,7 @@
  * @module /smo/data/tuplet
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNote, SmoNoteParams } from './note';
+import { SmoNote, SmoNoteParamsSer } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
@@ -20,6 +20,7 @@ import { getId, SmoAttrs, Clef } from './common';
  */
 export interface SmoTupletParams {
   notes: SmoNote[],
+  attrs?: SmoAttrs,
   numNotes: number,
   stemTicks: number,
   totalTicks: number,
@@ -30,21 +31,69 @@ export interface SmoTupletParams {
   startIndex: number
 }
 /**
- * 
+ * serializabl bits of SmoTuplet
  */
 export interface SmoTupletParamsSer {
+  /**
+   * constructor
+   */
   ctor: string,
-  notes: SmoNoteParams[],
+  /**
+   * attributes for ID
+   */
+  attrs: SmoAttrs,
+  /**
+   * info about the serialized notes
+   */
+  notes: SmoNoteParamsSer[],
+  /**
+   * numNotes in the duplet (not necessarily same as notes array size)
+   */
   numNotes: number,
+  /**
+   * used to decide how to beam, 2048 for 1/4 triplet for instance
+   */
   stemTicks: number,
+  /**
+   * total ticks to squeeze numNotes
+   */
   totalTicks: number,
+  /**
+   * map of notes to ticks
+   */
   durationMap: number[],
+  /**
+   * whether to use the :
+   */
   ratioed: boolean,
+  /**
+   * whether to show the brackets
+   */
   bracketed: boolean,
+  /**
+   * which voice the tuplet applies to
+   */
   voice: number,
+  /**
+   * the start tick index of the measure
+   */
   startIndex: number
 }
 
+/**
+ * tuplets must be serialized with their id attribute, enforce this
+ * @param params a possible-valid SmoTupletParamsSer
+ * @returns 
+ */
+function isSmoTupletParamsSer(params: Partial<SmoTupletParamsSer>): params is SmoTupletParamsSer {
+  if (!params.ctor || !(params.ctor === 'SmoTuplet')) {
+    return false;
+  }
+  if (!params.attrs || !(typeof(params.attrs.id) === 'string')) {
+    return false;
+  }
+  return true;
+}
 /**
  * A tuplet is a container for notes within a measure
  * @category SmoObject
@@ -96,7 +145,10 @@ export class SmoTuplet {
     params.ctor = 'SmoTuplet';
     smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
       SmoTuplet.parameterArray, this, params);
-    return params as SmoTupletParamsSer;
+    if (!isSmoTupletParamsSer(params)) {
+      throw 'bad tuplet ' + JSON.stringify(params);
+    }
+    return params;
   }
 
   static calculateStemTicks(totalTicks: number, numNotes: number) {

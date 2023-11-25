@@ -12,12 +12,10 @@ declare var $: any;
 export class SuiTimeSignatureAdapter extends SuiComponentAdapter {
   measure: SmoMeasure;
   backup: TimeSignature;
-  backupString: string;
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.measure = this.view.tracker.selections[0].measure;
     this.backup = new TimeSignature(this.measure.timeSignature);
-    this.backupString = this.measure.timeSignatureString;
   }
   get numerator() {
     return this.measure.timeSignature.actualBeats;
@@ -44,25 +42,25 @@ export class SuiTimeSignatureAdapter extends SuiComponentAdapter {
     this.measure.timeSignature.useSymbol = value;
   }
   get customString() {
-    return this.measure.timeSignatureString;
+    return this.measure.timeSignature.displayString;
   }
   set customString(value: string) {
     const tr = value.trim();
     if (!(tr.indexOf('/') >= 0)) {
       if (tr === 'C' || tr === 'C|') {
-        this.measure.timeSignatureString = tr;
+        this.measure.timeSignature.displayString = tr;
         return;
       }
     }
     const ar = tr.split('/');
     if (isNaN(parseInt(ar[0], 10)) || isNaN(parseInt(ar[1], 10))) {
-      this.measure.timeSignatureString = '';
+      this.measure.timeSignature.displayString = '';
       return;
     }
-    this.measure.timeSignatureString = tr;
+    this.measure.timeSignature.displayString = tr;
   }
   async commit() {
-    await this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);
+    await this.view.setTimeSignature(this.measure.timeSignature);
   }
   async cancel() {
     this.measure.timeSignature = this.backup;

@@ -107,7 +107,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
           },
           { // {every:'every',even:'even',odd:'odd',once:'once'}
             smoName: 'pagination',
-            defaultValue: SmoScoreText.paginations.every,
+            defaultValue: SmoTextGroup.paginations.ONCE,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Page Behavior',
@@ -132,7 +132,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   edited: boolean;
   isNew: boolean;
   modifier: SmoTextGroup;
-  backup: SmoTextGroup;
   activeScoreText: SmoScoreText;
   textElement: any;
   mouseMoveHandler: EventHandler | null;
@@ -156,7 +155,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (!parameters.modifier) {
       isNew = true;
       const textParams = SmoScoreText.defaults;
-      textParams.position = SmoScoreText.positions.custom;
       const newText = new SmoScoreText(textParams);
       // convert scroll from screen coord to svg coord
       const svgScroll = tracker.renderer.pageMap.clientToSvg(SvgHelpers.smoBox(tracker.scroller.scrollState));
@@ -172,7 +170,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
         }
       }
       const grpParams = SmoTextGroup.defaults;
-      grpParams.blocks = [{ text: newText, position: SmoTextGroup.relativePositions.LEFT }];
+      grpParams.textBlocks = [{ text: newText, position: SmoTextGroup.relativePositions.LEFT, activeText: true }];
       const newGroup = new SmoTextGroup(grpParams);
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
@@ -188,7 +186,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS']
     this.edited = edited;
     this.view.groupUndo(true);
-    this.backup = this.modifier.serialize();
     this.activeScoreText = this.modifier.getActiveBlock();
     this.mouseMoveHandler = null;
     this.mouseUpHandler = null;
@@ -316,8 +313,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
     // Use layout context because render may have reset svg.
-    this.view.updateTextGroup(this.backup, this.modifier);
-    this.backup = this.modifier.serialize();
+    this.view.updateTextGroup(this.modifier);
   }
   highlightActiveRegion() {
     const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
@@ -411,7 +407,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.updateTextGroup(this.backup, this.modifier);
+      this.view.updateTextGroup(this.modifier);
       this._complete();
     });
 

@@ -19,7 +19,8 @@ export const getId = () => `smo` + (nextId++).toString();
  * a serialize method and are deserializable with constructor `ctor`
  */
 export interface SmoObjectParams {
-    ctor: string
+    ctor: string,
+    attrs?: SmoAttrs
 }
 
 /**

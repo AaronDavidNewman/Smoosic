@@ -99,7 +99,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param newVersion 
    * @returns 
    */
-  updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): void {
+  updateTextGroup(newVersion: SmoTextGroup): void {
     const isPartExposed = this.isPartExposed();
     const altNew = SmoTextGroup.deserializePreserveId(newVersion.serialize());
     this.score.updateTextGroup(newVersion, true);
@@ -431,14 +431,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
   /**
    * Set the time signature for a selection
    * @param timeSignature actual time signature
-   * @param timeSignatureString display time signature if different, as in for pickup notes
    */
-  setTimeSignature(timeSignature: TimeSignature, timeSignatureString: string): Promise<void> {
+  setTimeSignature(timeSignature: TimeSignature): Promise<void> {
     this._undoScore('Set time signature');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    SmoOperation.setTimeSignature(this.score, selections, timeSignature, timeSignatureString);
-    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature, timeSignatureString);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
     this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
     return this.renderer.updatePromise();
   }

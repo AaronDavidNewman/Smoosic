@@ -10,7 +10,7 @@ import { SmoMusic } from './music';
 import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, 
-  SmoTie, SmoStaffTextBracket } from './staffModifiers';
+  SmoTie, SmoStaffTextBracket, SmoStaffTextBracketParamsSer, StaffModifierBaseSer } from './staffModifiers';
 import { SmoPartInfo } from './partInfo';
 import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
@@ -44,17 +44,38 @@ export interface SmoSystemStaffParams {
   textBrackets?: SmoStaffTextBracket[];
   alignWithPrevious?: boolean;
 }
-
+/**
+ * Serialized components of a stave
+ * @param staffId the index of the staff in the score
+ * @param renumberingMap For alternate number, pickups, etc.
+ * @param keySignatureMap map of keys to measures
+ * @param measureInstrumentMap map of instruments to staves
+ * @param measures array of {@link SmoMeasure}
+ * @param modifiers slurs and such
+ * @param partInfo information about the part 
+ * @category serialization
+ */
 export interface SmoSystemStaffParamsSer {
+  ctor: string,
   staffId: number,
-  renumberingMap: Record<number, number>,
+  renumberingMap?: Record<number, number>,
   keySignatureMap: Record<number, string>,
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
   measures: SmoMeasureParamsSer[],
-  modifiers: StaffModifierBase[],
+  modifiers: StaffModifierBaseSer[],
   partInfo?: SmoPartInfo;
-  textBrackets?: SmoStaffTextBracket[];
+  textBrackets?: SmoStaffTextBracketParamsSer[];
   alignWithPrevious?: boolean;
+}
+
+function isSmoSystemStaffParamsSer(params: Partial<SmoSystemStaffParamsSer>):params is SmoSystemStaffParamsSer {
+  if (!(typeof(params.ctor) === 'string' && params.ctor === 'SmoSystemStaff')) {
+    return false;
+  }
+  if (!(Array.isArray(params.measures))) {
+    return false;
+  }
+  return true;
 }
 /**
  * A staff is a line of music that can span multiple measures.
@@ -185,7 +206,9 @@ export class SmoSystemStaff implements SmoObjectParams {
   // ### serialize
   // JSONify self.
   serialize(): SmoSystemStaffParamsSer {
-    const params: Partial<SmoSystemStaffParamsSer> = {};
+    const params: Partial<SmoSystemStaffParamsSer> = {
+      ctor: 'SmoSystemStaff'
+    };
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.measures = [];
     params.measureInstrumentMap = {};
@@ -204,18 +227,21 @@ export class SmoSystemStaff implements SmoObjectParams {
       params.modifiers!.push(bracket.serialize());
     });
     params.partInfo = this.partInfo.serialize();
-    return params as SmoSystemStaffParamsSer;
+    if (!isSmoSystemStaffParamsSer(params)) {
+      throw ('bad staff ' + JSON.stringify(params));
+    }
+    return params;
   }
 
   // ### deserialize
   // parse formerly serialized staff.
-  static deserialize(jsonObj: any): SmoSystemStaff {
+  static deserialize(jsonObj: SmoSystemStaffParamsSer): SmoSystemStaff {
     const params: SmoSystemStaffParams = SmoSystemStaff.defaults;
     params.staffId = jsonObj.staffId ?? 0;
     params.measures = [];
     params.modifiers = [];
     params.textBrackets = [];
-    params.renumberingMap = jsonObj.renumberingMap;
+    params.renumberingMap = jsonObj.renumberingMap ?? {};
     if (jsonObj.partInfo) {
       // Deserialize the text groups first
       const tgs: SmoTextGroup[] = [];
@@ -227,11 +253,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     }
     // Up-convert legacy instrument info, which was split between different objects
     if (!jsonObj.measureInstrumentMap) {
-      if (jsonObj.instrumentInfo) {
+      const jsonLegacy = jsonObj as any;
+      if (jsonLegacy.instrumentInfo) {
         const defs = SmoInstrument.defaults;
-        defs.keyOffset = jsonObj.instrumentInfo.keyOffset;
-        defs.clef = jsonObj.instrumentInfo.clef;
-        defs.instrumentName = jsonObj.instrumentInfo.instrumentName;
+        defs.keyOffset = jsonLegacy.instrumentInfo.keyOffset;
+        defs.clef = jsonLegacy.instrumentInfo.clef;
+        defs.instrumentName = jsonLegacy.instrumentInfo.instrumentName;
         const ii: SmoInstrument = new SmoInstrument(defs);
         params.measureInstrumentMap = { 0: ii };
       } else {

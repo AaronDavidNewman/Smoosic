@@ -74,6 +74,17 @@ export interface SmoNoteParams {
 }
 
 /**
+ * The serializable bits of a Note.  Notes will always 
+ * have a type, and if a sounded note, can contain pitches.  It will always
+ * contains ticks.
+ * @category serialization
+ */
+export interface SmoNoteParamsSer extends SmoNoteParams {
+  ctor: string;
+  attrs: SmoAttrs;
+}
+
+/**
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
  * Also information about the beaming, flag etc.

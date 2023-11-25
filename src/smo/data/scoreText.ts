@@ -1,44 +1,72 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
- * A score modifier is anything that isn't mapped specifically to a musical object.
- * This includes score text, layout information
+ * Score Text is anything that isn't mapped specifically to a musical object.
+ * This includes score text, headers, footers.  Score text is a single block of text.
+ * TextGroup is 1 or more ScoreText blocks arranged in some way.
  * @module /smo/data/scoreModifier
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
-import { SmoModifierBase } from './common';
+import { SmoAttrs, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
 import { VexFlow, FontInfo } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
-import { SmoTempoText } from './measureModifiers';
 const VF = VexFlow;
 
 
 /**
- * Parameters for a single text block, which makes up a text group.
- * @internal
+ * Parameters for a single text block.  Text blocks make up a text group.
  * @category SmoParams
  */
 export interface SmoScoreTextParams {
+  /**
+   * x location of font
+   */
   x: number,
+  /**
+   * location of font
+   */
   y: number,
+  /**
+   * In currently supported text groups, width and height comes from the text bounding box
+   * and so isn't required.
+   */
   width: number,
+  /**
+   * In currently supported text groups, width and height comes from the text bounding box
+   * and so isn't required.
+   */
   height: number,
+  /**
+   * The text content
+   */
   text: string,
+  /**
+   * Font of the text
+   */
   fontInfo: FontInfo,
+  /**
+   * defaults to black
+   */
   fill?: string,
-  rotate?: number,
-  justification?: string,
   classes?: string,
-  boxModel?: string,
-  scaleX?: number,
-  scaleY?: number,
-  translateX?: number,
-  translateY?: number,
-  pagination?: string,
-  position?: string,
-  autoLayout?: boolean // set to true if one of the pre-canned positions are used.
+}
+/**
+ * serialization
+ */
+export interface SmoScoreTextSer extends SmoScoreTextParams {
+  /**
+   * class name for deserialization
+   */
+  ctor: string;
+}
+
+function isSmoScoreTextSer(params: Partial<SmoScoreTextSer>): params is SmoScoreTextSer {
+  if (!(params?.ctor === 'SmoScoreText')) {
+    return false;
+  }
+  return true;
 }
 /**
  * Identify some text in the score, not associated with any musical element, like page
@@ -89,25 +117,14 @@ export class SmoScoreText extends SmoScoreModifierBase {
     }
     return fam;
   }
-  static get paginations(): Record<string, string> {
-    return { every: 'every', even: 'even', odd: 'odd', once: 'once', subsequent: 'subsequent' };
-  }
-  static get positions(): Record<string, string> {
-    return { title: 'title', copyright: 'copyright', footer: 'footer', header: 'header', custom: 'custom' };
-  }
-  static get justifications(): Record<string, string> {
-    return { left: 'left', right: 'right', center: 'center' };
-  }
   static get fontFamilies(): Record<string, string> {
     return {
       serif: 'Merriweather', sansSerif: 'Roboto,sans-serif', monospace: 'monospace', cursive: 'cursive',
       times: 'Merriweather', arial: 'Arial'
     };
   }
-  // If box model is 'none', the font and location determine the size.
-  // spacing and spacingGlyph fit the box into a container based on the svg policy
-  static get boxModels(): Record<string, string> {
-    return { none: 'none', spacing: 'spacing', spacingAndGlyphs: 'spacingAndGlyphs', wrap: 'wrap' };
+  static get parameters() {
+    return ['x', 'y', 'width', 'height', 'text', 'fontInfo', 'fill', 'classes']
   }
   static get defaults(): SmoScoreTextParams {
     return JSON.parse(JSON.stringify({
@@ -123,18 +140,16 @@ export class SmoScoreText extends SmoScoreModifierBase {
         weight: 'normal'
       },
       fill: 'black',
-      rotate: 0,
-      justification: SmoScoreText.justifications.left,
       classes: 'score-text',
-      boxModel: 'none',
-      scaleX: 1.0,
-      scaleY: 1.0,
-      translateX: 0,
-      translateY: 0,
-      pagination: 'once',
-      position: 'custom',
-      autoLayout: false // set to true if one of the pre-canned positions are used.
     }));
+  }
+  static deserialize(jsonObj: SmoScoreTextSer) {
+    const params = SmoScoreText.defaults;
+    smoSerialize.serializedMerge(SmoScoreText.parameters, jsonObj, params);
+    if (typeof (params.fontInfo.size === 'string')) {
+      params.fontInfo.size = SmoScoreText.fontPointSize(params.fontInfo.size);
+    }
+    return new SmoScoreText(params);
   }
   x: number = 15;
   y: number = 15;
@@ -149,7 +164,6 @@ export class SmoScoreText extends SmoScoreModifierBase {
   };
   fill: string = 'black';
   rotate: number = 0;
-  justification: string = SmoScoreText.justifications.left;
   classes: string = 'score-text';
   boxModel: string = 'none';
   scaleX: number = 1.0;
@@ -189,10 +203,13 @@ export class SmoScoreText extends SmoScoreModifierBase {
     this.y += offset;
   }
 
-  serialize(): any {
-    const params: any = {};
+  serialize(): SmoScoreTextSer {
+    const params: Partial<SmoScoreTextSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults, SmoScoreText.attributes, this, params);
     params.ctor = 'SmoScoreText';
+    if (!isSmoScoreTextSer(params)) {
+      throw ('bad score text ')
+    }
     return params;
   }
   static get attributes(): string[] {
@@ -205,15 +222,12 @@ export class SmoScoreText extends SmoScoreModifierBase {
     let rx = '';
     smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
     smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
+
     if (!this.classes) {
       this.classes = '';
     }
     if (this.classes.indexOf(this.attrs.id) < 0) {
       this.classes += ' ' + this.attrs.id;
-    }
-    if (this.boxModel === SmoScoreText.boxModels.wrap) {
-      this.width = parameters.width ? this.width : 200;
-      this.height = parameters.height ? this.height : 150;
     }
     const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
     this.fontInfo.weight = SmoScoreText.weightString(weight ?? 'normal');
@@ -223,16 +237,39 @@ export class SmoScoreText extends SmoScoreModifierBase {
     }
   }
 }
-
+/**
+ * Each text block has the text data itself and some data about how it's placed
+ */
 export interface SmoTextBlock {
+  /**
+   * The score text
+   */
   text: SmoScoreText,
+  /**
+   * position relative to other blocks
+   */
   position: number,
+  /**
+   * run-time flag
+   */
   activeText: boolean
 }
+export interface SmoTextBlockSer {
+  /**
+   * The score text
+   */
+  text: SmoScoreTextSer,
+  /**
+   * position relative to other blocks
+   */
+  position: number
+}
+/**
+ * Used to place text imported from other formats, e.g. music xml
+ */
 export interface SmoTextPlacement {
   fontFamily: string,
   fontSize: number,
-  justification: number,
   xPlacement: number,
   yOffset: number,
 }
@@ -245,7 +282,7 @@ export interface SmoTextPlacement {
  * @param attachToSelector acts like 'note text' if attached to a note, otherwise
  *   the position is based on score position, or page position if paginated
  * @param selector if attached, the selector in question
- * @param blocks the actual blocks of text
+ * @param textBlocks the actual textBlocks of text - a score text along with a placement parameter
  * @category SmoParams
  */
 export interface SmoTextGroupParams {
@@ -254,9 +291,75 @@ export interface SmoTextGroupParams {
   pagination: number,
   purpose: number,
   spacing: number,
+  musicXOffset: number,
+  musicYOffset: number,
   attachToSelector: boolean,
   selector: SmoSelector,
-  blocks: SmoTextBlock[]
+  textBlocks: SmoTextBlock[]
+}
+
+/**
+ * The serializable parts of a text group.
+ * @category serialization
+ */
+export interface SmoTextGroupParamsSer {
+  /**
+   * class name for deserialization
+   */
+  ctor: string;
+  /**
+   * ID so we can identify which text this is in dialogs, UI
+   */
+  attrs: SmoAttrs;
+  /**
+   * justification within the block
+   */
+  justification?: number,
+  /**
+   * position (above, left, right etc)
+   */
+  relativePosition?: number,
+  /**
+   * pagination for headers, footers
+   */
+  pagination?: number,
+  /**
+   * spacing between blocks, future
+   */
+  spacing?: number,
+  /**
+   * true if the text is attached to a note.
+   */
+  attachToSelector?: boolean,
+  /**
+   * defined if the selector is attached to a note
+   */
+  selector?: SmoSelector,
+  /**
+   * the individual text blocks
+   */
+  textBlocks: SmoTextBlockSer[];
+}
+function isSmoTextGroupParamsSer(params: Partial<SmoTextGroupParamsSer>): params is SmoTextGroupParamsSer {
+  if (!(params?.ctor === 'SmoTextGroup')) {
+    return false;
+  }
+  if (!(typeof(params.attrs?.id) === 'string')) {
+    return false;
+  }
+  return true;
+}
+function isTextBlockSer(params: Partial<SmoTextBlockSer>): params is SmoTextBlockSer {
+  if (!params.text) {
+    return false;
+  }
+  if (!params.text) {
+    return false;
+  }
+  if (!(typeof(params.position) === 'number')) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -293,7 +396,13 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     };
   }
   static get attributes() {
-    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 
+    'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+  }
+  static get nonTextAttributes() {
+    return ['justification', 'relativePosition', 'spacing', 'pagination', 
+    'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+
   }
   static isTextGroup(modifier: SmoTextGroup | SmoModifierBase): modifier is SmoTextGroup {
     return modifier.ctor === 'SmoTextGroup';
@@ -303,21 +412,18 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     rv[SmoTextGroup.purposes.TITLE] = {
       fontFamily: 'Merriweather',
       fontSize: 18,
-      justification: SmoTextGroup.justifications.CENTER,
       xPlacement: 0.5,
       yOffset: 4
     };
     rv[SmoTextGroup.purposes.SUBTITLE] = {
       fontFamily: 'Merriweather',
       fontSize: 16,
-      justification: SmoTextGroup.justifications.CENTER,
       xPlacement: 0.5,
       yOffset: 20,
     };
     rv[SmoTextGroup.purposes.COMPOSER] = {
       fontFamily: 'Merriweather',
       fontSize: 12,
-      justification: SmoTextGroup.justifications.RIGHT,
       xPlacement: 0.8,
       yOffset: 10
     };
@@ -325,7 +431,6 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       fontFamily: 'Merriweather',
       fontSize: 12,
       xPlacement: 0.5,
-      justification: SmoTextGroup.justifications.CENTER,
       yOffset: -12
     };
     return rv;
@@ -352,16 +457,14 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     });
     const width = st.estimateWidth();
     x -= width / 2;
-    const tg = new SmoTextGroup({
-      blocks: [{ text: st, position: SmoTextGroup.relativePositions.RIGHT, activeText: false }],
-      purpose, pagination: SmoTextGroup.paginations.EVERY,
-      attachToSelector: false, justification: SmoTextGroup.justifications.CENTER, spacing: 0, relativePosition: SmoTextGroup.relativePositions.LEFT,
-      selector: SmoSelector.default
-    });
+    const params = SmoTextGroup.defaults;
+    params.textBlocks = [{ text: st, position: SmoTextGroup.relativePositions.RIGHT, activeText: false }];
+    params.purpose = purpose;
+    const tg = new SmoTextGroup(params);
     return tg;
   }
 
-  static get defaults() {
+  static get defaults(): SmoTextGroupParams {
     return JSON.parse(JSON.stringify({
       textBlocks: [],
       justification: SmoTextGroup.justifications.LEFT,
@@ -388,27 +491,23 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   textBlocks: SmoTextBlock[] = [];
   edited: boolean = false;  // indicates not edited this session
   skipRender: boolean = false; // don't render if it is being edited  
-  static deserialize(jObj: any) {
-    const blocks: any = [];
+  static deserialize(jObj: SmoTextGroupParamsSer) {
+    const textBlocks: SmoTextBlock[] = [];
     const params: any = {};
+    const jObjLegacy: any = jObj;
+    // handle parameter name change
+    if (jObjLegacy.blocks) {
+      jObj.textBlocks = jObjLegacy.blocks;
+    }
 
     // Create new scoreText object for the text blocks
     jObj.textBlocks.forEach((st: any) => {
-      if (typeof (st.text.fontInfo.size === 'string')) {
-        st.text.fontInfo.size = SmoScoreText.fontPointSize(st.text.fontInfo.size);
-      }
-      const tx = new SmoScoreText(st.text);
-      blocks.push({ text: tx, position: st.position });
+      const tx = SmoScoreText.deserialize(st.text);
+      textBlocks.push({ text: tx, position: st.position, activeText: false });
     });
     // fill in the textBlock configuration
-    SmoTextGroup.attributes.forEach((attr) => {
-      if (attr !== 'textBlocks') {
-        if (typeof (jObj[attr]) !== 'undefined') {
-          params[attr] = jObj[attr];
-        }
-      }
-    });
-    params.blocks = blocks;
+    smoSerialize.serializedMerge(SmoTextGroup.nonTextAttributes, jObj, params);
+    params.textBlocks = textBlocks;
     return new SmoTextGroup(params);
   }
   static deserializePreserveId(jObj: any) {
@@ -440,12 +539,8 @@ export class SmoTextGroup extends SmoScoreModifierBase {
         });
       });
       const params: SmoTextGroupParams = {} as SmoTextGroupParams;
-      SmoTextGroup.attributes.forEach((attr) => {
-        if (attr !== 'textBlocks') {
-          (params as any)[attr] = (tg as any)[attr];
-        }
-      });
-      params.blocks = nblocks;
+      smoSerialize.serializedMerge(SmoTextGroup.nonTextAttributes, tg, params);
+      params.textBlocks = nblocks;
       const ngroup: SmoTextGroup = new SmoTextGroup(params);
       ngroup.textBlocks.forEach((block) => {
         const xx = block.text;
@@ -462,11 +557,28 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     }
     return rv;
   }
-  serialize(): any {
-    const params: any = {};
-    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
+  serialize(): SmoTextGroupParamsSer {
+    const params: Partial<SmoTextGroupParamsSer> = {
+      textBlocks: []
+    };
+    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.nonTextAttributes, this, params);
+    this.textBlocks.forEach((blk: SmoTextBlock) => {
+      
+      const blockSer: Partial<SmoTextBlockSer> = {
+        position: blk.position
+      }
+
+      blockSer.text = blk.text.serialize();
+      if (!isTextBlockSer(blockSer)) {
+        throw ('bad text block ' + JSON.stringify(blockSer));
+      }
+      params.textBlocks!.push(blockSer);
+    });
     params.ctor = 'SmoTextGroup';
     params.attrs = JSON.parse(JSON.stringify(this.attrs));
+    if (!isSmoTextGroupParamsSer(params)) {
+      throw('bad text group ' + JSON.stringify(params));
+    }
     return params;
   }
   /* _isScoreText(st: ) {
@@ -478,10 +590,10 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       params = {} as SmoTextGroupParams;
     }
     this.textBlocks = [];
-    smoSerialize.vexMerge(this, SmoTextGroup.defaults);
-    smoSerialize.vexMerge(this, params);
-    if (params.blocks) {
-      params.blocks.forEach((block: SmoTextBlock) => {
+    smoSerialize.serializedMerge(SmoTextGroup.nonTextAttributes, SmoTextGroup.defaults, this);
+    smoSerialize.serializedMerge(SmoTextGroup.nonTextAttributes, params, this);
+    if (params.textBlocks) {
+      params.textBlocks.forEach((block: SmoTextBlock) => {
         this.textBlocks.push(block);
       });
     }
