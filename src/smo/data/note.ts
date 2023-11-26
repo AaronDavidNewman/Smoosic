@@ -6,10 +6,11 @@
  * @module /smo/data/note
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio } from './noteModifiers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
 import { FontInfo, VexFlow, vexCanonicalNotes } from '../../common/vex';
+import { SmoTupletParamsSer } from './tuplet';
 const VF = VexFlow;
 
 export interface TupletInfo {
@@ -52,24 +53,79 @@ export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCu
  * @category SmoParameters
  */
 export interface SmoNoteParams {
+  /** note, rest, slash */
   noteType: NoteType,
+  /**
+   * custom note head, defaults to black or open (based on duration)
+   */
   noteHead: string,
+  /**
+   * clef of this note, determines leger lines and sound
+   */
   clef: string,
+  /**
+   * lyrics, annotations
+   */
   textModifiers: SmoNoteModifierBase[],
+  /**
+   * articulations attached to the note
+   */
   articulations: SmoArticulation[],
+  /**
+   * grace notes before the note
+   */
   graceNotes: SmoGraceNote[],
+  /**
+   * ornaments attached to the note
+   */
   ornaments: SmoOrnament[],
+  /**
+   * microtones attached to the note
+   */
   tones: SmoMicrotone[],
+  /**
+   * arpeggio on the note
+   */
   arpeggio?: SmoArpeggio,
+  /**
+   * if this note is part of a tuplet
+   */
   tuplet: TupletInfo | undefined,
+  /**
+   * does this note force the end of a beam group
+   */
   endBeam: boolean,
+  /**
+   * fill, for the pretty
+   */
   fillStyle: string | null,
+  /**
+   * indicates 'hidden' note.  Useful for padding beginning/end of partial measures
+   */
   hidden: boolean,
+  /**
+   * how many notes to beam before creating a new beam group
+   */
   beamBeats: number,
+  /**
+   * up, down, auto
+   */
   flagState: number,
+  /**
+   * note duration
+   */
   ticks: Ticks,
+  /**
+   * pitch for leger lines and sounds
+   */
   pitches: Pitch[],
+  /**
+   * draw cue sized
+   */
   isCue: boolean,
+  /**
+   * indicates this note goes with a clef change
+   */
   clefNote: string | null
 }
 
@@ -79,11 +135,94 @@ export interface SmoNoteParams {
  * contains ticks.
  * @category serialization
  */
-export interface SmoNoteParamsSer extends SmoNoteParams {
+export interface SmoNoteParamsSer  {
+  /** constructor */
   ctor: string;
+  /** attributes for identity */
   attrs: SmoAttrs;
+  /** note, rest, slash */
+  noteType: NoteType,
+  /**
+    * custom note head, defaults to black or open (based on duration)
+    */
+  noteHead: string,
+  /**
+    * clef of this note, determines leger lines and sound
+    */
+  clef: string,
+  /**
+    * lyrics, annotations
+    */
+  textModifiers: SmoNoteModifierBase[],
+  /**
+    * articulations attached to the note
+    */
+  articulations: SmoArticulationParametersSer,
+  /**
+    * grace notes before the note
+    */
+  graceNotes: GraceNoteParamsSer[],
+  /**
+    * ornaments attached to the note
+    */
+  ornaments: SmoOrnamentParamsSer[],
+  /**
+    * microtones attached to the note
+    */
+  tones: SmoMicrotoneParamsSer[],
+  /**
+    * arpeggio on the note
+    */
+  arpeggio?: SmoArticulationParametersSer,
+  /**
+    * if this note is part of a tuplet
+    */
+  tuplet: SmoTupletParamsSer | undefined,
+  /**
+    * does this note force the end of a beam group
+    */
+  endBeam: boolean,
+  /**
+    * fill, for the pretty
+    */
+  fillStyle: string | null,
+  /**
+    * indicates 'hidden' note.  Useful for padding beginning/end of partial measures
+    */
+  hidden: boolean,
+  /**
+    * how many notes to beam before creating a new beam group
+    */
+  beamBeats: number,
+  /**
+    * up, down, auto
+    */
+  flagState: number,
+  /**
+    * note duration
+    */
+  ticks: Ticks,
+  /**
+    * pitch for leger lines and sounds
+    */
+  pitches: Pitch[],
+  /**
+    * draw cue sized
+    */
+  isCue: boolean,
+  /**
+    * indicates this note goes with a clef change
+    */
+  clefNote: string | null  
 }
-
+function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
+  if (params.ctor && params.ctor === 'SmoTie') {
+    if (typeof(params.attrs?.id) === 'string') {
+      return true;
+    }
+  }
+  return false;
+}
 /**
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
@@ -673,13 +812,16 @@ export class SmoNote implements Transposable {
   /**
    * @returns a JSON object that can be used to create this note
    */
-  serialize() {
-    var params: any = {};
+  serialize(): SmoNoteParamsSer {
+    var params: Partial<SmoNoteParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
     }
     this._serializeModifiers(params);
+    if (!isSmoNoteParamsSer(params)) {
+      throw 'bad note ' + JSON.stringify(params);
+    }
     return params;
   }
   /**

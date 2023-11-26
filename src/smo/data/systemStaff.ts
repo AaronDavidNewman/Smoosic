@@ -11,7 +11,7 @@ import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, 
   SmoTie, SmoStaffTextBracket, SmoStaffTextBracketParamsSer, StaffModifierBaseSer } from './staffModifiers';
-import { SmoPartInfo } from './partInfo';
+import { SmoPartInfo, SmoPartInfoParamsSer } from './partInfo';
 import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
@@ -63,7 +63,7 @@ export interface SmoSystemStaffParamsSer {
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
   measures: SmoMeasureParamsSer[],
   modifiers: StaffModifierBaseSer[],
-  partInfo?: SmoPartInfo;
+  partInfo?: SmoPartInfoParamsSer;
   textBrackets?: SmoStaffTextBracketParamsSer[];
   alignWithPrevious?: boolean;
 }
@@ -249,7 +249,7 @@ export class SmoSystemStaff implements SmoObjectParams {
         tgs.push(SmoTextGroup.deserializePreserveId(tgSer));
       });
       jsonObj.partInfo.textGroups = tgs;
-      params.partInfo = new SmoPartInfo(jsonObj.partInfo);
+      params.partInfo = SmoPartInfo.deserialize(jsonObj.partInfo);
     }
     // Up-convert legacy instrument info, which was split between different objects
     if (!jsonObj.measureInstrumentMap) {

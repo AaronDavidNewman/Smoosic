@@ -8,6 +8,7 @@
     "grunt": "^1.5.3",
     "grunt-typedoc": "^0.2.4",
     "grunt-webpack": "^4.0.3",
+    "@knodes/typedoc-plugin-pages": "^0.23.0",
     "jquery": "^3.6.0"
   },
   "dependencies": {

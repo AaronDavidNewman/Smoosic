@@ -839,7 +839,7 @@ export class SuiChordEditor extends SuiTextEditor {
   // params: {lyric: SmoLyric,...}
   constructor(params: SuiLyricEditorParams) {
     super(params);
-    this.text = params.lyric._text;
+    this.text = params.lyric.text;
     this.lyric = params.lyric;
     this.textType = SuiInlineText.textTypes.normal;
     this.parseBlocks();
@@ -1162,12 +1162,12 @@ export class SuiLyricSession {
       const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
       const fontInfo = JSON.parse(JSON.stringify(scoreFont));
       const lyricD = SmoLyric.defaults;
-      lyricD._text = '';
+      lyricD.text = '';
       lyricD.verse = this.verse;
       lyricD.fontInfo = fontInfo;
       this.lyric = new SmoLyric(lyricD);
     }
-    this.text = this.lyric._text;
+    this.text = this.lyric.text;
     this.originalText = this.text;
     // this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
   }
@@ -1226,7 +1226,7 @@ export class SuiLyricSession {
     let startY = this.note.logicalBox.y + this.note.logicalBox.height + 
       SmoScoreText.fontPointSize(this.lyric.fontInfo.size);
     this.lyric.skipRender = true;
-    const lyricRendered = this.lyric._text.length > 0;
+    const lyricRendered = this.lyric.text.length > 0;
     if (this.lyric.logicalBox !== null) {
       startX = this.lyric.logicalBox.x;
       startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
@@ -1399,14 +1399,14 @@ export class SuiChordSession extends SuiLyricSession {
       const scoreFont = this.score.fonts.find((fn) => fn.name === 'chords');
       const fontInfo = JSON.parse(JSON.stringify(scoreFont));
       const ldef = SmoLyric.defaults;
-      ldef._text = '';
+      ldef.text = '';
       ldef.verse = this.verse;
       ldef.parser = this.parser;
       ldef.fontInfo = fontInfo;
       this.lyric = new SmoLyric(ldef);
       this.note.addLyric(this.lyric);
     }
-    this.text = this.lyric._text;
+    this.text = this.lyric.text;
   }
   // ### _startSessionForNote
   // Start the lyric editor for a note (current selected note)

@@ -7,7 +7,7 @@
  */
 import { SmoMeasureFormat } from './measureModifiers';
 import { SmoLayoutManager } from './scoreModifiers';
-import { SmoTextGroup } from './scoreText';
+import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
 import { StaffModifierBase } from './staffModifiers';
 
 export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
@@ -28,7 +28,7 @@ export interface SmoMidiInstrument {
  * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves.
  * Usually you will call
  * {@link SmoPartInfo.defaults}, and modify the parameters you need to change.
- * @param partName Name of the part, can be used in headers
+ * @param partName 
  * @param partAbbreviation
  * @param stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
  * @param stavesBefore
@@ -37,21 +37,122 @@ export interface SmoMidiInstrument {
  * @param textGroups if preserveTextGroups is true, the part has its own text.
  * @param preseverTextGroups if false, we use the full score text
  * @param cueInScore indicates tiny notes, like for piano accompaniment
- * @category SmoModifier
+ * @category SmoParameters
  */
 export interface SmoPartInfoParams {
+  /**
+   * Name of the part, can be used in headers
+   */
   partName: string,
+  /**
+   * abbrevation of part name
+   */
   partAbbreviation: string,
+  /**
+   * indicates that this part include the next stave  (e.g. piano part)
+   */
   stavesAfter: number,
+  /**
+   * indicates that this part include the previous stave  (e.g. piano part)
+   */
   stavesBefore: number,
+  /**
+   * parts can have their own page settings, zoom settings, etc.
+   */
   layoutManager?: SmoLayoutManager;
+  /**
+   * parts can have their own measure formatting
+   */
   measureFormatting?: Record<number, SmoMeasureFormat>,
+  /**
+   * for part-specific text
+   */
   textGroups: SmoTextGroup[],
+  /**
+   * indicates a part has its own text, not inherited from the score
+   */
   preserveTextGroups: boolean,
+  /**
+   * indicates the part appears as cue size in the score
+   */
   cueInScore: boolean,
+  /**
+   * future, for playback.  TODO: Note staves contain instruments that compete with this.
+   * maybe this will be removed
+   */
   midiDevice: string | null,
+  /**
+   * see midiDevice
+   */
   midiInstrument: SmoMidiInstrument | null,
-  expandMultimeasureRests: boolean // not persisted
+  /**
+   * indicates multimeasure rests in parts should be expanded.
+   */
+  expandMultimeasureRests: boolean 
+}
+
+/**
+ * Serialized part information
+ * @category serialization
+ */
+export interface SmoPartInfoParamsSer  {
+  /** constructor */
+  ctor: string;
+  /**
+   * Name of the part, can be used in headers
+   */
+  partName: string,
+  /**
+   * abbrevation of part name
+   */
+  partAbbreviation: string,
+  /**
+   * indicates that this part include the next stave  (e.g. piano part)
+   */
+  stavesAfter: number,
+  /**
+   * indicates that this part include the previous stave  (e.g. piano part)
+   */
+  stavesBefore: number,
+  /**
+   * parts can have their own page settings, zoom settings, etc.
+   */
+  layoutManager?: SmoLayoutManager;
+  /**
+   * parts can have their own measure formatting
+   */
+  measureFormatting?: Record<number, SmoMeasureFormat>,
+  /**
+   * for part-specific text
+   */
+  textGroups: SmoTextGroupParamsSer[],
+  /**
+   * indicates a part has its own text, not inherited from the score
+   */
+  preserveTextGroups: boolean,
+  /**
+   * indicates the part appears as cue size in the score
+   */
+  cueInScore: boolean,
+  /**
+   * future, for playback.  TODO: Note staves contain instruments that compete with this.
+   * maybe this will be removed
+   */
+  midiDevice: string | null,
+  /**
+   * see midiDevice
+   */
+  midiInstrument: SmoMidiInstrument | null,
+  /**
+   * indicates multimeasure rests in parts should be expanded.
+   */
+  expandMultimeasureRests: boolean   
+}
+function isSmoPartInfoParamsSer(params: Partial<SmoPartInfoParamsSer>): params is SmoPartInfoParamsSer {
+  if (params.ctor && params.ctor === 'SmoPartInfo') {
+    return true;
+  }
+  return false;
 }
 /**
  * Part info contains information that group 1 or 2 adjacent staves.
@@ -121,8 +222,8 @@ export class SmoPartInfo extends StaffModifierBase {
       this.midiInstrument = null;
     }
   }
-  serialize() {
-    const rv : any = {};
+  serialize(): SmoPartInfoParamsSer {
+    const rv: Partial<SmoPartInfoParamsSer> = { ctor: 'SmoPartInfo' };
     SmoPartInfoStringTypes.forEach((st) => {
       rv[st] = this[st];
     });
@@ -135,7 +236,7 @@ export class SmoPartInfo extends StaffModifierBase {
     rv.layoutManager = this.layoutManager.serialize();
     rv.textGroups = [];
     this.textGroups.forEach((tg) => {
-      rv.textGroups.push(tg.serialize());
+      rv.textGroups!.push(tg.serialize());
     });
     rv.measureFormatting = {};
     if (this.midiInstrument) {
@@ -146,8 +247,11 @@ export class SmoPartInfo extends StaffModifierBase {
     }
     Object.keys(this.measureFormatting).forEach((key) => {
       const numKey = parseInt(key, 10);
-      rv.measureFormatting[numKey] = this.measureFormatting[numKey];
+      rv.measureFormatting![numKey] = this.measureFormatting[numKey];
     });
+    if (!isSmoPartInfoParamsSer(rv)) {
+      throw 'bad part info ' + JSON.stringify(rv);
+    }
     return rv;
   }
   updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {

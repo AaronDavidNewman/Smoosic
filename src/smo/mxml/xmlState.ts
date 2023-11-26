@@ -223,10 +223,10 @@ export class XmlState {
     }
     lyricData.verse = this.verseMap[lyricData.verse];
     const params = SmoLyric.defaults;
-    params._text = lyricData._text;
+    params.text = lyricData._text;
     params.verse = lyricData.verse;
     if (lyricData.syllabic === 'begin' || lyricData.syllabic === 'middle') {
-      params._text += '-';
+      params.text += '-';
     }
     const lyric = new SmoLyric(params);
     note.addLyric(lyric);

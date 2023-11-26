@@ -32,6 +32,7 @@ export interface SmoTupletParams {
 }
 /**
  * serializabl bits of SmoTuplet
+ * @category serialization
  */
 export interface SmoTupletParamsSer {
   /**

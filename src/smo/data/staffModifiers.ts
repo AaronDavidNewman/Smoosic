@@ -147,6 +147,10 @@ export interface SmoInstrumentParams {
   mutes?: string,  
 }
 
+/**
+ * Serialization of instrument-specific settings, such as sound and key
+ * @category serialization
+ */
 export interface SmoInstrumentParamsSer extends SmoInstrumentParams {
   /**
    * constructor
@@ -301,6 +305,10 @@ export interface SmoStaffHairpinParams {
   endSelector: SmoSelector
 }
 
+/**
+ * Serialized dynamic marking (hairpin)
+ * @category serialization
+ */
 export interface SmoStaffHairpinParamsSer extends StaffModifierBaseSer {
   /**
    * extra x on start of shape
@@ -452,6 +460,7 @@ export interface SmoStaffTextBracketParams {
 
 /**
  * serializable bits of SmoStaffTextBracket
+ * @category serialization
  */
 export interface SmoStaffTextBracketParamsSer extends StaffModifierBaseSer{
   /**
@@ -658,6 +667,7 @@ export interface SmoSlurParams {
 }
 /**
  * serializable bits of slur
+ * @category serialization
  */
 export interface SmoSlurParamsSer extends SmoSlurParams {
   /**
@@ -822,8 +832,12 @@ export interface SmoTieParams {
 
 /**
  * serializable bits of SmoTie
+ * @category serialization
  */
 export interface SmoTieParamsSer extends SmoTieParams {
+  /** 
+   * constructor
+   */
   ctor: string;
 }
 function isSmoTieParamsSer(params: Partial<SmoTieParamsSer>): params is SmoTieParamsSer {

@@ -325,7 +325,13 @@ export interface SmoRepeatSymbolParams {
   position: number
 }
 
+/**
+ * @category serialization
+ */
 export interface SmoRepeatSymbolParamsSer extends SmoRepeatSymbolParams {
+  /**
+   * constructor
+   */
   ctor: string
 }
 function isSmoRepeatSymbolParamsSer(params: Partial<SmoRepeatSymbolParamsSer>):params is SmoRepeatSymbolParamsSer {
@@ -402,13 +408,7 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
 
 /**
  * Constructor parameters for {@link SmoVolta} (2nd ending)
- * @param startBar
- * @param endBar
- * @param xOffsetStart in pixels
- * @param xOffsetEnd in pixels
- * @param yOffset in pixels
- * @param number the number of the ending
- * @category SmoParams
+ * @category SmoParameters
  */
 export interface SmoVoltaParams {
   /**
@@ -516,7 +516,7 @@ export class SmoVolta extends SmoMeasureModifierBase {
 }
 /**
  * Constructor parameters for {@link SmoMeasureText}
- * @category SmoParams
+ * @category SmoParameters
  */
 export interface SmoMeasureTextParams {
   position: number,
@@ -530,6 +530,9 @@ export interface SmoMeasureTextParams {
  * Serialized fields of SmoMeasureTextParams
  */
 export interface SmoMeasureTextParamsSer extends SmoMeasureTextParams {
+  /**
+   * constructor
+   */
   ctor: string
 }
 /**
@@ -721,12 +724,7 @@ export type SmoTempoBooleanAttribute = 'display';
 export type SmoTempoMode = 'duration' | 'text' | 'custom';
 /**
  * constructor parameters for {@link SmoTempoText}
- * @param tempoMode text (e.g. Allegro) or bpm
- * @param bpm playback bpm
- * @param beatDuration note type for a metronome beat
- * @param tempoText if text mode, the text
- * @param yOffset move the text to keep it from colliding with other things
- * @param customText if custom mode, the custom text
+ * @category SmoParameters
  */
 export interface SmoTempoTextParams {
   /**
@@ -758,6 +756,10 @@ export interface SmoTempoTextParams {
    */
   customText: string
 }
+/**
+ * serialized tempo parameters
+ * @category serialization
+ */
 export interface SmoTempoTextParamsSer extends SmoTempoTextParams {
   ctor: string;
 }
@@ -907,11 +909,6 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
 
 /**
  * Constructor parameters for a time signature
- * @param actualBeats
- * @param beatDuration
- * @param useSymbol - indicates cut time/common time
- * @param display indicates display, or a silent change
- * @param displayString - for pickups, display the non-pickup value
  * @category SmoParameters
  */
 export interface TimeSignatureParameters  {
@@ -938,7 +935,7 @@ export interface TimeSignatureParameters  {
 }
 
 /**
- * ctor: constructor for deserializer
+ * serialized time signature
  * @category serialization
  */
 export interface TimeSignatureParametersSer extends TimeSignatureParameters {
@@ -949,9 +946,7 @@ export interface TimeSignatureParametersSer extends TimeSignatureParameters {
 }
 /**
  * Time signatures contain duration information for a measure, and information
- * about the display of the time signature.  Note: measures also have a time signature
- * string that can be displayed in cases like pickup measure, where the actual time doesn't
- * match the time signature.
+ * about the display of the time signature.
  * @category SmoModifier
  */
 export class TimeSignature extends SmoMeasureModifierBase {

@@ -53,7 +53,7 @@ module.exports = function (grunt) {
      categorizeByGroup: true,
       readme: 'readme.md',
       defaultCategory: ['Other'],
-      categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameters', '*'],
+      categoryOrder: ['serialization', 'SmoObject', 'SmoModifier', 'SmoParameters', '*'],
       excludeNotDocumented: false
     },  src: ['./typedoc.ts']
   };

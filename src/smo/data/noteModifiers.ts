@@ -38,6 +38,11 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
     if (jsonObj.ctor === 'SmoMicrotone' && typeof ((jsonObj as any).pitch) === 'number') {
       (jsonObj as any).pitchIndex = (jsonObj as any).pitch;
     }
+    if (jsonObj.ctor === 'SmoLyric') {
+      if (typeof((jsonObj as any)._text) === 'string') {
+        (jsonObj as any).text = (jsonObj as any)._text;
+      }
+    }
     if (typeof (ctor) === 'undefined') {
       console.log('ouch bad ctor for ' + jsonObj.ctor);
     }
@@ -49,24 +54,66 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
 
 /**
  * used to construct {@link SmoGraceNote}
- * @param ctor - constructor 'GraceNote'
- * @param flagState - up, down, or auto
- * @param noteType - note, rest, slash
- * @param beamBeats - indicates how many beats form a
  *   beam group.
+ * @category SmoParameters
  */
 export interface GraceNoteParams extends SmoModifierBase {
-  ctor: string,
+  /**
+   * up, down, or auto
+   */
   flagState: number,
+  /**
+   * same as for {@link SmoNote}
+   */
   noteType: string,
+  /**
+   * same as for {@link SmoNote}
+   */
   beamBeats: number,
+  /**
+   * same as for {@link SmoNote}.  Indicates break in beam group
+   */
   endBeam: boolean,
+  /**
+   * should be same as note?
+   */
   clef: string,
+  /**
+   * there's probably a name for this...
+   */
   slash: boolean,
+  /**
+   * only used for beaming
+   */
   ticks: Ticks,
+  /**
+   * Pitch, same as for {@link SmoNote}
+   */
   pitches: Pitch[],
 }
-/**ismulti
+
+/**
+ * serialized grace note
+ * @category serialization
+ */
+export interface GraceNoteParamsSer extends GraceNoteParams {
+  /**
+   * constructor
+   */
+  ctor: string;
+  /**
+   * attributes for ID
+   */
+  attrs: SmoAttrs;
+}
+
+function isGraceNoteParamsSer(params: Partial<GraceNoteParamsSer>): params is GraceNoteParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoGraceNote') {
+    return false;
+  }
+  return true;
+}
+/**
  * A grace notes has many of the things an 'actual' note can have, but it doesn't take up
  * time against the time signature
  * @category SmoModifier
@@ -77,7 +124,6 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   }
   static get defaults(): GraceNoteParams {
     return JSON.parse(JSON.stringify({
-      ctor: 'SmoGraceNote',
       flagState: SmoGraceNote.flagStates.auto,
       noteType: 'n',
       beamBeats: 4096,
@@ -122,10 +168,13 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     return rv;
   }
 
-  serialize() {
-    const params = {};
+  serialize(): GraceNoteParamsSer {
+    const params: Partial<GraceNoteParamsSer> = { ctor: 'SmoGraceNote' };
     smoSerialize.serializedMergeNonDefault(SmoGraceNote.defaults,
       SmoGraceNote.parameterArray, this, params);
+    if (!isGraceNoteParamsSer(params)) {
+      throw 'bad grace note ' + JSON.stringify(params);
+    }
     return params;
   }
 
@@ -139,9 +188,28 @@ export type SmoArpeggioType = 'directionless' | 'rasquedo_up' | 'rasquedo_down'
   | 'roll_up' | 'roll_down' | 'brush_up' | 'brush_down' | 'none';
 export  const SmoArpeggioTypes = ['directionless', 'rasquedo_up', 'rasquedo_down',
   'roll_up', 'roll_down', 'brush_up', 'brush_down', 'none'];
+
+  /**
+   * @category SmoParameters
+   */
 export interface SmoArpeggioParams {
-   ctor?: string,
    type: SmoArpeggioType
+}
+/**
+ * @category serialization
+ */
+export interface SmoArpeggioParamsSer {
+  ctor: string;
+  /**
+   * stringified arpeggion enumeration
+   */
+  type: string;
+}
+function isSmoArpeggionParamsSer(params: Partial<SmoArpeggioParamsSer>): params is SmoArpeggioParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoArpeggio') {
+    return false;
+  }
+  return true;
 }
 export function isArpeggioType(tp: SmoArpeggioType | string): tp is SmoArpeggioType {
   return SmoArpeggioTypes.indexOf(tp) >= 0;
@@ -174,10 +242,14 @@ export class SmoArpeggio extends SmoNoteModifierBase {
     const type = str ? str : 'none';
     return type as SmoArpeggioType;
   }
-  serialize() {
+  serialize(): SmoArpeggioParamsSer {
+    const rv: Partial<SmoArpeggioParamsSer> = { ctor: 'SmoArpeggio' }
     const str = SmoArpeggioTypes.find((x) => SmoArpeggio.types[x] === this.typeCode);
-    const type = str ? str : 'none';
-    return { ctor: 'SmoArpeggio', type };
+    rv.type = str ? str : 'none';
+    if (!isSmoArpeggionParamsSer(rv)) {
+      throw 'bad arpeggio ' + JSON.stringify(rv);
+    }
+    return rv;
   }
 }
 /**
@@ -185,8 +257,28 @@ export class SmoArpeggio extends SmoNoteModifierBase {
  * @category SmoParams
  */
 export interface SmoMicrotoneParams extends SmoObjectParams {
+  /**
+   * indicates which modifier to alter the tone (e.g. 1/4 sharp)
+   */
   tone: string,
+  /**
+   * the index of the pitch to alter
+   */
   pitch: number
+}
+/**
+ * serialized microtones.
+ * @category serialization
+ */
+export interface SmoMicrotoneParamsSer extends SmoMicrotoneParams {
+  ctor: string,
+  attrs: SmoAttrs
+}
+function isSmoMicrotoneParamsSer(params: Partial<SmoMicrotoneParamsSer>): params is SmoMicrotoneParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoMicrotone') {
+    return false;
+  }
+  return true;
 }
 /**
  * Microtones are treated similarly to ornaments.  There are not
@@ -243,10 +335,13 @@ export class SmoMicrotone extends SmoNoteModifierBase {
     }
     return rv;
   }
-  serialize(): object {
-    var params = {};
+  serialize(): SmoMicrotoneParamsSer {
+    const params: Partial<SmoMicrotoneParamsSer> = { ctor: 'SmoMicrotone' };
     smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
       SmoMicrotone.parameterArray, this, params);
+    if (!isSmoMicrotoneParamsSer(params)) {
+      throw 'bad microtone ' + JSON.stringify(params);
+    }
     return params;
   }
   constructor(parameters: SmoMicrotoneParams) {
@@ -261,9 +356,34 @@ export class SmoMicrotone extends SmoNoteModifierBase {
  * @category SmoParams
  */
 export interface SmoOrnamentParams {
+  /**
+   * postition, above or below
+   */
   position?: string,
+  /**
+   * horizontal offset from note head
+   */  
   offset?: string,
+  /**
+   * code for the ornament
+   */
   ornament: string,
+}
+/**
+ * serializable ornament
+ * @category serialization
+ */
+export interface SmoOrnamentParamsSer extends SmoOrnamentParams {
+  /**
+   * constructor
+   */
+  ctor: string;
+}
+function isSmoOrnamentParamsSer(params: Partial<SmoOrnamentParamsSer>): params is SmoOrnamentParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoOrnament') {
+    return false;
+  }
+  return true;
 }
 /**
  * Ornaments map to vex ornaments.  articulations vs. ornaments
@@ -355,10 +475,13 @@ export class SmoOrnament extends SmoNoteModifierBase {
       offset: SmoOrnament.offsets.on
     }));
   }
-  serialize(): object {
-    var params = {};
+  serialize(): SmoOrnamentParamsSer {
+    var params: Partial<SmoOrnamentParamsSer> = { ctor: 'SmoOrnament' };
     smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults,
       SmoOrnament.parameterArray, this, params);
+    if (!isSmoOrnamentParamsSer(params)) {
+      throw 'bad ornament ' + JSON.stringify(params);
+    }
     return params;
   }
   constructor(parameters: SmoOrnamentParams) {
@@ -374,10 +497,30 @@ export class SmoOrnament extends SmoNoteModifierBase {
  * @category SmoParams
  */
 export interface SmoArticulationParameters {
+  /**
+   * position, above or below
+   */
   position?: string,
+  /**
+   * x offset
+   */
   offset?: number,
-  articulation: string,
-  selector?: SmoSelector
+  /**
+   * articulation code
+   */
+  articulation: string
+}
+/**
+ * 
+ */
+export interface SmoArticulationParametersSer extends SmoArticulationParameters {
+  ctor: string;
+}
+function isSmoArticulationParametersSer(params: Partial<SmoArticulationParametersSer>): params is SmoArticulationParametersSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoArticulation') {
+    return false;
+  }
+  return true;
 }
 /**
  * Articulations map to notes, can be placed above/below
@@ -460,10 +603,13 @@ export class SmoArticulation extends SmoNoteModifierBase {
   articulation: string = SmoArticulation.articulations.accent;
   adjX: number = 0;
 
-  serialize(): object {
-    var params = {};
+  serialize(): SmoArticulationParametersSer {
+    var params: Partial<SmoArticulationParametersSer> = { ctor: 'SmoArticulation'};
     smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults,
       SmoArticulation.parameterArray, this, params);
+    if (!isSmoArticulationParametersSer(params)) {
+      throw 'bad articulation ' + JSON.stringify(params);
+    }
     return params;
   }
   constructor(parameters: SmoArticulationParameters) {
@@ -483,44 +629,110 @@ export interface VexAnnotationParams {
 /**
  * The persist-y parts of {@link SmoLyricParams}. We don't persist the selector
  * since that can change based on the position of the parent note
+ * @category serialization
  */
 export interface SmoLyricPersist extends SmoObjectParams {
+  /**
+   * constructor
+   */
   ctor: string,
-  endChar: string,
+  /**
+   * attributes for ID
+   */
+  attrs: SmoAttrs,
+  /**
+   * the lyric font
+   */
   fontInfo: FontInfo,
+  /**
+   * classes for styling
+   */
   classes: string,
+  /**
+   * which verse the lyric goes with
+   */
   verse: number,
+  /**
+   * lyrics are used for chord changes or annotations, parser is different for each
+   */
   parser: number,
+  /**
+   * indicates we should format for the width of the lyric
+   */
   adjustNoteWidthLyric: boolean,
+  /**
+   * indicates we should format for the width of the chord
+   */
   adjustNoteWidthChord: boolean,
+  /**
+   * fill color for text
+   */
   fill: string,
-  scaleX: number,
-  scaleY: number,
+  /**
+   * translate to align lyrics.  Possibly this should not be serialized
+   */
   translateX: number,
+  /**
+   * translate to align lyrics.  Possibly this should not be serialized
+   */
   translateY: number,
-  _text: string | null
+  /**
+   * the actual text
+   */
+  text: string | null
 }
 
+function isSmoLyricPersist(params: Partial<SmoLyricPersist>): params is SmoLyricPersist {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoLyric') {
+    return false;
+  }
+  return true;
+}
 /**
  * Used to construct a {@link SmoLyric} for both chords and lyrics
+ * @category SmoParameters
  */
-export interface SmoLyricParams extends SmoLyricPersist {
-  ctor: string,
-  endChar: string,
+export interface SmoLyricParams {
+  /**
+   * the lyric font
+   */
   fontInfo: FontInfo,
+  /**
+   * classes for styling
+   */
   classes: string,
+  /**
+   * which verse the lyric goes with
+   */
   verse: number,
+  /**
+   * lyrics are used for chord changes or annotations, parser is different for each
+   */
   parser: number,
+  /**
+   * indicates we should format for the width of the lyric
+   */
   adjustNoteWidthLyric: boolean,
+  /**
+   * indicates we should format for the width of the chord
+   */
   adjustNoteWidthChord: boolean,
+  /**
+   * fill color for text
+   */
   fill: string,
-  scaleX: number,
-  scaleY: number,
+  /**
+   * translate to align lyrics.  Possibly this should not be serialized
+   */
   translateX: number,
+  /**
+   * translate to align lyrics.  Possibly this should not be serialized
+   */
   translateY: number,
-  text: string,
-  _text: string | null,
-  selector?: SmoSelector
+  /**
+   * the actual text
+   */
+  text: string | null
 }
 
 /**
@@ -535,7 +747,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   static get defaults(): SmoLyricParams {
     return JSON.parse(JSON.stringify({
       ctor: 'SmoLyric',
-      _text: '\xa0',
+      text: '\xa0',
       endChar: '',
       verse: 0,
       fontInfo: {
@@ -546,8 +758,6 @@ export class SmoLyric extends SmoNoteModifierBase {
       },
       fill: 'black',
       classes: 'score-text',
-      scaleX: 1.0,
-      scaleY: 1.0,
       translateX: 0,
       translateY: 0,
       adjustNoteWidthLyric: true,
@@ -587,8 +797,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   ctor: string = 'SmoLyric';
-  _text: string = '';
-  endChar: string = '';
+  text: string = '';
   fontInfo: FontInfo = {
     size: 12,
     family: 'Merriweather',
@@ -602,8 +811,6 @@ export class SmoLyric extends SmoNoteModifierBase {
   verse: number = 0;
   skipRender: boolean = false;
   fill: string = '';
-  scaleX: number = 1.0;
-  scaleY: number = 1.0;
   translateX: number = 0;
   translateY: number = 0;
   classes: string = '';
@@ -612,10 +819,13 @@ export class SmoLyric extends SmoNoteModifierBase {
   hyphenX: number = 0;
   deleted: boolean = false;
 
-  serialize(): object {
-    var params = {};
+  serialize(): SmoLyricPersist {
+    var params: Partial<SmoLyricPersist> = { ctor: 'SmoLyric' };
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
       SmoLyric.persistArray, this, params);
+    if (!isSmoLyricPersist(params)) {
+      throw 'bad lyric ' + JSON.stringify('params');
+    }
     return params;
   }
 
@@ -646,18 +856,18 @@ export class SmoLyric extends SmoNoteModifierBase {
         text.replace(/\s/g, '');
       }
     }
-    this._text = text;
+    this.text = text;
   }
 
   isHyphenated() {
-    const text = this._text.trim();
+    const text = this.text.trim();
     return this.parser === SmoLyric.parsers.lyric &&
       text.length &&
       text[text.length - 1] === '-';
   }
 
   getText() {
-    const text = this._text.trim();
+    const text = this.text.trim();
     if (this.isHyphenated()) {
       return smoSerialize.tryParseUnicode(text.substr(0, text.length - 1)).trim();
     }
@@ -698,7 +908,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   getVexChordBlocks() {
     let mod = VF.ChordSymbol.symbolModifiers.NONE;
     let isGlyph = false;
-    const tokens = SmoLyric._tokenizeChordString(this._text);
+    const tokens = SmoLyric._tokenizeChordString(this.text);
     const blocks: VexAnnotationParams[] = [];
     tokens.forEach((token) => {
       if (token === '^') {
@@ -731,12 +941,8 @@ export class SmoLyric extends SmoNoteModifierBase {
     smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
     // backwards-compatibility for lyric text
     if (parameters.text) {
-      this._text = parameters.text;
+      this.text = parameters.text;
     }
-
-    // Return these for the text editor that expects them.
-    // this.translateX = this.translateY = 0;
-    this.scaleX = this.scaleY = 1.0;
 
     // calculated adjustments for alignment purposes
     this.adjY = 0;
@@ -746,7 +952,7 @@ export class SmoLyric extends SmoNoteModifierBase {
     if (!this.attrs) {
       this.attrs = {
         id: getId().toString(),
-        type: parameters.ctor
+        type: 'SmoLyric'
       };
     }
   }

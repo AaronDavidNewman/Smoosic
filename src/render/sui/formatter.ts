@@ -455,7 +455,7 @@ export class SuiLayoutFormatter {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
-          if (!lyric._text.length) {
+          if (!lyric.text.length) {
             break;
           }
           // why did I make this return an array?
