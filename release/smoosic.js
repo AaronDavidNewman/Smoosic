@@ -619,8 +619,8 @@ class SmoConfiguration {
             language: 'en',
             scoreDomContainer: 'boo',
             libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-            demonPollTime: 50,
-            idleRedrawTime: 1000,
+            demonPollTime: 50, // how often we poll the score to see if it changed
+            idleRedrawTime: 1000, // maximum time between score modification and render
             ribbonLayout: _ui_ribbonLayout_default_defaultRibbon__WEBPACK_IMPORTED_MODULE_2__.defaultRibbonLayout.ribbons,
             buttonDefinition: _ui_ribbonLayout_default_defaultRibbon__WEBPACK_IMPORTED_MODULE_2__.defaultRibbonLayout.ribbonButtons,
             audioAnimation: {
@@ -873,7 +873,7 @@ class SuiEventHandler {
             modifier: modifierSelection.modifier,
             view: this.view, eventSource: this.eventSource,
             completeNotifier: this.completeNotifier, keyCommands: this.keyCommands,
-            ctor: '',
+            ctor: '', // filled in by the factory
             tracker: this.tracker,
             startPromise: null,
             id: 'modifier-dialog',
@@ -6322,7 +6322,7 @@ class SuiLayoutFormatter {
                     let lyricWidth = 0;
                     let i = 0;
                     // TODO: kerning and all that...
-                    if (!lyric._text.length) {
+                    if (!lyric.text.length) {
                         break;
                     }
                     // why did I make this return an array?
@@ -13451,7 +13451,7 @@ class SuiChordEditor extends SuiTextEditor {
     // params: {lyric: SmoLyric,...}
     constructor(params) {
         super(params);
-        this.text = params.lyric._text;
+        this.text = params.lyric.text;
         this.lyric = params.lyric;
         this.textType = _textRender__WEBPACK_IMPORTED_MODULE_0__.SuiInlineText.textTypes.normal;
         this.parseBlocks();
@@ -13732,12 +13732,12 @@ class SuiLyricSession {
             const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
             const fontInfo = JSON.parse(JSON.stringify(scoreFont));
             const lyricD = _smo_data_noteModifiers__WEBPACK_IMPORTED_MODULE_6__.SmoLyric.defaults;
-            lyricD._text = '';
+            lyricD.text = '';
             lyricD.verse = this.verse;
             lyricD.fontInfo = fontInfo;
             this.lyric = new _smo_data_noteModifiers__WEBPACK_IMPORTED_MODULE_6__.SmoLyric(lyricD);
         }
-        this.text = this.lyric._text;
+        this.text = this.lyric.text;
         this.originalText = this.text;
         // this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
     }
@@ -13787,7 +13787,7 @@ class SuiLyricSession {
         let startY = this.note.logicalBox.y + this.note.logicalBox.height +
             _smo_data_scoreText__WEBPACK_IMPORTED_MODULE_5__.SmoScoreText.fontPointSize(this.lyric.fontInfo.size);
         this.lyric.skipRender = true;
-        const lyricRendered = this.lyric._text.length > 0;
+        const lyricRendered = this.lyric.text.length > 0;
         if (this.lyric.logicalBox !== null) {
             startX = this.lyric.logicalBox.x;
             startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
@@ -13955,14 +13955,14 @@ class SuiChordSession extends SuiLyricSession {
             const scoreFont = this.score.fonts.find((fn) => fn.name === 'chords');
             const fontInfo = JSON.parse(JSON.stringify(scoreFont));
             const ldef = _smo_data_noteModifiers__WEBPACK_IMPORTED_MODULE_6__.SmoLyric.defaults;
-            ldef._text = '';
+            ldef.text = '';
             ldef.verse = this.verse;
             ldef.parser = this.parser;
             ldef.fontInfo = fontInfo;
             this.lyric = new _smo_data_noteModifiers__WEBPACK_IMPORTED_MODULE_6__.SmoLyric(ldef);
             this.note.addLyric(this.lyric);
         }
-        this.text = this.lyric._text;
+        this.text = this.lyric.text;
     }
     // ### _startSessionForNote
     // Start the lyric editor for a note (current selected note)
@@ -15760,7 +15760,7 @@ class vexGlyph {
                 yBottom: 0,
                 spacingRight: 5,
                 vexGlyph: 'augmentationDot'
-            },
+            }, // This isn't accurate, but I don't
             // want to add extra space just for clef.
             trebleClef: {
                 width: 35,
@@ -19167,9 +19167,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
 }
 /**
  * Time signatures contain duration information for a measure, and information
- * about the display of the time signature.  Note: measures also have a time signature
- * string that can be displayed in cases like pickup measure, where the actual time doesn't
- * match the time signature.
+ * about the display of the time signature.
  * @category SmoModifier
  */
 class TimeSignature extends SmoMeasureModifierBase {
@@ -20855,6 +20853,12 @@ const NoteStringParams = ['noteHead', 'clef'];
 const NoteNumberParams = ['beamBeats', 'flagState'];
 // @internal
 const NoteBooleanParams = ['hidden', 'endBeam', 'isCue'];
+function isSmoNoteParamsSer(params) {
+    if (params.ctor && params.ctor === 'SmoNote') {
+        return true;
+    }
+    return false;
+}
 /**
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
@@ -21401,12 +21405,15 @@ class SmoNote {
      * @returns a JSON object that can be used to create this note
      */
     serialize() {
-        var params = {};
+        var params = { ctor: 'SmoNote' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_0__.smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
         if (params.ticks) {
             params.ticks = JSON.parse(JSON.stringify(params.ticks));
         }
         this._serializeModifiers(params);
+        if (!isSmoNoteParamsSer(params)) {
+            throw 'bad note ' + JSON.stringify(params);
+        }
         return params;
     }
     /**
@@ -21515,6 +21522,11 @@ class SmoNoteModifierBase {
         if (jsonObj.ctor === 'SmoMicrotone' && typeof (jsonObj.pitch) === 'number') {
             jsonObj.pitchIndex = jsonObj.pitch;
         }
+        if (jsonObj.ctor === 'SmoLyric') {
+            if (typeof (jsonObj._text) === 'string') {
+                jsonObj.text = jsonObj._text;
+            }
+        }
         if (typeof (ctor) === 'undefined') {
             console.log('ouch bad ctor for ' + jsonObj.ctor);
         }
@@ -21522,7 +21534,13 @@ class SmoNoteModifierBase {
         return rv;
     }
 }
-/**ismulti
+function isGraceNoteParamsSer(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoGraceNote') {
+        return false;
+    }
+    return true;
+}
+/**
  * A grace notes has many of the things an 'actual' note can have, but it doesn't take up
  * time against the time signature
  * @category SmoModifier
@@ -21533,7 +21551,6 @@ class SmoGraceNote extends SmoNoteModifierBase {
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
-            ctor: 'SmoGraceNote',
             flagState: SmoGraceNote.flagStates.auto,
             noteType: 'n',
             beamBeats: 4096,
@@ -21570,8 +21587,11 @@ class SmoGraceNote extends SmoNoteModifierBase {
         return rv;
     }
     serialize() {
-        const params = {};
+        const params = { ctor: 'SmoGraceNote' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMergeNonDefault(SmoGraceNote.defaults, SmoGraceNote.parameterArray, this, params);
+        if (!isGraceNoteParamsSer(params)) {
+            throw 'bad grace note ' + JSON.stringify(params);
+        }
         return params;
     }
     constructor(parameters) {
@@ -21588,6 +21608,12 @@ class SmoGraceNote extends SmoNoteModifierBase {
 }
 const SmoArpeggioTypes = ['directionless', 'rasquedo_up', 'rasquedo_down',
     'roll_up', 'roll_down', 'brush_up', 'brush_down', 'none'];
+function isSmoArpeggionParamsSer(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoArpeggio') {
+        return false;
+    }
+    return true;
+}
 function isArpeggioType(tp) {
     return SmoArpeggioTypes.indexOf(tp) >= 0;
 }
@@ -21618,12 +21644,22 @@ class SmoArpeggio extends SmoNoteModifierBase {
         return type;
     }
     serialize() {
+        const rv = { ctor: 'SmoArpeggio' };
         const str = SmoArpeggioTypes.find((x) => SmoArpeggio.types[x] === this.typeCode);
-        const type = str ? str : 'none';
-        return { ctor: 'SmoArpeggio', type };
+        rv.type = str ? str : 'none';
+        if (!isSmoArpeggionParamsSer(rv)) {
+            throw 'bad arpeggio ' + JSON.stringify(rv);
+        }
+        return rv;
     }
 }
 SmoArpeggio._types = {};
+function isSmoMicrotoneParamsSer(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoMicrotone') {
+        return false;
+    }
+    return true;
+}
 /**
  * Microtones are treated similarly to ornaments.  There are not
  * rules for persisting throughout a measure, cancel etc.
@@ -21645,8 +21681,11 @@ class SmoMicrotone extends SmoNoteModifierBase {
         return rv;
     }
     serialize() {
-        var params = {};
+        const params = { ctor: 'SmoMicrotone' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults, SmoMicrotone.parameterArray, this, params);
+        if (!isSmoMicrotoneParamsSer(params)) {
+            throw 'bad microtone ' + JSON.stringify(params);
+        }
         return params;
     }
     constructor(parameters) {
@@ -21685,6 +21724,12 @@ SmoMicrotone.defaults = {
     tone: 'flat25sz',
     pitch: 0
 };
+function isSmoOrnamentParamsSer(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoOrnament') {
+        return false;
+    }
+    return true;
+}
 /**
  * Ornaments map to vex ornaments.  articulations vs. ornaments
  * is kind of arbitrary
@@ -21729,8 +21774,11 @@ class SmoOrnament extends SmoNoteModifierBase {
         }));
     }
     serialize() {
-        var params = {};
+        var params = { ctor: 'SmoOrnament' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults, SmoOrnament.parameterArray, this, params);
+        if (!isSmoOrnamentParamsSer(params)) {
+            throw 'bad ornament ' + JSON.stringify(params);
+        }
         return params;
     }
     constructor(parameters) {
@@ -21783,6 +21831,12 @@ SmoOrnament.xmlJazz = {
     dropLong: 'falloff',
     drop: 'plop'
 };
+function isSmoArticulationParametersSer(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoArticulation') {
+        return false;
+    }
+    return true;
+}
 /**
  * Articulations map to notes, can be placed above/below
  * @category SmoModifier
@@ -21852,8 +21906,11 @@ class SmoArticulation extends SmoNoteModifierBase {
         }));
     }
     serialize() {
-        var params = {};
+        var params = { ctor: 'SmoArticulation' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults, SmoArticulation.parameterArray, this, params);
+        if (!isSmoArticulationParametersSer(params)) {
+            throw 'bad articulation ' + JSON.stringify(params);
+        }
         return params;
     }
     constructor(parameters) {
@@ -21873,6 +21930,12 @@ SmoArticulation.xmlArticulations = {
     tenuto: 'tenuto',
     marcato: 'strong-accent'
 };
+function isSmoLyricPersist(params) {
+    if (typeof (params.ctor) !== 'string' || params.ctor !== 'SmoLyric') {
+        return false;
+    }
+    return true;
+}
 /**
  * SmoLyric covers both chords and lyrics.  The parser tells you which
  * one you get.
@@ -21882,7 +21945,7 @@ class SmoLyric extends SmoNoteModifierBase {
     static get defaults() {
         return JSON.parse(JSON.stringify({
             ctor: 'SmoLyric',
-            _text: '\xa0',
+            text: '\xa0',
             endChar: '',
             verse: 0,
             fontInfo: {
@@ -21893,8 +21956,6 @@ class SmoLyric extends SmoNoteModifierBase {
             },
             fill: 'black',
             classes: 'score-text',
-            scaleX: 1.0,
-            scaleY: 1.0,
             translateX: 0,
             translateY: 0,
             adjustNoteWidthLyric: true,
@@ -21932,8 +21993,11 @@ class SmoLyric extends SmoNoteModifierBase {
         return rv;
     }
     serialize() {
-        var params = {};
+        var params = { ctor: 'SmoLyric' };
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMergeNonDefault(SmoLyric.defaults, SmoLyric.persistArray, this, params);
+        if (!isSmoLyricPersist(params)) {
+            throw 'bad lyric ' + JSON.stringify('params');
+        }
         return params;
     }
     // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
@@ -21962,16 +22026,16 @@ class SmoLyric extends SmoNoteModifierBase {
                 text.replace(/\s/g, '');
             }
         }
-        this._text = text;
+        this.text = text;
     }
     isHyphenated() {
-        const text = this._text.trim();
+        const text = this.text.trim();
         return this.parser === SmoLyric.parsers.lyric &&
             text.length &&
             text[text.length - 1] === '-';
     }
     getText() {
-        const text = this._text.trim();
+        const text = this.text.trim();
         if (this.isHyphenated()) {
             return _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.tryParseUnicode(text.substr(0, text.length - 1)).trim();
         }
@@ -22010,7 +22074,7 @@ class SmoLyric extends SmoNoteModifierBase {
     getVexChordBlocks() {
         let mod = VF.ChordSymbol.symbolModifiers.NONE;
         let isGlyph = false;
-        const tokens = SmoLyric._tokenizeChordString(this._text);
+        const tokens = SmoLyric._tokenizeChordString(this.text);
         const blocks = [];
         tokens.forEach((token) => {
             if (token === '^') {
@@ -22043,8 +22107,7 @@ class SmoLyric extends SmoNoteModifierBase {
     constructor(parameters) {
         super('SmoLyric');
         this.ctor = 'SmoLyric';
-        this._text = '';
-        this.endChar = '';
+        this.text = '';
         this.fontInfo = {
             size: 12,
             family: 'Merriweather',
@@ -22058,8 +22121,6 @@ class SmoLyric extends SmoNoteModifierBase {
         this.verse = 0;
         this.skipRender = false;
         this.fill = '';
-        this.scaleX = 1.0;
-        this.scaleY = 1.0;
         this.translateX = 0;
         this.translateY = 0;
         this.classes = '';
@@ -22071,11 +22132,8 @@ class SmoLyric extends SmoNoteModifierBase {
         _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_1__.smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
         // backwards-compatibility for lyric text
         if (parameters.text) {
-            this._text = parameters.text;
+            this.text = parameters.text;
         }
-        // Return these for the text editor that expects them.
-        // this.translateX = this.translateY = 0;
-        this.scaleX = this.scaleY = 1.0;
         // calculated adjustments for alignment purposes
         this.adjY = 0;
         this.adjX = 0;
@@ -22083,7 +22141,7 @@ class SmoLyric extends SmoNoteModifierBase {
         if (!this.attrs) {
             this.attrs = {
                 id: (0,_common__WEBPACK_IMPORTED_MODULE_0__.getId)().toString(),
-                type: parameters.ctor
+                type: 'SmoLyric'
             };
         }
     }
@@ -22166,14 +22224,16 @@ class SmoDynamicText extends SmoNoteModifierBase {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SmoPartAttributesBasic: () => (/* binding */ SmoPartAttributesBasic),
 /* harmony export */   SmoPartInfo: () => (/* binding */ SmoPartInfo),
 /* harmony export */   SmoPartInfoBooleanTypes: () => (/* binding */ SmoPartInfoBooleanTypes),
 /* harmony export */   SmoPartInfoNumTypes: () => (/* binding */ SmoPartInfoNumTypes),
 /* harmony export */   SmoPartInfoStringTypes: () => (/* binding */ SmoPartInfoStringTypes)
 /* harmony export */ });
-/* harmony import */ var _measureModifiers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
-/* harmony import */ var _scoreModifiers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-/* harmony import */ var _staffModifiers__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
+/* harmony import */ var _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+/* harmony import */ var _measureModifiers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+/* harmony import */ var _scoreModifiers__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+/* harmony import */ var _staffModifiers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -22184,20 +22244,28 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 const SmoPartInfoStringTypes = ['partName', 'partAbbreviation'];
 const SmoPartInfoNumTypes = ['stavesAfter', 'stavesBefore'];
 const SmoPartInfoBooleanTypes = ['preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
+const SmoPartAttributesBasic = ['partName', 'partAbbreviation', 'stavesAfter', 'stavesBefore', 'preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
+function isSmoPartInfoParamsSer(params) {
+    if (params.ctor && params.ctor === 'SmoPartInfo') {
+        return true;
+    }
+    return false;
+}
 /**
  * Part info contains information that group 1 or 2 adjacent staves.
  * Parts can have formatting that is indepenedent of the score
  * @category SmoModifier
  */
-class SmoPartInfo extends _staffModifiers__WEBPACK_IMPORTED_MODULE_2__.StaffModifierBase {
+class SmoPartInfo extends _staffModifiers__WEBPACK_IMPORTED_MODULE_3__.StaffModifierBase {
     static get defaults() {
         return JSON.parse(JSON.stringify({
             partName: 'Staff ',
             partAbbreviation: '',
-            globalLayout: _scoreModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoLayoutManager.defaultLayout,
+            globalLayout: _scoreModifiers__WEBPACK_IMPORTED_MODULE_2__.SmoLayoutManager.defaultLayout,
             textGroups: [],
             preserveTextGroups: false,
             pageLayoutMap: {},
@@ -22222,16 +22290,16 @@ class SmoPartInfo extends _staffModifiers__WEBPACK_IMPORTED_MODULE_2__.StaffModi
         this.displayCues = false;
         this.expandMultimeasureRests = false;
         if (!params.layoutManager) {
-            this.layoutManager = new _scoreModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoLayoutManager(_scoreModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoLayoutManager.defaults);
+            this.layoutManager = new _scoreModifiers__WEBPACK_IMPORTED_MODULE_2__.SmoLayoutManager(_scoreModifiers__WEBPACK_IMPORTED_MODULE_2__.SmoLayoutManager.defaults);
         }
         else {
-            this.layoutManager = new _scoreModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoLayoutManager(params.layoutManager);
+            this.layoutManager = new _scoreModifiers__WEBPACK_IMPORTED_MODULE_2__.SmoLayoutManager(params.layoutManager);
         }
         if (typeof (params.measureFormatting) !== 'undefined') {
             const formatKeys = Object.keys(params.measureFormatting);
             formatKeys.forEach((key) => {
                 const numKey = parseInt(key, 10);
-                this.measureFormatting[numKey] = new _measureModifiers__WEBPACK_IMPORTED_MODULE_0__.SmoMeasureFormat(params.measureFormatting[numKey]);
+                this.measureFormatting[numKey] = new _measureModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoMeasureFormat(params.measureFormatting[numKey]);
             });
         }
         if (params.textGroups) {
@@ -22255,17 +22323,24 @@ class SmoPartInfo extends _staffModifiers__WEBPACK_IMPORTED_MODULE_2__.StaffModi
             this.midiInstrument = null;
         }
     }
+    static deserialize(jsonObj) {
+        const params = SmoPartInfo.defaults;
+        _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_0__.smoSerialize.serializedMerge(SmoPartAttributesBasic, jsonObj, params);
+        params.midiInstrument = jsonObj.midiInstrument;
+        params.midiDevice = jsonObj.midiDevice;
+        params.measureFormatting = {};
+        if (jsonObj.measureFormatting) {
+            const mfkeys = Object.keys(jsonObj.measureFormatting);
+            mfkeys.forEach((mfkey) => {
+                const mfnum = parseInt(mfkey, 10);
+                params.measureFormatting[mfnum] = _measureModifiers__WEBPACK_IMPORTED_MODULE_1__.SmoMeasureModifierBase.deserialize(jsonObj.measureFormatting[mfnum]);
+            });
+        }
+        return new SmoPartInfo(params);
+    }
     serialize() {
-        const rv = {};
-        SmoPartInfoStringTypes.forEach((st) => {
-            rv[st] = this[st];
-        });
-        SmoPartInfoNumTypes.forEach((st) => {
-            rv[st] = this[st];
-        });
-        SmoPartInfoBooleanTypes.forEach((st) => {
-            rv[st] = this[st];
-        });
+        const rv = { ctor: 'SmoPartInfo' };
+        _common_serializationHelpers__WEBPACK_IMPORTED_MODULE_0__.smoSerialize.serializedMergeNonDefault(SmoPartInfo.defaults, SmoPartAttributesBasic, this, rv);
         rv.layoutManager = this.layoutManager.serialize();
         rv.textGroups = [];
         this.textGroups.forEach((tg) => {
@@ -22282,6 +22357,9 @@ class SmoPartInfo extends _staffModifiers__WEBPACK_IMPORTED_MODULE_2__.StaffModi
             const numKey = parseInt(key, 10);
             rv.measureFormatting[numKey] = this.measureFormatting[numKey];
         });
+        if (!isSmoPartInfoParamsSer(rv)) {
+            throw 'bad part info ' + JSON.stringify(rv);
+        }
         return rv;
     }
     updateTextGroup(textGroup, toAdd) {
@@ -22508,7 +22586,7 @@ class SmoScore {
                 { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
             ],
             scoreInfo: {
-                name: 'Smoosical',
+                name: 'Smoosical', // deprecated
                 title: 'Smoosical',
                 subTitle: '(Op. 1)',
                 composer: 'Me',
@@ -23576,6 +23654,12 @@ class SmoPageLayout extends SmoScoreModifierBase {
     }
 }
 const GlobalLayoutAttributesArray = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale', 'proportionality', 'maxMeasureSystem'];
+function isSmoLayoutManagerParamsSer(params) {
+    if (!params.ctor || params.ctor !== 'SmoLayoutManager') {
+        return false;
+    }
+    return true;
+}
 /**
  * Storage and utilities for layout information in the score.  Each
  * manager has one set of page height/width, since svg element
@@ -23685,12 +23769,15 @@ class SmoLayoutManager extends SmoScoreModifierBase {
         return this.globalLayout.zoomScale;
     }
     serialize() {
-        const rv = {};
+        const rv = { ctor: 'SmoLayoutManager' };
         rv.pageLayouts = [];
         this.pageLayouts.forEach((pl) => {
             rv.pageLayouts.push(pl.serialize());
         });
         rv.globalLayout = JSON.parse(JSON.stringify(this.globalLayout));
+        if (!isSmoLayoutManagerParamsSer(rv)) {
+            throw 'bad layout manager ' + JSON.stringify(rv);
+        }
         return rv;
     }
     updateGlobalLayout(params) {
@@ -25108,7 +25195,7 @@ class SmoSystemStaff {
                 tgs.push(_scoreText__WEBPACK_IMPORTED_MODULE_6__.SmoTextGroup.deserializePreserveId(tgSer));
             });
             jsonObj.partInfo.textGroups = tgs;
-            params.partInfo = new _partInfo__WEBPACK_IMPORTED_MODULE_5__.SmoPartInfo(jsonObj.partInfo);
+            params.partInfo = _partInfo__WEBPACK_IMPORTED_MODULE_5__.SmoPartInfo.deserialize(jsonObj.partInfo);
         }
         // Up-convert legacy instrument info, which was split between different objects
         if (!jsonObj.measureInstrumentMap) {
@@ -25613,7 +25700,7 @@ class SmoTuplet {
             notes: [],
             numNotes: 3,
             stemTicks: 2048,
-            totalTicks: 4096,
+            totalTicks: 4096, // how many ticks this tuple takes up
             durationMap: [1.0, 1.0, 1.0],
             bracketed: true,
             voice: 0,
@@ -26784,7 +26871,7 @@ class SmoToXml {
             // describes how we want to modify the XML - indent everything
             '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
             '  <xsl:strip-space elements="*"/>',
-            '  <xsl:template match="para[content-style][not(text())]">',
+            '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
             '    <xsl:value-of select="normalize-space(.)"/>',
             '  </xsl:template>',
             '  <xsl:template match="node()|@*">',
@@ -28219,10 +28306,10 @@ class XmlState {
         }
         lyricData.verse = this.verseMap[lyricData.verse];
         const params = _data_noteModifiers__WEBPACK_IMPORTED_MODULE_5__.SmoLyric.defaults;
-        params._text = lyricData._text;
+        params.text = lyricData._text;
         params.verse = lyricData.verse;
         if (lyricData.syllabic === 'begin' || lyricData.syllabic === 'middle') {
-            params._text += '-';
+            params.text += '-';
         }
         const lyric = new _data_noteModifiers__WEBPACK_IMPORTED_MODULE_5__.SmoLyric(params);
         note.addLyric(lyric);
