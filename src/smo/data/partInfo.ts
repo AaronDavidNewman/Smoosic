@@ -5,8 +5,10 @@
  * Parts is parts.
  * @module /smo/data/partInfo
  */
-import { SmoMeasureFormat } from './measureModifiers';
-import { SmoLayoutManager } from './scoreModifiers';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoObjectParams } from './common';
+import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
+import { SmoLayoutManager, SmoLayoutManagerParamsSer } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
 import { StaffModifierBase } from './staffModifiers';
 
@@ -17,6 +19,7 @@ export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'staves
 export type SmoPartInfoBooleanType = 'preserveTextGroups' | 'cueInScore' | 'expandMultimeasureRests';
 export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
 
+export const SmoPartAttributesBasic = ['partName', 'partAbbreviation', 'stavesAfter', 'stavesBefore', 'preserveTextGroups', 'cueInScore', 'expandMultimeasureRests'];
 export interface SmoMidiInstrument {
   channel: number,
   program: number,
@@ -117,11 +120,11 @@ export interface SmoPartInfoParamsSer  {
   /**
    * parts can have their own page settings, zoom settings, etc.
    */
-  layoutManager?: SmoLayoutManager;
+  layoutManager?: SmoLayoutManagerParamsSer;
   /**
    * parts can have their own measure formatting
    */
-  measureFormatting?: Record<number, SmoMeasureFormat>,
+  measureFormatting?: Record<number, SmoMeasureFormatParamsSer>,
   /**
    * for part-specific text
    */
@@ -222,17 +225,25 @@ export class SmoPartInfo extends StaffModifierBase {
       this.midiInstrument = null;
     }
   }
+  static deserialize(jsonObj: SmoPartInfoParamsSer): SmoPartInfo {
+    const params = SmoPartInfo.defaults;
+    smoSerialize.serializedMerge(SmoPartAttributesBasic, jsonObj, params);
+    params.midiInstrument = jsonObj.midiInstrument;
+    params.midiDevice = jsonObj.midiDevice;
+    params.measureFormatting = {};
+    if (jsonObj.measureFormatting) {
+      const mfkeys = Object.keys(jsonObj.measureFormatting);
+      mfkeys.forEach((mfkey) => {
+        const mfnum = parseInt(mfkey, 10);
+        params.measureFormatting![mfnum] = SmoMeasureModifierBase.deserialize(jsonObj.measureFormatting![mfnum]);
+      });
+    }
+    return new SmoPartInfo(params);
+    
+  }
   serialize(): SmoPartInfoParamsSer {
     const rv: Partial<SmoPartInfoParamsSer> = { ctor: 'SmoPartInfo' };
-    SmoPartInfoStringTypes.forEach((st) => {
-      rv[st] = this[st];
-    });
-    SmoPartInfoNumTypes.forEach((st) => {
-      rv[st] = this[st];
-    });
-    SmoPartInfoBooleanTypes.forEach((st) => {
-      rv[st] = this[st];
-    });
+    smoSerialize.serializedMergeNonDefault(SmoPartInfo.defaults, SmoPartAttributesBasic, this, rv);
     rv.layoutManager = this.layoutManager.serialize();
     rv.textGroups = [];
     this.textGroups.forEach((tg) => {

@@ -177,6 +177,7 @@ export class SmoAudioPlayerSettings extends SmoScoreModifierBase {
 export type ScaledPageAttributes = 'leftMargin' | 'rightMargin' | 'topMargin' | 'bottomMargin' | 'interGap' | 'intraGap';
 /**
  * Constructor parameters for {@link SmoPageLayout}, part of {@link SmoLayoutManager}
+ * @category SmoParameters, serialization
  */
 export interface SmoPageLayoutParams {
   leftMargin: number,
@@ -185,6 +186,9 @@ export interface SmoPageLayoutParams {
   bottomMargin: number,
   interGap: number,
   intraGap: number
+}
+export interface SmoPageLayoutParamsSer {
+
 }
 /**
  * Define margins and other layout information associated with a specific page, and may
@@ -268,8 +272,34 @@ export interface ScaledPageLayout {
  * @category {SmoParams}
  */
 export interface SmoLayoutManagerParams {
+  /**
+   * global svg settings for zoom, page width/height
+   */
   globalLayout: SmoGlobalLayout,
+  /**
+   * page margins for each page
+   */
   pageLayouts: SmoPageLayout[]
+}
+export interface SmoLayoutManagerParamsSer {
+  /**
+   * constructor
+   */
+  ctor: string; 
+  /**
+   * global svg settings for zoom, page width/height
+   */
+  globalLayout: SmoGlobalLayout,
+  /**
+   * page margins for each page
+   */
+  pageLayouts: SmoPageLayoutParams[]
+}
+function isSmoLayoutManagerParamsSer(params: Partial<SmoLayoutManagerParamsSer>): params is SmoLayoutManagerParamsSer {
+  if (!params.ctor || params.ctor !== 'SmoLayoutManager') {
+    return false;
+  }
+  return true;
 }
 /**
  * Storage and utilities for layout information in the score.  Each
@@ -380,13 +410,16 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
   getZoomScale() {
     return this.globalLayout.zoomScale;
   }
-  serialize(): any {
-    const rv: any = {};
+  serialize(): SmoLayoutManagerParamsSer {
+    const rv: Partial<SmoLayoutManagerParamsSer> = { ctor: 'SmoLayoutManager' };
     rv.pageLayouts = [];
     this.pageLayouts.forEach((pl) => {
-      rv.pageLayouts.push(pl.serialize());
+      rv.pageLayouts!.push(pl.serialize());
     });
     rv.globalLayout = JSON.parse(JSON.stringify(this.globalLayout));
+    if (!isSmoLayoutManagerParamsSer(rv)) {
+      throw 'bad layout manager ' + JSON.stringify(rv);
+    }
     return rv;
   }
   updateGlobalLayout(params: SmoGlobalLayout) {

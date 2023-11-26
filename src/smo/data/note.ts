@@ -216,10 +216,8 @@ export interface SmoNoteParamsSer  {
   clefNote: string | null  
 }
 function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
-  if (params.ctor && params.ctor === 'SmoTie') {
-    if (typeof(params.attrs?.id) === 'string') {
-      return true;
-    }
+  if (params.ctor && params.ctor === 'SmoNote') {
+   return true;
   }
   return false;
 }
@@ -813,7 +811,7 @@ export class SmoNote implements Transposable {
    * @returns a JSON object that can be used to create this note
    */
   serialize(): SmoNoteParamsSer {
-    var params: Partial<SmoNoteParamsSer> = {};
+    var params: Partial<SmoNoteParamsSer> = { ctor: 'SmoNote' };
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
