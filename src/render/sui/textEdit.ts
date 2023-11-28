@@ -16,7 +16,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { SvgPage } from './svgPageMap';
 import { SuiScoreViewOperations } from './scoreViewOperations';
 import { SvgPageMap } from './svgPageMap';
-import { VexFlow, ChordSymbolGlyphs } from '../../common/vex';
+import { VexFlow, getChordSymbolGlyphFromCode } from '../../common/vex';
 
 const VF = VexFlow;
 declare var $: any;
@@ -814,13 +814,13 @@ export class SuiChordEditor extends SuiTextEditor {
     if (evdata.key[0] === '@' && evdata.key.length > 2) {
       this.unrender();
       const glyph = evdata.key.substr(1, evdata.key.length - 2);
-      this._addGlyphAt(this.textPos, glyph);
+      this._addGlyphAt(this.textPos, getChordSymbolGlyphFromCode(glyph));
       this.rerender();
       edited = true;
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
       this.unrender();
       // hack: vexflow 5 broke this
-      this._addGlyphAt(this.textPos, ChordSymbolGlyphs[evdata.key[0]]);
+      this._addGlyphAt(this.textPos, evdata.key[0]);
       this.rerender();
       edited = true;
     } else {

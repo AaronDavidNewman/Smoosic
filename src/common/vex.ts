@@ -5,7 +5,7 @@ import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNot
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
- Music as VexMusic  } from "vexflow_smoosic";
+ Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock  } from "vexflow_smoosic";
 
  /**
   * Module vex.ts.  This handles vexflow calls and structures that have changed 
@@ -349,33 +349,116 @@ export function getOrnamentGlyph(glyph: string) {
   return glyph;
   // return vexOrnaments[glyph];
 }
-// Glyph data
-export const ChordSymbolGlyphs: Record<string, string> = {
-  csymDiminished: '\ue870' /*csymDiminished*/,
-  dim: '\ue870' /*csymDiminished*/,
-  csymHalfDiminished: '\ue871' /*csymHalfDiminished*/,
-  '+': '\ue872' /*csymAugmented*/,
-  augmented: '\ue872' /*csymAugmented*/,
-  csymAugmented: '\ue872' /*csymAugmented*/,
-  majorSeventh: '\ue873' /*csymMajorSeventh*/,
-  minor: '\ue874' /*csymMinor*/,
-  '-': '\ue874' /*csymMinor*/,
-  rightBracket: '\ue878' /*csymBracketRightTall*/,
-  leftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-  rightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-  csymParensRightTall: '\u0029' /*csymParensRightTall*/,
-  csymLeftBracket: '\ue877' /*csymBracketLeftTall*/,
-  csymRightBracket: '\ue878' /*csymBracketRightTall*/,
-  csymLeftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-  csymRightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-  '/': '\ue87c' /*csymDiagonalArrangementSlash*/,
-  over: '\ue87c' /*csymDiagonalArrangementSlash*/,
-  '#': '\ued62' /*csymAccidentalSharp*/,
-  accidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-  accidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-  csymAccidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-  csymAccidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-  b: '\ued60' /*csymAccidentalFlat*/,
+
+export function addChordGlyph(cs: VexChordSymbol, symbol: string) {
+  cs.addGlyph(symbol);
+}
+/**
+ * get a glyph code to render
+ * @param code 
+ * @returns 
+ */
+export function getVexGlyphFromChordCode(code: string) {
+  if (code === 'csymDiminished' || code === 'csymHalfDiminished' || code === 'csymAugmented' || code === 'csymMajorSeventh') {
+    return code;
+  }
+  return ChordSymbolGlyphs[code].code;
+}
+/**
+ * Get the chord symbol glyph from the vex glyph
+ * @export
+ * @param {string} code
+ * @return {*} 
+ */
+export function getChordSymbolGlyphFromCode(code: string) {
+  const keys = Object.keys(ChordSymbolGlyphs);
+  const rv = keys.find((key) => ChordSymbolGlyphs[key].code === code);
+  if (typeof(rv) === 'string') {
+    return rv;
+  }
+  return code;
+}
+export function getChordSymbolMetricsForGlyph(code: string) {
+  if (code === 'b') {
+    code = 'accidentalFlat';
+  }
+  if (code === '#') {
+    code = 'accidentalSharp';
+  }
+  const glyphMetrics = VexChordSymbol.metrics;
+  return glyphMetrics[code];
+}
+/**
+ * Vex 5 compatibility.  yShift
+ */
+export function blockMetricsYShift(metrics: any) {
+  return metrics.y_shift;
+}
+// Glyph data.  Note Vex4 and Vex5 have different requirements.  Vex5 expects the unicode identifier (16-bit number)
+// where vex4 expects a string glyph
+export const ChordSymbolGlyphs: Record<string, { code: string }> = {
+  diminished: {
+    code: 'csymDiminished',
+  },
+  dim: {
+    code: 'csymDiminished',
+  },
+  halfDiminished: {
+    code: 'csymHalfDiminished',
+  },
+  '+': {
+    code: 'csymAugmented',
+  },
+  augmented: {
+    code: 'csymAugmented',
+  },
+  majorSeventh: {
+    code: 'csymMajorSeventh',
+  },
+  csymMinor: {
+    code: 'csymMinor',
+  },
+  minor: {
+    code: 'csymMinor',
+  },
+  '-': {
+    code: 'csymMinor',
+  },
+  '(': {
+    code: 'csymParensLeftTall',
+  },  
+  leftParen: {
+    code: 'csymParensLeftTall',
+  },
+  ')': {
+    code: 'csymParensRightTall',
+  },
+  rightParen: {
+    code: 'csymParensRightTall',
+  },
+  leftBracket: {
+    code: 'csymBracketLeftTall',
+  },
+  rightBracket: {
+    code: 'csymBracketRightTall',
+  },  
+  leftParenTall: {
+    code: 'csymParensLeftVeryTall',
+  }, rightParenTall: {
+    code: 'csymParensRightVeryTall',
+  },
+  '/': {
+    code: 'csymDiagonalArrangementSlash',
+  },
+ over: {
+    code: 'csymDiagonalArrangementSlash',
+  },
+  '#': {
+    code: 'accidentalSharp',
+  },
+  b: {
+    code: 'accidentalFlat',
+  },
 };
 export const vexOrnaments: Record<string, string> = {
   mordent: '\ue56c' /*ornamentShortTrill*/,

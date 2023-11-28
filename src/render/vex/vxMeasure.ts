@@ -11,7 +11,7 @@ import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, 
-  SmoArpeggio, SmoNoteModifierBase } from '../../smo/data/noteModifiers';
+  SmoArpeggio, SmoNoteModifierBase, VexAnnotationParams } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
@@ -21,7 +21,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest } from '../../common/vex';
+  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
+  addChordGlyph } from '../../common/vex';
 
 const VF = VexFlow;
 
@@ -193,7 +194,7 @@ export class VxMeasure {
         // Vex 5 broke this, does not distinguish between glyph and text
         // the reverse is for vex4 which expects the non-mangled identifier here,
         // e.g. 'diminished' and not 'csymDiminished'
-        cs.addGlyphOrText(block.glyph, block);
+        addChordGlyph(cs, block.glyph);
       } else {
         cs.addGlyphOrText(block.text ?? '', block);
       }

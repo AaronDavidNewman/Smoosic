@@ -9,7 +9,7 @@ import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, S
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { VexFlow, ChordSymbolGlyphs, defaultNoteScale, FontInfo } from '../../common/vex';
+import { VexFlow, defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
 
 const VF = VexFlow;
 // const Smo = eval('globalThis.Smo');
@@ -879,7 +879,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code: string) {
-    return ChordSymbolGlyphs[code];
+    return getChordSymbolGlyphFromCode(code);
   }
   static _tokenizeChordString(str: string) {
     // var str = this._text;
