@@ -4111,6 +4111,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ChordSymbolGlyphs: () => (/* binding */ ChordSymbolGlyphs),
 /* harmony export */   VexFlow: () => (/* binding */ VexFlow),
+/* harmony export */   addChordGlyph: () => (/* binding */ addChordGlyph),
 /* harmony export */   applyStemDirection: () => (/* binding */ applyStemDirection),
 /* harmony export */   chordSubscriptOffset: () => (/* binding */ chordSubscriptOffset),
 /* harmony export */   chordSuperscriptOffset: () => (/* binding */ chordSuperscriptOffset),
@@ -4123,6 +4124,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   defaultCueScale: () => (/* binding */ defaultCueScale),
 /* harmony export */   defaultMeasurePadding: () => (/* binding */ defaultMeasurePadding),
 /* harmony export */   defaultNoteScale: () => (/* binding */ defaultNoteScale),
+/* harmony export */   getChordSymbolGlyphFromCode: () => (/* binding */ getChordSymbolGlyphFromCode),
 /* harmony export */   getGlyphWidth: () => (/* binding */ getGlyphWidth),
 /* harmony export */   getMultimeasureRest: () => (/* binding */ getMultimeasureRest),
 /* harmony export */   getOrnamentGlyph: () => (/* binding */ getOrnamentGlyph),
@@ -4378,33 +4380,100 @@ function getOrnamentGlyph(glyph) {
     return glyph;
     // return vexOrnaments[glyph];
 }
-// Glyph data
+function addChordGlyph(cs, symbol) {
+    cs.addGlyph(symbol);
+}
+/**
+ *
+ * @export
+ * @param {string} code
+ * @return {*}
+ */
+function getChordSymbolGlyphFromCode(code) {
+    const keys = Object.keys(ChordSymbolGlyphs);
+    const rv = keys.find((key) => ChordSymbolGlyphs[key].code === code);
+    if (typeof (rv) === 'string') {
+        return rv;
+    }
+    return code;
+}
+// Glyph data.  Note Vex4 and Vex5 have different requirements.  Vex5 expects the unicode identifier (16-bit number)
+// where vex4 expects a string glyph
 const ChordSymbolGlyphs = {
-    csymDiminished: '\ue870' /*csymDiminished*/,
-    dim: '\ue870' /*csymDiminished*/,
-    csymHalfDiminished: '\ue871' /*csymHalfDiminished*/,
-    '+': '\ue872' /*csymAugmented*/,
-    augmented: '\ue872' /*csymAugmented*/,
-    csymAugmented: '\ue872' /*csymAugmented*/,
-    majorSeventh: '\ue873' /*csymMajorSeventh*/,
-    minor: '\ue874' /*csymMinor*/,
-    '-': '\ue874' /*csymMinor*/,
-    rightBracket: '\ue878' /*csymBracketRightTall*/,
-    leftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-    rightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-    csymParensRightTall: '\u0029' /*csymParensRightTall*/,
-    csymLeftBracket: '\ue877' /*csymBracketLeftTall*/,
-    csymRightBracket: '\ue878' /*csymBracketRightTall*/,
-    csymLeftParenTall: '\u0028' /*csymParensLeftVeryTall*/,
-    csymRightParenTall: '\u0029' /*csymParensRightVeryTall*/,
-    '/': '\ue87c' /*csymDiagonalArrangementSlash*/,
-    over: '\ue87c' /*csymDiagonalArrangementSlash*/,
-    '#': '\ued62' /*csymAccidentalSharp*/,
-    accidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-    accidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-    csymAccidentalSharp: '\ued62' /*csymAccidentalSharp*/,
-    csymAccidentalFlat: '\ued60' /*csymAccidentalFlat*/,
-    b: '\ued60' /*csymAccidentalFlat*/,
+    diminished: {
+        code: 'csymDiminished',
+    },
+    dim: {
+        code: 'csymDiminished',
+    },
+    csymDiminished: {
+        code: 'csymDiminished'
+    },
+    halfDiminished: {
+        code: 'csymHalfDiminished',
+    },
+    csymHalfDiminished: {
+        code: 'csymHalfDiminished'
+    },
+    '+': {
+        code: 'csymAugmented',
+    },
+    augmented: {
+        code: 'csymAugmented',
+    },
+    csymAugmented: {
+        code: 'csymAugmented',
+    },
+    majorSeventh: {
+        code: 'csymMajorSeventh',
+    },
+    csymMajorSeventh: {
+        code: 'csymMajorSeventh',
+    },
+    csymMinor: {
+        code: 'csymMinor',
+    },
+    minor: {
+        code: 'csymMinor',
+    },
+    '-': {
+        code: 'csymMinor',
+    },
+    '(': {
+        code: 'csymParensLeftTall',
+    },
+    leftParen: {
+        code: 'csymParensLeftTall',
+    },
+    ')': {
+        code: 'csymParensRightTall',
+    },
+    rightParen: {
+        code: 'csymParensRightTall',
+    },
+    leftBracket: {
+        code: 'csymBracketLeftTall',
+    },
+    rightBracket: {
+        code: 'csymBracketRightTall',
+    },
+    leftParenTall: {
+        code: 'csymParensLeftVeryTall',
+    }, rightParenTall: {
+        code: 'csymParensRightVeryTall',
+    },
+    '/': {
+        code: 'csymDiagonalArrangementSlash',
+    },
+    over: {
+        code: 'csymDiagonalArrangementSlash',
+    },
+    '#': {
+        code: 'accidentalSharp',
+    },
+    b: {
+        code: 'accidentalFlat',
+    },
 };
 const vexOrnaments = {
     mordent: '\ue56c' /*ornamentShortTrill*/,
@@ -13432,7 +13501,7 @@ class SuiChordEditor extends SuiTextEditor {
             else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
                 this.unrender();
                 // hack: vexflow 5 broke this
-                this._addGlyphAt(this.textPos, _common_vex__WEBPACK_IMPORTED_MODULE_9__.ChordSymbolGlyphs[evdata.key[0]]);
+                this._addGlyphAt(this.textPos, (0,_common_vex__WEBPACK_IMPORTED_MODULE_9__.getChordSymbolGlyphFromCode)(evdata.key[0]));
                 this.rerender();
                 edited = true;
             }
@@ -16069,7 +16138,7 @@ class VxMeasure {
                 // Vex 5 broke this, does not distinguish between glyph and text
                 // the reverse is for vex4 which expects the non-mangled identifier here,
                 // e.g. 'diminished' and not 'csymDiminished'
-                cs.addGlyphOrText(block.glyph, block);
+                (0,_common_vex__WEBPACK_IMPORTED_MODULE_8__.addChordGlyph)(cs, block.glyph);
             }
             else {
                 cs.addGlyphOrText((_a = block.text) !== null && _a !== void 0 ? _a : '', block);
@@ -16718,36 +16787,43 @@ class VxSystem {
     _lowestYLowestVerse(lyrics, vxMeasures) {
         // Move each verse down, according to the lowest lyric on that line/verse,
         // and the accumulation of the verses above it
-        // lyrics.forEach((ll) => ll.adjY = 0);
-        let maxOffset = 0;
-        let calcMaxOffset = 0;
+        let lowestY = 0;
         for (var lowVerse = 0; lowVerse < 4; ++lowVerse) {
-            let lowestY = 0;
-            maxOffset = calcMaxOffset;
-            calcMaxOffset = 0;
-            lyrics.forEach((lyric) => {
-                if (lyric.logicalBox && lyric.verse === lowVerse) {
-                    // 'lowest' Y on screen is Y with largest value...
-                    lowestY = Math.max(lyric.logicalBox.y, lowestY);
-                }
-            });
-            vxMeasures.forEach((vxMeasure) => {
-                vxMeasure.smoMeasure.voices.forEach((voice) => {
-                    voice.notes.forEach((note) => {
-                        const noteLyrics = note.getTrueLyrics().filter((ll) => ll.verse >= lowVerse);
-                        if (noteLyrics.length) {
-                            const topVerse = noteLyrics.reduce((a, b) => a.verse < b.verse ? a : b);
-                            if (topVerse && topVerse.logicalBox) {
-                                const offset = Math.max(0, lowestY - topVerse.logicalBox.y);
-                                calcMaxOffset = Math.max(calcMaxOffset, offset);
-                                noteLyrics.forEach((lyric) => {
-                                    lyric.adjY = offset + lyric.translateY + maxOffset;
-                                });
-                            }
-                        }
-                    });
+            let maxVerseHeight = 0;
+            const verseLyrics = lyrics.filter((ll) => ll.verse === lowVerse);
+            if (lowVerse === 0) {
+                // first verse, go through list twice.  first find lowest points
+                verseLyrics.forEach((lyric) => {
+                    if (lyric.logicalBox) {
+                        // 'lowest' Y on screen is Y with largest value...
+                        lowestY = Math.max(lyric.logicalBox.y, lowestY);
+                    }
                 });
-            });
+                // second offset all to that point
+                verseLyrics.forEach((lyric) => {
+                    if (lyric.logicalBox) {
+                        const offset = Math.max(0, lowestY - lyric.logicalBox.y);
+                        lyric.adjY = offset + lyric.translateY;
+                    }
+                });
+            }
+            else {
+                // subsequent verses, first find the tallest lyric
+                verseLyrics.forEach((lyric) => {
+                    if (lyric.logicalBox) {
+                        maxVerseHeight = Math.max(lyric.logicalBox.height, maxVerseHeight);
+                    }
+                });
+                // adjust lowestY to be the verse height below the previous verse
+                lowestY = lowestY + maxVerseHeight * 1.1; // 1.1 magic number?
+                // and offset these lyrics
+                verseLyrics.forEach((lyric) => {
+                    if (lyric.logicalBox) {
+                        const offset = Math.max(0, lowestY - lyric.logicalBox.y);
+                        lyric.adjY = offset + lyric.translateY;
+                    }
+                });
+            }
         }
     }
     // ### updateLyricOffsets
@@ -22045,7 +22121,7 @@ class SmoLyric extends SmoNoteModifierBase {
         return this.getText().length === 0 && this.isHyphenated();
     }
     static _chordGlyphFromCode(code) {
-        return _common_vex__WEBPACK_IMPORTED_MODULE_3__.ChordSymbolGlyphs[code];
+        return (0,_common_vex__WEBPACK_IMPORTED_MODULE_3__.getChordSymbolGlyphFromCode)(code);
     }
     static _tokenizeChordString(str) {
         // var str = this._text;
