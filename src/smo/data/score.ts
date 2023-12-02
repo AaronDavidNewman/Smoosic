@@ -8,29 +8,19 @@ import { SmoMusic } from './music';
 import { Clef, SvgDimensions } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
+import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
+  SmoMeasureFormatParamsSer } from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
-import { SmoSystemGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, 
-  SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters } from './scoreModifiers';
+import { SmoSystemGroup, SmoSystemGroupParamsSer, SmoScoreModifierBase, SmoPageLayout, 
+  SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters, SmoLayoutManagerParamsSer,
+  SmoLayoutManager, FontPurpose,
+  SmoScoreInfo, SmoScoreInfoKeys, ScoreMetadataSer,  SmoScorePreferences, SmoPageLayoutParams, 
+  SmoLayoutManagerParams, SmoFormattingManagerParams } from './scoreModifiers';
 import { SmoTextGroup, SmoScoreText, SmoTextGroupParamsSer }   from './scoreText';
-import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
+import { SmoSystemStaff, SmoSystemStaffParams, SmoSystemStaffParamsSer } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { FontInfo } from '../../common/vex';
-/**
- * For global/default font settings.
- * @param name to distinguish: chord, lyric etc.
- * @param family font family
- * @param size in points
- * @param custom used to distinguish a specific text is not the default
- */
-export interface FontPurpose {
-  name: string,
-  purpose: number,
-  family: string,
-  size: number,
-  custom: boolean
-}
 
 /**
  * List of engraving fonts available in Smoosic
@@ -45,103 +35,99 @@ export function isEngravingFont(et: engravingFontType | string): et is engraving
   return (engravingFontTypes as any[]).indexOf(et) >= 0;
 }
 
-// @internal
-export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
-/**
- * Information about the score itself, like composer etc.
- * @category SmoModifier
- */
-export class SmoScoreInfo {
-  name: string = 'Smoosical'; // deprecated
-  title: string = 'Smoosical';
-  subTitle: string = '(Op. 1)';
-  composer: string = 'Me';
-  copyright: string = '';
-  version: number = 1;
-}
-export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 'hideEmptyLines' | 'transposingScore';
-export type SmoScorePreferenceNumber = 'defaultDupleDuration' | 'defaultTripleDuration';
-export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'hideEmptyLines', 'transposingScore'];
-export const SmoScorePreferenceNumbers: SmoScorePreferenceNumber[] = ['defaultDupleDuration', 'defaultTripleDuration'];
-/**
- * Global score/program behavior preferences, see below for parameters
- */
-export interface SmoScorePreferencesParams {
-  autoPlay: boolean;
-  autoAdvance: boolean;
-  defaultDupleDuration: number;
-  defaultTripleDuration: number;
-  showPiano: boolean;
-  hideEmptyLines: boolean;
-  transposingScore: boolean;
-}
-/**
- * Some default SMO behavior
- * @param autoPlay play a new note or chord
- * @param autoAdvance Sibelius-like behavior of advancing cursor when a letter note is placed
- * @param defaultDupleDuration in ticks, even metered measures
- * @param defaultTripleDuration in ticks, 6/8 etc.
- * @param showPiano show the piano widget in the score
- * @param hideEmptyLines Hide empty lines in full score
- * @param transposingScore Whether to show the score parts in concert key
- * @category SmoModifier
- */
-export class SmoScorePreferences {
-  autoPlay: boolean = true;
-  autoAdvance: boolean = true;
-  defaultDupleDuration: number = 4096;
-  defaultTripleDuration: number = 6144;
-  showPiano: boolean = true;
-  hideEmptyLines: boolean = false;
-  transposingScore: boolean = false;
-  static get defaults(): SmoScorePreferencesParams {
-    return {
-      autoPlay: true,
-      autoAdvance: true,
-      defaultDupleDuration: 4096,
-      defaultTripleDuration: 6144,
-      showPiano: true,
-      hideEmptyLines: false,
-      transposingScore: false
-    };
-  }
-  constructor(params: SmoScorePreferencesParams) {
-    if (params) {
-      SmoScorePreferenceBools.forEach((bb) => {
-        this[bb] = params[bb];
-      });
-      SmoScorePreferenceNumbers.forEach((nn) => {
-        this[nn] = params[nn];
-      });
-    }
-  }
-}
 /**
  * Constructor parameters.  Usually you will call
  * {@link SmoScore.defaults}, and modify the parameters you need to change.
  * A new score with the defaults will create a single, empty measure.
- * @param fonts global font defaults for this score
- * @param scoreInfo - identifying information about the score
- * @param preferences - customized score behavior
- * @param staves - contained {@link SmoSystemStaff} objects
- * @param activeStaff - running count of the active (selected) staff
- * @param textGroups - score text, such as page headers etc.
- * @param systemGroups - groupings of staves within the score, for justification
- * @param layoutManager - layout information for the score and parts
- * @param formattingManager - measure formatting information for the score.
  * @category SmoParameters
  */
 export interface SmoScoreParams {
+  /**
+   * global font defaults for this score
+   */
   fonts: FontPurpose[],
+  /**
+   * identifying information about the score
+   */
   scoreInfo: SmoScoreInfo,
+  /**
+   * customized editor behavior
+   */
   preferences: SmoScorePreferences,
+  /**
+   * contained {@link SmoSystemStaffParams} objects
+   */  
   staves: SmoSystemStaffParams[],
-  activeStaff: number,
+  activeStaff?: number,
+  /**
+   * score text, not part of specific music
+   */
   textGroups: SmoTextGroup[],
+  /**
+   * System groups for formatting/justification
+   */
   systemGroups: SmoSystemGroup[],
+  /**
+   * future: global audio settings
+   */
   audioSettings: SmoAudioPlayerParameters,
+  /**
+   * layout manager, for svg and div geometry, page sizes, header sizes etc.
+   */
   layoutManager?: SmoLayoutManager,
+  /**
+   * measure-specific formatting
+   */
   formattingManager?: SmoFormattingManager
+}
+
+function isSmoScoreParams(params: Partial<SmoScoreParams>): params is SmoScoreParams {
+  if (params.fonts && params.fonts.length) {
+    return true;
+  }
+  return false;
+}
+/**
+ * Serialization structure for the entire score.  Score is deserialized from this
+ * @category serialization
+ */
+export interface SmoScoreParamsSer {
+  /**
+   * some information about the score, mostly non-musical
+   */
+  score: ScoreMetadataSer,
+  /**
+   * contained {@link SmoSystemStaffParams} objects
+   */  
+  staves: SmoSystemStaffParamsSer[],
+  /**
+   * score text, not part of specific music
+   */
+  textGroups: SmoTextGroupParamsSer[],
+  /**
+   * System groups for formatting/justification
+   */
+  systemGroups: SmoSystemGroupParamsSer[],
+  /**
+   * future: global audio settings
+   */
+  audioSettings: SmoAudioPlayerParameters,
+  /**
+   * layout manager, for svg and div geometry, page sizes, header sizes etc.
+   */
+  layoutManager?: SmoLayoutManagerParamsSer,
+  /**
+   * map of measure formats to measure
+   */
+  measureFormats: SmoMeasureFormatParamsSer[],
+  /**
+   * tempo, key and other column-mapped parameters
+   */
+  columnAttributeMap: ColumnParamsMapType,
+  /**
+   * dictionary compression for serialization
+   */
+  dictionary: Record<string,string>
 }
 
 // dont' deserialize trivial text blocks saved by mistake
@@ -150,6 +136,19 @@ export function isEmptyTextBlock(params: Partial<SmoTextGroupParamsSer>): params
     return false;
   }
   return true;
+}
+export interface ColumnParamsMapType {
+  keySignature: Record<number, string>,
+  tempo: Record<number, SmoTempoText>,
+  timeSignature: Record<number, TimeSignature>,
+  renumberingMap: Record<number, number>
+}
+// SmoScoreParemsSer
+export function isSmoScoreParemsSer(params: Partial<SmoScoreParamsSer>): params is SmoScoreParamsSer {
+  if (Array.isArray(params.staves)) {
+    return true;
+  }
+  return false;
 }
 /**
  * Union of modifier types Smo modifier types
@@ -181,7 +180,7 @@ export class SmoScore {
    * @type {SmoScoreInfo}
    * @memberof SmoScore
    */
-  scoreInfo: SmoScoreInfo = new SmoScoreInfo();
+  scoreInfo: SmoScoreInfo = SmoScore.scoreInfoDefaults;
   /**
    * Default behavior for this score.  Indicates some global behavior like whether to advance the cursor.
    *
@@ -269,6 +268,24 @@ export class SmoScore {
   static get fontPurposes(): Record<string, number> {
     return { ENGRAVING: 1, SCORE: 2, CHORDS: 3, LYRICS: 4 };
   }
+  static get scoreInfoDefaults(): SmoScoreInfo {
+    return JSON.parse(JSON.stringify({
+      name: 'Smoosical',
+      title: 'Smoosical',
+      subTitle: '(Op. 1)',
+      composer: 'Me',
+      copyright: '',
+      version: 1
+    }));
+  }
+  static get scoreMetadataDefaults(): ScoreMetadataSer {
+    return JSON.parse(JSON.stringify({
+      fonts: [],
+      scoreInfo: SmoScore.scoreInfoDefaults,
+      renumberingMap: {},
+      preferences: new SmoScorePreferences(SmoScorePreferences.defaults)
+    }));
+  }
   static get defaults(): SmoScoreParams {
     return {
       // legacy layout structure.  Now we use pages.
@@ -278,24 +295,9 @@ export class SmoScore {
         { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false },
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
-      scoreInfo: {
-        name: 'Smoosical', // deprecated
-        title: 'Smoosical',
-        subTitle: '(Op. 1)',
-        composer: 'Me',
-        copyright: '',
-        version: 1,
-      },
+      scoreInfo: SmoScore.scoreInfoDefaults,
       audioSettings: new SmoAudioPlayerSettings(SmoAudioPlayerSettings.defaults),
-      preferences: {
-        autoPlay: true,
-        autoAdvance: true,
-        defaultDupleDuration: 4096,
-        defaultTripleDuration: 6144,
-        showPiano: true,
-        hideEmptyLines: false,
-        transposingScore: false
-      },
+      preferences: new SmoScorePreferences(SmoScorePreferences.defaults),
       staves: [],
       activeStaff: 0,
       textGroups: [],
@@ -322,10 +324,6 @@ export class SmoScore {
     return rv;
   }
 
-  static get defaultAttributes() {
-    return ['startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
-      'preferences', 'scoreInfo'];
-  }
   static get preferences() {
     return ['preferences', 'fonts', 'scoreInfo', 'audioSettings'];
   }
@@ -427,29 +425,32 @@ export class SmoScore {
    * Serialize the entire score.
    * @returns JSON object
    */
-  serialize(skipStaves?: boolean): any {
-    const params = {};
-    let obj: any = {
-      score: params,
-      layoutManager: {},
+  serialize(skipStaves?: boolean): SmoScoreParamsSer {
+    const params: Partial<SmoScoreParamsSer> = {};
+    let obj: Partial<SmoScoreParamsSer> = {
+      layoutManager: { ctor: 'SmoLayoutManager', ...SmoLayoutManager.defaults },
       audioSettings: {},
-      measureFormats: {},
+      measureFormats: [],
       staves: [],
       textGroups: [],
-      systemGroups: []
+      systemGroups: [],
+      score: SmoScore.scoreMetadataDefaults
     };
     if (this.layoutManager) {
       obj.layoutManager = this.layoutManager.serialize();
     }
-    obj.renumberingMap = JSON.stringify(this.renumberingMap);
+    obj.score!.fonts = JSON.parse(JSON.stringify(this.fonts));
+    obj.score!.renumberingMap = JSON.parse(JSON.stringify(this.renumberingMap));
+    obj.score!.preferences = this.preferences.serialize();
+    obj.score!.scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
     if (this.formattingManager) {
       obj.measureFormats = this.formattingManager.serialize();
     }
-    smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
+
     obj.audioSettings = this.audioSettings.serialize();
     if (!skipStaves) {
       this.staves.forEach((staff: SmoSystemStaff) => {
-        obj.staves.push(staff.serialize());
+        obj.staves!.push(staff.serialize());
       });
     } else {
       obj.staves = [];
@@ -457,17 +458,17 @@ export class SmoScore {
     // Score text is not part of text group, so don't save separately.
     this.textGroups.forEach((tg) => {
       if (tg.isTextVisible()) {
-        obj.textGroups.push(tg.serialize());
+        obj.textGroups!.push(tg.serialize());
       }
     });
     this.systemGroups.forEach((gg) => {
-      obj.systemGroups.push(gg.serialize());
+      obj.systemGroups!.push(gg.serialize());
     });
     obj.columnAttributeMap = this.serializeColumnMapped();
     smoSerialize.jsonTokens(obj);
     obj = smoSerialize.detokenize(obj, smoSerialize.tokenValues);
     obj.dictionary = smoSerialize.tokenMap;
-    return obj;
+    return obj as SmoScoreParamsSer;
   }
   updateScorePreferences(pref: SmoScorePreferences) {
     this.preferences = pref;
@@ -551,8 +552,8 @@ export class SmoScore {
    * @param jsonString 
    * @returns SmoScore
    */
-  static deserialize(jsonString: any): SmoScore {
-    let jsonObj = JSON.parse(jsonString);
+  static deserialize(jsonString: string): SmoScore {
+    let jsonObj: Partial<SmoScoreParamsSer> = JSON.parse(jsonString);
     let upconvertFormat = false;
     let formattingManager = null;
     if (jsonObj.dictionary) {
@@ -560,37 +561,67 @@ export class SmoScore {
     }
     SmoScore.fixTextGroupSinglePart(jsonObj);
     upconvertFormat = typeof (jsonObj.measureFormats) === 'undefined';
-    const params: any = {};
+    const params: Partial<SmoScoreParams> = {};
     const staves: SmoSystemStaff[] = [];
     jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
 
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
     // meaning of customProportion has changed, backwards-compatiblity
-    if (typeof (jsonObj.score.preferences) !== 'undefined' && typeof (jsonObj.score.preferences.customProportion) === 'number') {
-      SmoMeasureFormat.defaults.proportionality = jsonObj.score.preferences.customProportion;
+    if (typeof(jsonObj.score) === 'undefined') {
+      throw 'bad score ' + JSON.stringify(jsonObj);
+    }
+    // upconvert old proportion operator
+    const jsonPropUp = jsonObj.score.preferences as any;
+    if (typeof (jsonPropUp) !== 'undefined' && typeof (jsonPropUp.customProportion) === 'number') {
+      SmoMeasureFormat.defaults.proportionality = jsonPropUp.customProportion;
       if (SmoMeasureFormat.defaults.proportionality === SmoMeasureFormat.legacyProportionality) {
         SmoMeasureFormat.defaults.proportionality = SmoMeasureFormat.defaultProportionality;
       }
     }
     // up-convert legacy layout data
-    if (jsonObj.score.layout) {
+    if ((jsonObj.score as any).layout) {
       SmoScore.upConvertLayout(jsonObj);
     }
     if (jsonObj.layoutManager && !jsonObj.layoutManager.globalLayout) {
       SmoScore.upConvertGlobalLayout(jsonObj);
     }
-    const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
-    if (!upconvertFormat) {
-      formattingManager = new SmoFormattingManager({ measureFormats: jsonObj.measureFormats });
+    if (!jsonObj.layoutManager) {
+      throw 'bad score, layout mgr ' + JSON.stringify(jsonObj);
     }
+    const layoutManagerParams: SmoLayoutManagerParams = {
+      globalLayout: jsonObj.layoutManager.globalLayout,
+      /**
+       * page margins for each page
+       */
+      pageLayouts: []
+    }
+    jsonObj.layoutManager.pageLayouts.forEach((pl) => {
+      const pageLayout = new SmoPageLayout(pl);
+      layoutManagerParams.pageLayouts.push(pageLayout);
+    });
+    const layoutManager = new SmoLayoutManager(layoutManagerParams);
+
 
     // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
-      SmoScore.defaultAttributes,
+      ['renumberingMap', 'fonts'],
+      SmoScore.scoreMetadataDefaults, params);    
+    smoSerialize.serializedMerge(
+      ['renumberingMap', 'fonts'],
       jsonObj.score, params);
-    if (!params.preferences) {
-      params.preferences = SmoScore.defaults.preferences;
+    if (jsonObj.score.preferences) {
+      params.preferences = new SmoScorePreferences(jsonObj.score.preferences);
+    } else {
+      params.preferences = new SmoScorePreferences(SmoScorePreferences.defaults);
+    }
+    if (jsonObj.score.scoreInfo) {
+      const scoreInfo: Partial<SmoScoreInfo> = {};
+      smoSerialize.serializedMerge(SmoScoreInfoKeys, SmoScore.scoreInfoDefaults, scoreInfo);
+      smoSerialize.serializedMerge(SmoScoreInfoKeys, jsonObj.score.scoreInfo, scoreInfo);
+      params.scoreInfo = (scoreInfo as SmoScoreInfo);
+    } else {
+      params.scoreInfo = SmoScore.scoreInfoDefaults;
     }
     if (!jsonObj.audioSettings) {
       params.audioSettings = new SmoAudioPlayerSettings(SmoAudioPlayerSettings.defaults);
@@ -599,16 +630,16 @@ export class SmoScore {
     }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
     params.preferences.hideEmptyLines = params.preferences.hideEmptyLines ?? false;
+    let renumberingMap: Record<number, number> = { 0: 0 };
     if (jsonObj.columnAttributeMap && jsonObj.columnAttributeMap.renumberingMap) {
-      params.renumberingMap = jsonObj.columnAttributeMap.renumberingMap;
-    } else {
-      params.renumberingMap = {};
-      params.renumberingMap[0] = 0;
+      renumberingMap = jsonObj.columnAttributeMap.renumberingMap;
     }
-
+    if (!jsonObj.staves) {
+      throw 'bad score, no staves: ' + JSON.stringify(jsonObj);
+    }
     jsonObj.staves.forEach((staffObj: any, staffIx: number) => {
       staffObj.staffId = staffIx;
-      staffObj.renumberingMap = params.renumberingMap;
+      staffObj.renumberingMap = renumberingMap;
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
     });
@@ -630,10 +661,23 @@ export class SmoScore {
     }
     params.staves = staves;
     if (upconvertFormat) {
-      formattingManager = SmoScore.measureFormatFromLegacyScore(params, jsonObj);
+      formattingManager = SmoScore.measureFormatFromLegacyScore(params as any, jsonObj);
+    } else  {
+      const measureParams: SmoFormattingManagerParams = {
+        measureFormats: [],
+        partIndex: -1
+      }
+      if (jsonObj.measureFormats) {
+        jsonObj.measureFormats.forEach((mf: SmoMeasureFormatParamsSer) => {
+          const mfObj = new SmoMeasureFormat(mf);
+        });
+      }
+      params.formattingManager = new SmoFormattingManager(measureParams);
     }
-    params.formattingManager = formattingManager;
     params.layoutManager = layoutManager;
+    if (!isSmoScoreParams(params)) {
+      throw 'Bad score, missing params: ' + JSON.stringify(params, null, ' ');
+    }
     const score = new SmoScore(params);
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;

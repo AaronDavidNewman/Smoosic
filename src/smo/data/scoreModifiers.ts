@@ -6,7 +6,7 @@
  * @module /smo/data/scoreModifier
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoMeasureFormat } from './measureModifiers';
+import { SmoMeasureFormat, SmoMeasureFormatParamsSer } from './measureModifiers';
 import { SmoAttrs, getId, SmoModifierBase, SvgBox } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
@@ -16,14 +16,29 @@ const VF = VexFlow;
 /**
  * Base class for all {@link SmoScore} modifiers. 
  * It is used to de/serialize the objects.
- * @param ctor constructor for derived class
- * @param logicalBox bounding box in SVG coordinates, if rendered
- * @param attrs object identification
  * @category SmoModifier
  */
 export abstract class SmoScoreModifierBase implements SmoModifierBase {
+  /**
+   * constructor
+   *
+   * @type {string}
+   * @memberof SmoScoreModifierBase
+   */
   ctor: string;
+  /**
+   * When rendered, keep track of the box
+   *
+   * @type {(SvgBox | null)}
+   * @memberof SmoScoreModifierBase
+   */
   logicalBox: SvgBox | null = null;
+  /**
+   * attributes for identification
+   *
+   * @type {SmoAttrs}
+   * @memberof SmoScoreModifierBase
+   */
   attrs: SmoAttrs;
   constructor(ctor: string) {
     this.ctor = ctor;
@@ -39,13 +54,161 @@ export abstract class SmoScoreModifierBase implements SmoModifierBase {
     return rv;
   }
 }
+
+/**
+ * For global/default font settings.
+ * @param name to distinguish: chord, lyric etc.
+ * @param family font family
+ * @param size in points
+ * @param custom used to distinguish a specific text is not the default
+ */
+export interface FontPurpose {
+  /**
+   * name of the purpose
+   * { ENGRAVING: 1, SCORE: 2, CHORDS: 3, LYRICS: 4 }
+   */
+  name: string,
+  /**
+   * purpose enumeration
+   */
+  purpose: number,
+  /**
+   * font family
+   */
+  family: string,
+  /**
+   * default font size
+   */
+  size: number,
+  /**
+   * a flag that can be used to indicate if this is the global default, or a customization.
+   * For lyrics for instance, most lyrics would use the custom font, this would be true if
+   * it was overridden
+   */
+  custom: boolean
+}
+
+
+// @internal
+export type SmoScoreInfoKey = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
+export const SmoScoreInfoKeys = ['name', 'title', 'subTitle', 'composer', 'copyright'];
+/**
+ * Information about the score itself, like composer etc.
+ * @category SmoModifier
+ */
+export interface SmoScoreInfo {
+  /**
+   * deprecated, now defaults to title
+   */
+  name: string,
+  /**
+   * name of score
+   */
+  title: string,
+  /**
+   * subtitle/opus
+   */
+  subTitle: string,
+  /**
+   * who wrote it
+   */
+  composer: string,
+  /**
+   * copyright information
+   */
+  copyright: string,
+  /**
+   * for version tracking
+   */
+  version: number
+}
+
+
+export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 'hideEmptyLines' | 'transposingScore';
+export type SmoScorePreferenceNumber = 'defaultDupleDuration' | 'defaultTripleDuration';
+export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'hideEmptyLines', 'transposingScore'];
+export const SmoScorePreferenceNumbers: SmoScorePreferenceNumber[] = ['defaultDupleDuration', 'defaultTripleDuration'];
+/**
+ * Global score/program behavior preferences, see below for parameters
+ */
+export interface SmoScorePreferencesParams {
+  autoPlay: boolean;
+  autoAdvance: boolean;
+  defaultDupleDuration: number;
+  defaultTripleDuration: number;
+  showPiano: boolean;
+  hideEmptyLines: boolean;
+  transposingScore: boolean;
+}
+/**
+ * Some default SMO behavior
+ * @param autoPlay play a new note or chord
+ * @param autoAdvance Sibelius-like behavior of advancing cursor when a letter note is placed
+ * @param defaultDupleDuration in ticks, even metered measures
+ * @param defaultTripleDuration in ticks, 6/8 etc.
+ * @param showPiano show the piano widget in the score
+ * @param hideEmptyLines Hide empty lines in full score
+ * @param transposingScore Whether to show the score parts in concert key
+ * @category SmoModifier
+ */
+export class SmoScorePreferences {
+  autoPlay: boolean = true;
+  autoAdvance: boolean = true;
+  defaultDupleDuration: number = 4096;
+  defaultTripleDuration: number = 6144;
+  showPiano: boolean = true;
+  hideEmptyLines: boolean = false;
+  transposingScore: boolean = false;
+  static get defaults(): SmoScorePreferencesParams {
+    return {
+      autoPlay: true,
+      autoAdvance: true,
+      defaultDupleDuration: 4096,
+      defaultTripleDuration: 6144,
+      showPiano: true,
+      hideEmptyLines: false,
+      transposingScore: false
+    };
+  }
+  constructor(params: SmoScorePreferencesParams) {
+    if (params) {
+      SmoScorePreferenceBools.forEach((bb) => {
+        this[bb] = params[bb];
+      });
+      SmoScorePreferenceNumbers.forEach((nn) => {
+        this[nn] = params[nn];
+      });
+    }
+  }
+  serialize(): SmoScorePreferencesParams {
+    return {
+      ...this
+    }
+  }
+}
+/**
+ * non-musical information about the score
+ */
+export interface ScoreMetadataSer {
+  fonts: FontPurpose[],
+  preferences: SmoScorePreferencesParams,
+  renumberingMap: Record<string, string>,
+  scoreInfo: SmoScoreInfo
+}
+
 /**
  * Map of measure formatting to measure IDs.  We only save non-default formats
- * @param measureFormats map of index to {@link SmoMeasureFormat} objects
- * @param partIndex the associated part, or -1 for the score
+ * @param measureFormats 
+ * @param partIndex 
  */
 export interface SmoFormattingManagerParams {
+  /**
+   * map of index to {@link SmoMeasureFormat} objects
+   */
   measureFormats?: SmoMeasureFormat[],
+  /**
+   * the associated part, or -1 for the score
+   */
   partIndex?: number
 }
 /**
@@ -107,8 +270,8 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
       measure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
     }
   }
-  serialize() {
-    const rv: any = [];
+  serialize(): SmoMeasureFormatParamsSer[] {
+    const rv: SmoMeasureFormatParamsSer[] = [];
     const keys = Object.keys(this.measureFormats);
     keys.forEach((key: any) => {
       if (!this.measureFormats[key].isDefault) {
@@ -124,11 +287,11 @@ export type SmoAudioPlayerType = 'sampler' | 'synthesizer';
  * Constructor parameters for audio player
  */
 export interface SmoAudioPlayerParameters {
-  playerType: SmoAudioPlayerType,
-  waveform: OscillatorType,
-  reverbEnable: boolean,
-  reverbDelay: number,
-  reverbDecay: number
+  playerType?: SmoAudioPlayerType,
+  waveform?: OscillatorType,
+  reverbEnable?: boolean,
+  reverbDelay?: number,
+  reverbDecay?: number
 }
 
 /**
@@ -471,16 +634,45 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
  * @param justify
  * @param startSelector not used
  * @param endSelector not used
+ * @category SmoParameters
  */
 export interface SmoSystemGroupParams {
+  /**
+   * bracket etc.
+   */
   leftConnector: number,
+  /**
+   * bracket etc.
+   */
   rightConnector: number,
+  /**
+   * future, score groups can be different for different parts of the score
+   */
   mapType: number,
-  text: string,
-  shortText: string,
+  /**
+   * whether to justify the notes in the group
+   */
   justify: boolean,
+  /**
+   * if mapped to a range, start
+   */
   startSelector: SmoSelector,
+  /**
+   * if mapped to a range, end
+   */
   endSelector: SmoSelector
+}
+export interface SmoSystemGroupParamsSer extends SmoSystemGroupParams{
+  /** 
+   * constructor
+   */
+  ctor: string;
+}
+function isSmoSystemGroupParamsSer(params: Partial<SmoSystemGroupParamsSer>): params is SmoSystemGroupParamsSer {
+  if (params.ctor === 'SmoSystemGroup') {
+    return true;
+  }
+  return false;
 }
 /**
  * System group is the grouping of staves into a system.
@@ -502,8 +694,6 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       leftConnector: SmoSystemGroup.connectorTypes.single,
       rightConnector: SmoSystemGroup.connectorTypes.single,
       mapType: SmoSystemGroup.mapTypes.allMeasures,
-      text: '',
-      shortText: '',
       justify: true,
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default
@@ -565,10 +755,13 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
         return VF.StaveConnector.type.DOUBLE_RIGHT;
     }
   }
-  serialize() {
-    const params: any = {};
+  serialize(): SmoSystemGroupParamsSer {
+    const params: Partial<SmoSystemGroupParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults, SmoSystemGroup.attributes, this, params);
     params.ctor = 'SmoSystemGroup';
+    if (!isSmoSystemGroupParamsSer(params)) {
+      throw 'bad system group ' + JSON.stringify(params);
+    }
     return params;
   }
 }

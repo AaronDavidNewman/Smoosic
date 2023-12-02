@@ -1,14 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
-import { SmoScore, SmoScorePreferences, SmoScoreInfo, engravingFontType } from '../../smo/data/score';
+import { SmoScore, engravingFontType } from '../../smo/data/score';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { KeyEvent, SvgBox, Pitch, PitchLetter } from '../../smo/data/common';
 import { SmoRenderConfiguration } from './configuration';
-import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAudioPlayerSettings } from '../../smo/data/scoreModifiers';
+import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAudioPlayerSettings,
+  SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
   SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType } from '../../smo/data/noteModifiers';

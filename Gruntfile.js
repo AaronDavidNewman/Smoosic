@@ -20,8 +20,7 @@ module.exports = function (grunt) {
     },
     devtool: 'source-map',
     externals: {
-      jszip: 'JSZip',
-      vex5_smoosic: 'Vex'
+      jszip: 'JSZip'
     },
     module: {      
         rules: [{
@@ -46,13 +45,13 @@ module.exports = function (grunt) {
       excludeProtected: true,
       excludePrivate: true,
       hideParameterTypesInTitle: false,
+      categorizeByGroup: false,
       navigation: {
         includeCategories: true,
-        includeGroups: true
+        includeGroups: false
      },
-     categorizeByGroup: true,
       readme: 'readme.md',
-      defaultCategory: ['Other'],
+      defaultCategory: ['*'],
       categoryOrder: ['serialization', 'SmoObject', 'SmoModifier', 'SmoParameters', '*'],
       excludeNotDocumented: false
     },  src: ['./typedoc.ts']

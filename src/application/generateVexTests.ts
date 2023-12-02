@@ -78,7 +78,7 @@ export async function renderVexTests(config: Partial<SmoConfigurationParams>) {
     const path = fileInfo.path;
     const loader = new SuiXhrLoader(path);
     const scoreJson = await loader.loadAsync();
-    const score = SmoScore.deserialize(scoreJson);  
+    const score = SmoScore.deserialize(scoreJson as string);  
     await view.changeScore(score);
     fileInfo.pages.forEach((page) => {
       const vexText = SmoToVex.convert(view.score, { div: 'smoo', page })

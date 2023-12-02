@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { FontInfo } from '../../common/vex';
-import { SmoScore, FontPurpose, isEngravingFont } from '../../smo/data/score';
+import { SmoScore, isEngravingFont } from '../../smo/data/score';
+import { FontPurpose } from '../../smo/data/scoreModifiers';
 import { SmoScoreText } from '../../smo/data/scoreText';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';

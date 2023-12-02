@@ -252,7 +252,6 @@ export class SuiInlineText {
   }
 
   _glyphOffset(block: SuiInlineBlock): number {
-    // Vex 5 compatibility.  yShift
     return blockMetricsYShift(block.glyph.getMetrics()) * this.pointsToPixels * block.scale;
   }
 

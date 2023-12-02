@@ -42,14 +42,6 @@ export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = [
 
 /**
  * Constructor parameter for measure formatting object
- * @param customStretch additional pixels to a measure (plus or minus)
- * @param customProportion override the default Softmax formatting param
- * @param autoJustify justify notes in a staff group or part
- * @param pageBreak force page break (not used yet)
- * @param systemBreak force system break before measure
- * @param padLeft pad the measure left
- * @param padAllInSystem  if padLeft is >0, pad all the measures in the system
- * @param measureIndex numbered measure index, for re-numbering
  */
 export interface SmoMeasureFormatParams {
   /**

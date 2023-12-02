@@ -123,7 +123,7 @@ import { SuiSampleMedia } from '../render/audio/samples';
 
 
 // SMO object model
-import { SmoScore, SmoScorePreferences, engravingFontTypes, isEngravingFont } from '../smo/data/score';
+import { SmoScore, engravingFontTypes, isEngravingFont } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -136,7 +136,7 @@ import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
   SmoArpeggio } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
-import { SmoSystemGroup, SmoAudioPlayerSettings } from '../smo/data/scoreModifiers';
+import { SmoSystemGroup, SmoAudioPlayerSettings, SmoScorePreferences } from '../smo/data/scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParams } from '../smo/data/scoreText';
 import { SmoOperation } from '../smo/xform/operations';
 import {

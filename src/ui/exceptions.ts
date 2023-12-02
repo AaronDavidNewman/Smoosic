@@ -32,7 +32,7 @@ export class SuiExceptionHandler {
     SuiEventHandler.reentry = true;
     scoreString = 'Could not serialize score.';
     try {
-      scoreString = this.view.score.serialize();
+      scoreString = JSON.stringify(this.view.score.serialize(), null, ' ');
     } catch (e: any) {
       if (e.message) {
         scoreString += ' ' + e.message;

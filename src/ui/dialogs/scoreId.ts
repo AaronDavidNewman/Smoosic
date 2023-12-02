@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScoreInfo, SmoScoreInfoKeys } from '../../smo/data/score';
+import { SmoScoreInfo, SmoScoreInfoKeys } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup, SmoTextGroupPurpose } from '../../smo/data/scoreText';
 
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
