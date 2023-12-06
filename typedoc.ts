@@ -59,7 +59,7 @@ export * from './src/smo/xform/operations';
 export * from './src/smo/xform/selections';
 export * from './src/smo/xform/tickDuration';
 export * from './src/smo/xform/tickMap';
-export * from './src/smo/xform/toVex';
+export * from './src/render/vex/toVex';
 export * from './src/smo/xform/undo';
 export * from './src/ui/buttons/articulation';
 export * from './src/ui/buttons/beam';

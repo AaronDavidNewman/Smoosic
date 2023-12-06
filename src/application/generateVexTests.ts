@@ -1,6 +1,6 @@
 import { SuiApplication } from "./application";
 import { SmoConfigurationParams } from "./configuration";
-import { SmoToVex } from '../smo/xform/toVex';
+import { SmoToVex } from '../render/vex/toVex';
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { SmoScore } from '../smo/data/score';
 export interface ScoreToRender {

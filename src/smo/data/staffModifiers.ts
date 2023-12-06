@@ -10,8 +10,6 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
 import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-import { VexFlow } from '../../common/vex';
-const VF = VexFlow;
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
@@ -896,14 +894,6 @@ export class SmoTie extends StaffModifierBase {
       lines.push({ from, to });
     }
     return lines;
-  }
-  get vexOptions() {
-    const rv: any = {};
-    rv.direction = this.invert ? VF.Stem.DOWN : VF.Stem.UP;
-    SmoTie.vexParameters.forEach((p) => {
-      rv[p] = (this as any)[p];
-    });
-    return rv;
   }
 
   serialize(): SmoTieParamsSer {

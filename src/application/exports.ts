@@ -147,7 +147,7 @@ import { SmoToXml } from '../smo/mxml/smoToXml';
 import { MidiToSmo } from '../smo/midi/midiToSmo';
 import { SmoToMidi } from '../smo/midi/smoToMidi';
 import { XmlToSmo } from '../smo/mxml/xmlToSmo';
-import { SmoToVex } from '../smo/xform/toVex';
+import { SmoToVex } from '../render/vex/toVex';
 // utilities
 import { buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer } from '../common/htmlHelpers';
 

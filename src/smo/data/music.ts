@@ -93,6 +93,14 @@ export class SmoAudioPitch {
 }
 
 /**
+ * interface for valid non-tuplet duration value (all the
+ * base note lengths + dots)
+ */
+export interface SimpleDuration {
+  baseTicks: number,
+  dots: number
+}
+/**
  * description of a scale entry, from vex theory routines
  */
 export interface VexNoteValue {
@@ -260,7 +268,13 @@ export class SmoMusic {
     }
     ];
   }
-
+  static getLineFromSmoPitch(clef: string, smoPitch: Pitch): number {
+    const octave = smoPitch.octave * 7 - 4 * 7;
+    const keyTable = smoPitch.letter + smoPitch.accidental;
+    let line = (SmoMusic.noteValues[keyTable].root_index + octave) / 2;
+    line += SmoMusic.clefLedgerShift[clef]
+    return line;
+  }
   /**
    * gives the index into circle-of-fifths array for a pitch, considering enharmonics.
    * */
@@ -368,14 +382,22 @@ export class SmoMusic {
   }
 
   /**
-   * Return the number of ledger lines based on the pitch and clef
+   * Return the number of ledger lines, or 0 if none.  positive if
+   * below the staff, negative if above
    * @param clef
    * @param pitch
    * @returns number where 0 is the top staff line
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
-    return pitchToLedgerLine(SmoMusic.pitchToVexKey(pitch, clef), clef);
+    const line = SmoMusic.getLineFromSmoPitch(clef, pitch);
+    if (line > 5) {
+      return -1 * (line - 5);
+    }
+    if (line <= 0) {
+      return -1 * (line - 1);
+    }
+    return 0;
   }
   /**
    * Return the number of ledger lines based on the pitch and clef
@@ -385,7 +407,7 @@ export class SmoMusic {
    */
    static pitchToStaffLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
-    return VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line;
+    return SmoMusic.getLineFromSmoPitch(clef, pitch);
   }
   /**
    * return flag state (up === 1 or down === 2) based on pitch and clef if auto
@@ -417,6 +439,22 @@ export class SmoMusic {
     'vocal-tenor': { sign: 'G', line: 2, octave: -1 }
   }
   
+    /**
+   * an array of clefs and the xml information they map to
+   */
+    static clefLedgerShift: Record<string, number> = {
+      'treble': 0,
+      'bass': 6,
+      'tenor': 4,
+      'alto':  3,
+      'soprano':  1,
+      'percussion':  0,
+      'mezzo-soprano': 2,
+      'baritone-c':  5,
+      'baritone-f':  5,
+      'subbass':  7,
+      'french': -1
+    }
   /**
    * The purpose of this table is to keep consistent enharmonic spelling when transposing 
    * instruments in different keys.  It is not theoritically complete, e.g.
@@ -964,12 +1002,15 @@ export class SmoMusic {
     }
     return newKey;
   }
-
+  static _enharmonics: Record<string, string[]> | null = null;
   /**
    * return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
    */
   static get enharmonics(): Record<string, string[]> {
     let i = 0;
+    if (SmoMusic._enharmonics !== null) {
+      return SmoMusic._enharmonics;
+    }
     const rv: Record<string, string[]> = {};
     const keys = Object.keys(SmoMusic.noteValues);
     for (i = 0; i < keys.length; ++i) {
@@ -983,6 +1024,7 @@ export class SmoMusic {
         rv[int_val.toString()].push(key);
       }
     }
+    SmoMusic._enharmonics = rv;
     return rv;
   }
   /**
@@ -1215,30 +1257,7 @@ export class SmoMusic {
     }
     return pitch;
   }
-  /**
- * Convenience function to create SmoNote[] from letters, with the correct accidental
- * for the key signature, given duration, etc
- * @param startPitch - the pitch used to calculate the octave of the new note
- * @param clef
- * @param keySignature
- * @param duration - vex duration
- * @param letters - string of PitchLetter
- * @returns
- */
-  static notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
-    const rv: SmoNote[] = [];
-    let curPitch = startPitch;
-    const ticks = SmoMusic.durationToTicks(duration);
-    letters.split('').forEach((letter) => {
-      curPitch = SmoMusic.getLetterNotePitch(curPitch, letter as PitchLetter, keySignature);
-      const defs = SmoNote.defaults;
-      defs.ticks = { numerator: ticks, denominator: 1, remainder: 0 };
-      defs.pitches = [curPitch];
-      defs.clef = clef;
-      rv.push(new SmoNote(defs));
-    });
-    return rv;
-  }
+
   /**
    * return the key signature, transposed a number of 1/2 steps in Vex key format
    * @param key start key
@@ -1398,7 +1417,120 @@ export class SmoMusic {
       return sharpKeys[ix];
     }
   }
+  static highestDuration = 32768;
+  static lowestDuration = 32768 / 256;
+  static durationsDescending = [
+    SmoMusic.highestDuration, // breve?
+    SmoMusic.highestDuration / 2,  // whole
+    SmoMusic.highestDuration / 4, // 1/2
+    SmoMusic.highestDuration / 8, // 1/4     
+    SmoMusic.highestDuration / 16, // 8th
+    SmoMusic.highestDuration / 32, // 16th
+    SmoMusic.highestDuration / 64, // 32nd
+    SmoMusic.highestDuration / 128 // 64th    
+  ];
+  static durationsAscending = [
+    SmoMusic.highestDuration / 256,  // 128th
+    SmoMusic.highestDuration / 128, // 64th
+    SmoMusic.highestDuration / 64, // 32nd     
+    SmoMusic.highestDuration / 32, // 16th
+    SmoMusic.highestDuration / 16, // 8th
+    SmoMusic.highestDuration / 8, // 1/4
+    SmoMusic.highestDuration / 4, // 1/2    
+    SmoMusic.highestDuration / 2, // whole
+    SmoMusic.highestDuration / 1 // breve
+  ];
+  static ticksFromSmoDuration(duration: SimpleDuration): number {
+    let rv = duration.baseTicks;
+    let dotValue = duration.baseTicks / 2;
+    for (var i  = 0; i < duration.dots && i < 4; ++i) {
+      rv += dotValue;
+      dotValue = dotValue / 2; 
+    }
+    return rv;
+  }
+  static _validDurations: Record<number, SimpleDuration> | null = null;
+  static _validDurationKeys: number[] = [];
+  static get validDurations():Record<number, SimpleDuration> {
+    const computeDots = (tt: number, dots: number) => {
+      let dottedValue = tt;
+      let dotValue = tt / 2;
+      let minDot = 0;
+      for (var xxx = 0; xxx < dots; ++xxx) {
+          dottedValue += dotValue;
+          minDot = dotValue;
+          dotValue = dotValue / 2;
+      }
+      return { dottedValue, minDot };
+    }
+    if (SmoMusic._validDurations === null) {
+      SmoMusic._validDurations = {};
+      for (var i = 0; i < SmoMusic.durationsDescending.length; ++i) {
+        const baseTicks = SmoMusic.durationsDescending[i];
+        for (var j = 3; j >= 1; --j) {
+          const { dottedValue, minDot } = computeDots(baseTicks, j);
+          if (dottedValue < SmoMusic.highestDuration && minDot > SmoMusic.lowestDuration) {
+            SmoMusic._validDurations[dottedValue] = {
+              baseTicks,
+              dots: j
+            }
+            SmoMusic._validDurationKeys.push(dottedValue);
+          }
+        }
+        SmoMusic._validDurationKeys.push(baseTicks);
+        SmoMusic._validDurations[baseTicks] = {
+          baseTicks,
+          dots: 0
+        };
+      }
+    }
+    return SmoMusic._validDurations;
+  }
+  /**
+   * Get the closest duration from ticks
+   * @param ticks 
+   * @returns 
+   */
+  static closestSmoDurationFromTicks(ticks: number): SimpleDuration | null {
+    if (SmoMusic.validDurations[ticks]) {
+      return SmoMusic.validDurations[ticks];
+    }
+    for (var i = 0; i < SmoMusic._validDurationKeys.length; ++i) {
+      if (SmoMusic._validDurationKeys[i] < ticks) {
+        return SmoMusic.validDurations[SmoMusic._validDurationKeys[i]];
+      }
+    }
+    return null;
+  }
+  static _ticksToDuration: Record<string, string> = {};
 
+  // ### ticksToDuration
+  // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+  static get ticksToDuration(): Record<string, string> {
+    let i = 0;
+    const durations = ['1/2', '1', '2', '4', '8', '16', '32', '64', '128', '256'];
+    const _ticksToDurationsF = () => {
+      for (i = 0; i < SmoMusic.durationsDescending.length - 1; ++i) {
+        let j = 0;
+        let dots = '';
+        let ticks = 0;
+
+        // We support up to 4 'dots'
+        for (j = 0; j <= 4 && j + i < SmoMusic.durationsDescending.length; ++j) {
+          ticks += SmoMusic.durationsDescending[i + j];
+          SmoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
+          dots += 'd';
+        }
+      }
+    };
+    if (Object.keys(SmoMusic._ticksToDuration).length < 1) {
+      _ticksToDurationsF();
+    }
+    return SmoMusic._ticksToDuration;
+  }  
+  // static closestSmoDuration(ticks: number): SmoDuration {
+  //   if ()
+  // }
   static timeSignatureToTicks(timeSignature: string): number {
     const nd = timeSignature.split('/');
     const num = parseInt(nd[0], 10);
@@ -1508,7 +1640,7 @@ export class SmoMusic {
   // return the closest vex duration >= to the actual number of ticks. Used in beaming
   // triplets which have fewer ticks then their stem would normally indicate.
   static closestVexDuration(ticks: number): string {
-    let stemTicks = VF.RESOLUTION;
+    let stemTicks = SmoMusic.highestDuration;
 
     // The stem value is the type on the non-tuplet note, e.g. 1/8 note
     // for a triplet.
@@ -1579,33 +1711,7 @@ export class SmoMusic {
     }
     return ticks;
   }
-  static _ticksToDuration: Record<string, string> = {};
-
-  // ### ticksToDuration
-  // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-  static get ticksToDuration(): Record<string, string> {
-    let i = 0;
-    const durations = ['1/2', '1', '2', '4', '8', '16', '32', '64', '128', '256'];
-
-    const _ticksToDurationsF = () => {
-      for (i = 0; i < durations.length - 1; ++i) {
-        let j = 0;
-        let dots = '';
-        let ticks = 0;
-
-        // We support up to 4 'dots'
-        for (j = 0; j <= 4 && j + i < durations.length; ++j) {
-          ticks += (VF.durationToTicks(durations[i + j]) as number);
-          SmoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
-          dots += 'd';
-        }
-      }
-    };
-    if (Object.keys(SmoMusic._ticksToDuration).length < 1) {
-      _ticksToDurationsF();
-    }
-    return SmoMusic._ticksToDuration;
-  }
+ 
 
   // ### durationToTicks
   // Uses VF.durationToTicks, but handles dots.

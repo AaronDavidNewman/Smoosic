@@ -11,7 +11,7 @@ import { addFileLink } from '../../common/htmlHelpers';
 import { SmoToMidi } from '../../smo/midi/smoToMidi';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
 import { PromiseHelpers } from '../../common/promiseHelpers';
-import { SmoToVex } from '../../smo/xform/toVex';
+import { SmoToVex } from '../../render/vex/toVex';
 declare var $: any;
 // declare var MidiParser: any;
 declare var parseMidi: any;

@@ -9,9 +9,8 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
-import { FontInfo, VexFlow, vexCanonicalNotes } from '../../common/vex';
+import { FontInfo, vexCanonicalNotes } from '../../common/vex';
 import { SmoTupletParamsSer } from './tuplet';
-const VF = VexFlow;
 
 export interface TupletInfo {
   id: string;
@@ -330,20 +329,15 @@ export class SmoNote implements Transposable {
     this.flagState = (this.flagState + 1) % 3;
   }
 
-  // @internal
-  toVexStemDirection() {
-    return (this.flagState === SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
-  }
-
   get dots() {
     if (this.isTuplet) {
       return 0;
     }
-    const vexDuration = SmoMusic.ticksToDuration[this.tickCount];
+    const vexDuration = SmoMusic.closestSmoDurationFromTicks(this.tickCount);
     if (!vexDuration) {
       return 0;
     }
-    return vexDuration.split('d').length - 1;
+    return vexDuration.dots;
   }
 
   private _addModifier(dynamic: SmoDynamicText, toAdd: boolean) {

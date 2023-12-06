@@ -6,7 +6,7 @@ import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
-import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { leftConnectorVx, rightConnectorVx } from './smoAdapter';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
@@ -17,6 +17,7 @@ import { SmoScoreText } from '../../smo/data/scoreText'
 import { SvgPage } from '../sui/svgPageMap';
 import { SuiScroller } from '../sui/scroller';
 import { VexFlow, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
+import { toVexVolta, vexOptions } from './smoAdapter';
 const VF = VexFlow;
 
 export interface VoltaInfo {
@@ -355,7 +356,7 @@ export class VxSystem {
           toLines,
           firstNote: vxStart,
           lastNote: vxEnd,
-          vexOptions:  ctie.vexOptions
+          vexOptions:  vexOptions(ctie)
         }
         const tie = createTie(smoVexTieParams);
         tie.setContext(this.context.getContext()).draw();
@@ -415,7 +416,7 @@ export class VxSystem {
           group.classList.add(ending.attrs.id);
           group.classList.add(ending.endingId);
           ending.elements.push(group);
-          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
+          const vtype = toVexVolta(ending, smoMeasure.measureNumber.measureIndex);
           const vxVolta = new VF.Volta(vtype, ending.number.toString(), smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.getContext().closeGroup();
@@ -553,7 +554,7 @@ export class VxSystem {
           if (startSel && startSel.rendered && 
              endSel && endSel.rendered) {
             const c1 = new VF.StaveConnector(startSel.stave!, endSel.stave!)
-              .setType(systemGroup.leftConnectorVx());
+              .setType(leftConnectorVx(systemGroup));
             c1.setContext(this.context.getContext()).draw();
             brackets = true;
           }

@@ -761,16 +761,16 @@ export class SuiLayoutFormatter {
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
             const pitch = bg.notes[0].pitches[0];
-            flag = SmoMusic.pitchToLedgerLine(measure.clef, pitch)
-               >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+            flag = SmoMusic.pitchToStaffLine(measure.clef, pitch)
+               >= 3 ? SmoNote.flagStates.down : SmoNote.flagStates.up;
           }
         }  else {
           flag = note.flagState;
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
             const pitch = note.pitches[0];
-            flag = SmoMusic.pitchToLedgerLine(measure.clef, pitch)
-              >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+            flag = SmoMusic.pitchToStaffLine(measure.clef, pitch)
+              >= 3 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }
         const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);

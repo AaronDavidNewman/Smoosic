@@ -1,17 +1,21 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoMusic } from '../data/music';
-import { SmoNote } from '../data/note';
-import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../data/measure';
-import { SmoScore } from '../data/score';
-import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
+import { SmoMusic } from '../../smo/data/music';
+import { SmoNote } from '../../smo/data/note';
+import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../../smo/data/measure';
+import { SmoScore } from '../../smo/data/score';
+import { SmoArticulation, SmoLyric, SmoOrnament } from '../../smo/data/noteModifiers';
 import { VexFlow, StaveNoteStruct, TupletOptions, vexOrnaments } from '../../common/vex';
-import { SmoBarline, SmoRehearsalMark } from '../data/measureModifiers';
-import { SmoSelection, SmoSelector } from './selections';
-import { SmoSystemStaff } from '../data/systemStaff';
-import { getId } from '../data/common';
-import { SmoSystemGroup } from '../data/scoreModifiers';
-import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../data/staffModifiers';
+import { SmoBarline, SmoRehearsalMark } from '../../smo/data/measureModifiers';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { getId } from '../../smo/data/common';
+import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { toVexBarlineType, vexBarlineType, vexBarlinePosition, toVexBarlinePosition, leftConnectorVx, rightConnectorVx,
+  toVexVolta, getVexChordBlocks } from '../../render/vex/smoAdapter';
+
+
 
 const VF = VexFlow;
 export const fontStacks: Record<string, string[]> =     {
@@ -20,22 +24,22 @@ export const fontStacks: Record<string, string[]> =     {
   Petaluma: ['"Petaluma"', '"Bravura"', '"Gonville"', '"Custom"'],
   Leland: ['"Leland"', '"Bravura"', '"Gonville"', '"Custom"'] 
 }
-export interface LyricAdjust {
+interface LyricAdjust {
   verse: number, lyric: SmoLyric, 
 }
-export interface VexNoteRenderInfo {
+interface VexNoteRenderInfo {
   smoNote: SmoNote,voiceIx: number, noteIx: number, tickmapObject: MeasureTickmaps, lyricAdj: string[]
 }
-export interface VexStaveGroupMusic {
+interface VexStaveGroupMusic {
   formatter: string, measures: SmoMeasure[], voiceStrings: string[], heightOffset: number, 
   systemGroup?: SmoSystemGroup
 }
-export function smoNoteToVexKeys(smoNote: SmoNote) {
+function smoNoteToVexKeys(smoNote: SmoNote) {
   const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
   const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
   return keys;
 }
-export function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
+function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
   const gar = smoNote.getGraceNotes();
   var toBeam = true;
   if (gar && gar.length) {
@@ -73,7 +77,7 @@ export function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
     strs.push(`${smoNote.attrs.id}.addModifier(${ggid}, 0);`);
   }
 }
-export function smoNoteToStaveNote(smoNote: SmoNote) {
+function smoNoteToStaveNote(smoNote: SmoNote) {
   const duration =
     smoNote.isTuplet ?
       SmoMusic.closestVexDuration(smoNote.tickCount) :
@@ -96,7 +100,7 @@ export function smoNoteToStaveNote(smoNote: SmoNote) {
 export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
   return smoMeasure.attrs.id + 'v' + voiceIx.toString();
 }
-export function lastNoteInSystem(smoScore: SmoScore, selection: SmoSelection) {
+function lastNoteInSystem(smoScore: SmoScore, selection: SmoSelection) {
     let rv = selection;
     let next: SmoSelection | null = null;
     next = SmoSelection.nextNoteSelection(smoScore, selection.selector.staff,
@@ -112,7 +116,7 @@ export function lastNoteInSystem(smoScore: SmoScore, selection: SmoSelection) {
     }
     return rv;
 }
-export function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
+function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
   const sb = smoMeasure.getStartBarline();
   const eb = smoMeasure.getEndBarline();
   const sym = smoMeasure.getRepeatSymbol();
@@ -121,13 +125,13 @@ export function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
     && smoMeasure.format.padLeft === 0) {
       strs.push(`${vxStave}.setBegBarType(VF.Barline.type.NONE);`);
   } else {
-    strs.push(`${vxStave}.setBegBarType(${sb.toVexBarline()});`);
+    strs.push(`${vxStave}.setBegBarType(${toVexBarlineType(sb)});`);
   }
   if (smoMeasure.svg.multimeasureLength > 0 && !smoMeasure.svg.hideMultimeasure) {
-    const bl = SmoBarline.toVexBarline[smoMeasure.svg.multimeasureEndBarline];
+    const bl = vexBarlineType[smoMeasure.svg.multimeasureEndBarline];
     strs.push(`${vxStave}.setEndBarType(${bl});`);
   } else if (eb.barline !== SmoBarline.barlines.singleBar) {
-    const bl = eb.toVexBarline();
+    const bl = toVexBarlineType(eb);
     strs.push(`${vxStave}.setEndBarType(${bl});`);
   }
   if (smoMeasure.svg.rowInSystem === 0) {
@@ -150,7 +154,7 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
     const ending = voltas[i];
     for (var j = ending.startBar; j <= ending.endBar; ++j) {
       const smoMeasure = smoScore.staves[0].measures[j];
-      const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
+      const vtype = toVexVolta(ending, smoMeasure.measureNumber.measureIndex);
       const vx = smoMeasure.staffX + ending.xOffsetStart;
       const vxStave = 'stave' + smoMeasure.attrs.id;
       const endingName = ending.attrs.id + smoMeasure.attrs.id;
@@ -159,7 +163,7 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
     }
   }
 }
-export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, endNote: SmoNote | null, strs: string[]) {
+function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, endNote: SmoNote | null, strs: string[]) {
   const modifierName = getId();
   const startKey = SmoSelector.getNoteKey(modifier.startSelector);
   const endKey = SmoSelector.getNoteKey(modifier.endSelector);
@@ -224,7 +228,7 @@ export function renderModifier(modifier: StaffModifierBase, startNote: SmoNote |
     }
   }
 }
-export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff, 
+function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff, 
   startMeasure: number, endMeasure: number, strs: string[]) {
   const modifiers = staff.renderableModifiers.filter((mm) => mm.startSelector.measure >= startMeasure && mm.endSelector.measure <= endMeasure);
   modifiers.forEach((modifier) => {
@@ -250,7 +254,7 @@ export function renderModifiers(smoScore: SmoScore, staff: SmoSystemStaff,
     }
   });
 }
-export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number, strs: string[]) {
+function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number, strs: string[]) {
   const { smoNote, voiceIx, noteIx, tickmapObject, lyricAdj } = { ...renderInfo };
   const id = smoNote.attrs.id;
   const ctorInfo = smoNoteToStaveNote(smoNote);
@@ -344,7 +348,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
   chords.forEach((chord) => {
     strs.push(`const ${chord.attrs.id} = new VF.ChordSymbol();`);
     strs.push(`${chord.attrs.id}.setAttribute('id', '${chord.attrs.id}');`);
-    const vblocks = chord.getVexChordBlocks();
+    const vblocks = getVexChordBlocks(chord);
     vblocks.forEach((vblock) => {
       const glyphParams = JSON.stringify(vblock);
       if (vblock.glyph) {
@@ -361,7 +365,7 @@ export function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row:
   });
   return id;
 }
-export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]) {
+function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]) {
   const groupKeys = Object.keys(groups);
   groupKeys.forEach((groupKey) => {
     const music = groups[groupKey];
@@ -383,7 +387,7 @@ export function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: s
     });
   });
 }
-export function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
+function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
   smoMeasure.voices.forEach((voice, voiceIx) => {
     const bgs = smoMeasure.beamGroups.filter((bb) => bb.voice === voiceIx);
     for (var i = 0; i < bgs.length; ++i) {
@@ -409,7 +413,7 @@ export function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
-export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
+function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
   smoMeasure.voices.forEach((voice, voiceIx) => {
     const tps = smoMeasure.tuplets.filter((tp) => tp.voice === voiceIx);
     for (var i = 0; i < tps.length; ++i) {
@@ -435,7 +439,7 @@ export function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
-export function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
+function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
   const staffWidth = Math.round(smoMeasure.svg.staffWidth);
@@ -595,8 +599,8 @@ export class SmoToVex {
               const systemIndex = smoMeasure.measureNumber.systemIndex;
               const startMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.startSelector.staff].measures[k].attrs.id;
               const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].attrs.id;
-              const leftConnector = tmpGroup.systemGroup.leftConnectorVx();
-              const rightConnector = tmpGroup.systemGroup.rightConnectorVx();
+              const leftConnector = leftConnectorVx(tmpGroup.systemGroup);
+              const rightConnector = rightConnectorVx(tmpGroup.systemGroup);
               const jgname = justifyGroup + startMeasure + staffIx.toString();
               if (systemIndex === 0 && smoScore.staves.length > 1) {
                 strs.push(`const left${jgname} = new VF.StaveConnector(${startMeasure}, ${endMeasure}).setType(${leftConnector});`);

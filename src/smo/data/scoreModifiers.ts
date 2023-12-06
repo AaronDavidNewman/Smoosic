@@ -10,8 +10,6 @@ import { SmoMeasureFormat, SmoMeasureFormatParamsSer } from './measureModifiers'
 import { SmoAttrs, getId, SmoModifierBase, SvgBox } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow } from '../../common/vex';
-const VF = VexFlow;
 
 /**
  * Base class for all {@link SmoScore} modifiers. 
@@ -732,28 +730,6 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
   overlaps(group: SmoSystemGroup) {
     return (this.stavesOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.allMeasures) ||
       (this.measuresOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.range);
-  }
-  leftConnectorVx() {
-    switch (this.leftConnector) {
-      case SmoSystemGroup.connectorTypes.single:
-        return VF.StaveConnector.type.SINGLE_LEFT;
-      case SmoSystemGroup.connectorTypes.double:
-        return VF.StaveConnector.type.DOUBLE_LEFT;
-      case SmoSystemGroup.connectorTypes.brace:
-        return VF.StaveConnector.type.BRACE;
-      case SmoSystemGroup.connectorTypes.bracket:
-      default:
-        return VF.StaveConnector.type.BRACKET;
-    }
-  }
-  rightConnectorVx() {
-    switch (this.rightConnector) {
-      case SmoSystemGroup.connectorTypes.single:
-        return VF.StaveConnector.type.SINGLE_RIGHT;
-      case SmoSystemGroup.connectorTypes.double:
-      default:
-        return VF.StaveConnector.type.DOUBLE_RIGHT;
-    }
   }
   serialize(): SmoSystemGroupParamsSer {
     const params: Partial<SmoSystemGroupParamsSer> = {};

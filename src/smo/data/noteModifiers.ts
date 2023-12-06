@@ -9,9 +9,7 @@ import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, S
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
-import { VexFlow, defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
-
-const VF = VexFlow;
+import { defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
 // const Smo = eval('globalThis.Smo');
 
 /**
@@ -772,16 +770,6 @@ export class SmoLyric extends SmoNoteModifierBase {
       NORMAL: 3
     };
   }
-
-  static toVexPosition(chordPos: number) {
-    if (chordPos === SmoLyric.symbolPosition.NORMAL) {
-      return VF.ChordSymbol.symbolModifiers.NONE;
-    } else if (chordPos === SmoLyric.symbolPosition.SUPERSCRIPT) {
-      return VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
-    }
-    return VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
-  }
-
   static get persistArray(): string[] {
     const rv: string[] = [];
     // eslint-disable-next-line
@@ -905,35 +893,7 @@ export class SmoLyric extends SmoNoteModifierBase {
     return tokens;
   }
 
-  getVexChordBlocks() {
-    let mod = VF.ChordSymbol.symbolModifiers.NONE;
-    let isGlyph = false;
-    const tokens = SmoLyric._tokenizeChordString(this.text);
-    const blocks: VexAnnotationParams[] = [];
-    tokens.forEach((token) => {
-      if (token === '^') {
-        mod = (mod === VF.ChordSymbol.symbolModifiers.SUPERSCRIPT) ?
-          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
-      } else if (token === '%') {
-        mod = (mod === VF.ChordSymbol.symbolModifiers.SUBSCRIPT) ?
-          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
-      } else if (token === '@') {
-        isGlyph = !isGlyph;
-      } else if (token.length) {
-        if (isGlyph) {
-          const glyph = SmoLyric._chordGlyphFromCode(token);
-          blocks.push({
-            glyph, symbolModifier: mod
-          });
-        } else {
-          blocks.push({
-            text: token, symbolModifier: mod
-          });
-        }
-      }
-    });
-    return blocks;
-  }
+
 
   constructor(parameters: SmoLyricParams) {
     super('SmoLyric');

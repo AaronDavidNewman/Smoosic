@@ -16,9 +16,8 @@ import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { VexFlow, FontInfo } from '../../common/vex';
+import { FontInfo } from '../../common/vex';
 
-const VF = VexFlow;
 /**
  * Constructor parameters for {@link SmoSystemStaff}.
  * Usually you will call

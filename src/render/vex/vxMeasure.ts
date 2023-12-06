@@ -17,6 +17,8 @@ import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
+import { toVexBarlineType, vexBarlineType, vexBarlinePosition, toVexBarlinePosition, toVexSymbol,
+  toVexTextJustification, toVexTextPosition, getVexChordBlocks, toVexStemDirection } from './smoAdapter';
 import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
@@ -188,7 +190,7 @@ export class VxMeasure {
   _addChordChangeToNote(vexNote: Note, lyric: SmoLyric) {
     const cs = new VF.ChordSymbol();
     cs.setAttribute('id', lyric.attrs.id);
-    const blocks = lyric.getVexChordBlocks();
+    const blocks = getVexChordBlocks(lyric);
     blocks.forEach((block) => {
       if (block.glyph) {
         // Vex 5 broke this, does not distinguish between glyph and text
@@ -485,7 +487,7 @@ export class VxMeasure {
         }
         if (keyNoteIx === j) {
           stemDirection = note.flagState === SmoNote.flagStates.auto ?
-            vexNote.getStemDirection() : note.toVexStemDirection();
+            vexNote.getStemDirection() : toVexStemDirection(note);
         }
         vexNote.setStemDirection(stemDirection);
         vexNotes.push(vexNote);  
@@ -546,15 +548,15 @@ export class VxMeasure {
       && this.smoMeasure.format.padLeft === 0) {
       this.stave.setBegBarType(VF.Barline.type.NONE);
     } else {
-      this.stave.setBegBarType(sb.toVexBarline());
+      this.stave.setBegBarType(toVexBarlineType(sb));
     }
     if (this.smoMeasure.svg.multimeasureLength > 0 && !this.smoMeasure.svg.hideMultimeasure) {
-      this.stave.setEndBarType(SmoBarline.toVexBarline[this.smoMeasure.svg.multimeasureEndBarline]);
+      this.stave.setEndBarType(vexBarlineType[this.smoMeasure.svg.multimeasureEndBarline]);
     } else if (eb.barline !== SmoBarline.barlines.singleBar) {
-      this.stave.setEndBarType(eb.toVexBarline());
+      this.stave.setEndBarType(toVexBarlineType(eb));
     }
     if (sym && sym.symbol !== SmoRepeatSymbol.symbols.None) {
-      const rep = new VF.Repetition(sym.toVexSymbol(), sym.xOffset + this.smoMeasure.staffX, sym.yOffset);
+      const rep = new VF.Repetition(toVexSymbol(sym), sym.xOffset + this.smoMeasure.staffX, sym.yOffset);
       this.stave.getModifiers().push(rep);
     }
     const tms = this.smoMeasure.getMeasureText();
@@ -562,9 +564,9 @@ export class VxMeasure {
     tms.forEach((tmb: SmoMeasureModifierBase) => {
       const tm = tmb as SmoMeasureText;
       const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
-      const staveText = createStaveText(tm.text, tm.toVexPosition(), 
+      const staveText = createStaveText(tm.text, toVexTextPosition(tm), 
       {
-        shiftX: tm.adjustX + offset, shiftY: tm.adjustY, justification: tm.toVexJustification()
+        shiftX: tm.adjustX + offset, shiftY: tm.adjustY, justification: toVexTextJustification(tm)
       }
       );
       this.stave?.addModifier(staveText);

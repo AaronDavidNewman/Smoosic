@@ -114,8 +114,8 @@ export class MidiToSmo {
     let bassMax = 0;
     measure.voices[0].notes.forEach((note) => {
       note.pitches.forEach((pitch) => {
-        const tl = Math.abs(SmoMusic.pitchToLedgerLine('treble', pitch));
-        const bl = Math.abs(SmoMusic.pitchToLedgerLine('bass', pitch));
+        const tl = Math.abs(SmoMusic.pitchToStaffLine('treble', pitch));
+        const bl = Math.abs(SmoMusic.pitchToStaffLine('bass', pitch));
         trebleMax = Math.max(trebleMax, tl);
         bassMax = Math.max(bassMax, bl);
       })

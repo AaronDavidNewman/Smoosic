@@ -197,7 +197,7 @@ export class SmoOperation {
     }
     if (!tuplet) {
       const nticks = note.tickCount / divisor;
-      if (!SmoMusic.ticksToDuration[nticks]) {
+      if (!SmoMusic.validDurations[nticks]) {
         return;
       }
       SmoContractNoteActor.apply({
@@ -384,7 +384,7 @@ export class SmoOperation {
       return;
     }
     // is dot too short?
-    if (!SmoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+    if (!SmoMusic.validDurations[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
       return;
     }
     SmoStretchNoteActor.apply({
@@ -813,11 +813,7 @@ export class SmoOperation {
     }
     if (note1 === null || note2 === null) {
       throw('no note in slur selections');
-    }
-    const sameBeam = (note1.beam_group && note2.beam_group && note1.beam_group.id === note2.beam_group.id);
-    const lineDifference = Math.abs(SmoMusic.pitchToStaffLine(note1.clef as Clef, note1.pitches[0]) - 
-      SmoMusic.pitchToStaffLine(note2.clef as Clef, note2.pitches[0]));
-    
+    }    
   }
   /**
    * Heuristically determine how a slur should be formatted based on the notes.  Determine control points,

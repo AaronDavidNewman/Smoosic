@@ -670,6 +670,7 @@ export class SmoScore {
       if (jsonObj.measureFormats) {
         jsonObj.measureFormats.forEach((mf: SmoMeasureFormatParamsSer) => {
           const mfObj = new SmoMeasureFormat(mf);
+          measureParams.measureFormats?.push(mfObj);
         });
       }
       params.formattingManager = new SmoFormattingManager(measureParams);

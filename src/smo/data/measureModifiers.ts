@@ -7,9 +7,8 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow, FontInfo } from '../../common/vex';
+import { FontInfo } from '../../common/vex';
 
-const VF = VexFlow;
 /**
  * Measure modifiers are attached to the measure itself.  Each instance has a
  * `serialize()` method and a `ctor` attribute for deserialization.
@@ -276,23 +275,8 @@ export class SmoBarline extends SmoMeasureModifierBase {
     smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
     smoSerialize.serializedMerge(SmoBarline.attributes, ops, this);
   }
-
-  static get toVexBarline() {
-    return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
-      VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
-  }
-  static get toVexPosition() {
-    return [VF.StaveModifierPosition.BEGIN, VF.StaveModifierPosition.END];
-  }
   barline: number = SmoBarline.barlines.singleBar;
   position: number = SmoBarline.positions.start;
-
-  toVexBarline(): number {
-    return SmoBarline.toVexBarline[this.barline];
-  }
-  toVexPosition(): number {
-    return SmoBarline.toVexPosition[this.position];
-  }
 }
 
 /**
@@ -363,11 +347,6 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
       position: SmoRepeatSymbol.positions.end
     }));
   }
-  static get toVexSymbol() {
-    return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
-      VF.Repetition.type.DC_AL_CODA, VF.Repetition.type.DC_AL_FINE, VF.Repetition.type.DS,
-      VF.Repetition.type.DS_AL_CODA, VF.Repetition.type.DS_AL_FINE, VF.Repetition.type.FINE];
-  }
   static get attributes() {
     return ['symbol', 'xOffset', 'yOffset', 'position'];
   }
@@ -375,9 +354,7 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   xOffset: number = 0;
   yOffset: number = 30;
   position: number = SmoRepeatSymbol.positions.end;
-  toVexSymbol() {
-    return SmoRepeatSymbol.toVexSymbol[this.symbol];
-  }
+
   serialize(): SmoRepeatSymbolParamsSer {
     const params: Partial<SmoRepeatSymbolParamsSer> = {};
     smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults, SmoRepeatSymbol.attributes, this, params);
@@ -489,22 +466,6 @@ export class SmoVolta extends SmoMeasureModifierBase {
       number: 1
     }));
   }
-
-  toVexVolta(measureNumber: number) {
-    if (this.startBar === measureNumber && this.startBar === this.endBar) {
-      return VF.Volta.type.BEGIN_END;
-    }
-    if (this.startBar === measureNumber) {
-      return VF.Volta.type.BEGIN;
-    }
-    if (this.endBar === measureNumber) {
-      return VF.Volta.type.END;
-    }
-    if (this.startBar < measureNumber && this.endBar > measureNumber) {
-      return VF.Volta.type.MID;
-    }
-    return VF.Volta.type.NONE;
-  }
 }
 /**
  * Constructor parameters for {@link SmoMeasureText}
@@ -543,19 +504,6 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
 
   static readonly _positionToString: string[] = ['above', 'below', 'left', 'right']
 
-  static get toVexPosition() {
-    return [VF.Modifier.Position.ABOVE, VF.Modifier.Position.BELOW, VF.Modifier.Position.LEFT, VF.Modifier.Position.RIGHT];
-  }
-  static get toVexJustification() {
-    return [VF.TextJustification.LEFT, VF.TextJustification.RIGHT, VF.TextJustification.CENTER];
-  }
-
-  toVexJustification() {
-    return SmoMeasureText.toVexJustification[this.justification];
-  }
-  toVexPosition() {
-    return SmoMeasureText.toVexPosition[parseInt(this.position as any, 10)];
-  }
   static get attributes() {
     return ['position', 'fontInfo', 'text', 'adjustX', 'adjustY', 'justification'];
   }

@@ -336,8 +336,8 @@ export class SmoTuplet {
     if (note.flagState !== SmoNote.flagStates.auto) {
       return note.flagState;
     }
-    return SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
-      >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+    return SmoMusic.pitchToStaffLine(clef, note.pitches[0])
+      >= 3 ? SmoNote.flagStates.down : SmoNote.flagStates.up;
   }
   get durationSum() {
     let acc = 0;

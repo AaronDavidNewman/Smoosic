@@ -24,7 +24,7 @@ import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, 
   TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow, FontInfo } from '../../common/vex';
+import { FontInfo } from '../../common/vex';
 /**
  * Voice is just a container for {@link SmoNote}
  */
@@ -48,8 +48,6 @@ export interface MeasureTick {
   voiceIndex: number,
   tickIndex: number
 }
-// @internal
-const VF = VexFlow;
 
 /**
  * Break up a circlar dependency with {@link SmoBeamGroup}
