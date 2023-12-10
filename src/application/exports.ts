@@ -42,6 +42,7 @@ import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNo
 // Dialogs
 import { SuiDialogBase } from '../ui/dialogs/dialog';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
+import { SuiTransposeScoreDialog, SuiTransposeScoreAdapter } from '../ui/dialogs/transposeScore';
 import { SuiMeasureDialog } from '../ui/dialogs/measureFormat';
 import { SuiInsertMeasures } from '../ui/dialogs/addMeasure';
 import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
@@ -175,7 +176,8 @@ export const Smo = {
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiTextBracketDialog,
-    SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
+    SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, SuiTransposeScoreAdapter,
+    SuiTransposeScoreDialog,
     SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextBlockDialog, SuiLyricDialog, SuiChordChangeDialog,
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,

@@ -3,8 +3,6 @@
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { SmoMusic } from '../../smo/data/music';
 import { VexFlow, GlyphInfo, getGlyphWidth } from '../../common/vex';
-const VF = VexFlow;
-
 
 export class vexGlyph {
   static width(smoGlyph: GlyphInfo) {

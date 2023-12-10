@@ -614,7 +614,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }
-
+  transposeScore(offset: number): Promise<void> {
+    this._undoScore('transpose score');
+    SmoOperation.transposeScore(this.score, offset);
+    SmoOperation.transposeScore(this.storeScore, offset);
+    this.renderer.rerenderAll();
+    return this.renderer.updatePromise();
+  }
   /**
    * transpose selected notes
    * @param offset 1/2 steps

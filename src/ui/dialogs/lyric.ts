@@ -5,6 +5,7 @@ import { SuiLyricComponent } from './components/noteText';
 import { SuiDropdownComponent } from './components/dropdown';
 import { SuiRockerComponent } from './components/rocker';
 import { SvgBox } from '../../smo/data/common';
+import { SmoSelector, SmoSelection } from '../../smo/xform/selections'
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiFontComponent } from './components/fontComponent';
 import { SmoRenderConfiguration } from '../../render/sui/configuration';
@@ -12,6 +13,9 @@ import { EventHandler } from '../eventSource';
 
 declare var $: any;
 
+function isSmoLyric(modifier: any):modifier is SmoLyric {
+  return modifier?.ctor === 'SmoLyric';
+}
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
@@ -72,20 +76,18 @@ export class SuiLyricDialog extends SuiDialogBase {
     };
   originalRefreshTimer: number;
   modifier: SmoLyric | null = null;
+  selector: SmoSelector | null = null;
   config: SmoRenderConfiguration;
   verse: number = 0;
   mouseMoveHandler: EventHandler | null = null;
   mouseClickHandler: EventHandler | null = null;
-  lyric: SmoLyric | null = null;
   constructor(parameters: SuiDialogParams) {
     super(SuiLyricDialog.dialogElements, parameters);
     this.config = this.view.config;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
     this.originalRefreshTimer = this.config.idleRedrawTime;
     this.config.idleRedrawTime = SuiLyricDialog.idleLyricTime;
-    if (this.modifier) {
-      this.verse = this.modifier.verse;
-    }
+    this.verse = 0;
   }
   get lyricEditorCtrl(): SuiLyricComponent {
     return this.cmap.lyricEditorCtrl as SuiLyricComponent;
@@ -118,8 +120,10 @@ export class SuiLyricDialog extends SuiDialogBase {
       });
     }
   }
-  setLyric(lyric: SmoLyric) {
-    this.lyric = lyric;
+  setLyric(selector: SmoSelector, lyric: SmoLyric) {
+    this.modifier = lyric;
+    this.verse = lyric.verse;
+    this.selector = selector;
     this.translateYCtrl.setValue(lyric.translateY);
   }
   _focusSelection() {
@@ -138,8 +142,9 @@ export class SuiLyricDialog extends SuiDialogBase {
       const fontInfo = this.fontCtrl.getValue();
       this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size, weight: 'normal' });
     }
-    if (this.translateYCtrl && this.lyric) {
-      this.lyric.translateY = this.translateYCtrl.getValue();
+    if (this.translateYCtrl && this.modifier && this.selector) {
+      this.modifier.translateY = this.translateYCtrl.getValue();
+      this.view.addOrUpdateLyric(this.selector, this.modifier);
     }
   }
   bindElements() {

@@ -422,7 +422,6 @@ export class SmoSelection {
     }
     return rv;
   }
-
   static nextNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection | null {
     return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
   }

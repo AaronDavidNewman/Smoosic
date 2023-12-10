@@ -104,6 +104,7 @@ export * from './src/ui/dialogs/dynamics';
 export * from './src/ui/dialogs/factory';
 export * from './src/ui/dialogs/fileDialogs';
 export * from './src/ui/dialogs/fonts';
+export * from './src/ui/dialogs/transposeScore';
 export * from './src/ui/dialogs/globalLayout';
 export * from './src/ui/dialogs/hairpin';
 export * from './src/ui/dialogs/instrument';

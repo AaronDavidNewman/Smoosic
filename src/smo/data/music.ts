@@ -11,7 +11,6 @@ import { Pitch, PitchKey, Clef, PitchLetter, TickAccidental,
 import { SmoMicrotone } from './noteModifiers';
 import { VexFlow, pitchToLedgerLine, vexCanonicalNotes } from '../../common/vex';
 
-const VF = VexFlow;
 /**
  * Used for xml clef conversion
  */
@@ -97,6 +96,8 @@ export class SmoAudioPitch {
  * base note lengths + dots)
  */
 export interface SimpleDuration {
+  index: number,  
+  ticks: number,
   baseTicks: number,
   dots: number
 }
@@ -268,7 +269,14 @@ export class SmoMusic {
     }
     ];
   }
-  static getLineFromSmoPitch(clef: string, smoPitch: Pitch): number {
+  /**
+   * Return the number of lines above first ledger line below the staff.
+   * e.g. middle c in treble clef returns 0.  Top line f in treble returns 5.
+   * @param clef
+   * @param pitch
+   * @returns number where 0 is the first ledger line below
+   */
+  static pitchToStaffLine(clef: string, smoPitch: Pitch): number {
     const octave = smoPitch.octave * 7 - 4 * 7;
     const keyTable = smoPitch.letter + smoPitch.accidental;
     let line = (SmoMusic.noteValues[keyTable].root_index + octave) / 2;
@@ -390,7 +398,7 @@ export class SmoMusic {
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
-    const line = SmoMusic.getLineFromSmoPitch(clef, pitch);
+    const line = SmoMusic.pitchToStaffLine(clef, pitch);
     if (line > 5) {
       return -1 * (line - 5);
     }
@@ -399,16 +407,7 @@ export class SmoMusic {
     }
     return 0;
   }
-  /**
-   * Return the number of ledger lines based on the pitch and clef
-   * @param clef
-   * @param pitch
-   * @returns number where 0 is the top staff line
-   */
-   static pitchToStaffLine(clef: Clef, pitch: Pitch): number {
-    // return the distance from the top ledger line, as 0.5 per line/space
-    return SmoMusic.getLineFromSmoPitch(clef, pitch);
-  }
+
   /**
    * return flag state (up === 1 or down === 2) based on pitch and clef if auto
    * */
@@ -454,6 +453,17 @@ export class SmoMusic {
       'baritone-f':  5,
       'subbass':  7,
       'french': -1
+    }
+    static scaleTones: string[] = ['tonic', '2', '3', '4', '5', '6', '7'];
+    static getScaleTonesForKey(keySignature: string): Record<string, string> {
+      const key = SmoMusic.enharmonicRoles[keySignature];
+      const rv: Record<string, string> = {};
+      key.forEach((role) => {
+        if (SmoMusic.scaleTones.indexOf(role.role) >= 0) {
+          rv[role.letter] = role.letter + role.accidental;
+        }
+      });
+      return rv;
     }
   /**
    * The purpose of this table is to keep consistent enharmonic spelling when transposing 
@@ -1115,7 +1125,8 @@ export class SmoMusic {
     const flatKey = keySignature.indexOf('b') >= 0;
     const ar = SmoMusic.getEnharmonics(SmoMusic.pitchToVexKey(smoPitch));
     rv = SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(smoPitch));
-    const scaleMap: Record<string, string> = new VF.Music().createScaleMap(keySignature);
+    const scaleMap: Record<string, string> = SmoMusic.getScaleTonesForKey(keySignature);
+    // new VF.Music().createScaleMap(keySignature);
     ar.forEach((vexKey) => {
       if (vexKey.length === 1) {
         vexKey += 'n';
@@ -1159,8 +1170,7 @@ export class SmoMusic {
   static getKeyFriendlyEnharmonic(letter: string, keySignature: string): string {
     let rv: string = letter;
     let i = 0;
-    const muse = new VF.Music();
-    const scale: string[] = Object.values(muse.createScaleMap(keySignature));
+    const scale: string[] = Object.values(SmoMusic.getScaleTonesForKey(keySignature));
     let prop: string = SmoMusic.getEnharmonic(letter.toLowerCase());
     while (prop.toLowerCase() !== letter.toLowerCase()) {
       for (i = 0; i < scale.length; ++i) {
@@ -1185,8 +1195,8 @@ export class SmoMusic {
    * @returns
    */
   static getKeySignatureKey(letter: PitchLetter, keySignature: string): string {
-    const km = new VF.KeyManager(keySignature);
-    return (km as any).scaleMap[letter];
+    const scaleMap = SmoMusic.getScaleTonesForKey(keySignature);
+    return scaleMap[letter];
   }
 
   static getAccidentalForKeySignature(smoPitch: Pitch, keySignature: string): string {
@@ -1465,23 +1475,28 @@ export class SmoMusic {
     }
     if (SmoMusic._validDurations === null) {
       SmoMusic._validDurations = {};
+      let index = 0;
       for (var i = 0; i < SmoMusic.durationsDescending.length; ++i) {
         const baseTicks = SmoMusic.durationsDescending[i];
         for (var j = 3; j >= 1; --j) {
           const { dottedValue, minDot } = computeDots(baseTicks, j);
           if (dottedValue < SmoMusic.highestDuration && minDot > SmoMusic.lowestDuration) {
             SmoMusic._validDurations[dottedValue] = {
+              index: SmoMusic._validDurationKeys.length,
+              ticks: dottedValue,
               baseTicks,
               dots: j
             }
             SmoMusic._validDurationKeys.push(dottedValue);
           }
         }
-        SmoMusic._validDurationKeys.push(baseTicks);
         SmoMusic._validDurations[baseTicks] = {
+          index: SmoMusic._validDurationKeys.length,
+          ticks: baseTicks,
           baseTicks,
           dots: 0
         };
+        SmoMusic._validDurationKeys.push(baseTicks);
       }
     }
     return SmoMusic._validDurations;
@@ -1690,11 +1705,9 @@ export class SmoMusic {
   // Get ticks for this note with an added dot.  Return
   // identity if that is not a supported value.
   static getNextDottedLevel(ticks: number): number {
-    const ttd = SmoMusic.ticksToDuration;
-    const vals = Object.values(ttd);
-    const ix = vals.indexOf(ttd[ticks]);
-    if (ix >= 0 && ix < vals.length && vals[ix][0] === vals[ix + 1][0]) {
-      return SmoMusic.durationToTicks(vals[ix + 1]);
+    const ticksOrNull = SmoMusic.closestSmoDurationFromTicks(ticks);
+    if (ticksOrNull && ticksOrNull.index > 0) {
+      return SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index - 1]].ticks;
     }
     return ticks;
   }
@@ -1703,35 +1716,11 @@ export class SmoMusic {
   // Get ticks for this note with one fewer dot.  Return
   // identity if that is not a supported value.
   static getPreviousDottedLevel(ticks: number): number {
-    const ttd = SmoMusic.ticksToDuration;
-    const vals = Object.values(ttd);
-    const ix = vals.indexOf(ttd[ticks]);
-    if (ix > 0 && vals[ix][0] === vals[ix - 1][0]) {
-      return SmoMusic.durationToTicks(vals[ix - 1]);
+    const ticksOrNull = SmoMusic.closestSmoDurationFromTicks(ticks);
+    if (ticksOrNull && ticksOrNull.index < SmoMusic._validDurationKeys.length + 1) {
+      return SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index + 1]].ticks;
     }
     return ticks;
-  }
- 
-
-  // ### durationToTicks
-  // Uses VF.durationToTicks, but handles dots.
-  static durationToTicks(duration: string): number {
-    let split = 0;
-    let i = 0;
-    let vfDuration = 0;
-    let dots = duration.indexOf('d');
-    if (dots < 0) {
-      return VF.durationToTicks(duration) as number;
-    } else {
-      vfDuration = VF.durationToTicks(duration.substring(0, dots)) as number;
-      dots = duration.length - dots; // number of dots
-      split = vfDuration / 2;
-      for (i = 0; i < dots; ++i) {
-        vfDuration += split;
-        split = split / 2;
-      }
-      return vfDuration;
-    }
   }
 
   /**

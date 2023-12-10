@@ -802,8 +802,11 @@ export class SmoLyric extends SmoNoteModifierBase {
   translateX: number = 0;
   translateY: number = 0;
   classes: string = '';
+  // used by the renderer to calculate offsets for aligning lyrics
   adjX: number = 0;
   adjY: number = 0;
+  // used by the renderer to calculate the y offset for music that goes below the staff
+  musicYOffset: number = 0;
   hyphenX: number = 0;
   deleted: boolean = false;
 

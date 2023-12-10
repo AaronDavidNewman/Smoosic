@@ -414,6 +414,21 @@ export class SmoOperation {
     });
   }
 
+  static transposeScore(score: SmoScore, offset: number) {
+    score.staves.forEach((staff, staffIx) => {
+      staff.measures.forEach((measure, measureIx) => {
+        measure.voices.forEach((voice, voiceIx) => {
+          voice.notes.forEach((note, tickIx) => {
+            const selection = SmoSelection.noteSelection(
+              score,staffIx, measureIx, voiceIx, tickIx);
+            if (selection) {
+              this.transpose(selection, offset);
+            }
+          });
+        });
+      });
+    });
+  }
   // ## transpose
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value

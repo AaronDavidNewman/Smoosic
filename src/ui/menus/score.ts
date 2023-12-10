@@ -4,6 +4,7 @@ import { SuiScoreIdentificationDialog } from '../dialogs/scoreId';
 import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
 import { SuiScoreFontDialog } from '../dialogs/fonts';
 import { SuiGlobalLayoutDialog } from '../dialogs/globalLayout';
+import { SuiTransposeScoreDialog } from '../dialogs/transposeScore';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
 import { SuiAudioSettingsDialog } from '../dialogs/audioSettings';
@@ -46,6 +47,10 @@ export class SuiScoreMenu extends SuiMenuBase {
       value: 'identification'
     }, {
       icon: '',
+      text: 'Transpose Score',
+      value: 'transposeScore'
+    }, {
+      icon: '',
       text: 'Cancel',
       value: 'cancel'
     }]
@@ -58,7 +63,7 @@ export class SuiScoreMenu extends SuiMenuBase {
     const defs: MenuChoiceDefinition[] = [];
     this.menuItems.forEach((item) => {
       // show these options no matter what
-      if (['fonts', 'cancel', 'identification', 'preferences', 'audioSettings'].findIndex((x) => x === item.value) >= 0) {
+      if (['fonts', 'cancel', 'identification', 'preferences', 'audioSettings', 'transposeScore'].findIndex((x) => x === item.value) >= 0) {
         defs.push(item);
       } else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
         if (this.view.isPartExposed() === false) {
@@ -169,6 +174,19 @@ export class SuiScoreMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
   }
+  execTransposeScore() {
+    createAndDisplayDialog(SuiTransposeScoreDialog,
+      {
+        completeNotifier: this.completeNotifier!,
+        view: this.view,
+        eventSource: this.eventSource,
+        id: 'scoreIdDialog',
+        ctor: 'SuiTransposeScoreDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
+      });
+  }
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'pageLayout') {
@@ -187,6 +205,8 @@ export class SuiScoreMenu extends SuiMenuBase {
       this.view.viewAll();
     } else if (text === 'audioSettings') {
       this.execAudioSettings();
+    } else if (text === 'transposeScore') {
+      this.execTransposeScore();
     }
     this.complete();
   }

@@ -643,17 +643,23 @@ export class SuiLayoutFormatter {
       }
     }
   }
-  // ### _highestLowestHead
-  // highest value is actually the one lowest on the page
+  /**
+   * highest value is actually the one lowest on the page
+   * @param measure 
+   * @param note 
+   * @returns 
+   */
   static _highestLowestHead(measure: SmoMeasure, note: SmoNote) {
-    const hilo = { hi: 0, lo: 9999999 };
-    note.pitches.forEach((pitch) => {
-      // 10 pixels per line
-      const ledger = SmoMusic.pitchToLedgerLine(measure.clef, pitch);
-      const noteHeight = ledger > 0 ? 10 : -10;
-      const px = (10 * ledger) + noteHeight;
-      hilo.lo = Math.min(hilo.lo, px);
-      hilo.hi = Math.max(hilo.hi, px);
+    // note...er warning: Notes always have at least 1 pitch, even a rest
+    // or glyph has a pitch to indicate the placement
+    const hilo = { hi: 0, lo: 99999999 };    
+    note.pitches.forEach((pitch) => {            
+      const line = 5 - SmoMusic.pitchToStaffLine(measure.clef, pitch);
+      // TODO: use actual note head/rest/glyph.  10 px is space between staff lines
+      const noteHeight = 10;
+      const px = (noteHeight * line);
+      hilo.lo = Math.min(hilo.lo, px - noteHeight / 2);
+      hilo.hi = Math.max(hilo.hi, px + noteHeight / 2);
     });
     return hilo;
   }
@@ -752,7 +758,9 @@ export class SuiLayoutFormatter {
     if (measure.svg.forceTempo) {
       yTop = Math.min(-1 * vexGlyph.tempo.yTop, yTop);
     }
-    measure.voices.forEach((voice) => {
+    let yBottomOffset = 0;
+    let yBottomVoiceZero = 0;
+    measure.voices.forEach((voice, voiceIx) => {
       voice.notes.forEach((note) => {
         const bg = SuiLayoutFormatter._beamGroupForNote(measure, note);
         flag = SmoNote.flagStates.auto;
@@ -766,11 +774,16 @@ export class SuiLayoutFormatter {
           }
         }  else {
           flag = note.flagState;
+          // odd-numbered voices flip default up/down
+          const voiceMod = voiceIx % 2;
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
             const pitch = note.pitches[0];
             flag = SmoMusic.pitchToStaffLine(measure.clef, pitch)
-              >= 3 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+              >= 3 ? SmoNote.flagStates.down : SmoNote.flagStates.up;
+            if (voiceMod === 1) {
+              flag = (flag === SmoNote.flagStates.down) ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+            }
           }
         }
         const hiloHead = SuiLayoutFormatter._highestLowestHead(measure, note);
@@ -784,7 +797,21 @@ export class SuiLayoutFormatter {
         // Lyrics will be rendered below the lowest thing on the staff, so add to
         // belowBaseline value based on the max number of verses and font size
         // it will extend
+        });
+        // Vex won't adjust for music in voices > 0 when placing lyrics.  
+        // So we need to adjust here, if voices > 0 have music below lyrics. 
+        if (voiceIx > 0 && yBottomVoiceZero < yBottom) {
+          yBottomOffset = yBottom - yBottomVoiceZero;
+        } else {
+          yBottomVoiceZero = yBottom;
+        }
+      });
+      let lyricsToAdjust: SmoLyric[] = [];
+      // get the lowest music part, then consider the lyrics
+      measure.voices.forEach((voice, voiceIx) => {
+        voice.notes.forEach((note) => {
         const lyrics = note.getTrueLyrics();
+        lyricsToAdjust = lyricsToAdjust.concat(lyrics);
         if (lyrics.length) {
           const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
           const fontInfo = SuiLayoutFormatter.textFont(maxLyric);
@@ -812,6 +839,11 @@ export class SuiLayoutFormatter {
       });
     });
     yBottom += lyricOffset;
+    if (lyricsToAdjust.length > 0) {
+      lyricsToAdjust.forEach((lyric: SmoLyric) => {
+        lyric.musicYOffset = yBottomOffset;
+      });
+    }
     return { belowBaseline: yBottom, aboveBaseline: yTop };
   }
 }

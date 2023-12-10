@@ -118,14 +118,14 @@ export class VxSystem {
         verseLyrics.forEach((lyric: SmoLyric) => {
           if (lyric.logicalBox) {
             // 'lowest' Y on screen is Y with largest value...
-            lowestY = Math.max(lyric.logicalBox.y, lowestY);
+            lowestY = Math.max(lyric.logicalBox.y + lyric.musicYOffset, lowestY);
           }
         });
         // second offset all to that point
         verseLyrics.forEach((lyric: SmoLyric) => {
           if (lyric.logicalBox) {
             const offset = Math.max(0, lowestY - lyric.logicalBox.y);
-            lyric.adjY = offset + lyric.translateY;   
+            lyric.adjY = offset + lyric.translateY;
           }
         });
       } else {
@@ -141,7 +141,7 @@ export class VxSystem {
         verseLyrics.forEach((lyric: SmoLyric)=> {
           if (lyric.logicalBox) {
             const offset = Math.max(0, lowestY - lyric.logicalBox.y);
-            lyric.adjY = offset + lyric.translateY;   
+            lyric.adjY = offset + lyric.translateY;
           }
         });
       }
