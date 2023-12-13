@@ -6,8 +6,6 @@ import { SmoAttrs, getId } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
 import { TickMap } from './tickMap';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { VexFlow } from '../../common/vex';
-const VF = VexFlow;
 
 export interface SmoBeamGroupParams {
   notes: SmoNote[],
@@ -154,8 +152,7 @@ export class SmoBeamer {
       }
 
       // is this beamable length-wise
-      const vexDuration = SmoMusic.closestVexDuration(note.tickCount);
-      const stemTicks = VF.durationToTicks(vexDuration);
+      const stemTicks = SmoMusic.closestDurationTickLtEq(note.tickCount);
       if (note.noteType === 'n' && stemTicks < 4096) {
         this.currentGroup.push(note);
       }

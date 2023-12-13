@@ -22,10 +22,6 @@ import {
   SmoUnmakeTupletActor, SmoContractTupletActor
 } from './tickDuration';
 import { SmoBeamer } from './beamers';
-import { smoSerialize } from '../../common/serializationHelpers';
-import { VexFlow } from '../../common/vex';
-const VF = VexFlow;
-
 /**
  * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration
  */
@@ -371,7 +367,7 @@ export class SmoOperation {
     // Don't dot if the thing on the right of the . is too small
     const dotCount = SmoMusic.smoTicksToVexDots(nticks);
     const multiplier = Math.pow(2, dotCount);
-    const baseDot = VF.durationToTicks(SmoMusic.closestVexDuration(nticks)) / (multiplier * 2);
+    const baseDot = SmoMusic.closestDurationTickLtEq(nticks) / (multiplier * 2);
     if (baseDot <= 128) {
       return;
     }

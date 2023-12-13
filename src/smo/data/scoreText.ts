@@ -10,10 +10,8 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
 import { SmoAttrs, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
-import { VexFlow, FontInfo } from '../../common/vex';
+import { FontInfo } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
-const VF = VexFlow;
-
 
 /**
  * Parameters for a single text block.  Text blocks make up a text group.

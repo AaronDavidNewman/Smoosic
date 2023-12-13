@@ -8,7 +8,6 @@
     "grunt": "^1.5.3",
     "grunt-typedoc": "^0.2.4",
     "grunt-webpack": "^4.0.3",
-    "@knodes/typedoc-plugin-pages": "^0.23.0",
     "jquery": "^3.6.0"
   },
   "dependencies": {
@@ -23,7 +22,7 @@
     "ts-loader": "^9.2.5",
     "typedoc": "^0.25.0",
     "typescript": "^5.2.2",
-    "vexflow_smoosic": "4.2.2",
+    "vexflow_smoosic": "4.2.6",
     "webpack": "^5.89.0",
     "xmldom": "^0.6.0"
   },

@@ -7,9 +7,6 @@ import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoSelector } from '../xform/selections';
 import { SmoBarline } from '../data/measureModifiers';
-import { VexFlow } from '../../common/vex';
-
-const VF = VexFlow;
 
 export interface XmlOrnamentData {
   ctor: string,
@@ -83,7 +80,7 @@ export class XmlHelpers {
   // ### closestStemType
   // smo infers the stem type from the duration, but other applications don't
   static closestStemType(ticks: number) {
-    const nticks = VF.durationToTicks(SmoMusic.vexStemType(ticks));
+    const nticks = SmoMusic.closestDurationTickLtEq(ticks);
     return XmlHelpers.ticksToNoteTypeMap[nticks];
   }
   static get beamStates(): Record<string, number> {

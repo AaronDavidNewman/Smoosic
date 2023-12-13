@@ -2,9 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
-import { Pitch, PitchLetter, TickAccidental } from '../data/common';
+import { Pitch, IsPitchLetter, TickAccidental } from '../data/common';
 import { SmoNote } from '../data/note';
-import { VexFlow } from '../../common/vex';
 
 /**
  * create a map note durations at each index into the voice, including the accidentals at each duration.
@@ -50,21 +49,22 @@ export class TickMap {
   // ### _getAccidentalsForKey
   // Update `map` with the correct accidental based on the key signature.
   _getAccidentalsForKey(map: Record<string, TickAccidental>) {
-    const music: any = new VexFlow.Music();
-    const keys = music.createScaleMap(this.keySignature);
+    const keys = SmoMusic.getScaleTonesForKey(this.keySignature);
     const keyKeys = Object.keys(keys);
     keyKeys.forEach((keyKey) => {
       const vexKey = keys[keyKey];
       if (vexKey.length > 1 && (vexKey[1] === 'b' || vexKey[1] === '#')) {
-        const pitch = {
-          letter: vexKey[0],
-          accidental: vexKey[1],
-          octave: 4
-        };
-        map[vexKey[0]] = {
-          duration: 0,
-          pitch
-        };
+        if (IsPitchLetter(vexKey[0])) {
+          const pitch = {
+            letter: vexKey[0],
+            accidental: vexKey[1],
+            octave: 4
+          };
+          map[vexKey[0]] = {
+            duration: 0,
+            pitch
+          };
+        }
       }
     });
   }
