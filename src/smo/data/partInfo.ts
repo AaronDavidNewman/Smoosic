@@ -8,7 +8,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoObjectParams } from './common';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
-import { SmoLayoutManager, SmoLayoutManagerParamsSer } from './scoreModifiers';
+import { SmoLayoutManager, SmoLayoutManagerParamsSer, SmoLayoutManagerParams, SmoPageLayout } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
 import { StaffModifierBase } from './staffModifiers';
 
@@ -231,6 +231,20 @@ export class SmoPartInfo extends StaffModifierBase {
     params.midiInstrument = jsonObj.midiInstrument;
     params.midiDevice = jsonObj.midiDevice;
     params.measureFormatting = {};
+    if (jsonObj.layoutManager) {
+      const layoutManagerParams: SmoLayoutManagerParams = {
+        globalLayout: jsonObj.layoutManager.globalLayout,
+        /**
+         * page margins for each page
+         */
+        pageLayouts: []
+      }
+      jsonObj.layoutManager.pageLayouts.forEach((pl) => {
+        const pageLayout = new SmoPageLayout(pl);
+        layoutManagerParams.pageLayouts.push(pageLayout);
+      });
+      params.layoutManager = new SmoLayoutManager(layoutManagerParams);
+    }
     if (jsonObj.measureFormatting) {
       const mfkeys = Object.keys(jsonObj.measureFormatting);
       mfkeys.forEach((mfkey) => {

@@ -236,7 +236,7 @@ export class VxSystem {
           const fontSize = SmoScoreText.fontPointSize(lyric.fontInfo.size);
           text.setAttributeNS('', 'x', (lyric.hyphenX - fontSize / 3).toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
-          text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
+          text.setAttributeNS('', 'font-size', '' + fontSize + 'pt');
           parent.appendChild(text);
         }
       });
