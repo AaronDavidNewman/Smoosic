@@ -160,7 +160,7 @@ export class SuiScoreRender {
     staff.measures.forEach((measure) => {
       this.unrenderMeasure(measure);
     });
-    staff.modifiers.forEach((modifier) => {
+    staff.renderableModifiers.forEach((modifier) => {
       if (modifier.element) {
         modifier.element.remove();
         modifier.element = null;

@@ -455,7 +455,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     return rv;
   }
   getModifier(modData: any) {
-    return this.getModifiers().find((mod) =>
+    return this.renderableModifiers.find((mod) =>
       SmoSelector.eq(mod.startSelector, modData.startSelector) && mod.attrs.type === modData.attrs.type);
   }
   setLyricFont(fontInfo: FontInfo) {

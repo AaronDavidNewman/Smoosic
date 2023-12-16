@@ -435,6 +435,7 @@ export class SuiSampler extends SuiOscillator {
     if (!sample) {
       return node;
     }
+    
     const cents = 1200 * (Math.log(this.frequency / sample!.frequency))
       / Math.log(2);
 

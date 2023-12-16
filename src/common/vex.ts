@@ -385,8 +385,8 @@ export function getChordSymbolMetricsForGlyph(code: string) {
   if (code === '#') {
     code = 'accidentalSharp';
   }
-  const glyphMetrics = VexChordSymbol.metrics;
-  return (glyphMetrics as any)[code];
+  const glyphMetrics = VexChordSymbol.metrics.glyphs;
+  return glyphMetrics[code];
 }
 /**
  * Vex 5 compatibility.  yShift

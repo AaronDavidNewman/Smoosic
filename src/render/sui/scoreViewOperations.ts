@@ -1461,7 +1461,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
         // A little hacky - delete the modifiers if they start or end on
         // the measure
-        staff.modifiers.forEach((modifier) => {
+        staff.renderableModifiers.forEach((modifier) => {
           if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
             if (modifier.logicalBox) {
               const context = this.renderer.renderer.getRenderer(modifier.logicalBox);

@@ -147,6 +147,26 @@ export class SuiSampleMedia {
     });
     SuiSampleMedia.insertIntoMap({
       sustain: 'percussive',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-piano-a2',
+      family: 'keyboard',
+      instrument: 'piano',
+      dynamic: 50,
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 2 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
+      realOvertones: [],
+      imaginaryOvertones: [],
+      sample: 'sample-piano-fs2',
+      family: 'keyboard',
+      instrument: 'piano',
+      dynamic: 50,
+      nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'f', accidental: '#', octave: 2 }, 0, null),
+    });
+    SuiSampleMedia.insertIntoMap({
+      sustain: 'percussive',
       sample: 'basspizz-c2-sso',
       family: 'strings',
       instrument: 'jazzBass',

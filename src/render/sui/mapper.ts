@@ -133,7 +133,7 @@ export abstract class SuiMapper {
         this.localModifiers.push({ index, selection: sel, modifier: tempo, box: tempo.logicalBox ?? SvgBox.default });
         index += 1;
       });
-      sel.staff.getModifiers().forEach((mod) => {
+      sel.staff.renderableModifiers.forEach((mod) => {
         if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
           SmoSelector.lteq(sel.selector, mod.endSelector) && mod.logicalBox)  {
           const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);

@@ -494,9 +494,9 @@ export interface SmoStaffTextBracketParamsSer extends StaffModifierBaseSer{
 function isSmoStaffTextBracketParamsSer(params: Partial<SmoStaffTextBracketParamsSer>):
   params is SmoStaffTextBracketParamsSer {
     if (params.ctor && params.ctor === 'SmoStaffTextBracket') {
-      return false;
+      return true;
     }
-    return true;
+    return false;
 }
 export type SmoTextBracketStringType = 'text' | 'superscript';
 export const SmoTextBracketStringTypes: SmoTextBracketStringType[] = ['text', 'superscript'];
