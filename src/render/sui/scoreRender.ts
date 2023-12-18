@@ -321,16 +321,15 @@ export class SuiScoreRender {
     });
   }
 
-  _renderNextSystem(lineIx: number, keys: number[], printing: boolean) {
+  async _renderNextSystem(lineIx: number, keys: number[], printing: boolean) {
     createTopDomContainer('#renderProgress', 'progress');
     if (lineIx < keys.length) {
       const progress = Math.round((100 * lineIx) / keys.length);
       $('#renderProgress').attr('max', 100);
       $('#renderProgress').val(progress);
-      this._renderNextSystemPromise(lineIx,keys, printing).then(() => {
-        lineIx++;
-        this._renderNextSystem(lineIx, keys, printing);
-      });
+      await this._renderNextSystemPromise(lineIx,keys, printing);
+      lineIx++;
+      await this._renderNextSystem(lineIx, keys, printing);
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
@@ -541,7 +540,7 @@ export class SuiScoreRender {
     }
   }
 
-  renderAllMeasures(lines: number[]) {
+  async renderAllMeasures(lines: number[]) {
     if (!this.score) {
       return;
     }
@@ -563,7 +562,7 @@ export class SuiScoreRender {
     this.startRenderTime = new Date().valueOf();
     this.renderingPage = -1;
     this.vexContainers.updateContainerOffset(this.measureMapper!.scroller.scrollState);
-    this._renderNextSystem(0, lines, printing);
+    await this._renderNextSystem(0, lines, printing);
   }
   // Number the measures at the first measure in each system.
   numberMeasures() {
@@ -601,7 +600,7 @@ export class SuiScoreRender {
    * This calculates the position of all the elements in the score, then renders the score
    * @returns 
    */
-  layout() {
+  async layout() {
     if (!this.score) {
       return;
     }
@@ -619,6 +618,6 @@ export class SuiScoreRender {
     }
     this.measuresToMap = [];
     this.lyricsToOffset = new Map();
-    this.renderAllMeasures(formatter.lines);
+    await this.renderAllMeasures(formatter.lines);
   } 
 }

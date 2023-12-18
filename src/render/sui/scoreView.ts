@@ -141,12 +141,11 @@ export abstract class SuiScoreView {
     const rep = repetition ?? 1;
     const self = this;
     const promise = new Promise((resolve: any) => {
-      const fc = (count: number) => {
+      const fc = async (count: number) => {
         if (count > 0) {
           action();
-          self.renderer.updatePromise().then(() => {
-            fc(count - 1);
-          });
+          await self.renderer.updatePromise();
+          fc(count - 1);
         } else {
           resolve();
         }

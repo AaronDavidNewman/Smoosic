@@ -439,18 +439,16 @@ export interface DialogDom {
   // ### captureKeyboardPromise
   // capture keyboard events until the dialog closes,
   // then give control back to the current keyboard
-  captureKeyboardPromise() {
+  async captureKeyboardPromise() {
     if (!(this.startPromise)) {
       this.completeNotifier.unbindKeyboardForModal(this);
       this.bindKeyboard();
       return;
     }
-    const getKeys = () => {
+    if (this.startPromise) {
+      await this.startPromise;
       this.completeNotifier.unbindKeyboardForModal(this);
       this.bindKeyboard();
-    };
-    if (this.startPromise) {
-      this.startPromise.then(getKeys);
     }
   }
 

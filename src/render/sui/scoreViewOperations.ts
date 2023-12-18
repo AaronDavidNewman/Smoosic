@@ -139,11 +139,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async loadRemoteJson(url: string) : Promise<any> {
     const req = new SuiXhrLoader(url);
-    const self = this;
-    return req.loadAsync().then(() => {
-      const score = SmoScore.deserialize(req.value);
-      self.changeScore(score);
-    });
+    await req.loadAsync();
+    const score = SmoScore.deserialize(req.value);
+    await this.changeScore(score);
   }
   /**
    * Load a remote score, return promise when it's been loaded
@@ -151,7 +149,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param pref 
    * @returns 
    */
-  loadRemoteScore(url: string): Promise<any> {
+  async loadRemoteScore(url: string): Promise<any> {
     if (url.endsWith('xml') || url.endsWith('mxl')) {
       return this.loadRemoteXml(url);
     } else {
@@ -983,16 +981,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns promise, resolved when all pitches rendered
    * @see setPitch
    */
-  setPitchesPromise(pitches: PitchLetter[]): Promise<any> {
+  async setPitchesPromise(pitches: PitchLetter[]): Promise<any> {
     const self = this;
     const promise = new Promise((resolve: any) => {
-      const fc = (index: number) => {
+      const fc = async (index: number) => {
         if (index >= pitches.length) {
           resolve();
         } else {
-          self.setPitch(pitches[index]).then(() => {
-            fc(index + 1);
-          });
+          await self.setPitch(pitches[index]);
+          fc(index + 1);
         }
       };
       fc(0);
@@ -1596,6 +1593,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const partLength = info.stavesBefore + info.stavesAfter + 1;
     const resetView = !SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager!.getGlobalLayout());
     const restChange = this.score.staves[0].partInfo.expandMultimeasureRests != info.expandMultimeasureRests;
+    const stavesChange = this.score.staves[0].partInfo.stavesAfter !== info.stavesAfter;
     for (i = 0; i < partLength; ++i) {
       const nStaffIndex = storeStaff + i;
       const nInfo = new SmoPartInfo(info);
@@ -1609,7 +1607,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         this.score.layoutManager = nInfo.layoutManager;
       }
     }
-    if (resetView || restChange) {
+    if (resetView || restChange || stavesChange) {
       this.renderer.rerenderAll()
     }
     return this.renderer.updatePromise();

@@ -335,6 +335,7 @@ export abstract class SuiOscillator {
     const sustain = this.sustain / 1000;
     const release = this.release / 1000;
     this.gainNode = audio.createGain();
+    this.osc = this.createAudioNode();
     const gp1 = this.gain;
 
     if (this.useReverb) {
@@ -348,8 +349,6 @@ export abstract class SuiOscillator {
     this.gainNode.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
     this.gainNode.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
     this.gainNode.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
-
-    this.osc = this.createAudioNode();
 
     // osc.connect(gain1);
     if (this.useReverb && this.reverb && this.osc) {
@@ -438,10 +437,9 @@ export class SuiSampler extends SuiOscillator {
     
     const cents = 1200 * (Math.log(this.frequency / sample!.frequency))
       / Math.log(2);
-
+    this.gain = this.gain * sample.gain;
     node.buffer = sample!.sample;
-    node.detune.value = cents;
-    
+    node.detune.value = cents;    
     return node;
   }
   async play() {

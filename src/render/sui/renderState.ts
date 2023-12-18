@@ -166,11 +166,10 @@ export class SuiRenderState {
     });
     this.replaceQ = [];
   }
-  preserveScroll() {
+  async preserveScroll() {
     const scrollState = this.measureMapper!.scroller.scrollState;
-    return this.renderPromise().then(() => {
-      this.measureMapper!.scroller.restoreScrollState(scrollState);
-    });
+    await this.renderPromise();
+    this.measureMapper!.scroller.restoreScrollState(scrollState);
   }
 
   _renderStatePromise(condition: () => boolean): Promise<void> {
@@ -194,7 +193,7 @@ export class SuiRenderState {
     this.replaceMeasures();
     return this._renderStatePromise(() => this.renderStateRendered);
   }
-  handleRedrawTimer() {
+  async handleRedrawTimer() {
     if (this.handlingRedraw) {
       return;
     }
@@ -217,7 +216,7 @@ export class SuiRenderState {
         if (!this.renderer.viewportChanged) {
           this.preserveScroll();
         }
-        this.render();
+        await this.render();
       } catch (ex) {
         console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
@@ -431,7 +430,7 @@ export class SuiRenderState {
   renderScoreModifiers() {
     this.renderer.renderScoreModifiers();
   }
-  render() {
+  async render(): Promise<any> {
     if (this._resetViewport) {
       this.setViewport();
       this._resetViewport = false;

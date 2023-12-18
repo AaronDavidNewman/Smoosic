@@ -28,7 +28,8 @@ export type SampleChooser = (params: SampleChooserParams, samples: SmoOscillator
 export interface AudioSample {
   sample: AudioBuffer,
   frequency: number,
-  patch: string
+  patch: string,
+  gain: number
 }
 /**
  * Interface for a chooser function and a set of samples
@@ -83,13 +84,15 @@ export const sampleFromFrequency = (params: SampleChooserParams, samples: SmoOsc
     if (!oscInfo.sample || !SuiSampleMedia.sampleBufferMap[oscInfo.sample]) {
       continue;
     }
+    const gain = oscInfo.dynamic / 100;
     const buffer = SuiSampleMedia.sampleBufferMap[oscInfo.sample];
     if (Math.abs(f - oscInfo.nativeFrequency) < min) {
       min = Math.abs(f - oscInfo.nativeFrequency);
       rv = {
         sample: buffer,
         frequency: oscInfo.nativeFrequency,
-        patch: oscInfo.sample
+        patch: oscInfo.sample,
+        gain
       };
     } 
   }
@@ -152,7 +155,7 @@ export class SuiSampleMedia {
       sample: 'sample-piano-a2',
       family: 'keyboard',
       instrument: 'piano',
-      dynamic: 50,
+      dynamic: 35,
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'a', accidental: 'n', octave: 2 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
@@ -162,7 +165,7 @@ export class SuiSampleMedia {
       sample: 'sample-piano-fs2',
       family: 'keyboard',
       instrument: 'piano',
-      dynamic: 50,
+      dynamic: 35,
       nativeFrequency: SmoAudioPitch.smoPitchToFrequency({ letter: 'f', accidental: '#', octave: 2 }, 0, null),
     });
     SuiSampleMedia.insertIntoMap({
@@ -533,12 +536,14 @@ export class SuiSampleMedia {
         continue;
       }
       const buffer = SuiSampleMedia.sampleBufferMap[oscInfo.sample];
+      const gain = oscInfo.dynamic / 100;
       if (Math.abs(f - oscInfo.nativeFrequency) < min) {
         min = Math.abs(f - oscInfo.nativeFrequency);
         rv = {
           sample: buffer,
           frequency: oscInfo.nativeFrequency,
-          patch: oscInfo.sample
+          patch: oscInfo.sample,
+          gain
         };
       } 
     }

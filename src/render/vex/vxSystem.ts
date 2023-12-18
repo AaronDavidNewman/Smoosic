@@ -118,13 +118,15 @@ export class VxSystem {
         verseLyrics.forEach((lyric: SmoLyric) => {
           if (lyric.logicalBox) {
             // 'lowest' Y on screen is Y with largest value...
-            lowestY = Math.max(lyric.logicalBox.y + lyric.musicYOffset, lowestY);
+            const ly = lyric.logicalBox.y  - this.context.box.y;
+            lowestY = Math.max(ly + lyric.musicYOffset, lowestY);
           }
         });
         // second offset all to that point
         verseLyrics.forEach((lyric: SmoLyric) => {
           if (lyric.logicalBox) {
-            const offset = Math.max(0, lowestY - lyric.logicalBox.y);
+            const ly = lyric.logicalBox.y  - this.context.box.y;
+            const offset = Math.max(0, lowestY - ly);
             lyric.adjY = offset + lyric.translateY;
           }
         });
@@ -140,7 +142,8 @@ export class VxSystem {
         // and offset these lyrics
         verseLyrics.forEach((lyric: SmoLyric)=> {
           if (lyric.logicalBox) {
-            const offset = Math.max(0, lowestY - lyric.logicalBox.y);
+            const ly = lyric.logicalBox.y  - this.context.box.y;
+            const offset = Math.max(0, lowestY - ly);
             lyric.adjY = offset + lyric.translateY;
           }
         });
@@ -231,11 +234,12 @@ export class VxSystem {
       lyricHyphens.forEach((lyric) => {
         const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
         if (parent && lyric.logicalBox !== null) {
+          const ly = lyric.logicalBox.y  - this.context.box.y;
           const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
           const fontSize = SmoScoreText.fontPointSize(lyric.fontInfo.size);
           text.setAttributeNS('', 'x', (lyric.hyphenX - fontSize / 3).toString());
-          text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
+          text.setAttributeNS('', 'y', (ly + (lyric.logicalBox.height * 2) / 3).toString());
           text.setAttributeNS('', 'font-size', '' + fontSize + 'pt');
           parent.appendChild(text);
         }
@@ -243,8 +247,9 @@ export class VxSystem {
       lyricsDash.forEach((lyric) => {
         const parent = this.context.svg.getElementById('vf-' + lyric.attrs.id);
         if (parent && lyric.logicalBox !== null) {
+          const ly = lyric.logicalBox.y  - this.context.box.y;
           const line = document.createElementNS(SvgHelpers.namespace, 'line');
-          const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
+          const ymax = Math.round(ly + lyric.logicalBox.height / 2);
           const offset = Math.round(lyric.logicalBox.width / 2);
           line.setAttributeNS('', 'x1', (lyric.logicalBox.x - offset).toString());
           line.setAttributeNS('', 'y1', ymax.toString());

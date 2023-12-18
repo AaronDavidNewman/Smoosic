@@ -151,9 +151,10 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
     dg.display();
   }
   /** Library requires a load first, so createAndDisplayDialog won't work on it */
-  static createAndDisplay(parameters: SuiDialogParams, config: SmoUiConfiguration) {
+  static async createAndDisplay(parameters: SuiDialogParams, config: SmoUiConfiguration) {
     const adapter = new SuiLibraryAdapter(parameters.view, config);
-    adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));
+    await adapter.initialize();
+    SuiLibraryDialog._createAndDisplay(parameters, adapter);
   }
   constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, adapter: SuiLibraryAdapter) {
     super(dialogElements, { adapter, ...parameters });

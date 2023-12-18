@@ -91,7 +91,7 @@ export class RibbonButtons {
     this.collapsables = [];
     this.collapseChildren = [];
   }
-  _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
+  async _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
    if (isModalButtonType(buttonData.ctor)) {
       const params = {
         eventSource: this.eventSource,
@@ -105,7 +105,7 @@ export class RibbonButtons {
       if (buttonData.ctor === 'SuiInstrumentDialog') {
         createAndDisplayDialog(SuiInstrumentDialog, params);
       } else if (buttonData.ctor === 'SuiLibraryDialog') {
-        SuiLibraryDialog.createAndDisplay(params, this.config);
+        await SuiLibraryDialog.createAndDisplay(params, this.config);
       } else {
         createAndDisplayDialog(SuiTempoDialog, params);
       }
@@ -118,7 +118,7 @@ export class RibbonButtons {
     this.menus.createMenu(buttonData.ctor);
   }
 
-  _executeButton(buttonElement: string, buttonData: ButtonDefinition) {
+  async _executeButton(buttonElement: string, buttonData: ButtonDefinition) {
     if (buttonData.action === 'modal') {
       this._executeButtonModal(buttonElement, buttonData);
       return;

@@ -103,40 +103,40 @@ export abstract class SuiNoteTextComponent extends SuiComponentBase {
     }
   }
 
-  moveSelectionRight() {
+  async moveSelectionRight() {
     if (this.session) {
-      this.session.advanceSelection(false);
+      await this.session.advanceSelection(false);
       this.setDialogLyric();
     }
   }
-  moveSelectionLeft() {
+  async moveSelectionLeft() {
     if (this.session) {
       this.session.advanceSelection(true);
       this.setDialogLyric();
     }
   }
-  removeText() {
+  async removeText() {
     if (this.session) {
-      this.session.removeLyric();
+      await this.session.removeLyric();
     }
   }
 
-  _bind() {
-    $(this._getInputElement()).off('click').on('click', () => {
+  async _bind() {
+    $(this._getInputElement()).off('click').on('click', async () => {
       if (this.session && this.session.isRunning) {
         this.endSession();
       } else {
         this.startEditSession();
       }
     });
-    $('#' + this.parameterId + '-left').off('click').on('click', () => {
-      this.moveSelectionLeft();
+    $('#' + this.parameterId + '-left').off('click').on('click', async () => {
+      await this.moveSelectionLeft();
     });
-    $('#' + this.parameterId + '-right').off('click').on('click', () => {
-      this.moveSelectionRight();
+    $('#' + this.parameterId + '-right').off('click').on('click', async () => {
+      await this.moveSelectionRight();
     });
-    $('#' + this.parameterId + '-remove').off('click').on('click', () => {
-      this.removeText();
+    $('#' + this.parameterId + '-remove').off('click').on('click', async () => {
+      await this.removeText();
     });
   }
   getValue() {
@@ -180,7 +180,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     return r;
   }
 
-  endSession() {
+  async endSession() {
     this.started = false;
     console.log('ending text session');
     $(this._getInputElement()).find('label').text(this.label);

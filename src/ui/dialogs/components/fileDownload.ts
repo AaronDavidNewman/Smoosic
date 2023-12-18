@@ -31,12 +31,11 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
         b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
-  _handleUploadedFiles(evt: any)  {
+  async _handleUploadedFiles(evt: any)  {
     const localFile = new SuiFileInput(evt);
-    localFile.loadAsync().then(() => {
-      this.value = localFile.value;
-      this.handleChanged();
-    });
+    await localFile.loadAsync();
+    this.value = localFile.value;
+    this.handleChanged();
   }
   getValue() {
     return this.value;
@@ -46,8 +45,8 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
   }
   bind() {
     const self = this;
-    $('#' + this.parameterId).find('input').off('change').on('change', (e: any) => {
-      self._handleUploadedFiles(e);
+    $('#' + this.parameterId).find('input').off('change').on('change', async (e: any) => {
+      await self._handleUploadedFiles(e);
     });
   }
 }

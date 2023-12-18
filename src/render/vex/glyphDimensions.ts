@@ -185,7 +185,7 @@ export class vexGlyph {
         height: 85,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2,
+        spacingRight: 11,
         vexGlyph: 'timeSig4'
       },
       tempo: {
@@ -209,7 +209,7 @@ export class vexGlyph {
         height: 85.5,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5,
+        spacingRight: 10,
         vexGlyph: null
       },
       sharp: {

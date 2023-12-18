@@ -1260,9 +1260,9 @@ export class SuiLyricSession {
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
-  stopSession(): Promise<void> {
+  async stopSession() {
     if (this.editor && !this._endLyricCondition) {
-      this._updateLyricFromEditor();
+      await this._updateLyricFromEditor();
       this.editor.stopEditor();
     }
     return PromiseHelpers.makePromise(() => this._isRendered, () => this._markStopped(), null, 100);
@@ -1270,7 +1270,7 @@ export class SuiLyricSession {
 
   // ### _advanceSelection
   // Based on a skip character, move the editor forward/back one note.
-  _advanceSelection(isShift: boolean) {
+  async _advanceSelection(isShift: boolean) {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score, this.selector)
       : SmoSelection.nextNoteSelectionFromSelector(this.score, this.selector);
     if (nextSelection) {
@@ -1282,30 +1282,30 @@ export class SuiLyricSession {
       this.state = SuiTextEditor.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._endLyricCondition, null, null, 100));
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote(), null, 100));
-      PromiseHelpers.promiseChainThen(conditionArray);
+      await PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
 
   // ### advanceSelection
   // external interfoace to move to next/last note
-  advanceSelection(isShift: boolean) {
+  async advanceSelection(isShift: boolean) {
     if (this.isRunning) {
-      this._updateLyricFromEditor();
-      this._advanceSelection(isShift);
+      await this._updateLyricFromEditor();
+      await this._advanceSelection(isShift);
     }
   }
 
-  removeLyric() {
+  async removeLyric() {
     if (this.selection && this.lyric) {
-      this.view.removeLyric(this.selection.selector, this.lyric);
+      await this.view.removeLyric(this.selection.selector, this.lyric);
       this.lyric.skipRender = true;
-      this.advanceSelection(false);
+      await this.advanceSelection(false);
     }
   }
 
   // ### _updateLyricFromEditor
   // The editor is done running, so update the lyric now.
-  _updateLyricFromEditor() {
+  async _updateLyricFromEditor() {
     if (this.editor === null || this.lyric === null) {
       return;
     }
@@ -1314,7 +1314,7 @@ export class SuiLyricSession {
     this.lyric.skipRender = false;
     this.editor.stopEditor();
     if (!this.lyric.deleted && this.originalText !== txt && this.selection !== null) {
-      this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
+      await this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
     }
   }
   // ### evKey
