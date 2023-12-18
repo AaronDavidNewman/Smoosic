@@ -10,6 +10,14 @@
 		]
 	},
 	"children": [
+    {
+			"format": "smoosic",
+			"metadata": {
+				"name": "There is a Balm in Gilead",
+				"composer": "Trad, transcribed from performance"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/soprano/ThereIsABalm.json"
+		},
 		{
 			"format": "smoosic",
 			"metadata": {
