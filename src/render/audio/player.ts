@@ -189,7 +189,7 @@ export class SuiAudioPlayer {
           selector.tick = tickIx;
           let ties: SmoTie[] = [];
           const tieIx = '' + staffIx + '-' + measureIndex + '-' + voiceIx;
-          let tiedNote = false;
+          const prevMeasureIx = '' + staffIx + '-' + (measureIndex - 1) + '-' + voiceIx;
           if (smoNote.noteType === 'n' && !smoNote.isHidden()) {
             ties = staff.getTiesStartingAt(selector);
             smoNote.pitches.forEach((pitch, pitchIx) => {
@@ -228,7 +228,13 @@ export class SuiAudioPlayer {
               measureNotes[curTick].push(soundData);
             }
             // If this is continuation of tied note, just change duration
-            if (this.openTies[tieIx]) {
+            if (this.openTies[prevMeasureIx]) {
+              this.openTies[prevMeasureIx]!.duration += duration;
+              if (ties.length === 0) {
+                this.openTies[prevMeasureIx] = null;
+              }
+            }
+            else if (this.openTies[tieIx]) {
               this.openTies[tieIx]!.duration += duration;
               if (ties.length === 0) {
                 this.openTies[tieIx] = null;
