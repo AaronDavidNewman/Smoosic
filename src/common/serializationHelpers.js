@@ -271,7 +271,13 @@ export class smoSerialize {
       "jh": "program",
       "kh": "volume",
       "lh": "pan",
-      "mh": "midiDevice"
+      "mh": "midiDevice",
+      "nh": "audioSettings",
+      "oh": "skipMeasureCount",
+      "ph": "forceRest",
+      "qh": "instrument",
+      "rh": "shortText",
+      "sh": "hideEmptyLines"
       }`;
     return JSON.parse(_tm);
   }

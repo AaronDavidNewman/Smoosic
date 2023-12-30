@@ -425,7 +425,10 @@ export class VxSystem {
           const vxVolta = new VF.Volta(vtype, ending.number.toString(), smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context.getContext()).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.getContext().closeGroup();
-          // ending.logicalBox = this.context.offsetBbox(group);
+          const height = parseInt(vxVolta.getFontSize(), 10) * 2;
+          const width = smoMeasure.staffWidth;
+          const y = smoMeasure.svg.logicalBox.y - (height + ending.yOffset);
+          ending.logicalBox = { x: smoMeasure.svg.staffX, y, width, height };
           if (!pushed) {
             voAr.push({ smoMeasure, ending });
             pushed = true;
