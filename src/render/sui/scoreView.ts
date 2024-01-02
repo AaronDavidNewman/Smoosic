@@ -99,6 +99,10 @@ export abstract class SuiScoreView {
   updatePromise(): Promise<any> {
     return this.renderer.updatePromise();
   }
+  async awaitRender(): Promise<any> {
+    this.renderer.rerenderAll();
+    return this.renderer.updatePromise();
+  }
   /**
    * await on the full update of the score, also resetting the viewport (to reflect layout changes)
    * @returns 
@@ -108,6 +112,9 @@ export abstract class SuiScoreView {
     this.renderer.setViewport();
     this.renderer.setRefresh();
     return this.renderer.renderPromise();
+  }
+  handleScrollEvent(scrollLeft: number, scrollTop: number) {
+    this.tracker.scroller.handleScroll(scrollLeft, scrollTop);
   }
   getPartMap(): { keys: number[], partMap: Record<number, SmoPartInfo> } {
     let keepNext = false;

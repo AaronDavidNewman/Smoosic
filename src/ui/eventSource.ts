@@ -137,9 +137,7 @@ export class BrowserEventSource {
     const handlers: EventHandler[] = [];
     this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
     this.keydownHandlers = handlers;
-  }  
-
-  bindScroller() { }
+  }
 
   // ### bindKeydownHandler
   // add a handler for the evKey event, for keyboard data.

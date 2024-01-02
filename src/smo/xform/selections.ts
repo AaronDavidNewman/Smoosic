@@ -450,6 +450,32 @@ export class SmoSelection {
     }
     return SmoSelection.noteSelection(score, staffIndex, 0, 0, 0);
   }
+  static lastNoteSelectionNonRest(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number): SmoSelection | null {
+    let rv = SmoSelection.lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex);
+    let best = rv;
+    while (best !== null && best.note !== null) {
+      if (!best.note.isRest()) {
+        rv = best;
+        break;
+      }
+      const selector = best.selector;
+      best = SmoSelection.lastNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
+    }
+    return rv;
+  }
+  static nextNoteSelectionNonRest(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number): SmoSelection | null {
+    let rv = SmoSelection.nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex);
+    let best = rv;
+    while (best !== null && best.note !== null) {
+      if (!best.note.isRest()) {
+        rv = best;
+        break;
+      }
+      const selector = best.selector;
+      best = SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
+    }
+    return rv;
+  }
   // ### getMeasureList
   // Gets the list of measures in an array from the selections
   static getMeasureList(selections: SmoSelection[]): SmoSelection[] {

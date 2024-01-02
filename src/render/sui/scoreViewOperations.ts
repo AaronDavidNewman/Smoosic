@@ -1002,15 +1002,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * to match the letter key (F vs F# for instance) based on key and surrounding notes
    * @param letter string
    */
-  setPitch(letter: PitchLetter): Promise<void> {
+  async setPitch(letter: PitchLetter): Promise<void> {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
     selections.forEach((selected) => {
       const selector = selected.selector;
-      let hintSel = SmoSelection.lastNoteSelection(this.score,
+      let hintSel = SmoSelection.lastNoteSelectionNonRest(this.score,
         selector.staff, selector.measure, selector.voice, selector.tick);
       if (!hintSel) {
-        hintSel = SmoSelection.nextNoteSelection(this.score,
+        hintSel = SmoSelection.nextNoteSelectionNonRest(this.score,
           selector.staff, selector.measure, selector.voice, selector.tick);
       }
       // The selection no longer exists, possibly deleted

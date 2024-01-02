@@ -24,7 +24,9 @@ export class SuiDom {
       $('body').removeClass('splashScreen modal');
     }, 1000);
   }
-
+  static get scrollRegionId() {
+    return 'smo-scroll-region';
+  }
   static createUiDom(uiDomContainer: HTMLElement | string | undefined) {
     if (!uiDomContainer) {
       return;
@@ -51,7 +53,7 @@ export class SuiDom {
     
     uiDomContainer.append(r.dom()[0]);
     const scrollRegion = document.createElement('div');
-    $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
+    $(scrollRegion).attr('id', SuiDom.scrollRegionId).addClass('musicRelief');
     $('.dom-container .media').append(scrollRegion);
     var pianoDom = $('.piano-keys')[0];
     var svg = document.createElementNS(SvgHelpers.namespace, 'svg');

@@ -72,16 +72,18 @@
       window.addEventListener('click', async (ev) => {
         view.tracker.selectSuggestion(view.score, ev);
       });
-
+      const musicRoot = document.getElementById('outer-container');
       // Get mouse move event to highlight mouseover.  We pass the client coordinates
       // into tracker (via view).  The tracker maps client space to SVG space
-      document.getElementById('outer-container').addEventListener('mousemove', (ev) => {
+      musicRoot.addEventListener('mousemove', (ev) => {
         view.intersectingArtifact({
           x: ev.clientX,
           y: ev.clientY
         });
       });
-
+      musicRoot.onscroll = (ev) => {
+        view.handleScroll(musicRoot.scrollLeft, musicRoot.scrollTop);
+      }
     });
   </script>
 </head>
@@ -92,7 +94,7 @@
     <a href="https://aarondavidnewman.github.io/Smoosic/changes.html">change notes</a> |
      <a href="https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html">application</a><button class="close-header"><span class="icon icon-cross"></span></button></sub>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-  <div id="outer-container">
+  <div id="outer-container" style="overflow: auto;">
   </div>
 </body>
 
