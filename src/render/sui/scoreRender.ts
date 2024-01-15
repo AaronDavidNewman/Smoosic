@@ -256,7 +256,8 @@ export class SuiScoreRender {
 
     // If this page hasn't changed since rendered
     const pageIndex = columns[0][0].svg.pageIndex;
-    if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex]) {
+    
+    if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex] && !printing) {
       console.log(`skipping render on page ${pageIndex}`);
       return;
     }

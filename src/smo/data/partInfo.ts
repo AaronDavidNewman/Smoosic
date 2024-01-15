@@ -228,6 +228,9 @@ export class SmoPartInfo extends StaffModifierBase {
   static deserialize(jsonObj: SmoPartInfoParamsSer): SmoPartInfo {
     const params = SmoPartInfo.defaults;
     smoSerialize.serializedMerge(SmoPartAttributesBasic, jsonObj, params);
+    jsonObj.textGroups.forEach((tg) => {
+      params.textGroups.push(SmoTextGroup.deserialize(tg));
+    });
     params.midiInstrument = jsonObj.midiInstrument;
     params.midiDevice = jsonObj.midiDevice;
     params.measureFormatting = {};
