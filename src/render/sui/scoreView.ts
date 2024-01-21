@@ -441,6 +441,12 @@ export abstract class SuiScoreView {
       staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
+  resetPartView() {
+    if (this.staffMap.length === 1) {
+      const staff = this.storeScore.staves[this.staffMap[0]];
+      this.exposePart(staff);
+    }
+  }
   /**
    * Exposes a part:  hides non-part staves, shows part staves.
    * Note this will reset the view.  After this operation, staff 0 will
@@ -492,7 +498,6 @@ export abstract class SuiScoreView {
       }
     });
   }
-
   /**
    * Update the list of staves in the score that are displayed.
   */

@@ -18,6 +18,7 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   backup: SmoPartInfo;
   selection: SmoSelection;
   changed: boolean = false;
+  expandedMultimeasure: boolean = false;
   currentView: ViewMapEntry[] = [];
   resetPart: boolean = false;
   constructor(view: SuiScoreViewOperations) {
@@ -29,10 +30,17 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
   }
   async update() {
-    this.changed = true;    
+    this.changed = true;
     // Since update will change the displayed score, wait for any display change to complete first.
     await this.view.renderer.updatePromise();
     await this.view.updatePartInfo(this.partInfo);
+    // If we are expanding rests, we need to reload the part after setting the 
+    // part change.  So we update the part display a second time with the new value.
+    if (this.resetPart) {
+      this.view.resetPartView();
+      await this.view.updatePartInfo(this.partInfo);
+      this.resetPart = false;
+    }
   }
   writeLayoutValue(attr: GlobalLayoutAttributes, value: number) {
     // no change?
@@ -54,7 +62,10 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   }
   set expandMultimeasureRest(value: boolean) {
     this.partInfo.expandMultimeasureRests = value;
-    this.resetPart = true;
+    // If expanding rests, we need to re-read the score, so end
+    if (value === true) {
+      this.resetPart = true;
+    }
     this.update();
   }
   get noteSpacing() {

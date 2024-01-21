@@ -130,7 +130,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
       y: 15,
       width: 0,
       height: 0,
-      text: 'Smoosic',
+      text: 'Text',
       fontInfo: {
         size: 14,
         family: SmoScoreText.fontFamilies.serif,
@@ -153,7 +153,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
   y: number = 15;
   width: number = 0;
   height: number = 0;
-  text: string = 'Smoosic';
+  text: string = 'Text';
   fontInfo: FontInfo = {
     size: 14,
     family: SmoScoreText.fontFamilies.serif,

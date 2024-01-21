@@ -84,10 +84,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
       this.storeScore.updateTextGroup(altGroup, false);
     } else {
       const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
-      stave.partInfo.updateTextGroup(altGroup, false);
+      stave.partInfo.textGroups = this.score.textGroups;
       SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-        UndoBuffer.bufferSubtypes.REMOVE);
-      
+        UndoBuffer.bufferSubtypes.REMOVE);      
     }
     this.renderer.renderScoreModifiers();
     return this.renderer.updatePromise()
@@ -1608,6 +1607,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     if (resetView || restChange || stavesChange) {
+      SmoOperation.computeMultipartRest(this.score);
+      // this.resetPartView();
       this.renderer.rerenderAll()
     }
     return this.renderer.updatePromise();
