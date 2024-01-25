@@ -379,10 +379,21 @@ export class SmoSystemStaff implements SmoObjectParams {
   isRest(index: number) {
     return this.measures[index].isRest();
   }
+  /**
+   * for the purposes of breaking up multimeasure rests, isRepeat is true if
+   * the next bar has a start repeat, or the current bar has an end repeat.
+   * @param index 
+   * @returns 
+   */
   isRepeat(index: number) {
-    const specialBar = !(this.measures[index].getEndBarline().barline === SmoBarline.barlines.singleBar &&
-      (this.measures[index].getStartBarline().barline === SmoBarline.barlines.singleBar ||
-      this.measures[index].getStartBarline().barline === SmoBarline.barlines.noBar));
+    if (index < this.measures.length - 1) {
+      if (this.measures[index + 1].getStartBarline().barline !== SmoBarline.barlines.singleBar && 
+      this.measures[index + 1].getStartBarline().barline !== SmoBarline.barlines.noBar) {
+        return true;
+      }
+    }
+    const specialBar = this.measures[index].getEndBarline().barline !== SmoBarline.barlines.singleBar &&
+       this.measures[index].getStartBarline().barline !== SmoBarline.barlines.noBar;
     return specialBar || this.measures[index].repeatSymbol;
   }
   isRepeatSymbol(index: number) {

@@ -31,15 +31,6 @@ export interface SmoMidiInstrument {
  * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves.
  * Usually you will call
  * {@link SmoPartInfo.defaults}, and modify the parameters you need to change.
- * @param partName 
- * @param partAbbreviation
- * @param stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
- * @param stavesBefore
- * @param layoutManager page/layout settings for the part
- * @param measureFormatting a map of measure format to measures for the part
- * @param textGroups if preserveTextGroups is true, the part has its own text.
- * @param preseverTextGroups if false, we use the full score text
- * @param cueInScore indicates tiny notes, like for piano accompaniment
  * @category SmoParameters
  */
 export interface SmoPartInfoParams {
