@@ -165,8 +165,8 @@ export function createStave(params: SmoVexStaveParams) {
     }
     sig.addToStave(stave);
   }
-  const curX = stave.getNoteStartX();
-  stave.setNoteStartX(curX + (params.startX - params.adjX));  
+  // const curX = stave.getNoteStartX();
+  // stave.setNoteStartX(curX + (params.startX - params.adjX));  
 
   return stave;
 }
