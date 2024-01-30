@@ -367,16 +367,28 @@ function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number
 }
 function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]) {
   const groupKeys = Object.keys(groups);
+  let maxXAdj = 0;
   groupKeys.forEach((groupKey) => {
     const music = groups[groupKey];
     // Need to create beam groups before formatting
     strs.push(`// create beam groups and tuplets for format grp ${groupKey} before formatting`);
     music.measures.forEach((smoMeasure) => {
+      maxXAdj = Math.max(maxXAdj, smoMeasure.svg.adjX);
       createBeamGroups(smoMeasure, strs);
       createTuplets(smoMeasure, strs);
     });
     strs.push(' ');
     strs.push(`// formatting measures in staff group ${groupKey}`);
+    // set x offset for alignment before format
+    music.measures.forEach((smoMeasure) => {
+      smoMeasure.voices.forEach((vv) => {
+        vv.notes.forEach((nn) => {
+          const id = nn.attrs.id;
+          const offset = maxXAdj - smoMeasure.svg.adjX;
+          strs.push(`${id}.setXShift(${offset});`);
+        });
+      });
+    });
     const joinVoiceStr = '[' + music.voiceStrings.join(',') + ']';
     const widthMeasure = music.measures[0];
     const staffWidth = Math.round(widthMeasure.staffWidth -
