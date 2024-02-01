@@ -392,7 +392,7 @@ function createColumn(groups: Record<string, VexStaveGroupMusic>, strs: string[]
     const joinVoiceStr = '[' + music.voiceStrings.join(',') + ']';
     const widthMeasure = music.measures[0];
     const staffWidth = Math.round(widthMeasure.staffWidth -
-      (widthMeasure.svg.adjX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10);
+      (widthMeasure.svg.maxColumnStartX + widthMeasure.svg.adjRight + widthMeasure.format.padLeft) - 10);
     strs.push(`${music.formatter}.format(${joinVoiceStr}, ${staffWidth});`);
     music.measures.forEach((smoMeasure) => {
       createMeasure(smoMeasure, music.heightOffset, strs);

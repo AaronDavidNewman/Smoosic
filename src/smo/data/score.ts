@@ -261,6 +261,7 @@ export class SmoScore {
     }
     this.audioSettings = new SmoAudioPlayerSettings(params.audioSettings);
     this.updateMeasureFormats();
+    this.updateSystemGroups();
   }
   static get engravingFonts(): Record<string, string> {
     return { Bravura: 'Bravura', Gonville: 'Gonville', Petaluma: 'Petaluma' };
@@ -1092,7 +1093,20 @@ export class SmoScore {
     this.numberStaves();
     return staff;
   }
-
+  /**
+   * delete any system groups that apply to deleted staves
+   */
+  updateSystemGroups() {
+    const grpToKeep: SmoSystemGroup[] = [];
+    this.systemGroups.forEach((grp) => {
+      if (grp.startSelector.staff < this.staves.length && 
+        grp.endSelector.staff < this.staves.length
+        ) {
+          grpToKeep.push(grp);
+      }
+    });
+    this.systemGroups = grpToKeep;
+  }
   // ### removeStaff
   // Remove stave at the given index
   removeStaff(index: number) {
@@ -1106,6 +1120,7 @@ export class SmoScore {
     });
     this.staves = staves;
     this.numberStaves();
+    this.updateSystemGroups();
   }
   getStaffInstrument(selector: SmoSelector): SmoInstrument {
     const staff: SmoSystemStaff = this.staves[selector.staff];
