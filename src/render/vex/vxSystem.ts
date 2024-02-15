@@ -513,10 +513,8 @@ export class VxSystem {
         adjXMap[mm.smoMeasure.measureNumber.systemIndex] = Math.max(adjXMap[mm.smoMeasure.measureNumber.systemIndex], mm.smoMeasure.svg.adjX);
       });
       vxMeasures.forEach((vv: VxMeasure) => {
-        if (!vv.rendered && !vv.smoMeasure.svg.hideEmptyMeasure) {
-          vv.vexNotes.forEach((vnote) => {
-            vnote.setXShift(vnote.getXShift() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
-          });
+        if (!vv.rendered && !vv.smoMeasure.svg.hideEmptyMeasure && vv.stave) {
+          vv.stave.setNoteStartX(vv.stave.getNoteStartX() + adjXMap[vv.smoMeasure.measureNumber.systemIndex] - vv.smoMeasure.svg.adjX);
           const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
           const justifyGroup: string = (systemGroup && vv.smoMeasure.format.autoJustify) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
           if (!smoGroupMap[justifyGroup]) {

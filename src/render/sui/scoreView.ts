@@ -82,7 +82,9 @@ export abstract class SuiScoreView {
   synchronizeTextGroups() {
     // Synchronize the score text IDs so cut/paste/undo works transparently
     this.score.textGroups.forEach((tg, ix) => {
-      this.storeScore.textGroups[ix].attrs.id = tg.attrs.id;
+      if (this.storeScore.textGroups.length > ix) {
+        this.storeScore.textGroups[ix].attrs.id = tg.attrs.id;
+      }
     });
   }
   /**
