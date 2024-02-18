@@ -1,6 +1,8 @@
 <sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
 
 ![](https://imgur.com/jJ5utJm.gif)
+# Breaking change:
+To build, use `npm run build`.  Grunt is no longer required.
 
 # What is Smoosic?
 We are approaching Smoosic 1.0 status!  Many of the things I wanted to do with Smoosic are working to some extent.
@@ -77,7 +79,7 @@ Configuration
 ## Future SMO
 Things I am actively working on:
 1. Part extraction and formatting
-2. XML import and export imrprovements
+2. XML import and export improvements
 
 Things I hope to be working on soon:
 1. UI improvements

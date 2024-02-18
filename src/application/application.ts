@@ -40,7 +40,7 @@ import { TextFormatter } from '../common/textformatter';
 
 declare var $: any;
 
-interface pairType { [key: string]: string }
+export interface pairType { [key: string]: string }
 
 /**
  * Score renderer instance

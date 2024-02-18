@@ -54,25 +54,25 @@ export class SuiKeyCommands {
     this.view.undo();
   }
 
-  copy() {
-    this.view.copy();
+  async copy() {
+    await this.view.copy();
   }
-  paste() {
-    this.view.paste();
+  async paste() {
+    await this.view.paste();
   }
-  toggleBeamGroup() {
-    this.view.toggleBeamGroup();
-  }
-
-  beamSelections() {
-    this.view.beamSelections();
-  }
-  toggleBeamDirection() {
-    this.view.toggleBeamDirection();
+  async toggleBeamGroup() {
+    await this.view.toggleBeamGroup();
   }
 
-  collapseChord() {
-    this.view.collapseChord();
+  async beamSelections() {
+    await this.view.beamSelections();
+  }
+  async toggleBeamDirection() {
+    await this.view.toggleBeamDirection();
+  }
+
+  async collapseChord() {
+    await this.view.collapseChord();
   }
 
   togglePlayer() {
@@ -93,119 +93,119 @@ export class SuiKeyCommands {
     SuiAudioPlayer.pausePlayer();
   }
 
-  intervalAdd(interval: number, direction: number) {
-    this.view.setInterval(direction * interval);
+  async intervalAdd(interval: number, direction: number) {
+    await this.view.setInterval(direction * interval);
   }
 
-  interval(keyEvent: KeyEvent) {
+  async  interval(keyEvent: KeyEvent) {
     // code='Digit3'
     var interval = parseInt(keyEvent.keyCode, 10) - 49;  // 48 === '0', 0 indexed
     if (isNaN(interval) || interval < 1 || interval > 7) {
       return;
     }
-    this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+    await this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
   }
 
-  transpose(offset: number) {
-    this.view.transposeSelections(offset);
+  async transpose(offset: number) {
+    await this.view.transposeSelections(offset);
   }
-  transposeDown() {
-    this.transpose(-1);
+  async transposeDown() {
+    await this.transpose(-1);
   }
-  transposeUp() {
-    this.transpose(1);
+  async transposeUp() {
+    await this.transpose(1);
   }
-  upOctave() {
-    this.transpose(12);
+  async upOctave() {
+    await this.transpose(12);
   }
-  downOctave() {
-    this.transpose(-12);
+  async downOctave() {
+    await this.transpose(-12);
   }
-  makeRest() {
-    this.view.makeRest();
-  }
-
-  setPitchCommand(letter: PitchLetter) {
-    this.view.setPitch(letter);
+  async makeRest() {
+    await this.view.makeRest();
   }
 
-  setPitch(keyEvent: KeyEvent) {
+  async setPitchCommand(letter: PitchLetter) {
+    await this.view.setPitch(letter);
+  }
+
+  async setPitch(keyEvent: KeyEvent) {
     const letter = keyEvent.key.toLowerCase();
     if (IsPitchLetter(letter)) {
-      this.setPitchCommand(letter);
+      await this.setPitchCommand(letter);
     }
   }
 
-  dotDuration() {
-    this.view.batchDurationOperation('dotDuration');
+  async dotDuration() {
+    await this.view.batchDurationOperation('dotDuration');
   }
 
-  undotDuration() {
-    this.view.batchDurationOperation('undotDuration');
+  async undotDuration() {
+    await this.view.batchDurationOperation('undotDuration');
   }
 
-  doubleDuration() {
-    this.view.batchDurationOperation('doubleDuration');
+  async doubleDuration() {
+    await this.view.batchDurationOperation('doubleDuration');
   }
 
-  halveDuration() {
-    this.view.batchDurationOperation('halveDuration');
+  async halveDuration() {
+    await this.view.batchDurationOperation('halveDuration');
   }
 
-  addMeasure(keyEvent: KeyEvent) {
-    this.view.addMeasure(keyEvent.shiftKey);
+  async addMeasure(keyEvent: KeyEvent) {
+    await this.view.addMeasure(keyEvent.shiftKey);
   }
-  deleteNote() {
-    this.view.deleteNote();
-  }
-
-  toggleCourtesyAccidental() {
-    this.view.toggleCourtesyAccidentals();
-  }
-  toggleEnharmonic() {
-    this.view.toggleEnharmonic();
+  async deleteNote() {
+    await this.view.deleteNote();
   }
 
-  makeTupletCommand(numNotes: number) {
-    this.view.makeTuplet(numNotes);
+  async toggleCourtesyAccidental() {
+    await this.view.toggleCourtesyAccidentals();
   }
-  makeTuplet(keyEvent: KeyEvent) {
+  async toggleEnharmonic() {
+    await this.view.toggleEnharmonic();
+  }
+
+  async makeTupletCommand(numNotes: number) {
+    await this.view.makeTuplet(numNotes);
+  }
+  async makeTuplet(keyEvent: KeyEvent) {
     const numNotes = parseInt(keyEvent.key, 10);
-    this.makeTupletCommand(numNotes);
+    await this.makeTupletCommand(numNotes);
   }
 
-  unmakeTuplet() {
-    this.view.unmakeTuplet();
+  async unmakeTuplet() {
+    await this.view.unmakeTuplet();
   }
-  setNoteHead() {
-    this.view.setNoteHead('x2');
+  async setNoteHead() {
+    await this.view.setNoteHead('x2');
   }
-  removeGraceNote() {
-    this.view.removeGraceNote();
+  async removeGraceNote() {
+    await this.view.removeGraceNote();
   }
-  addGraceNote() {
-    this.view.addGraceNote();
+  async addGraceNote() {
+    await this.view.addGraceNote();
   }
-  slashGraceNotes() {
-    this.view.slashGraceNotes();
+  async slashGraceNotes() {
+    await this.view.slashGraceNotes();
   }
 
-  toggleArticulationCommand(articulation: string, ctor: string) {
-    this.view.toggleArticulation(articulation, ctor);
+  async toggleArticulationCommand(articulation: string, ctor: string) {
+    await this.view.toggleArticulation(articulation, ctor);
   }
-  addRemoveAccent() {
-    this.toggleArticulationCommand(SmoArticulation.articulations.accent, 'SmoArticulation');
+  async addRemoveAccent() {
+    await this.toggleArticulationCommand(SmoArticulation.articulations.accent, 'SmoArticulation');
   }
-  addRemoveTenuto() {
-    this.toggleArticulationCommand(SmoArticulation.articulations.tenuto, 'SmoArticulation');
+  async addRemoveTenuto() {
+    await this.toggleArticulationCommand(SmoArticulation.articulations.tenuto, 'SmoArticulation');
   }
-  addRemoveStaccato() {
-    this.toggleArticulationCommand(SmoArticulation.articulations.staccato, 'SmoArticulation');
+  async addRemoveStaccato() {
+    await this.toggleArticulationCommand(SmoArticulation.articulations.staccato, 'SmoArticulation');
   }
-  addRemoveMarcato() {
-    this.toggleArticulationCommand(SmoArticulation.articulations.marcato, 'SmoArticulation');
+  async addRemoveMarcato() {
+    await this.toggleArticulationCommand(SmoArticulation.articulations.marcato, 'SmoArticulation');
   }
-  addRemovePizzicato() {
-    this.toggleArticulationCommand(SmoArticulation.articulations.pizzicato, 'SmoArticulation');
+  async addRemovePizzicato() {
+    await this.toggleArticulationCommand(SmoArticulation.articulations.pizzicato, 'SmoArticulation');
   }
 }

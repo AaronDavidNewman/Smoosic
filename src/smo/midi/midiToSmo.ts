@@ -39,23 +39,23 @@ export interface MidiTrackEvent {
   noteNumber?: number,
   velocity?: number
 }
-interface RunningMetadata {
+export interface RunningMetadata {
   keySignature: string,
   timeSignature: TimeSignature,
   tempo: SmoTempoText
 }
-interface MidiNoteOn {
+export interface MidiNoteOn {
   channel: number,
   note: number,
   smoIndex: number
 }
-interface MidiTupletInfo {
+export interface MidiTupletInfo {
   numNotes: number,
   stemTicks: number,
   totalTicks: number,
   isLast: boolean
 }
-interface EventSmoData {
+export interface EventSmoData {
   pitches: Pitch[],
   durationTicks: number,
   tupletInfo: MidiTupletInfo | null,
@@ -68,7 +68,7 @@ interface EventSmoData {
   tick: number
 }
 
-function getValueForTick<T>(arg: Record<number, T>, tick: number) {
+export function getValueForTick<T>(arg: Record<number, T>, tick: number) {
   const keys = Object.keys(arg);
   let maxKey = 0;
   let rv = arg[0];

@@ -273,7 +273,7 @@ export interface SmoTextPlacement {
 }
 /**
  * Constructor parameters for a text group, a block of text in Smoosic
- * @param justification one of {@link SmoScoreText.justifications}
+ * @param justification one of {@link SmoTextGroup.justifications}
  * @param relativePosition relative position to other text groups
  * @param pagination indicates if this text is paginated (goes on each page)
  * @param spacing distance between blocks

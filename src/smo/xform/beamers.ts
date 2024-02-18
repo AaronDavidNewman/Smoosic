@@ -16,7 +16,7 @@ export interface SmoBeamGroupParams {
  * Contain a group of {@link SmoNote} used for beaming.
  * @internal
  */
-class SmoBeamGroup implements ISmoBeamGroup {
+export class SmoBeamGroup implements ISmoBeamGroup {
   notes: SmoNote[];
   attrs: SmoAttrs;
   voice: number = 0;

@@ -194,18 +194,23 @@ export class SuiScoreRender {
     console.log('layout setViewport: pstate initial');
   }
 
-  renderScoreModifiers() {
-    // remove existing modifiers, and also remove parent group for 'extra'
-    // groups associated with pagination (once per page etc)
-    this.score!.textGroups.forEach((tg) => {
-      tg.elements.forEach((element) => {
-        element.remove();
-      });
-      tg.elements = [];
-    });
-    // group.classList.add('all-score-text');
-    this.score!.textGroups.forEach((tg) => {
-      this.renderTextGroup(tg);
+  async renderScoreModifiers(): Promise<void> {
+    return new Promise((resolve) => {
+      // remove existing modifiers, and also remove parent group for 'extra'
+      // groups associated with pagination (once per page etc)
+      for (var i = 0; i < this.score!.textGroups.length; ++i) {
+        const tg = this.score!.textGroups[i];
+        tg.elements.forEach((element) => {
+          element.remove();
+        });
+        tg.elements = [];
+      }
+      // group.classList.add('all-score-text');
+      for (var i = 0; i < this.score!.textGroups.length; ++i) {
+        const tg = this.score!.textGroups[i];
+        this.renderTextGroup(tg);
+      }
+      resolve();
     });
   }
 
@@ -332,7 +337,7 @@ export class SuiScoreRender {
       lineIx++;
       await this._renderNextSystem(lineIx, keys, printing);
     } else {
-      this.renderScoreModifiers();
+      await this.renderScoreModifiers();
       this.numberMeasures();
       this.measuresToMap.forEach((mm) => {
         this.measureRenderedElements(mm.vxSystem, mm.measuresToBox, mm.modifiersToBox, mm.printing);

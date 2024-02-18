@@ -427,8 +427,8 @@ export class SuiRenderState {
     this.renderer.unrenderMeasure(measure);
   }
 
-  renderScoreModifiers() {
-    this.renderer.renderScoreModifiers();
+  async renderScoreModifiers() {
+    await this.renderer.renderScoreModifiers();
   }
   async render(): Promise<any> {
     if (this._resetViewport) {

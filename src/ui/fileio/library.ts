@@ -3,7 +3,7 @@
 import { SuiXhrLoader } from './xhrLoader';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
-interface kvPair { [key: string]: string }
+export interface kvPair { [key: string]: string }
 export interface LibraryParams {
   loaded: boolean;
   parentLib: kvPair;

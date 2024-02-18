@@ -99,9 +99,9 @@ export class SuiPageLayoutAdapter extends SuiComponentAdapter {
     }
     for (i = 0; i < this.backup.length; ++i) {
       // Avoid multiple page rerender...
-      this.view._setPageLayout(this.backup[i], i);
+      await this.view.setPageLayout(this.backup[i], i);
     }
-    await this.view.refreshViewport();
+    
   }
   async commit() { 
     return PromiseHelpers.emptyPromise();

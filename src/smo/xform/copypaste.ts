@@ -12,12 +12,19 @@ import { TickMap } from './tickMap';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { getId } from '../data/common';
 
-interface PasteNote {
+/**
+ * Used to calculate the offset and transposition of a note to be pasted
+ */
+export interface PasteNote {
   note: SmoNote,
   selector: SmoSelector,
   originalKey: string
 }
-interface ModifierPlacement {
+/**
+ * Used when pasting staff modifiers like slurs to calculate the
+ * offset
+ */
+export interface ModifierPlacement {
   modifier: StaffModifierBase,
   ticksToStart: number
 }
