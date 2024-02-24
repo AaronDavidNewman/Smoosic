@@ -143,6 +143,7 @@ export class SmoBeamer {
       if (!tuplet) {
         return;
       }
+      const tupletIndex = tuplet.getIndexOfNote(note);
       const ult = tuplet.notes[tuplet.notes.length - 1];
       const first = tuplet.notes[0];
 
@@ -152,7 +153,7 @@ export class SmoBeamer {
       }
 
       // is this beamable length-wise
-      const stemTicks = SmoMusic.closestDurationTickLtEq(note.tickCount);
+      const stemTicks = SmoMusic.closestDurationTickLtEq(note.tickCount) * tuplet.durationMap[tupletIndex];
       if (note.noteType === 'n' && stemTicks < 4096) {
         this.currentGroup.push(note);
       }

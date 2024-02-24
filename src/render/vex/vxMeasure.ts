@@ -26,6 +26,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
   addChordGlyph } from '../../common/vex';
 
+import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
 const VF = VexFlow;
 
 declare var $: any;
@@ -35,7 +36,7 @@ declare var $: any;
  * This is the interface for VexFlow library that actually does the engraving.
  * @category SuiRender
  */
-export class VxMeasure {
+export class VxMeasure implements VxMeasureIf {
   context: SvgPage;
   printing: boolean;
   selection: SmoSelection;
@@ -85,180 +86,6 @@ export class VxMeasure {
       this.smoMeasure.voices[0].notes[0].isRest()
       );
   }
-  // We add microtones to the notes, without regard really to how they interact
-  _createMicrotones(smoNote: SmoNote, vexNote: Note) {
-    const tones = smoNote.getMicrotones();
-    tones.forEach((tone) => {
-      const acc: Accidental = new VF.Accidental(tone.toVex);
-      vexNote.addModifier(acc, tone.pitchIndex);
-    });
-  }
-  createDots(smoNote: SmoNote, vexNote: Note) {
-    for (var i = 0; i < smoNote.dots; ++i) {
-      for (var j = 0; j < smoNote.pitches.length; ++j) {
-        if (!this.isWholeRest()) {
-          vexNote.addModifier(new VF.Dot(), j);
-        }
-      }
-    }
-  }
-  /**
-   * Create accidentals based on the active key and previous accidentals in this voice
-   * @param smoNote 
-   * @param vexNote 
-   * @param tickIndex 
-   * @param voiceIx 
-   * @returns 
-   */
-  _createAccidentals(smoNote: SmoNote, vexNote: Note, tickIndex: number, voiceIx: number) {
-    let i = 0;
-    if (smoNote.noteType === '/') {
-      return;
-    }
-    if (smoNote.noteType !== 'n') {
-      this.createDots(smoNote, vexNote);
-      return;
-    }
-    smoNote.accidentalsRendered = [];
-    for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
-      const pitch = smoNote.pitches[i];
-      const zz = SmoMusic.accidentalDisplay(pitch, this.smoMeasure.keySignature,
-        this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex], this.tickmapObject.accidentalArray);
-      if (zz) {
-        const acc = new VF.Accidental(zz.symbol);
-        if (zz.courtesy) {
-          acc.setAsCautionary();
-        }
-        smoNote.accidentalsRendered.push(pitch.accidental);
-        vexNote.addModifier(acc, i);
-      } else {
-        smoNote.accidentalsRendered.push('');
-      }
-    }
-    this.createDots(smoNote, vexNote);
-    this._createMicrotones(smoNote, vexNote);
-    if (smoNote.arpeggio) {
-      vexNote.addModifier(new VF.Stroke(smoNote.arpeggio.typeCode));
-    }
-  }
-
-  _createJazzOrnaments(smoNote: SmoNote, vexNote: Note) {
-    const o = smoNote.getJazzOrnaments();
-    o.forEach((ll) => {
-      const mod = new VF.Ornament(ll.toVex());
-      vexNote.addModifier(mod, 0);
-    });
-  }
-
-  _createOrnaments(smoNote: SmoNote, vexNote: Note) {
-    const o = smoNote.getOrnaments();
-    o.forEach((ll) => {
-      const ornamentCode = getOrnamentGlyph(ll.ornament);
-      const mod = new VF.Ornament(ornamentCode);
-      if (ll.offset === SmoOrnament.offsets.after) {
-        mod.setDelayed(true);
-      }
-      vexNote.addModifier(mod, 0);
-    });
-  }
-  _addLyricAnnotationToNote(vexNote: Note, lyric: SmoLyric) {
-    let classString = 'lyric lyric-' + lyric.verse;
-    let text = lyric.getText();
-    if (lyric.skipRender) {
-      return;
-    }
-    if (!text.length && lyric.isHyphenated()) {
-      text = '-';
-    }
-    // no text, no hyphen, don't add it.
-    if (!text.length) {
-      return;
-    }
-    const vexL: Annotation = new VF.Annotation(text); // .setReportWidth(lyric.adjustNoteWidth);
-    vexL.setAttribute('id', lyric.attrs.id); //
-
-    // If we adjusted this note for the lyric, adjust the lyric as well.
-    vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
-    vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-    vexNote.addModifier(vexL);
-    if (lyric.isHyphenated()) {
-      classString += ' lyric-hyphen';
-    }
-    vexL.addClass(classString);
-  }
-
-  _addChordChangeToNote(vexNote: Note, lyric: SmoLyric) {
-    const cs = new VF.ChordSymbol();
-    cs.setAttribute('id', lyric.attrs.id);
-    const blocks = getVexChordBlocks(lyric);
-    blocks.forEach((block) => {
-      if (block.glyph) {
-        // Vex 5 broke this, does not distinguish between glyph and text
-        // the reverse is for vex4 which expects the non-mangled identifier here,
-        // e.g. 'diminished' and not 'csymDiminished'
-        addChordGlyph(cs, block.glyph);
-      } else {
-        cs.addGlyphOrText(block.text ?? '', block);
-      }
-    });
-    cs.setFont(lyric.fontInfo.family, lyric.fontInfo.size).setReportWidth(lyric.adjustNoteWidth);
-    vexNote.addModifier(cs, 0);
-    const classString = 'chord chord-' + lyric.verse;
-    cs.addClass(classString);
-  }
-
-  _createLyric(smoNote: SmoNote, vexNote: Note) {
-    const lyrics = smoNote.getTrueLyrics();
-    if (smoNote.noteType !== '/') {
-      lyrics.forEach((bll) => {
-        const ll = bll as SmoLyric;
-        this._addLyricAnnotationToNote(vexNote, ll);
-      });
-    }
-    const chords = smoNote.getChords();
-    chords.forEach((chord) => {
-      this._addChordChangeToNote(vexNote, chord);
-    });
-  }
-
-  _createGraceNotes(smoNote: SmoNote, vexNote: Note) {
-    let i = 0;
-    const gar = smoNote.getGraceNotes();
-    var toBeam = true;
-    if (gar && gar.length) {
-      const group: any[] = [];
-      gar.forEach((g) => {
-        const gr = new VF.GraceNote(g.toVexGraceNote());
-        gr.setAttribute('id', g.attrs.id);
-        for (i = 0; i < g.pitches.length; ++i) {
-          const pitch = g.pitches[i];
-          if (!pitch.accidental) {
-            console.warn('no accidental in grace note');
-          }
-          if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary) {
-            const accidental = new VF.Accidental(pitch.accidental);
-            if (pitch.cautionary) {
-              accidental.setAsCautionary();
-            }
-            gr.addModifier(accidental, i);
-          }
-        }
-        if (g.tickCount() >= 4096) {
-          toBeam = false;
-        }
-        gr.addClass('grace-note'); // note: this doesn't work :(
-
-        g.renderId = gr.getAttribute('id');
-        group.push(gr);
-      });
-      const grace: any = new VF.GraceNoteGroup(group);
-      if (toBeam) {
-        grace.beamNotes();
-      }
-      vexNote.addModifier(grace, 0);
-    }
-  }
-
   createCollisionTickmap() {
     let i = 0;
     let j = 0;
@@ -312,7 +139,7 @@ export class VxMeasure {
    * @param voiceIx 
    * @returns 
    */
-  _createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
+  createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: Note | null = null;
     let timestamp = new Date().valueOf();
     const closestTicks = SmoMusic.closestVexDuration(smoNote.tickCount);
@@ -359,33 +186,22 @@ export class VxMeasure {
       }
       smoNote.renderId = 'vf-' + vexNote.getAttribute('id'); // where does 'vf' come from?
     }
-
-    this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
-    this._createLyric(smoNote, vexNote);
-    this._createOrnaments(smoNote, vexNote);
-    this._createJazzOrnaments(smoNote, vexNote);
-    this._createGraceNotes(smoNote, vexNote);
+    const noteData: VexNoteModifierIf = {
+      smoMeasure: this.smoMeasure,
+      vxMeasure: this,
+      smoNote: smoNote,
+      staveNote: vexNote,
+      voiceIndex: voiceIx,
+      tickIndex: tickIndex
+    }
+    const modObj = new VxNote(noteData);
+    modObj.addModifiers();
     layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATC, new Date().valueOf() - timestamp);
 
-    return vexNote;
+    return modObj;
   }
 
-  _renderArticulations(vix: number) {
-    const i = 0;
-    this.smoMeasure.voices[vix].notes.forEach((smoNote) => {
-      smoNote.articulations.forEach((art) => {
-        if (smoNote.noteType === 'n') {
-          const vx = this.noteToVexMap[smoNote.attrs.id];
-          const position: number = SmoArticulation.positionToVex[art.position];
-          const vexArt = SmoArticulation.articulationToVex[art.articulation];
-          const vxArt = new VF.Articulation(vexArt).setPosition(position);
-          vx.addModifier(vxArt, i);
-        }
-      });
-    });
-  }
-
-  _renderNoteGlyph(smoNote: SmoNote, textObj: SmoDynamicText) {
+  renderNoteGlyph(smoNote: SmoNote, textObj: SmoDynamicText) {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave!.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
@@ -417,7 +233,7 @@ export class VxMeasure {
         );
         mods.forEach((btm) => {
           const tm = btm as SmoDynamicText;
-          this._renderNoteGlyph(smoNote, tm);
+          this.renderNoteGlyph(smoNote, tm);
         });
       });
     });
@@ -441,17 +257,14 @@ export class VxMeasure {
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
-      const vexNote = this._createVexNote(smoNote, i, voiceIx);
-      this.noteToVexMap[smoNote.attrs.id] = vexNote;
-      this.vexNotes.push(vexNote);
-      this.voiceNotes.push(vexNote);
+      const vexNote = this.createVexNote(smoNote, i, voiceIx);
+      this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
+      this.vexNotes.push(vexNote.noteData.staveNote);
+      this.voiceNotes.push(vexNote.noteData.staveNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
         || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');
       }
-    }
-    if (!this.smoMeasure.repeatSymbol) {
-      this._renderArticulations(voiceIx);
     }
   }
 
@@ -483,6 +296,10 @@ export class VxMeasure {
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
         if (!(vexNote instanceof VF.StaveNote || vexNote instanceof VF.GraceNote)) {
+          return;
+        }
+        if (note.tickCount >= 4096 || vexNote.getIntrinsicTicks() >= 4096) {
+          console.warn('bad length in beam group');
           return;
         }
         if (keyNoteIx === j) {
