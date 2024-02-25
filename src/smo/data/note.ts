@@ -6,7 +6,9 @@
  * @module /smo/data/note
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer } from './noteModifiers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, 
+  SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
+  SmoClefChangeParamsSer, SmoClefChange } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
@@ -125,7 +127,7 @@ export interface SmoNoteParams {
   /**
    * indicates this note goes with a clef change
    */
-  clefNote: string | null
+  clefNote: SmoClefChangeParamsSer
 }
 
 /**
@@ -212,7 +214,7 @@ export interface SmoNoteParamsSer  {
   /**
     * indicates this note goes with a clef change
     */
-  clefNote: string | null  
+  clefNote? : SmoClefChangeParamsSer
 }
 function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
   if (params.ctor && params.ctor === 'SmoNote') {
@@ -239,7 +241,9 @@ export class SmoNote implements Transposable {
     NoteBooleanParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
-    this.clefNote = params.clefNote;
+    if (params.clefNote) {
+      this.clefNote = new SmoClefChange(params.clefNote);
+    }
     const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
     this.ticks = JSON.parse(JSON.stringify(ticks));
@@ -267,7 +271,7 @@ export class SmoNote implements Transposable {
   noteHead: string = '';
   arpeggio?: SmoArpeggio;
   clef: string = 'treble';
-  clefNote: string | null = null;
+  clefNote: SmoClefChange | null = null;
   graceNotes: SmoGraceNote[] = [];
   noteType: NoteType = 'n';
   fillStyle: string = '';
@@ -807,6 +811,9 @@ export class SmoNote implements Transposable {
   serialize(): SmoNoteParamsSer {
     var params: Partial<SmoNoteParamsSer> = { ctor: 'SmoNote' };
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
+    if (this.clefNote) {
+      params.clefNote = this.clefNote.serialize();
+    }
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
     }
@@ -856,6 +863,9 @@ export class SmoNote implements Transposable {
     }
     if (jsonObj.arpeggio) {
       note.arpeggio = SmoNoteModifierBase.deserialize(jsonObj.arpeggio);
+    }
+    if (jsonObj.clefNote) {
+      note.clefNote = SmoNoteModifierBase.deserialize(jsonObj.clefNote);
     }
     return note;
   }

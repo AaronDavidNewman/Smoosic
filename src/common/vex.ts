@@ -5,6 +5,7 @@ import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNot
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
+ClefNote as VexClefNote,
  Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock  } from "vexflow_smoosic";
 
  /**
@@ -37,6 +38,7 @@ export type StaveText = VexStaveText;
 export type Stave = VexStave;
 export type Curve = VexCurve;
 export type StaveTie = VexStaveTie;
+export type ClefNote = VexClefNote;
 export type StaveModifierPosition = VexStaveModifierPosition;
 
 

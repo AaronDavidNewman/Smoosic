@@ -23,8 +23,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
-  addChordGlyph } from '../../common/vex';
+  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest
+   } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
 const VF = VexFlow;
@@ -260,6 +260,10 @@ export class VxMeasure implements VxMeasureIf {
       const vexNote = this.createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
       this.vexNotes.push(vexNote.noteData.staveNote);
+      if (vexNote.noteData.smoNote.clefNote) {
+        const cf = new VF.ClefNote(vexNote.noteData.smoNote.clefNote.clef, 'small');
+        this.voiceNotes.push(cf);
+      }
       this.voiceNotes.push(vexNote.noteData.staveNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
         || isNaN(smoNote.ticks.remainder)) {

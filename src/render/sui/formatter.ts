@@ -171,7 +171,6 @@ export class SuiLayoutFormatter {
     let isPickup = false;
     // Keep running tab of accidental widths for justification
     const contextMap: Record<number, SuiTickContext> = {};
-    let forceClefCount = 0;
     let measureToSkip = false;
     let maxColumnStartX = 0;
     measures.forEach((measure) => {
@@ -185,7 +184,7 @@ export class SuiLayoutFormatter {
       s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
       s.tempoLast = measureToLeft.getTempo();
       s.timeSigLast = measureToLeft.timeSignature;
-      s.clefLast = measureToLeft.clef;
+      s.clefLast = measureToLeft.getLastClef();
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
       const startX = SuiLayoutFormatter.estimateStartSymbolWidth(measure);
       measure.svg.adjX = startX;

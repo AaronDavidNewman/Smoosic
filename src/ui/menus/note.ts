@@ -1,5 +1,6 @@
 import { createAndDisplayDialog } from '../dialogs/dialog';
-import {SuiScoreArpeggioDialog } from '../dialogs/arpeggio';
+import {SuiArpeggioDialog } from '../dialogs/arpeggio';
+import { SuiClefChangeDialog } from '../dialogs/clefChange';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 declare var $: any;
 export class SuiNoteMenu extends SuiMenuBase {
@@ -14,6 +15,10 @@ export class SuiNoteMenu extends SuiMenuBase {
         icon: '',
         text: 'Arpeggio',
         value: 'arpeggioDialog'
+      },{
+        icon: '',
+        text: 'Change Clef',
+        value: 'clefNoteDialog'
       }, {
         icon: '',
         text: 'Cancel',
@@ -33,13 +38,25 @@ export class SuiNoteMenu extends SuiMenuBase {
     if (text === 'toggleCueCmd') {
       await this.view.toggleCue();
     } else if (text === 'arpeggioDialog') {
-      createAndDisplayDialog(SuiScoreArpeggioDialog, {
+      createAndDisplayDialog(SuiArpeggioDialog, {
         view: this.view,
         completeNotifier: this.completeNotifier,
         startPromise: this.closePromise,
         eventSource: this.eventSource,
         tracker: this.tracker,
         ctor: 'SuiArpeggioDialog',
+        id: 'insert-dialog',
+        modifier: null
+      });
+      this.complete();
+    } else if (text === 'clefNoteDialog') {
+      createAndDisplayDialog(SuiClefChangeDialog, {
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        startPromise: this.closePromise,
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiClefChangeDialog',
         id: 'insert-dialog',
         modifier: null
       });

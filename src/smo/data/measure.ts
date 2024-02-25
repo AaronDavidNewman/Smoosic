@@ -415,6 +415,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       id: getId().toString(),
       type: 'SmoMeasure'
     };
+    this.updateClefChangeNotes();
   }
 
   // @internal
@@ -455,7 +456,52 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static timeSigEqual(o1: TimeSignature, o2: TimeSignature) {
     return o1.timeSignature === o2.timeSignature && o1.useSymbol === o2.useSymbol;
   }
+  /**
+   * If there is a clef change mid-measure, update the actual clefs of the notes
+   * so they display correctly.
+   */
+  updateClefChangeNotes() {
+    let changed = false;
+    let curTick = 0;
+    let clefChange = this.clef;
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      curTick  = 0;
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const smoNote = voice.notes[j];
+        smoNote.clef = this.clef;
+        if (smoNote.clefNote && smoNote.clefNote.clef !== this.clef) {
+          clefChange = smoNote.clefNote.clef;
+          curTick += smoNote.tickCount;
+          changed = true;
+          break;
+        }
+        curTick  += smoNote.tickCount;
+      }
+      if (changed) {
+        break;
+      }
+    }
+    if (!changed) {
+      return;
+    }
+    // clefChangeTick is where the change goes.  We only support
+    // one per measure, others are ignored.
+    const clefChangeTick = curTick;
 
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      curTick  = 0;
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const smoNote = voice.notes[j];
+        const noteTicks = smoNote.tickCount;
+        if (curTick + noteTicks >= clefChangeTick) {
+          smoNote.clef = clefChange;
+        }
+        curTick += noteTicks;
+      }
+    }
+  }
   /**
    * @internal
    * @returns column mapped parameters, serialized.  caller will
@@ -490,6 +536,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
     this.voices.forEach((voice) => {
       const obj: any = {
+
         notes: []
       };
       voice.notes.forEach((note) => {
@@ -1250,7 +1297,22 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       });
     });
   }
-
+  /**
+   * Get the clef that this measure ends with.
+   * @returns 
+   */
+  getLastClef() {
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const note = voice.notes[j];
+        if (note.clefNote && note.clefNote.clef !== this.clef) {
+          return note.clefNote.clef;
+        }
+      }
+    }
+    return this.clef;
+  }
   isRest() {
     let i = 0;
     for (i = 0; i < this.voices.length; ++i) {

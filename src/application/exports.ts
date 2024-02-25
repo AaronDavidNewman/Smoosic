@@ -64,7 +64,8 @@ import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
-import { SuiScoreArpeggioDialog } from '../ui/dialogs/arpeggio'
+import { SuiArpeggioDialog } from '../ui/dialogs/arpeggio';
+import { SuiClefChangeDialog } from '../ui/dialogs/clefChange';
 import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
@@ -196,7 +197,7 @@ export const Smo = {
     SuiFontComponent, SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
     SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
-    StaffCheckComponent, TextCheckComponent, SuiScoreArpeggioDialog,
+    StaffCheckComponent, TextCheckComponent, SuiArpeggioDialog, SuiClefChangeDialog,
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,

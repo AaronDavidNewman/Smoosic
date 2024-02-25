@@ -12,7 +12,7 @@ import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAu
   SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
-  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType } from '../../smo/data/noteModifiers';
+  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
@@ -211,7 +211,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
   async addRemoveArpeggio(code: SmoArpeggioType) {
       const selections = this.tracker.selections;
       const altSelections = this._getEquivalentSelections(selections);
-      const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
+      const measureSelections = this._undoTrackerMeasureSelections('add/remove arpeggio');
       [selections, altSelections].forEach((selType) => {
         selType.forEach((sel) => {
         if (sel.note) {
@@ -220,6 +220,31 @@ export class SuiScoreViewOperations extends SuiScoreView {
           } else {
             sel.note.arpeggio = new SmoArpeggio({ type: code });
           }
+        }
+      });
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise()
+  }
+  /**
+   * A clef change mid-measure (clefNote)
+   * @param clef 
+   */
+  async addRemoveClefChange(clef: SmoClefChange) {
+    const selections = [this.tracker.selections[0]];
+    const altSelections = this._getEquivalentSelections(selections);
+    const measureSelections = this._undoTrackerMeasureSelections('add/remove clef change');
+    [selections, altSelections].forEach((selType) => {
+      selType.forEach((sel) => {
+        if (sel.note) {
+          const measureClef = sel.measure.clef;
+          // If the clef is the same as measure clef, remove any clef change from Note
+          if (measureClef === clef.clef) {
+            sel.note.clefNote = null;
+          } else {
+            sel.note.clefNote = clef;
+          }
+          sel.measure.updateClefChangeNotes();
         }
       });
     });

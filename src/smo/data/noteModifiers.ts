@@ -5,7 +5,8 @@
  * pitch itself.  This includes grace notes, and note-text like lyrics.
  * @module /smo/data/noteModifiers
  */
-import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase, 
+  Clef, IsClef } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
@@ -50,6 +51,58 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
+export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
+  if (typeof(params.clef) === 'string') {
+    return true;
+  }
+  return false;
+}
+export interface SmoClefChangeParams  {
+  clef: string
+}
+
+export interface SmoClefChangeParamsSer extends SmoClefChangeParams {
+  /**
+   * constructor
+   */
+    ctor: string;
+    /**
+     * attributes for ID
+     */
+    attrs: SmoAttrs;
+}
+
+export class SmoClefChange extends SmoNoteModifierBase {
+  clef: Clef;
+  static get defaults() {
+    const rv: SmoClefChangeParamsSer = JSON.parse(JSON.stringify({
+      clef: 'treble',
+      ctor: 'SmoClefChange',
+      attrs: {
+        id: getId(),
+        type: 'SmoClefChange'
+      }
+    }));
+    return rv;
+  }
+  constructor(clefParams: SmoClefChangeParams) {
+    super('SmoClefChange');
+    const clef = clefParams.clef;
+    if (!IsClef(clef)) {
+      this.clef = 'treble';
+    } else {
+      this.clef = clef as Clef;
+    }
+  }
+  serialize(): SmoClefChangeParamsSer {
+    const params: Partial<SmoClefChangeParamsSer> = { ctor: 'SmoGraceNote' };
+    params.clef = this.clef;
+    if (!isClefChangeParamsSer(params)) {
+      throw('corrupt clef change');
+    }
+    return params;
+  }
+}
 /**
  * used to construct {@link SmoGraceNote}
  *   beam group.

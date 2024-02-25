@@ -45,7 +45,7 @@ export class SuiArpeggioAdapter extends SuiComponentAdapter {
  * export  const SmoArpeggioTypes = ['directionless', 'rasquedo_up', 'rasquedo_down',
   'roll_up', 'roll_down', 'brush_up', 'brush_down', 'none'];
  */
-export class SuiScoreArpeggioDialog extends SuiDialogAdapterBase<SuiArpeggioAdapter> {
+export class SuiArpeggioDialog extends SuiDialogAdapterBase<SuiArpeggioAdapter> {
   /**
    * The template used to create the dialog components
    */
@@ -85,12 +85,12 @@ export class SuiScoreArpeggioDialog extends SuiDialogAdapterBase<SuiArpeggioAdap
       staticText: []
     };
   static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiScoreArpeggioDialog(parameters);
+    const dg = new SuiArpeggioDialog(parameters);
     dg.display();
   }
   constructor(params: SuiDialogParams) {
     const adapter = new SuiArpeggioAdapter(params.view);
-    super(SuiScoreArpeggioDialog.dialogElements, { adapter, ...params });
+    super(SuiArpeggioDialog.dialogElements, { adapter, ...params });
     this.modifier = params.modifier;
   }
 }
