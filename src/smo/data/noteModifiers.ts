@@ -52,7 +52,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
 }
 
 export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
-  if (typeof(params.clef) === 'string') {
+  if (typeof(params.clef) === 'string' && params.ctor === 'SmoClefChange') {
     return true;
   }
   return false;
@@ -95,7 +95,7 @@ export class SmoClefChange extends SmoNoteModifierBase {
     }
   }
   serialize(): SmoClefChangeParamsSer {
-    const params: Partial<SmoClefChangeParamsSer> = { ctor: 'SmoGraceNote' };
+    const params: Partial<SmoClefChangeParamsSer> = { ctor: 'SmoClefChange' };
     params.clef = this.clef;
     if (!isClefChangeParamsSer(params)) {
       throw('corrupt clef change');

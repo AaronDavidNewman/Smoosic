@@ -136,7 +136,7 @@ import { SmoMusic } from '../smo/data/music';
 import { SmoAudioPitch } from '../smo/data/music';
 import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
-  SmoArpeggio } from '../smo/data/noteModifiers';
+  SmoArpeggio, SmoClefChange } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
 import { SmoSystemGroup, SmoAudioPlayerSettings, SmoScorePreferences } from '../smo/data/scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParams } from '../smo/data/scoreText';
@@ -230,7 +230,7 @@ export const Smo = {
     SmoVolta, SmoMeasureText, SmoTempoText, TimeSignature,
     // note modifiers
     SmoOrnament,
-    SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric, SmoArpeggio,
+    SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric, SmoArpeggio, SmoClefChange,
     // Smo Transformers
     SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap

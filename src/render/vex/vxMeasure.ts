@@ -254,15 +254,17 @@ export class VxMeasure implements VxMeasureIf {
     let i = 0;
     this.voiceNotes = [];
     const voice = this.smoMeasure.voices[voiceIx];
+    let clefNoteAdded = false;
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
       const vexNote = this.createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
       this.vexNotes.push(vexNote.noteData.staveNote);
-      if (vexNote.noteData.smoNote.clefNote) {
+      if (vexNote.noteData.smoNote.clefNote && !clefNoteAdded) {
         const cf = new VF.ClefNote(vexNote.noteData.smoNote.clefNote.clef, 'small');
         this.voiceNotes.push(cf);
+        clefNoteAdded = true; // ignore 2nd in a measure
       }
       this.voiceNotes.push(vexNote.noteData.staveNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)

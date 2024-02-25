@@ -498,6 +498,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         if (curTick + noteTicks >= clefChangeTick) {
           smoNote.clef = clefChange;
         }
+        // Remove any redundant clef changes later in the measure
+        if (curTick + noteTicks > clefChangeTick) {
+          if (smoNote.clefNote && smoNote.clefNote.clef === clefChange) {
+            smoNote.clefNote = null;
+          }
+        }
         curTick += noteTicks;
       }
     }
