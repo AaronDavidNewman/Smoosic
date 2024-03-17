@@ -244,8 +244,8 @@ export class SuiRenderState {
     this.handlingRedraw = false;
   }
   pollRedraw() {
-    setTimeout(() => {
-      this.handleRedrawTimer();
+    setTimeout(async () => {
+      await this.handleRedrawTimer();
       this.pollRedraw();
     }, this.demonPollTime);
   }

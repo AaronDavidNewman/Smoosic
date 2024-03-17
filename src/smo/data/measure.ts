@@ -22,7 +22,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, 
-  TickAccidental, AccidentalArray, getId } from './common';
+  TickAccidental, AccidentalArray, getId, createChildElementRecurse } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 /**
@@ -208,10 +208,6 @@ export interface SmoMeasureParamsSer {
    * tempo at this point
    */
   tempo: SmoTempoTextParamsSer,
-  /**
-   * format customizations
-   */
-  format: SmoMeasureFormatParamsSer | null,
   /**
    * all other modifiers (barlines, etc)
    */
@@ -443,7 +439,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static get serializableAttributes() {
     const rv: any = [];
     SmoMeasure.defaultAttributes.forEach((attr) => {
-      if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
+      if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0 && attr !== 'format') {
         rv.push(attr);
       }
     });
@@ -530,6 +526,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const params: Partial<SmoMeasureParamsSer> = {};
     let ser = true;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
+    // Don't serialize default things
+    const fmt = this.format.serialize();
     // measure number can't be defaulted b/c tempos etc. can map to default measure
     params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
     params.tuplets = [];
@@ -577,7 +575,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     return params;
   }
-
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    parentElement.appendChild(el);
+    
+  }
   /**
    * restore a serialized measure object.  Usually called as part of deserializing a score,
    * but can also be used to restore a measure due to an undo operation.  Recursively
@@ -606,16 +608,20 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
     const tuplets = [];
     for (j = 0; j < jsonObj.tuplets.length; ++j) {
-      const tupJson = SmoTuplet.defaults;
-      smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj.tuplets[j], tupJson);
-      const noteAr = noteSum.filter((nn: any) =>
-        nn.isTuplet && nn.tuplet.id === tupJson.attrs!.id);
+      const tupJson = jsonObj.tuplets[j];
+      const tupParams = SmoTuplet.defaults;
+      if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
+        tupParams.id = (tupJson as any).attrs.id;
+      }
+      smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj.tuplets[j], tupParams);
+      const noteAr = noteSum.filter((nn: SmoNote) =>
+        nn.isTuplet && nn.tupletId === tupParams.id);
 
       // Bug fix:  A tuplet with no notes may be been overwritten
       // in a copy/paste operation
       if (noteAr.length > 0) {
-        tupJson.notes = noteAr;
-        const tuplet = new SmoTuplet(tupJson);
+        tupParams.notes = noteAr;
+        const tuplet = new SmoTuplet(tupParams);
         tuplets.push(tuplet);
       }
     }
@@ -1239,7 +1245,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const vnotes = this.voices[j].notes;
       for (i = 0; i < vnotes.length; ++i) {
         const note = vnotes[i] as SmoNote;
-        if (note.tuplet && note.tuplet.id === tuplet.attrs.id) {
+        if (note.tupletId && note.tupletId === tuplet.id) {
           tnotes.push(vnotes[i]);
         }
       }
@@ -1256,7 +1262,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const notes = this.voices[j].notes;
       for (i = 0; i < notes.length; ++i) {
         const note = notes[i] as SmoNote;
-        if (note.tuplet && note.tuplet.id === tuplet.attrs.id) {
+        if (note.tupletId && note.tupletId === tuplet.id) {
           return i;
         }
       }
@@ -1276,8 +1282,20 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     for (i = 0; i < this.tuplets.length; ++i) {
       const tuplet = this.tuplets[i];
-      if (note.tuplet !== null && tuplet.attrs.id === note.tuplet.id) {
+      if (typeof(note.tupletId) === 'string' && note.tupletId === tuplet.id) {
         return tuplet;
+      }
+    }
+    return null;
+  }
+  getNoteById(id: string): SmoNote | null {
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const note = voice.notes[j];
+        if (note.attrs.id === id) {
+          return note;
+        }
       }
     }
     return null;
@@ -1288,7 +1306,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const tuplets = [];
     for (i = 0; i < this.tuplets.length; ++i) {
       const tuplet = this.tuplets[i];
-      if (note.tuplet !== null && note.tuplet.id !== tuplet.attrs.id) {
+      if (typeof(note.tupletId) === 'string' && note.tupletId !== tuplet.id) {
         tuplets.push(tuplet);
       }
     }
@@ -1505,26 +1523,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const rv: SmoVolta[] = [];
     this.modifiers.forEach((modifier: SmoMeasureModifierBase) => {
       if (modifier.ctor === 'SmoVolta') {
-        rv.push(modifier as SmoVolta);
-      }
-    });
-    return rv;
-  }
-  getEndEndings(): SmoVolta[] {
-    const rv: SmoVolta[] = [];
-    this.modifiers.forEach((modifier: SmoMeasureModifierBase) => {
-      if (modifier.ctor === 'SmoVolta' && (modifier as SmoVolta).endBar === this.measureNumber.systemIndex
-        && (modifier as SmoVolta).startBar !== this.measureNumber.systemIndex) {
-        rv.push(modifier as SmoVolta);
-      }
-    });
-    return rv;
-  }
-  getMidEndings(): SmoVolta[] {
-    const rv: SmoVolta[] = [];
-    this.modifiers.forEach((modifier) => {
-      if (modifier.ctor === 'SmoVolta' && (modifier as SmoVolta).endBar > this.measureNumber.systemIndex
-        && (modifier as SmoVolta).startBar < this.measureNumber.systemIndex) {
         rv.push(modifier as SmoVolta);
       }
     });

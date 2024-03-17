@@ -13,6 +13,7 @@ import { SmoSelector } from '../xform/selections';
 import { SmoTuplet } from '../data/tuplet';
 
 import { XmlHelpers } from './xmlHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoTempoText } from '../data/measureModifiers';
 import { XmlToSmo } from './xmlToSmo';
 import { SmoSystemGroup } from '../data/scoreModifiers';
@@ -208,33 +209,8 @@ export class SmoToXml {
       }
     }
     
-    return SmoToXml.prettifyXml(dom);
-  }
-  /**
-   * MuseScore doesn't like minified xml, so we pretty-print it.
-   * @param xmlDoc 
-   * @returns 
-   */
-  static prettifyXml(xmlDoc: XMLDocument) {
-    var xsltDoc = new DOMParser().parseFromString([
-        // describes how we want to modify the XML - indent everything
-        '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-        '  <xsl:strip-space elements="*"/>',
-        '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
-        '    <xsl:value-of select="normalize-space(.)"/>',
-        '  </xsl:template>',
-        '  <xsl:template match="node()|@*">',
-        '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-        '  </xsl:template>',
-        '  <xsl:output indent="yes"/>',
-        '</xsl:stylesheet>',
-    ].join('\n'), 'application/xml');
-
-    var xsltProcessor = new XSLTProcessor();    
-    xsltProcessor.importStylesheet(xsltDoc);
-    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-    return resultDoc;
-};
+    return smoSerialize.prettifyXml(dom);
+  }  
   /**
    * /score-partwise/part/measure
    * @param measureElement 

@@ -8,7 +8,7 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
-import { SmoAttrs, SmoModifierBase } from './common';
+import { SmoAttrs, SmoModifierBase, createChildElementRecurse } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
@@ -77,7 +77,10 @@ function isSmoScoreTextSer(params: Partial<SmoScoreTextSer>): params is SmoScore
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size: string | number | undefined) {
-    let rv = 12;
+    let rv: number = 12;
+    if (typeof(size) !== 'number' && typeof(size) !== 'string') {
+      return rv;
+    }
     const szz: string | number = size ?? 14;
     if (typeof (szz) === 'number') {
       return szz;
@@ -88,6 +91,9 @@ export class SmoScoreText extends SmoScoreModifierBase {
       rv *= 14;
     } else if (szz.indexOf('px') > 0) {
       rv *= (96.0 / 72.0);
+    }
+    if (isNaN(rv)) {
+      rv = 12;
     }
     return rv;
   }
@@ -210,6 +216,11 @@ export class SmoScoreText extends SmoScoreModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
+  }
+
   static get attributes(): string[] {
     return ['x', 'y', 'text', 'pagination', 'position', 'fontInfo', 'classes',
       'boxModel', 'justification', 'fill', 'width', 'height', 'scaleX', 'scaleY',
@@ -578,6 +589,10 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       throw('bad text group ' + JSON.stringify(params));
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
   }
   /* _isScoreText(st: ) {
     return st.ctor && st.ctor === 'SmoScoreText';

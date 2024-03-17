@@ -391,6 +391,44 @@ export class SuiSaveFileDialog extends SuiDialogAdapterBase<SuiSmoSaveAdapter>{
     await this.adapter.commit();
   }
 }
+export class SuiSmoosicXmlSaveAdapter extends SuiComponentAdapter {
+  fileName: string = '';
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+  _saveXml() {
+    const dom = this.view.storeScore.serializeXml();
+    const ser = new XMLSerializer();
+    const xmlText = ser.serializeToString(dom);
+    if (!this.fileName.endsWith('.xml') && !this.fileName.endsWith('.mxml')) {
+      this.fileName = this.fileName + '.xml';
+    }
+    addFileLink(this.fileName, xmlText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  async commit() {
+    let filename = this.fileName;
+    if (!filename) {
+      filename = 'myScore.xml';
+    }
+    if (filename.indexOf('.xml') < 0) {
+      filename = filename + '.xml';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this._saveXml();
+    return PromiseHelpers.emptyPromise();
+  }
+  // noop
+  async cancel() {
+    return PromiseHelpers.emptyPromise();
+  }
+}
 
 export class SuiXmlSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
@@ -445,6 +483,26 @@ export class SuiSaveXmlDialog extends SuiDialogAdapterBase<SuiXmlSaveAdapter> {
     parameters.ctor = 'SuiSaveXmlDialog';
     const adapter = new SuiXmlSaveAdapter(parameters.view);
     super(SuiSaveXmlDialog.dialogElements, { adapter, ...parameters });
+  }
+  async commit() {
+    await this.adapter.commit();
+  }
+}
+export class SuiSaveSmoosicXmlDialog extends SuiDialogAdapterBase<SuiSmoosicXmlSaveAdapter> {
+  static dialogElements: DialogDefinition =
+    {
+      label: 'Export SMO XML',
+      elements: [{
+        smoName: 'saveFileName',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      }],
+      staticText: []
+    };
+  constructor(parameters: SuiDialogParams) {
+    parameters.ctor = 'SuiSaveXmlDialog';
+    const adapter = new SuiSmoosicXmlSaveAdapter(parameters.view);
+    super(SuiSaveSmoosicXmlDialog.dialogElements, { adapter, ...parameters });
   }
   async commit() {
     await this.adapter.commit();

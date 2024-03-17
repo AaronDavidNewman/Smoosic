@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?><score xmlns="https://aarondavidnewman.github.io/Smoosic">
+  <metadata>
+    <fonts-array container="array" name="fonts">
+      <fonts-instance name="engraving" purpose="1" family="Leland" size="1" custom="false"/>
+      <fonts-instance name="score" purpose="2" family="Merriweather" size="14" custom="false"/>
+      <fonts-instance name="chords" purpose="3" family="Roboto Slab" size="14" custom="false"/>
+      <fonts-instance name="lyrics" purpose="4" family="Merriweather" size="12" custom="true"/>
+    </fonts-array>
+    <preferences autoPlay="false" autoAdvance="true" defaultDupleDuration="2048" defaultTripleDuration="2048" showPiano="false" hideEmptyLines="true" transposingScore="true"/>
+    <scoreInfo name="Simple XML" title="Simple XML" subTitle="sub simple" composer="XML" copyright="Forever"/>
+    <renumberingMap>
+      <renumberingMap-instance localIndex="5" measureIndex="1"/>
+    </renumberingMap>
+  </metadata>
+  <systemGroups-array container="array" name="systemGroups">
+    <systemGroups-instance text="" shortText="" ctor="SmoSystemGroup">
+      <endSelector staff="1" measure="0" voice="0" tick="-1"/>
+    </systemGroups-instance>
+  </systemGroups-array>
+  <audioSettings reverbEnable="false" ctor="SmoAudioPlayerSettings"/>
+  <layoutManager ctor="SmoLayoutManager">
+    <pageLayouts-array container="array" name="pageLayouts">
+      <pageLayouts-instance leftMargin="35" intraGap="12" ctor="SmoPageLayout"/>
+    </pageLayouts-array>
+    <globalLayout svgScale="0.55" zoomScale="2" noteSpacing="1" pageWidth="1056" pageHeight="816" proportionality="5" maxMeasureSystem="0"/>
+  </layoutManager>
+  <measureFormats-array container="array" name="measureFormats">
+    <measureFormats-instance ctor="SmoMeasureFormat" proportionality="8" padLeft="6" measureIndex="1" skipMeasureCount="true"/>
+  </measureFormats-array>
+  <staves-array container="array" name="tag">
+    <staves-instance ctor="SmoSystemStaff">
+      <modifiers-array container="array" name="modifiers">
+        <modifiers-instance position="1" invert="true" cp1y="45" cp2y="45" ctor="SmoSlur">
+          <startSelector staff="0" measure="0" voice="0" tick="2"/>
+          <endSelector staff="0" measure="1" voice="0" tick="0"/>
+        </modifiers-instance>
+        <modifiers-instance text="accelerando" ctor="SmoStaffTextBracket">
+          <startSelector staff="0" measure="1" voice="0" tick="0"/>
+          <endSelector staff="0" measure="1" voice="0" tick="3"/>
+        </modifiers-instance>
+      </modifiers-array>
+      <partInfo ctor="SmoPartInfo" partName="My Staff" partAbbreviation="1." preserveTextGroups="true">
+        <layoutManager ctor="SmoLayoutManager">
+          <pageLayouts-array container="array" name="pageLayouts">
+            <pageLayouts-instance ctor="SmoPageLayout"/>
+          </pageLayouts-array>
+          <globalLayout svgScale="0.75" zoomScale="2" noteSpacing="1" pageWidth="816" pageHeight="1056" proportionality="5" maxMeasureSystem="0"/>
+        </layoutManager>
+      </partInfo>
+      <measures-array container="array" name="measures">
+        <measures-instance>
+          <measureNumber localIndex="0" measureIndex="0" systemIndex="0" staffId="0"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="a" accidental="n" octave="4"/>
+                  </pitches-array>
+                  <textModifiers-array container="array" name="textModifiers">
+                    <textModifiers-instance ctor="SmoLyric" text="abd">
+                      <fontInfo weight="normal" style="normal" name="lyrics" purpose="4" family="Merriweather" size="12.1" custom="false"/>
+                    </textModifiers-instance>
+                  </textModifiers-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="b" accidental="n" octave="4"/>
+                  </pitches-array>
+                  <textModifiers-array container="array" name="textModifiers">
+                    <textModifiers-instance ctor="SmoLyric" text="d">
+                      <fontInfo weight="normal" style="normal" name="lyrics" purpose="4" family="Merriweather" size="12.1" custom="false"/>
+                    </textModifiers-instance>
+                  </textModifiers-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="c" accidental="n" octave="5"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="5"/>
+                  </pitches-array>
+                  <textModifiers-array container="array" name="textModifiers">
+                    <textModifiers-instance ctor="SmoLyric" text="E@b@@-@7" parser="2">
+                      <fontInfo weight="normal" style="normal" name="chords" purpose="3" family="Times New Roman" size="12" custom="false"/>
+                    </textModifiers-instance>
+                  </textModifiers-array>
+                </notes-instance>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+        </measures-instance>
+        <measures-instance>
+          <measureNumber localIndex="5" measureIndex="1" systemIndex="0" staffId="0"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="e" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="f" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="g" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote"/>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+          <modifiers-array container="array" name="modifiers">
+            <modifiers-instance barline="1" ctor="SmoBarline"/>
+            <modifiers-instance ctor="SmoRehearsalMark"/>
+          </modifiers-array>
+        </measures-instance>
+        <measures-instance>
+          <measureNumber localIndex="6" measureIndex="2" systemIndex="0" staffId="0"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote" noteHead="x2">
+                  <ticks numerator="8192" denominator="1" remainder="0"/>
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="g" octave="4" accidental="n"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="a" octave="4" accidental="n"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" noteHead="T2"/>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+        </measures-instance>
+      </measures-array>
+      <renumberingMap container="numberRecord" name="renumberingMap">
+        <renumberingMap-instance renumberingMap-instance="0" key="0"/>
+        <renumberingMap-instance renumberingMap-instance="5" key="1"/>
+      </renumberingMap>
+      <measureInstrumentMap container="numberRecord" name="measureInstrumentMap">
+        <measureInstrumentMap-instance key="0">
+          <measureInstrumentMap-instance instrumentName="piano" ctor="SmoInstrument">
+            <endSelector staff="0" measure="2" voice="0" tick="-1"/>
+          </measureInstrumentMap-instance>
+        </measureInstrumentMap-instance>
+      </measureInstrumentMap>
+    </staves-instance>
+    <staves-instance ctor="SmoSystemStaff">
+      <modifiers-array container="array" name="modifiers">
+        <modifiers-instance tie_spacing="0" ctor="SmoTie">
+          <startSelector staff="1" measure="2" voice="0" tick="2"/>
+          <endSelector staff="1" measure="2" voice="0" tick="2"/>
+          <lines-array container="array" name="lines">
+            <lines-instance from="0" to="0"/>
+          </lines-array>
+        </modifiers-instance>
+      </modifiers-array>
+      <partInfo ctor="SmoPartInfo" partName="Staff 2" partAbbreviation="2." preserveTextGroups="true">
+        <layoutManager ctor="SmoLayoutManager">
+          <pageLayouts-array container="array" name="pageLayouts">
+            <pageLayouts-instance leftMargin="35" intraGap="12" ctor="SmoPageLayout"/>
+          </pageLayouts-array>
+          <globalLayout svgScale="0.75" zoomScale="2" noteSpacing="0.95" pageWidth="816" pageHeight="1056" proportionality="5" maxMeasureSystem="8"/>
+        </layoutManager>
+      </partInfo>
+      <measures-array container="array" name="measures">
+        <measures-instance clef="bass">
+          <measureNumber localIndex="0" measureIndex="0" systemIndex="0" staffId="1"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="a" accidental="b" octave="3" cautionary="true"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" noteType="r" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                  <textModifiers-array container="array" name="textModifiers">
+                    <textModifiers-instance ctor="SmoDynamicText" text="f"/>
+                  </textModifiers-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+        </measures-instance>
+        <measures-instance clef="bass">
+          <measureNumber localIndex="5" measureIndex="1" systemIndex="0" staffId="1"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote" noteType="r" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="e" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="e" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" noteType="r" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="b" accidental="n" octave="2"/>
+                  </pitches-array>
+                </notes-instance>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+          <modifiers-array container="array" name="modifiers">
+            <modifiers-instance barline="1" ctor="SmoBarline"/>
+            <modifiers-instance ctor="SmoRehearsalMark"/>
+          </modifiers-array>
+        </measures-instance>
+        <measures-instance clef="bass">
+          <measureNumber localIndex="6" measureIndex="2" systemIndex="0" staffId="1"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote" noteType="r" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                  <textModifiers-array container="array" name="textModifiers">
+                    <textModifiers-instance ctor="SmoLyric" text="salongworkd">
+                      <fontInfo weight="normal" style="normal" name="lyrics" purpose="4" family="Merriweather" size="12.1" custom="false"/>
+                    </textModifiers-instance>
+                  </textModifiers-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote" clef="bass">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="3"/>
+                  </pitches-array>
+                </notes-instance>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+        </measures-instance>
+      </measures-array>
+      <renumberingMap container="numberRecord" name="renumberingMap">
+        <renumberingMap-instance renumberingMap-instance="0" key="0"/>
+        <renumberingMap-instance renumberingMap-instance="5" key="1"/>
+      </renumberingMap>
+      <measureInstrumentMap container="numberRecord" name="measureInstrumentMap">
+        <measureInstrumentMap-instance key="0">
+          <measureInstrumentMap-instance instrumentName="piano" ctor="SmoInstrument">
+            <startSelector staff="1" measure="0" voice="0" tick="0"/>
+            <endSelector staff="1" measure="0" voice="0" tick="0"/>
+          </measureInstrumentMap-instance>
+        </measureInstrumentMap-instance>
+        <measureInstrumentMap-instance key="1">
+          <measureInstrumentMap-instance instrumentName="piano" ctor="SmoInstrument">
+            <startSelector staff="1" measure="1" voice="0" tick="0"/>
+            <endSelector staff="1" measure="2" voice="0" tick="0"/>
+          </measureInstrumentMap-instance>
+        </measureInstrumentMap-instance>
+      </measureInstrumentMap>
+    </staves-instance>
+  </staves-array>
+  <columnAttributeMap>
+    <keySignature container="numberRecord" name="keySignature">
+      <keySignature-instance keySignature-instance="c" key="0"/>
+      <keySignature-instance keySignature-instance="d" key="1"/>
+    </keySignature>
+    <renumberingMap container="numberRecord" name="renumberingMap">
+      <renumberingMap-instance renumberingMap-instance="0" key="0"/>
+      <renumberingMap-instance renumberingMap-instance="5" key="1"/>
+    </renumberingMap>
+    <tempo container="numberRecord" name="tempo">
+      <tempo-instance key="0">
+        <tempo-instance tempoMode="custom" bpm="121" display="true" customText="fordo" ctor="SmoTempoText"/>
+      </tempo-instance>
+      <tempo-instance key="2">
+        <tempo-instance ctor="SmoTempoText"/>
+      </tempo-instance>
+    </tempo>
+    <timeSignature container="numberRecord" name="timeSignature">
+      <timeSignature-instance key="0">
+        <timeSignature-instance ctor="TimeSignature"/>
+      </timeSignature-instance>
+      <timeSignature-instance key="1">
+        <timeSignature-instance actualBeats="5" displayString="9/9" ctor="TimeSignature"/>
+      </timeSignature-instance>
+      <timeSignature-instance key="2">
+        <timeSignature-instance actualBeats="2" beatDuration="2" useSymbol="true" ctor="TimeSignature"/>
+      </timeSignature-instance>
+    </timeSignature>
+  </columnAttributeMap>
+</score>

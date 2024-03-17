@@ -447,7 +447,7 @@ function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
       };
       const tpParamString = JSON.stringify(tpParams);
       const narString = '[' + nar.join(',') + ']';
-      strs.push(`const ${tp.attrs.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
+      strs.push(`const ${tp.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
     }
   });
 }
@@ -494,7 +494,7 @@ function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: strin
     strs.push(`${bg.attrs.id}.draw();`)
   });
   smoMeasure.tuplets.forEach((tp) => {
-    strs.push(`${tp.attrs.id}.setContext(context).draw();`)
+    strs.push(`${tp.id}.setContext(context).draw();`)
   })
 }
 // ## SmoToVex

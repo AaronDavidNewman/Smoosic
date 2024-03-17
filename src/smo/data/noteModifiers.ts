@@ -6,7 +6,7 @@
  * @module /smo/data/noteModifiers
  */
 import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase, 
-  Clef, IsClef } from './common';
+  Clef, IsClef, createChildElementRecurse } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
@@ -49,8 +49,13 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
     return rv;
   }
   abstract serialize(): any;
+  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): void;
 }
 
+function  serializeNoteModXml(base: SmoNoteModifierBase, namespace: string, parentElement: Element, tagName: string) {
+  const ser = base.serialize();
+  createChildElementRecurse(ser, namespace, parentElement, tagName);
+}
 export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
   if (typeof(params.clef) === 'string' && params.ctor === 'SmoClefChange') {
     return true;
@@ -101,6 +106,9 @@ export class SmoClefChange extends SmoNoteModifierBase {
       throw('corrupt clef change');
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 }
 /**
@@ -228,6 +236,9 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeNoteModXml(this, namespace, parentElement, tagName);
+  }
 
   constructor(parameters: Partial<GraceNoteParams>) {
     super('SmoGraceNote');
@@ -301,6 +312,9 @@ export class SmoArpeggio extends SmoNoteModifierBase {
       throw 'bad arpeggio ' + JSON.stringify(rv);
     }
     return rv;
+  }
+  serializeXml(namespace: string, parentElement: Element, tag: string) {
+    serializeNoteModXml(this, namespace, parentElement, tag);
   }
 }
 /**
@@ -394,6 +408,9 @@ export class SmoMicrotone extends SmoNoteModifierBase {
       throw 'bad microtone ' + JSON.stringify(params);
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tag: string) {
+    serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoMicrotoneParams) {
     super(parameters.ctor);
@@ -535,6 +552,9 @@ export class SmoOrnament extends SmoNoteModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tag: string) {
+    serializeNoteModXml(this, namespace, parentElement, tag);
+  }
   constructor(parameters: SmoOrnamentParams) {
     super('SmoOrnament');
     smoSerialize.serializedMerge(SmoOrnament.parameterArray, SmoOrnament.defaults, this);
@@ -663,6 +683,9 @@ export class SmoArticulation extends SmoNoteModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tag: string) {
+    serializeNoteModXml(this, namespace, parentElement, tag);
+  }
   constructor(parameters: SmoArticulationParameters) {
     super('SmoArticulation');
     smoSerialize.serializedMerge(SmoArticulation.parameterArray, SmoArticulation.defaults, this);
@@ -682,7 +705,7 @@ export interface VexAnnotationParams {
  * since that can change based on the position of the parent note
  * @category serialization
  */
-export interface SmoLyricPersist extends SmoObjectParams {
+export interface SmoLyricParamsSer extends SmoObjectParams {
   /**
    * constructor
    */
@@ -733,7 +756,7 @@ export interface SmoLyricPersist extends SmoObjectParams {
   text: string | null
 }
 
-function isSmoLyricPersist(params: Partial<SmoLyricPersist>): params is SmoLyricPersist {
+function isSmoLyricPersist(params: Partial<SmoLyricParamsSer>): params is SmoLyricParamsSer {
   if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoLyric') {
     return false;
   }
@@ -863,14 +886,17 @@ export class SmoLyric extends SmoNoteModifierBase {
   hyphenX: number = 0;
   deleted: boolean = false;
 
-  serialize(): SmoLyricPersist {
-    var params: Partial<SmoLyricPersist> = { ctor: 'SmoLyric' };
+  serialize(): SmoLyricParamsSer {
+    var params: Partial<SmoLyricParamsSer> = { ctor: 'SmoLyric' };
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
       SmoLyric.persistArray, this, params);
     if (!isSmoLyricPersist(params)) {
       throw 'bad lyric ' + JSON.stringify('params');
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string): void {
+    serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 
   // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
@@ -955,6 +981,9 @@ export class SmoLyric extends SmoNoteModifierBase {
     super('SmoLyric');
     smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults, this);
     smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+    if (typeof(this.fontInfo.size) !== 'number') {
+      this.fontInfo.size = SmoLyric.defaults.fontInfo.size;
+    }
     // backwards-compatibility for lyric text
     if (parameters.text) {
       this.text = parameters.text;
@@ -978,7 +1007,7 @@ export class SmoLyric extends SmoNoteModifierBase {
  * The persisted bits of {@link SmoDynamicTextParams}
  * @category SmoParams
  */
-export interface SmoDynamicTextPersist extends SmoObjectParams {
+export interface SmoDynamicTextSer extends SmoObjectParams {
   ctor: string,
   xOffset: number,
   fontSize: number,
@@ -990,14 +1019,13 @@ export interface SmoDynamicTextPersist extends SmoObjectParams {
  * Constructor parameters for {@link SmoDynamicText}
  * @category SmoParams
  */
-export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
+export interface SmoDynamicTextParams extends SmoDynamicTextSer {
   ctor: string,
   xOffset: number,
   fontSize: number,
   yOffsetLine: number,
   yOffsetPixels: number,
-  text: string,
-  selector: SmoSelector
+  text: string
 }
 
 /**
@@ -1040,7 +1068,6 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     rv.push('selector');
     return rv;
   }
-  selector: SmoSelector;
   text: string = '';
   yOffsetLine: number = 11;
   yOffsetPixels: number = 0;
@@ -1052,11 +1079,13 @@ export class SmoDynamicText extends SmoNoteModifierBase {
       SmoDynamicText.persistArray, this, params);
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeNoteModXml(this, namespace, parentElement, tagName);
+  }
   constructor(parameters: SmoDynamicTextParams) {
     super('SmoDynamicText');
     smoSerialize.vexMerge(this, SmoDynamicText.defaults);
     smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
-    this.selector = parameters.selector;
 
     if (!this.attrs) {
       this.attrs = {

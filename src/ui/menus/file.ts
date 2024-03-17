@@ -4,7 +4,8 @@ import {
   SuiSaveFileDialog, SuiPrintFileDialog, 
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
   SuiLoadFileDialog, SuiLoadMidiDialog,
-  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog
+  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog,
+  SuiSaveSmoosicXmlDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
 
@@ -44,6 +45,10 @@ export class SuiFileMenu extends SuiMenuBase {
       icon: '',
       text: 'Export MusicXML',
       value: 'exportXml'
+    }, {
+      icon: '',
+      text: 'Export SMO XML',
+      value: 'SMOXML'
     }, {
       icon: '',
       text: 'Export Midi',
@@ -118,6 +123,17 @@ export class SuiFileMenu extends SuiMenuBase {
       createAndDisplayDialog(SuiSaveXmlDialog, {
         ctor: 'SuiSaveXmlDialog',
         id: 'save',
+        modifier: null,
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        eventSource: this.eventSource,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+    } else if (text === 'SMOXML') {
+      createAndDisplayDialog(SuiSaveSmoosicXmlDialog, {
+        ctor: 'SuiSaveSmoosicXmlDialog',
+        id: 'saveSmoXml',
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,

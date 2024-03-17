@@ -350,7 +350,7 @@ export class VxMeasure implements VxMeasureIf {
         location
       }
       const vexTuplet = getVexTuplets(smoTupletParams);
-      this.tupletToVexMap[tp.attrs.id] = vexTuplet;
+      this.tupletToVexMap[tp.id] = vexTuplet;
       this.vexTuplets.push(vexTuplet);
     }
   }

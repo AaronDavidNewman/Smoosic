@@ -9,7 +9,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
+import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, createChildElementRecurse } from './common';
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
@@ -46,13 +46,16 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
-
 export interface StaffModifierBaseSer {
   attrs: SmoAttrs;
   ctor: string;
   associatedStaff: number;
   startSelector: SmoSelector;
   endSelector: SmoSelector;
+}
+export function serializeStaffModXml(base: StaffModifierBase, namespace: string, parentElement: Element, tagName: string) {
+  const ser = base.serialize();
+  createChildElementRecurse(ser, namespace, parentElement, tagName);
 }
 export type SoundSustain = 'percussive' | 'sustained';
 export type oscillatorType = 'sample' | 'sine' | 'sawtooth' | 'square' | 'triangle' | 'custom';
@@ -244,6 +247,9 @@ export class SmoInstrument extends StaffModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeStaffModXml(this, namespace, parentElement, tagName);
+  }
   eq(other: SmoInstrument): boolean {
     let rv = true;
     SmoInstrumentNumParams.forEach((param) => {
@@ -403,6 +409,9 @@ export class SmoStaffHairpin extends StaffModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeStaffModXml(this, namespace, parentElement, tagName);
+  }
   constructor(params: SmoStaffHairpinParams) {
     super('SmoStaffHairpin');
     smoSerialize.vexMerge(this, SmoStaffHairpin.defaults);
@@ -550,6 +559,10 @@ export class SmoStaffTextBracket extends StaffModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    serializeStaffModXml(this, namespace, parentElement, tagName);
+  }
+
   constructor(params: SmoStaffTextBracketParams) {
     super('SmoStaffTextBracket');
     smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, SmoStaffTextBracket.defaults, this);

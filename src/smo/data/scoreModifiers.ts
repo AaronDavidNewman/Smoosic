@@ -7,7 +7,7 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer } from './measureModifiers';
-import { SmoAttrs, getId, SmoModifierBase, SvgBox } from './common';
+import { SmoAttrs, getId, SmoModifierBase, SvgBox, createChildElementRecurse, createChildElementRecord } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
 
@@ -46,6 +46,7 @@ export abstract class SmoScoreModifierBase implements SmoModifierBase {
     };
   }
   abstract serialize(): any;
+  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element;
   static deserialize(jsonObj: any) {
     const ctor = eval('globalThis.Smo.' + jsonObj.ctor);
     const rv = new ctor(jsonObj);
@@ -278,6 +279,18 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
     });
     return rv;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    parentElement.appendChild(el);
+    createChildElementRecord(this.measureFormats, namespace, el, 'measureFormats', false);
+    const ser = this.serialize();
+    Object.keys(ser).forEach((key) => {
+      if (key !== 'measureFormats') {
+        createChildElementRecurse((ser as any)[key], namespace, el, key);
+      }
+    });
+    return el;
+  }
 }
 
 export type SmoAudioPlayerType = 'sampler' | 'synthesizer';
@@ -333,6 +346,10 @@ export class SmoAudioPlayerSettings extends SmoScoreModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoAudioPlayerSettings.defaults, SmoAudioPlayerSettings.attributes, this, params);
     params.ctor = 'SmoAudioPlayerSettings';
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
   }
 }
 export type ScaledPageAttributes = 'leftMargin' | 'rightMargin' | 'topMargin' | 'bottomMargin' | 'interGap' | 'intraGap';
@@ -390,6 +407,10 @@ export class SmoPageLayout extends SmoScoreModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoPageLayout.defaults, SmoPageLayout.attributes, this, params);
     params.ctor = 'SmoPageLayout';
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
   }
 }
 export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
@@ -583,6 +604,10 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     }
     return rv;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
+  }
   updateGlobalLayout(params: SmoGlobalLayout) {
     SmoLayoutManager.attributes.forEach((attr: string) => {
       if (typeof ((params as any)[attr]) !== 'undefined') {
@@ -739,5 +764,9 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       throw 'bad system group ' + JSON.stringify(params);
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    return createChildElementRecurse(ser, namespace, parentElement, tagName);
   }
 }

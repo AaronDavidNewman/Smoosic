@@ -6,7 +6,7 @@
  * @module /smo/data/partInfo
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoObjectParams } from './common';
+import { createChildElementRecurse, createChildElementRecord, createXmlAttribute } from './common';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoLayoutManager, SmoLayoutManagerParamsSer, SmoLayoutManagerParams, SmoPageLayout } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
@@ -272,6 +272,34 @@ export class SmoPartInfo extends StaffModifierBase {
       throw 'bad part info ' + JSON.stringify(rv);
     }
     return rv;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    createXmlAttribute(el, "ctor", "SmoPartInfo");
+    parentElement.appendChild(el);
+    const formattingKeys = Object.keys(this.measureFormatting);
+    if (formattingKeys.length > 0) {
+      const recEl = parentElement.ownerDocument.createElementNS(namespace, 'measureFormatting-record');
+      createXmlAttribute(recEl, "name", "measureFormatting");
+      createXmlAttribute(recEl, "container", "record-number");
+      el.appendChild(recEl);
+      formattingKeys.forEach((fk) => {
+        const mf = this.measureFormatting[parseInt(fk)];
+        const mfInst = parentElement.ownerDocument.createElementNS(namespace, 'measureFormatting-instance');
+        recEl.appendChild(mfInst);
+        createXmlAttribute(mfInst, "key", fk);
+        mf.serializeXml(namespace, mfInst, "value");
+      });
+    }
+    SmoPartAttributesBasic.forEach((attr) => {
+      const obj = this as any;
+      if (obj[attr] && obj[attr] !== (SmoPartInfo.defaults as any)[attr]) {
+        createXmlAttribute(el, attr, obj[attr]);
+      }
+    });
+    if (this.midiInstrument) {
+      createChildElementRecurse(this.midiDevice, namespace, el, "midiInstrument");
+    }
   }
   updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
     const tgid = typeof (textGroup) === 'string' ? textGroup :

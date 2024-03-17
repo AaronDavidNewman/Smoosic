@@ -5,7 +5,8 @@
  * @module /smo/data/score
  */
 import { SmoMusic } from './music';
-import { Clef, SvgDimensions } from './common';
+import { Clef, SvgDimensions, smoXmlNs, 
+  createChildElementRecord, createChildElementRecurse, serializeXmlModifierArray, createXmlAttribute } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
@@ -80,7 +81,6 @@ export interface SmoScoreParams {
    */
   formattingManager?: SmoFormattingManager
 }
-
 function isSmoScoreParams(params: Partial<SmoScoreParams>): params is SmoScoreParams {
   if (params.fonts && params.fonts.length) {
     return true;
@@ -95,7 +95,7 @@ export interface SmoScoreParamsSer {
   /**
    * some information about the score, mostly non-musical
    */
-  score: ScoreMetadataSer,
+  metadata: ScoreMetadataSer,
   /**
    * contained {@link SmoSystemStaffParams} objects
    */  
@@ -130,6 +130,10 @@ export interface SmoScoreParamsSer {
   dictionary: Record<string,string>
 }
 
+export interface SmoScoreSerializeOptions {
+  skipStaves: boolean,
+  useDictionary: boolean
+}
 // dont' deserialize trivial text blocks saved by mistake
 export function isEmptyTextBlock(params: Partial<SmoTextGroupParamsSer>): params is SmoTextGroupParamsSer {
   if (Array.isArray(params?.textBlocks) || Array.isArray((params as any)?.blocks)) {
@@ -143,6 +147,7 @@ export interface ColumnParamsMapType {
   timeSignature: Record<number, TimeSignature>,
   renumberingMap: Record<number, number>
 }
+
 // SmoScoreParemsSer
 export function isSmoScoreParemsSer(params: Partial<SmoScoreParamsSer>): params is SmoScoreParamsSer {
   if (Array.isArray(params.staves)) {
@@ -426,8 +431,9 @@ export class SmoScore {
    * Serialize the entire score.
    * @returns JSON object
    */
-  serialize(skipStaves?: boolean): SmoScoreParamsSer {
-    const params: Partial<SmoScoreParamsSer> = {};
+  serialize(options?: SmoScoreSerializeOptions): SmoScoreParamsSer {
+    const skipStaves = options?.skipStaves ?? false;
+    const useDictionary = options?.skipStaves ?? true;
     let obj: Partial<SmoScoreParamsSer> = {
       layoutManager: { ctor: 'SmoLayoutManager', ...SmoLayoutManager.defaults },
       audioSettings: {},
@@ -435,15 +441,15 @@ export class SmoScore {
       staves: [],
       textGroups: [],
       systemGroups: [],
-      score: SmoScore.scoreMetadataDefaults
+      metadata: SmoScore.scoreMetadataDefaults
     };
     if (this.layoutManager) {
       obj.layoutManager = this.layoutManager.serialize();
     }
-    obj.score!.fonts = JSON.parse(JSON.stringify(this.fonts));
-    obj.score!.renumberingMap = JSON.parse(JSON.stringify(this.renumberingMap));
-    obj.score!.preferences = this.preferences.serialize();
-    obj.score!.scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
+    obj.metadata!.fonts = JSON.parse(JSON.stringify(this.fonts));
+    obj.metadata!.renumberingMap = JSON.parse(JSON.stringify(this.renumberingMap));
+    obj.metadata!.preferences = this.preferences.serialize();
+    obj.metadata!.scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
     if (this.formattingManager) {
       obj.measureFormats = this.formattingManager.serialize();
     }
@@ -451,7 +457,7 @@ export class SmoScore {
     obj.audioSettings = this.audioSettings.serialize();
     if (!skipStaves) {
       this.staves.forEach((staff: SmoSystemStaff) => {
-        obj.staves!.push(staff.serialize());
+        obj.staves!.push(staff.serialize({ skipMaps: true }));
       });
     } else {
       obj.staves = [];
@@ -466,10 +472,57 @@ export class SmoScore {
       obj.systemGroups!.push(gg.serialize());
     });
     obj.columnAttributeMap = this.serializeColumnMapped();
-    smoSerialize.jsonTokens(obj);
-    obj = smoSerialize.detokenize(obj, smoSerialize.tokenValues);
-    obj.dictionary = smoSerialize.tokenMap;
+    if (useDictionary) {
+      smoSerialize.jsonTokens(obj);
+      obj = smoSerialize.detokenize(obj, smoSerialize.tokenValues);
+      obj.dictionary = smoSerialize.tokenMap;
+    }
     return obj as SmoScoreParamsSer;
+  }
+
+  /**
+   * serialize the document in Smoosic XML format
+   * @returns 
+   */
+ serializeXml() {
+    const namespace = smoXmlNs;
+    const doc = document.implementation.createDocument(namespace, '', null);
+    
+    let ser: SmoScoreParamsSer = this.serialize({ skipStaves: false, useDictionary: false });
+    const rootElement = doc.createElementNS(namespace, 'score');
+    // const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
+    doc.appendChild(rootElement);
+    
+    const scoreMetadata = { fonts: ser.metadata.fonts, preferences: ser.metadata.preferences,
+      scoreInfo: ser.metadata.scoreInfo };
+    const scoreElement = createChildElementRecurse( scoreMetadata, namespace, rootElement, 'metadata');
+    const renumberingKeys = Object.keys(ser.metadata.renumberingMap);
+    if (renumberingKeys.length) {
+      const rec = doc.createElementNS(namespace, 'renumberingMap');
+      scoreElement.appendChild(rec);
+      renumberingKeys.forEach((mapKey) => {
+        const inst = doc.createElementNS(namespace, 'renumberingMap-instance');
+        rec.appendChild(inst);
+        createXmlAttribute(inst, 'localIndex', ser.metadata.renumberingMap[mapKey]);
+        createXmlAttribute(inst, 'measureIndex', mapKey);
+      });
+    }
+    createChildElementRecurse(ser.textGroups, namespace, rootElement, 'textGroups');
+    createChildElementRecurse(ser.systemGroups, namespace, rootElement, 'systemGroups');
+    createChildElementRecurse(ser.audioSettings, namespace, rootElement, 'audioSettings');
+    createChildElementRecurse(ser.layoutManager, namespace, rootElement, 'layoutManager');
+    createChildElementRecurse(ser.measureFormats, namespace, rootElement, 'measureFormats');
+    serializeXmlModifierArray(this.staves, namespace, rootElement, 'staves');
+    const columnParamsElem = doc.createElementNS(namespace, 'columnAttributeMap');
+    rootElement.appendChild(columnParamsElem);
+    createChildElementRecord(ser.columnAttributeMap.keySignature, namespace, columnParamsElem, 'keySignature', true);
+    createChildElementRecord(ser.columnAttributeMap.renumberingMap, namespace, columnParamsElem, 'renumberingMap', true);
+    createChildElementRecord(ser.columnAttributeMap.tempo, namespace, columnParamsElem, 'tempo', true);
+    createChildElementRecord(ser.columnAttributeMap.timeSignature, namespace, columnParamsElem, 'timeSignature', true);
+    const ndoc = smoSerialize.prettifyXml(doc);
+    const piElement = ndoc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
+    ndoc.insertBefore(piElement, ndoc.firstChild);
+    return ndoc;
   }
   updateScorePreferences(pref: SmoScorePreferences) {
     this.preferences = pref;
@@ -568,12 +621,16 @@ export class SmoScore {
 
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
+    // 'score' attribute name changes to 'metadata'
+    if (typeof((jsonObj as any).score) !== 'undefined') {
+      jsonObj.metadata = (jsonObj as any).score;
+    }
     // meaning of customProportion has changed, backwards-compatiblity
-    if (typeof(jsonObj.score) === 'undefined') {
+    if (typeof(jsonObj.metadata) === 'undefined') {
       throw 'bad score ' + JSON.stringify(jsonObj);
     }
     // upconvert old proportion operator
-    const jsonPropUp = jsonObj.score.preferences as any;
+    const jsonPropUp = jsonObj.metadata.preferences as any;
     if (typeof (jsonPropUp) !== 'undefined' && typeof (jsonPropUp.customProportion) === 'number') {
       SmoMeasureFormat.defaults.proportionality = jsonPropUp.customProportion;
       if (SmoMeasureFormat.defaults.proportionality === SmoMeasureFormat.legacyProportionality) {
@@ -581,7 +638,7 @@ export class SmoScore {
       }
     }
     // up-convert legacy layout data
-    if ((jsonObj.score as any).layout) {
+    if ((jsonObj.metadata as any).layout) {
       SmoScore.upConvertLayout(jsonObj);
     }
     if (jsonObj.layoutManager && !jsonObj.layoutManager.globalLayout) {
@@ -610,16 +667,16 @@ export class SmoScore {
       SmoScore.scoreMetadataDefaults, params);    
     smoSerialize.serializedMerge(
       ['renumberingMap', 'fonts'],
-      jsonObj.score, params);
-    if (jsonObj.score.preferences) {
-      params.preferences = new SmoScorePreferences(jsonObj.score.preferences);
+      jsonObj.metadata, params);
+    if (jsonObj.metadata.preferences) {
+      params.preferences = new SmoScorePreferences(jsonObj.metadata.preferences);
     } else {
       params.preferences = new SmoScorePreferences(SmoScorePreferences.defaults);
     }
-    if (jsonObj.score.scoreInfo) {
+    if (jsonObj.metadata.scoreInfo) {
       const scoreInfo: Partial<SmoScoreInfo> = {};
       smoSerialize.serializedMerge(SmoScoreInfoKeys, SmoScore.scoreInfoDefaults, scoreInfo);
-      smoSerialize.serializedMerge(SmoScoreInfoKeys, jsonObj.score.scoreInfo, scoreInfo);
+      smoSerialize.serializedMerge(SmoScoreInfoKeys, jsonObj.metadata.scoreInfo, scoreInfo);
       params.scoreInfo = (scoreInfo as SmoScoreInfo);
     } else {
       params.scoreInfo = SmoScore.scoreInfoDefaults;

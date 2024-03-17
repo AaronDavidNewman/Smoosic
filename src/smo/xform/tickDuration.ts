@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoNote, TupletInfo } from '../data/note';
+import { SmoNote } from '../data/note';
 import { SmoTuplet } from '../data/tuplet';
 import { SmoMusic } from '../data/music';
 import { SmoSelector, SmoSelection } from './selections';
@@ -390,7 +390,7 @@ export class SmoUnmakeTupletActor extends TickIteratorBase {
       }
       const ticks = tuplet.totalTicks;
       const nn: SmoNote = SmoNote.cloneWithDuration(note, { numerator: ticks, denominator: 1, remainder: 0 });
-      nn.tuplet = {} as TupletInfo;
+      nn.tupletId = null;
       this.measure.removeTupletForNote(note);
       return [nn];
     }

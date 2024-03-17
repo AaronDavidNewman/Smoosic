@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><score xmlns="https://aarondavidnewman.github.io/Smoosic">
+  <metadata>
+    <fonts-array container="array" name="fonts">
+      <fonts-instance name="engraving" purpose="1" family="Bravura" size="1" custom="false"/>
+      <fonts-instance name="score" purpose="2" family="Merriweather" size="14" custom="false"/>
+      <fonts-instance name="chords" purpose="3" family="Roboto Slab" size="14" custom="false"/>
+      <fonts-instance name="lyrics" purpose="4" family="Merriweather" size="12" custom="false"/>
+    </fonts-array>
+    <preferences autoPlay="true" autoAdvance="true" defaultDupleDuration="4096" defaultTripleDuration="6144" showPiano="false" hideEmptyLines="false" transposingScore="false"/>
+    <scoreInfo name="Smoosical" title="Smoosical" subTitle="(Op. 1)" composer="Me" copyright=""/>
+  </metadata>
+  <audioSettings ctor="SmoAudioPlayerSettings"/>
+  <layoutManager ctor="SmoLayoutManager">
+    <pageLayouts-array container="array" name="pageLayouts">
+      <pageLayouts-instance ctor="SmoPageLayout"/>
+    </pageLayouts-array>
+    <globalLayout svgScale="0.55" zoomScale="2" noteSpacing="1" pageWidth="816" pageHeight="1056" proportionality="5" maxMeasureSystem="0"/>
+  </layoutManager>
+  <staves-array container="array" name="tag">
+    <staves-instance ctor="SmoSystemStaff">
+      <partInfo ctor="SmoPartInfo" partName="Staff 1" partAbbreviation="1.">
+        <layoutManager ctor="SmoLayoutManager">
+          <pageLayouts-array container="array" name="pageLayouts">
+            <pageLayouts-instance ctor="SmoPageLayout"/>
+          </pageLayouts-array>
+          <globalLayout svgScale="0.55" zoomScale="2" noteSpacing="1" pageWidth="816" pageHeight="1056" proportionality="5" maxMeasureSystem="0"/>
+        </layoutManager>
+      </partInfo>
+      <measures-array container="array" name="measures">
+        <measures-instance>
+          <measureNumber localIndex="0" measureIndex="0" systemIndex="0" staffId="0"/>
+          <voices-array container="array" name="voices">
+            <voices-instance>
+              <notes-array container="array" name="notes">
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="a" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="b" accidental="n" octave="4"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="c" accidental="n" octave="5"/>
+                  </pitches-array>
+                </notes-instance>
+                <notes-instance ctor="SmoNote">
+                  <pitches-array container="array" name="pitches">
+                    <pitches-instance letter="d" accidental="n" octave="5"/>
+                  </pitches-array>
+                </notes-instance>
+              </notes-array>
+            </voices-instance>
+          </voices-array>
+        </measures-instance>
+      </measures-array>
+      <renumberingMap container="numberRecord" name="renumberingMap" renumberingMap-instance="0" key="0"/>
+      <measureInstrumentMap container="numberRecord" name="measureInstrumentMap">
+        <measureInstrumentMap-instance instrumentName="piano" ctor="SmoInstrument" key="0"/>
+      </measureInstrumentMap>
+    </staves-instance>
+  </staves-array>
+  <columnAttributeMap>
+    <keySignature container="numberRecord" name="keySignature" keySignature-instance="c" key="0"/>
+    <renumberingMap container="numberRecord" name="renumberingMap" renumberingMap-instance="0" key="0"/>
+    <tempo container="numberRecord" name="tempo">
+      <tempo-instance ctor="SmoTempoText" key="0"/>
+    </tempo>
+    <timeSignature container="numberRecord" name="timeSignature">
+      <timeSignature-instance ctor="TimeSignature" key="0"/>
+    </timeSignature>
+  </columnAttributeMap>
+</score>
