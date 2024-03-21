@@ -7,7 +7,8 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer } from './measureModifiers';
-import { SmoAttrs, getId, SmoModifierBase, SvgBox, createChildElementRecurse, createChildElementRecord } from './common';
+import { SmoAttrs, getId, SmoModifierBase, SvgBox, 
+  createChildElementRecurse, createXmlAttribute, serializeXmlArray, serializeXmlRecord } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
 
@@ -280,15 +281,10 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
     return rv;
   }
   serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    const el = parentElement.ownerDocument.createElementNS(namespace, `${tagName}`);
     parentElement.appendChild(el);
-    createChildElementRecord(this.measureFormats, namespace, el, 'measureFormats', false);
-    const ser = this.serialize();
-    Object.keys(ser).forEach((key) => {
-      if (key !== 'measureFormats') {
-        createChildElementRecurse((ser as any)[key], namespace, el, key);
-      }
-    });
+    serializeXmlRecord(namespace, el, this.measureFormats, 'measureFormats');
+    createXmlAttribute(el, 'partIndex', this.partIndex);
     return el;
   }
 }
@@ -605,8 +601,12 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     return rv;
   }
   serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    parentElement.appendChild(el);
     const ser = this.serialize();
-    return createChildElementRecurse(ser, namespace, parentElement, tagName);
+    createChildElementRecurse(ser.globalLayout, namespace, el, 'globalLayout');
+    serializeXmlArray(namespace, el, this.pageLayouts, 'pageLayouts');
+    return el;
   }
   updateGlobalLayout(params: SmoGlobalLayout) {
     SmoLayoutManager.attributes.forEach((attr: string) => {

@@ -98,7 +98,7 @@ function smoNoteToStaveNote(smoNote: SmoNote) {
   return sn;
 }
 export const getVoiceId = (smoMeasure:SmoMeasure, voiceIx: number) => {
-  return smoMeasure.attrs.id + 'v' + voiceIx.toString();
+  return smoMeasure.id + 'v' + voiceIx.toString();
 }
 function lastNoteInSystem(smoScore: SmoScore, selection: SmoSelection) {
     let rv = selection;
@@ -120,7 +120,7 @@ function createMeasureModifiers(smoMeasure: SmoMeasure, strs: string[]) {
   const sb = smoMeasure.getStartBarline();
   const eb = smoMeasure.getEndBarline();
   const sym = smoMeasure.getRepeatSymbol();
-  const vxStave = 'stave' + smoMeasure.attrs.id;
+  const vxStave = 'stave' + smoMeasure.id;
   if (smoMeasure.measureNumber.systemIndex !== 0 && sb.barline === SmoBarline.barlines.singleBar
     && smoMeasure.format.padLeft === 0) {
       strs.push(`${vxStave}.setBegBarType(VF.Barline.type.NONE);`);
@@ -156,8 +156,8 @@ export function renderVoltas(smoScore: SmoScore, startMeasure: number, endMeasur
       const smoMeasure = smoScore.staves[0].measures[j];
       const vtype = toVexVolta(ending, smoMeasure.measureNumber.measureIndex);
       const vx = smoMeasure.staffX + ending.xOffsetStart;
-      const vxStave = 'stave' + smoMeasure.attrs.id;
-      const endingName = ending.attrs.id + smoMeasure.attrs.id;
+      const vxStave = 'stave' + smoMeasure.id;
+      const endingName = ending.attrs.id + smoMeasure.id;
       strs.push(`const ${endingName} = new VF.Volta(${vtype}, '${ending.number.toString()}', ${vx}, ${ending.yOffset});`);
       strs.push(`${endingName}.setContext(context).draw(${vxStave}, -1 * ${ending.xOffsetEnd});`);
     }
@@ -452,7 +452,7 @@ function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
   });
 }
 function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
-  const ssid = 'stave' + smoMeasure.attrs.id;
+  const ssid = 'stave' + smoMeasure.id;
   const staffY = smoMeasure.svg.staffY + heightOffset;
   const staffWidth = Math.round(smoMeasure.svg.staffWidth);
   strs.push(`const ${ssid} = new VF.Stave(${smoMeasure.svg.staffX}, ${staffY}, ${staffWidth});`);
@@ -475,7 +475,7 @@ function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: strin
   }
   if (smoMeasure.svg.forceKeySignature) {
     const key = SmoMusic.vexKeySignatureTranspose(smoMeasure.keySignature, 0);
-    const ksid = 'key' + smoMeasure.attrs.id;
+    const ksid = 'key' + smoMeasure.id;
     strs.push(`const ${ksid} = new VF.KeySignature('${key}');`);
     if (smoMeasure.canceledKeySignature) {
       const canceledKey = SmoMusic.vexKeySignatureTranspose(smoMeasure.canceledKeySignature, 0);
@@ -569,7 +569,7 @@ export class SmoToVex {
         const tickmapObject = smoMeasure.createMeasureTickmaps();
         const measureIx = smoMeasure.measureNumber.measureIndex;
         const voiceStrings: string[] = [];
-        const fmtid = 'fmt' + smoMeasure.attrs.id + measureIx.toString();
+        const fmtid = 'fmt' + smoMeasure.id + measureIx.toString();
         strs.push(`const ${fmtid} = new VF.Formatter();`);
         if (!groupMap[justifyGroup]) {
           groupMap[justifyGroup] = {
@@ -609,8 +609,8 @@ export class SmoToVex {
             const tmpGroup = groupMap[mapKey];
             if (tmpGroup.systemGroup) {
               const systemIndex = smoMeasure.measureNumber.systemIndex;
-              const startMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.startSelector.staff].measures[k].attrs.id;
-              const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].attrs.id;
+              const startMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.startSelector.staff].measures[k].id;
+              const endMeasure = 'stave' + smoScore.staves[tmpGroup.systemGroup.endSelector.staff].measures[k].id;
               const leftConnector = leftConnectorVx(tmpGroup.systemGroup);
               const rightConnector = rightConnectorVx(tmpGroup.systemGroup);
               const jgname = justifyGroup + startMeasure + staffIx.toString();

@@ -6,7 +6,8 @@
  * @module /smo/data/systemStaff
  * **/
 import { SmoObjectParams, SmoAttrs, MeasureNumber, getId, 
-  createChildElementRecurse, createChildElementRecord, createXmlAttribute } from './common';
+  serializeXmlRecStringMap, createXmlAttribute, serializeXmlArray, 
+  serializeXmlRecord, serializeXmlModifierArray } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
@@ -48,7 +49,6 @@ export interface SmoSystemStaffParams {
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
   textBrackets?: SmoStaffTextBracket[];
-  alignWithPrevious?: boolean;
 }
 /**
  * Serialized components of a stave
@@ -70,7 +70,7 @@ export interface SmoSystemStaffParamsSer {
   /**
    * locations of key signature changes
    */
-  keySignatureMap: Record<number, string>,
+  keySignatureMap?: Record<number, string>,
   /**
    * map of measures to instruments (clef, transpose, sounds)
    */
@@ -86,15 +86,11 @@ export interface SmoSystemStaffParamsSer {
   /**
    * Associated part information for this stave
    */
-  partInfo?: SmoPartInfoParamsSer;
+  partInfo: SmoPartInfoParamsSer;
   /**
    * text brackets are another kind of modifier
    */
-  textBrackets?: SmoStaffTextBracketParamsSer[];
-  /**
-   * align the groups of measures in a score
-   */
-  alignWithPrevious?: boolean;
+  textBrackets: SmoStaffTextBracketParamsSer[];
 }
 
 function isSmoSystemStaffParamsSer(params: Partial<SmoSystemStaffParamsSer>):params is SmoSystemStaffParamsSer {
@@ -140,7 +136,6 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
     return rv;
   }
-
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
@@ -226,7 +221,7 @@ export class SmoSystemStaff implements SmoObjectParams {
    * @type {string[]}
    * @memberof SmoSystemStaff
    */
-  static serializableElements: string[] = ['ctor', 'staffId', 'modifiers', 'textBrackets', 'alignWithPrevious'];
+  static serializableElements: string[] = ['ctor', 'staffId'];
   static recordElements: string[] = ['renumberingMap', 'keySignatureMap', 'measureInstrumentMap'];
   
   // ### defaultParameters
@@ -277,20 +272,19 @@ export class SmoSystemStaff implements SmoObjectParams {
     parentElement.appendChild(el);
     const ser = this.serialize({ skipMaps: true });
     SmoSystemStaff.serializableElements.forEach((param) => {
-      createChildElementRecurse((ser as any)[param], namespace, el, param);
+      createXmlAttribute(el, param, (ser as any)[param]);
     });
+    const mods = this.modifiers.concat(this.textBrackets);
+    serializeXmlModifierArray(mods, namespace, el, 'modifiers');
+    if (Object.keys(this.renumberingMap).length > 0) {
+      serializeXmlRecStringMap(namespace, el, this.renumberingMap, 'renumberingMap');
+    }
     // partInfo has records so we need it to deserialize
     this.partInfo.serializeXml(namespace, el, 'partInfo');
-    const arEl = parentElement.ownerDocument.createElementNS(namespace, `measures-array`);
-    el.appendChild(arEl);
-    createXmlAttribute(arEl, 'container', 'array');
-    createXmlAttribute(arEl, 'name', 'measures');
-    this.measures.forEach((mm) => {
-      mm.serializeXml(namespace, arEl, 'measures-instance');
-    });
-    SmoSystemStaff.recordElements.forEach((param) => {
-      createChildElementRecord((ser as any)[param], namespace, el, param, true);
-    });
+    serializeXmlArray(namespace, el, this.measures, 'measures');
+    serializeXmlRecord(namespace, el, this.measureInstrumentMap, 'measureInstrumentMap');
+    createXmlAttribute(el, 'ctor', 'SmoSystemStaff');
+    createXmlAttribute(el, 'staffId', this.staffId);
     return el;
   }
   // ### deserialize
@@ -550,18 +544,20 @@ export class SmoSystemStaff implements SmoObjectParams {
       measure.setChordAdjustWidth(adjustNoteWidth);
     });
   }
-  addTextBracket(bracketParams: SmoStaffTextBracket) {    
+  addTextBracket(bracketParams: SmoStaffTextBracket) {
     const nb = new SmoStaffTextBracket(bracketParams);
     const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+   
     brackets.push(new SmoStaffTextBracket(bracketParams));
-    this.textBrackets = brackets;
+    
   }
   removeTextBracket(bracketParams: SmoStaffTextBracket) {    
     const nb = new SmoStaffTextBracket(bracketParams);
     const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
-    this.textBrackets = brackets;
+      brackets.push(new SmoStaffTextBracket(bracketParams));
+      this.textBrackets = brackets;
   }
   getTextBracketsStartingAt(selector: SmoSelector) {
     return this.textBrackets.filter((tb) => SmoSelector.eq(tb.startSelector, selector));

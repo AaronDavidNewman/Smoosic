@@ -12,47 +12,47 @@
     <xs:attribute type="xs:integer" name="tick" use="optional"/>
   </xs:complexType>
   <xs:complexType name="tupletNoteType">
-  <xs:sequence>
-    <xs:element name="ticks" type="myns:tickType"/>
-  </xs:sequence>    
-  <xs:attribute type="xs:string" name="tupletId" use="optional" />
-  <xs:attribute type="xs:string" name="noteId" use="optional" />
-</xs:complexType>
-<xs:complexType name="tupletType">
-  <xs:sequence>
-    <xs:element name="ticks" type="myns:tickType"/>
-    <xs:element name="notes-array">
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="notes-instance" type="myns:tupletNoteType" minOccurs="1" maxOccurs="unbounded" />
-        </xs:sequence>
-        <xs:attribute type="xs:string" name="container" use="required" fixed="array" />
-        <xs:attribute type="xs:string" name="name" use="required" fixed="notes" />
-      </xs:complexType>
-    </xs:element>
-    <xs:element name="durationMap-array">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="durationMap-instance" minOccurs="1" maxOccurs="unbounded">
-          <xs:complexType>
-            <xs:attribute type="xs:integer" name="value" use="required" />
-          </xs:complexType>
-        </xs:element>
-      </xs:sequence>
-      <xs:attribute type="xs:string" name="container" use="required" fixed="numberArray" />
-    </xs:complexType>
-    </xs:element>
-  </xs:sequence>    
-  <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoTuplet"/>
-  <xs:attribute type="xs:string" name="id" use="required"/>
-  <xs:attribute type="xs:integer" name="numNotes" use="optional" default="3" />
-  <xs:attribute type="xs:integer" name="stemTickes" use="optional" default="2048" />
-  <xs:attribute type="xs:integer" name="totalTicks" use="optional" default="4096" />
-  <xs:attribute type="xs:boolean" name="ratioed" use="optional" default="false" />
-  <xs:attribute type="xs:boolean" name="bracketed" use="optional" default="true" />
-  <xs:attribute type="xs:integer" name="voice" use="optional" default="0" />
-  <xs:attribute type="xs:integer" name="startIndex" use="optional" default="0" />
-</xs:complexType>
+    <xs:sequence>
+      <xs:element name="ticks" type="myns:tickType"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="tupletId" use="optional" />
+    <xs:attribute type="xs:string" name="noteId" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="tupletType">
+    <xs:sequence>
+      <xs:element name="ticks" type="myns:tickType"/>
+      <xs:element name="notes-array">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="notes-instance" type="myns:tupletNoteType" minOccurs="1" maxOccurs="unbounded" />
+          </xs:sequence>
+          <xs:attribute type="xs:string" name="container" use="required" fixed="array" />
+          <xs:attribute type="xs:string" name="name" use="required" fixed="notes" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="durationMap-array">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="durationMap-instance" minOccurs="1" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute type="xs:integer" name="value" use="required" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute type="xs:string" name="container" use="required" fixed="numberArray" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoTuplet"/>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+    <xs:attribute type="xs:integer" name="numNotes" use="optional" default="3" />
+    <xs:attribute type="xs:integer" name="stemTickes" use="optional" default="2048" />
+    <xs:attribute type="xs:integer" name="totalTicks" use="optional" default="4096" />
+    <xs:attribute type="xs:boolean" name="ratioed" use="optional" default="false" />
+    <xs:attribute type="xs:boolean" name="bracketed" use="optional" default="true" />
+    <xs:attribute type="xs:integer" name="voice" use="optional" default="0" />
+    <xs:attribute type="xs:integer" name="startIndex" use="optional" default="0" />
+  </xs:complexType>
   <xs:complexType name="fontInfo">
     <xs:attribute type="xs:string" name="name" use="optional" />
     <xs:attribute type="xs:string" name="family" use="optional" default="serif"/>
@@ -88,16 +88,16 @@
   </xs:complexType>
   <xs:complexType name="layoutManager">
     <xs:sequence>
+      <xs:element name="globalLayout" type="myns:globalLayout" />
       <xs:element name="pageLayouts-array">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="pageLayouts-instance" type="myns:pageLayout" />
           </xs:sequence>
-          <xs:attribute type="xs:string" name="container" use="optional"/>
-          <xs:attribute type="xs:string" name="name" use="optional"/>
+          <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
+          <xs:attribute type="xs:string" name="name" use="required" fixed="pageLayouts"/>
         </xs:complexType>
       </xs:element>
-      <xs:element name="globalLayout" type="myns:globalLayout" />
     </xs:sequence>
     <xs:attribute type="xs:string" name="ctor" use="optional"/>
   </xs:complexType>
@@ -139,7 +139,7 @@
     <xs:sequence>
       <xs:element name="startSelector" type="myns:selector" maxOccurs="1" minOccurs="0" />
       <xs:element name="endSelector" type="myns:selector" maxOccurs="1" minOccurs="0" />
-      <xs:element name="attrs" type="myns:attributes" maxOccurs="1" minOccurs="1" />
+      <xs:element name="attrs" type="myns:attributes" maxOccurs="1" minOccurs="0" />
       <xs:element name="lines-array" maxOccurs="1" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
@@ -164,7 +164,7 @@
       <xs:element name="endSelector" type="myns:selector" maxOccurs="1" minOccurs="0" />
       <xs:element name="attrs" type="myns:attributes" maxOccurs="1" minOccurs="0" />
     </xs:sequence>
-    <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoTextBracket" />
+    <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoStaffTextBracket" />
     <xs:attribute type="xs:integer" name="line" use="optional" default="0"/>
     <xs:attribute type="xs:integer" name="position" use="optional" default="0"/>
     <xs:attribute type="xs:string" name="text" use="optional" default=""/>
@@ -176,6 +176,7 @@
       <xs:element name="endSelector" type="myns:selector" maxOccurs="1" minOccurs="0" />
       <xs:element name="attrs" type="myns:attributes" maxOccurs="1" minOccurs="0" />
     </xs:sequence>
+    <xs:attribute type="xs:integer" name="key" use="optional" default="0"/>
     <xs:attribute type="xs:string" name="ctor" use="required"/>
     <xs:attribute type="xs:string" name="instrumentName" use="optional" default=""/>
     <xs:attribute type="xs:string" name="family" use="optional" default=""/>
@@ -190,9 +191,10 @@
   </xs:complexType>
   <xs:complexType name="measureFormat">
     <xs:attribute type="xs:string" name="ctor" />
+    <xs:attribute type="xs:integer" use="optional" name="key" default="0" />
+    <xs:attribute type="xs:integer" use="optional" name="measureIndex" default="0" />
     <xs:attribute type="xs:integer" name="proportionality" use="optional" default="0"/>
     <xs:attribute type="xs:integer" name="padLeft" use="optional" default="0"/>
-    <xs:attribute type="xs:integer" name="measureIndex" use="optional" default="0"/>
     <xs:attribute type="xs:integer" name="customStretch" use="optional" default="0"/>
     <xs:attribute type="xs:boolean" name="skipMeasureCount" use="optional" default="false"/>
     <xs:attribute type="xs:boolean" name="autoJustify" use="optional"/>
@@ -263,7 +265,7 @@
     <xs:attribute type="xs:integer" name="bpm" use="optional" />
     <xs:attribute type="xs:integer" name="yOffset" use="optional" />
     <xs:attribute type="xs:boolean" name="display" use="optional" />
-    <xs:attribute type="xs:integer" name="measureIndex" />
+    <xs:attribute type="xs:integer" name="key" />
   </xs:complexType>
   <xs:complexType name="measureTextType">
     <xs:sequence>
@@ -285,7 +287,7 @@
   </xs:complexType>
   <xs:complexType name="timeSignatureType">
     <xs:attribute type="xs:string" name="ctor" use="required" fixed="TimeSignature" />
-    <xs:attribute type="xs:integer" name="measureIndex" use="optional" default="0" />
+    <xs:attribute type="xs:integer" name="key" use="optional" default="0" />
     <xs:attribute type="xs:integer" name="actualBeats" use="optional" default="4" />
     <xs:attribute type="xs:integer" name="beatDuration" use="optional" default="4" />
     <xs:attribute type="xs:boolean" name="useSymbol" use="optional" default="false" />
@@ -363,9 +365,79 @@
     <xs:attribute type="xs:float" name="xOffset" use="optional" default="0"/>
     <xs:attribute type="xs:float" name="fontSize" use="optional" default="30"/>
   </xs:complexType>
+  <xs:complexType name="textGroupType">
+    <xs:sequence>
+      <xs:element name="textGroups-instance" maxOccurs="unbounded" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="textBlocks-array">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="textBlocks-instance">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="text">
+                          <xs:complexType>
+                            <xs:sequence>
+                              <xs:element name="fontInfo">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute type="xs:float" name="size" use="optional"/>
+                                      <xs:attribute type="xs:string" name="family" use="optional"/>
+                                      <xs:attribute type="xs:string" name="style" use="optional"/>
+                                      <xs:attribute type="xs:string" name="weight" use="optional"/>
+                                    </xs:extension>
+                                  </xs:simpleContent>
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute type="xs:float" name="x" use="optional"/>
+                            <xs:attribute type="xs:float" name="y" use="optional"/>
+                            <xs:attribute type="xs:string" name="text" use="optional"/>
+                            <xs:attribute type="xs:string" name="pagination" use="optional"/>
+                            <xs:attribute type="xs:string" name="position" use="optional"/>
+                            <xs:attribute type="xs:string" name="classes" use="optional"/>
+                            <xs:attribute type="xs:string" name="boxModel" use="optional"/>
+                            <xs:attribute type="xs:byte" name="scaleX" use="optional"/>
+                            <xs:attribute type="xs:byte" name="scaleY" use="optional"/>
+                            <xs:attribute type="xs:byte" name="translateX" use="optional"/>
+                            <xs:attribute type="xs:byte" name="translateY" use="optional"/>
+                            <xs:attribute type="xs:string" name="autoLayout" use="optional"/>
+                            <xs:attribute type="xs:string" name="ctor" use="optional"/>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                      <xs:attribute type="xs:byte" name="position" use="optional"/>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+                <xs:attribute type="xs:string" name="container" use="optional"/>
+                <xs:attribute type="xs:string" name="name" use="optional"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="attrs">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute type="xs:string" name="id" use="optional"/>
+                    <xs:attribute type="xs:string" name="type" use="optional"/>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute type="xs:string" name="ctor" use="optional"/>
+          <xs:attribute type="xs:byte" name="pagination" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="container"/>
+    <xs:attribute type="xs:string" name="name"/>
+  </xs:complexType>
   <xs:element name="score">
     <xs:complexType>
-      <xs:sequence>
+      <xs:all>
         <xs:element name="metadata">
           <xs:complexType>
             <xs:sequence>
@@ -409,76 +481,11 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="textGroups-array" maxOccurs="unbounded" minOccurs="0">
+        <xs:element name="textGroups-array" maxOccurs="1" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="textGroups-instance" maxOccurs="unbounded" minOccurs="0">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="textBlocks-array">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="textBlocks-instance">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="text">
-                                  <xs:complexType>
-                                    <xs:sequence>
-                                      <xs:element name="fontInfo">
-                                        <xs:complexType>
-                                          <xs:simpleContent>
-                                            <xs:extension base="xs:string">
-                                              <xs:attribute type="xs:float" name="size" use="optional"/>
-                                              <xs:attribute type="xs:string" name="family" use="optional"/>
-                                              <xs:attribute type="xs:string" name="style" use="optional"/>
-                                              <xs:attribute type="xs:string" name="weight" use="optional"/>
-                                            </xs:extension>
-                                          </xs:simpleContent>
-                                        </xs:complexType>
-                                      </xs:element>
-                                    </xs:sequence>
-                                    <xs:attribute type="xs:float" name="x" use="optional"/>
-                                    <xs:attribute type="xs:float" name="y" use="optional"/>
-                                    <xs:attribute type="xs:string" name="text" use="optional"/>
-                                    <xs:attribute type="xs:string" name="pagination" use="optional"/>
-                                    <xs:attribute type="xs:string" name="position" use="optional"/>
-                                    <xs:attribute type="xs:string" name="classes" use="optional"/>
-                                    <xs:attribute type="xs:string" name="boxModel" use="optional"/>
-                                    <xs:attribute type="xs:byte" name="scaleX" use="optional"/>
-                                    <xs:attribute type="xs:byte" name="scaleY" use="optional"/>
-                                    <xs:attribute type="xs:byte" name="translateX" use="optional"/>
-                                    <xs:attribute type="xs:byte" name="translateY" use="optional"/>
-                                    <xs:attribute type="xs:string" name="autoLayout" use="optional"/>
-                                    <xs:attribute type="xs:string" name="ctor" use="optional"/>
-                                  </xs:complexType>
-                                </xs:element>
-                              </xs:sequence>
-                              <xs:attribute type="xs:byte" name="position" use="optional"/>
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:sequence>
-                        <xs:attribute type="xs:string" name="container" use="optional"/>
-                        <xs:attribute type="xs:string" name="name" use="optional"/>
-                      </xs:complexType>
-                    </xs:element>
-                    <xs:element name="attrs">
-                      <xs:complexType>
-                        <xs:simpleContent>
-                          <xs:extension base="xs:string">
-                            <xs:attribute type="xs:string" name="id" use="optional"/>
-                            <xs:attribute type="xs:string" name="type" use="optional"/>
-                          </xs:extension>
-                        </xs:simpleContent>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute type="xs:string" name="ctor" use="optional"/>
-                  <xs:attribute type="xs:byte" name="pagination" use="optional"/>
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-            <xs:attribute type="xs:string" name="container"/>
-            <xs:attribute type="xs:string" name="name"/>
+            <xs:element name="textGroups-instance" type="myns:textGroupType" />
+          </xs:sequence>
           </xs:complexType>
         </xs:element>
         <xs:element name="systemGroups-array" maxOccurs="1" minOccurs="0">
@@ -506,14 +513,21 @@
         <xs:element name="audioSettings" type="myns:audioSettings">
         </xs:element>
         <xs:element name="layoutManager" type="myns:layoutManager" />
-        <xs:element name="measureFormats-array" maxOccurs="1" minOccurs="0">
+        <xs:element name="formattingManager">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="measureFormats-instance" type="myns:measureFormat">
-              </xs:element>
+              <xs:element name="measureFormats-map" maxOccurs="1" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="measureFormats-instance" type="myns:measureFormat">
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="container" use="required" fixed="numberObjectMap"/>
+                  <xs:attribute type="xs:string" name="name" use="required" fixed="measureFormats"/>
+                </xs:complexType>
+              </xs:element>      
             </xs:sequence>
-            <xs:attribute type="xs:string" name="container"/>
-            <xs:attribute type="xs:string" name="name"/>
+            <xs:attribute type="xs:integer" name="partIndex" use="optional" default="-1"/>
           </xs:complexType>
         </xs:element>
         <xs:element name="staves-array">
@@ -521,25 +535,45 @@
             <xs:sequence>
               <xs:element name="staves-instance" maxOccurs="unbounded" minOccurs="0">
                 <xs:complexType>
-                  <xs:sequence>
+                  <xs:all>
+                    <xs:element name="renumberingMap-map" minOccurs="0" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="renumberingMap-instance" maxOccurs="unbounded" minOccurs="1">
+                            <xs:complexType>
+                              <xs:attribute type="xs:integer" name="key"/>
+                              <xs:attribute type="xs:integer" name="value"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="container" use="required" fixed="simpleMap" />
+                        <xs:attribute type="xs:string" name="name" use="required" fixed="renumberingMap"/>
+                      </xs:complexType>
+                    </xs:element>
                     <xs:element name="modifiers-array" maxOccurs="1" minOccurs="0">
                       <xs:complexType>
-                        <xs:choice>
-                          <xs:element name="modifiers-instance" type="myns:slurType" maxOccurs="unbounded"/>
-                          <xs:element name="modifiers-instance" type="myns:hairpinType" maxOccurs="unbounded"/>
-                          <xs:element name="modifiers-instance" type="myns:tieType" maxOccurs="unbounded"/>
-                          <xs:element name="modifiers-instance" type="myns:textBracketType" maxOccurs="unbounded"/>
-                        </xs:choice>
+                        <xs:sequence>
+                          <xs:element name="modifiers-instance" maxOccurs="unbounded" minOccurs="1">
+                            <xs:complexType>
+                              <xs:all>
+                                <xs:element name="SmoSlur" type="myns:slurType" minOccurs="0"/>
+                                <xs:element name="SmoHairpin" type="myns:hairpinType" minOccurs="0"/>
+                                <xs:element name="SmoTie" type="myns:tieType" minOccurs="0"/>
+                                <xs:element name="SmoStaffTextBracket" type="myns:textBracketType" minOccurs="0"/>      
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
                         <xs:attribute type="xs:string" name="container" use="required" fixed="array" />
                         <xs:attribute type="xs:string" name="name" use="required" fixed="modifiers"/>
                       </xs:complexType>
                     </xs:element>
                     <xs:element name="partInfo">
                       <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="layoutManager" type="myns:layoutManager" />
+                        <xs:all>
+                          <xs:element name="layoutManager" type="myns:layoutManager" minOccurs="0" />
                           <xs:element name="midiInstrument" type="myns:midiInstrument" minOccurs="0" maxOccurs="1"/>
-                          <xs:element name="measureFormatting-record">
+                          <xs:element name="measureFormatting-map" minOccurs="0">
                             <xs:complexType>
                               <xs:sequence>
                                 <xs:element name="measureFormatting-instance">
@@ -547,13 +581,15 @@
                                     <xs:sequence>
                                       <xs:element name="value" type="myns:measureFormat"></xs:element>
                                     </xs:sequence>
-                                    <xs:attribute type="xs:string" name="key" />
+                                    <xs:attribute type="xs:integer" name="key" />
                                   </xs:complexType>
                                 </xs:element>
                               </xs:sequence>
+                              <xs:attribute name="container" use="required" fixed="numberObjectMap"/>
+                              <xs:attribute name="name" use="required" fixed="measureFormatting"/>
                             </xs:complexType>
                           </xs:element>
-                        </xs:sequence>
+                        </xs:all>
                         <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoPartInfo" />
                         <xs:attribute type="xs:string" name="partName" use="optional"/>
                         <xs:attribute type="xs:float" name="partAbbreviation" use="optional"/>
@@ -571,7 +607,7 @@
                         <xs:sequence>
                           <xs:element name="measures-instance" maxOccurs="unbounded" minOccurs="0">
                             <xs:complexType>
-                              <xs:sequence>
+                              <xs:all>
                                 <xs:element name="measureNumber" type="myns:measureNumberType" minOccurs="0" maxOccurs="1"/>
                                 <xs:element name="format" type="myns:measureFormat" minOccurs="0" maxOccurs="1" />
                                 <xs:element name="voices-array" minOccurs="1">
@@ -585,7 +621,7 @@
                                                 <xs:sequence>
                                                   <xs:element name="notes-instance" maxOccurs="unbounded" minOccurs="0">
                                                     <xs:complexType>
-                                                      <xs:sequence>
+                                                      <xs:all minOccurs="0">
                                                         <xs:element name="ticks" minOccurs="0" type="myns:tickType" />
                                                         <xs:element name="pitches-array" minOccurs="0">
                                                           <xs:complexType>
@@ -599,28 +635,34 @@
                                                         </xs:element>
                                                         <xs:element name="textModifiers-array" minOccurs="0" maxOccurs="1">
                                                           <xs:complexType>
-                                                            <xs:choice>
-                                                              <xs:element name="textModifiers-instance" type="myns:lyricType" maxOccurs="unbounded" minOccurs="0" />
-                                                              <xs:element name="textModifiers-instance" type="myns:dynamicType" maxOccurs="unbounded" minOccurs="0" />
-                                                            </xs:choice>
+                                                            <xs:sequence>
+                                                              <xs:element name="textModifiers-instance" >
+                                                                <xs:complexType>
+                                                                  <xs:all>
+                                                                  <xs:element name="SmoLyric" type="myns:lyricType" minOccurs="0" />
+                                                                  <xs:element name="SmoDynamicText" type="myns:dynamicType" minOccurs="0" />    
+                                                                </xs:all>
+                                                                </xs:complexType>
+                                                              </xs:element>
+                                                            </xs:sequence>
                                                             <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
                                                             <xs:attribute type="xs:string" name="name" use="required" fixed="textModifiers"/>
                                                           </xs:complexType>
                                                         </xs:element>
                                                         <xs:element name="articulations-array" minOccurs="0" maxOccurs="1">
                                                           <xs:complexType>
-                                                            <xs:choice>
+                                                            <xs:sequence>
                                                               <xs:element name="articulations-instance" type="myns:articulationTypes" maxOccurs="unbounded" minOccurs="1" />
-                                                            </xs:choice>
+                                                            </xs:sequence>
                                                             <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
                                                             <xs:attribute type="xs:string" name="name" use="required" fixed="articulations"/>
                                                           </xs:complexType>
                                                         </xs:element>
                                                         <xs:element name="ornaments-array" minOccurs="0" maxOccurs="1">
                                                           <xs:complexType>
-                                                            <xs:choice>
+                                                            <xs:sequence>
                                                               <xs:element name="ornaments-instance" type="myns:ornamentTypes" maxOccurs="unbounded" minOccurs="1" />
-                                                            </xs:choice>
+                                                            </xs:sequence>
                                                             <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
                                                             <xs:attribute type="xs:string" name="name" use="required" fixed="ornaments"/>
                                                           </xs:complexType>
@@ -629,15 +671,15 @@
                                                         <xs:element name="arpeggio" type="myns:arpeggioType" maxOccurs="1" minOccurs="0" />
                                                         <xs:element name="graceNotes-array" minOccurs="0" maxOccurs="1">
                                                           <xs:complexType>
-                                                            <xs:choice>
-                                                              <xs:element name="graceNotes-instance" type="myns:graceNoteType" maxOccurs="unbounded" minOccurs="1" />
-                                                            </xs:choice>
+                                                            <xs:sequence>
+                                                              <xs:element name="graceNotes-instance" type="myns:graceNoteType" minOccurs="1" />
+                                                            </xs:sequence>
                                                             <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
                                                             <xs:attribute type="xs:string" name="name" use="required" fixed="graceNotes"/>
                                                           </xs:complexType>
                                                         </xs:element>
-                                                        <xs:element type="myns:attributes" name="attrs" maxOccurs="1" minOccurs="1"/>
-                                                      </xs:sequence>
+                                                        <xs:element type="myns:attributes" name="attrs" maxOccurs="1" minOccurs="0"/>
+                                                      </xs:all>
                                                       <xs:attribute type="xs:string" name="ctor"/>
                                                       <xs:attribute type="xs:string" name="clef" use="optional"/>
                                                       <xs:attribute type="xs:byte" name="flagState" use="optional"/>
@@ -666,13 +708,19 @@
                                 </xs:element>
                                 <xs:element name="modifiers-array" minOccurs="0">
                                   <xs:complexType>
-                                    <xs:choice>
-                                      <xs:element name="modifiers-instance" type="myns:barlineType" />
-                                      <xs:element name="modifiers-instance" type="myns:repeatSymbolType" />
-                                      <xs:element name="modifiers-instance" type="myns:rehearsalMarkType" />
-                                      <xs:element name="modifiers-instance" type="myns:measureTextType" />
-                                      <xs:element name="modifiers-instance" type="myns:voltaType" />
-                                    </xs:choice>
+                                    <xs:sequence>
+                                      <xs:element name="modifiers-instance" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                          <xs:all>
+                                            <xs:element name="SmoBarline" type="myns:barlineType" minOccurs="0" />
+                                            <xs:element name="SmoRepeatSymbol" type="myns:repeatSymbolType" minOccurs="0"/>
+                                            <xs:element name="SmoRehearsalMark" type="myns:rehearsalMarkType" minOccurs="0"/>
+                                            <xs:element name="SmoMeasureText" type="myns:measureTextType" minOccurs="0"/>
+                                            <xs:element name="SmoVolta" type="myns:voltaType" minOccurs="0"/>
+                                          </xs:all>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
                                     <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
                                     <xs:attribute type="xs:string" name="name" use="required" fixed="modifiers"/>
                                   </xs:complexType>
@@ -686,7 +734,7 @@
                                     <xs:attribute type="xs:string" name="name" use="required" fixed="tuplets"/>
                                   </xs:complexType>
                                 </xs:element>
-                              </xs:sequence>
+                              </xs:all>
                               <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoMeasure" />
                               <xs:attribute type="xs:string" name="clef" use="optional"/>
                               <xs:attribute type="xs:integer" name="lines" use="optional"/>
@@ -698,73 +746,79 @@
                         <xs:attribute type="xs:string" name="name" use="required"/>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element name="measureInstrumentMap" maxOccurs="1" minOccurs="0">
+                    <xs:element name="measureInstrumentMap-map" maxOccurs="1" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="measureInstrumentMap-instance" maxOccurs="unbounded" type="myns:instrumentMapType" />
                         </xs:sequence>
-                        <xs:attribute type="xs:string" name="container" use="required" fixed="numberRecord" />
+                        <xs:attribute type="xs:string" name="container" use="required" fixed="numberObjectMap" />
                         <xs:attribute type="xs:string" name="name" use="required" fixed="measureInstrumentMap"/>
                       </xs:complexType>
                     </xs:element>
-                  </xs:sequence>
-                  <xs:attribute type="xs:string" name="ctor" use="optional"/>
+                  </xs:all>
+                  <xs:attribute type="xs:string" name="ctor" use="required" fixed="SmoSystemStaff" />
+                  <xs:attribute type="xs:integer" name="staffId" use="optional" default="0" />
+                  <xs:attribute type="xs:boolean" name="alignWithPrevious" use="optional" default="false" />
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute type="xs:string" name="container"/>
-            <xs:attribute type="xs:string" name="name"/>
+            <xs:attribute type="xs:string" name="container" use="required" fixed="array"/>
+            <xs:attribute type="xs:string" name="name" use="required" fixed="staves" />
           </xs:complexType>
         </xs:element>
         <xs:element name="columnAttributeMap">
           <xs:complexType>
-            <xs:sequence>
-              <xs:element name="keySignature">
+            <xs:all>
+              <xs:element name="keySignature-map">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="keySignature-instance" maxOccurs="unbounded" minOccurs="1">
+                    <xs:element name="keySignature-instance" maxOccurs="unbounded" minOccurs="0">
                       <xs:complexType>
-                        <xs:attribute type="xs:integer" name="measureIndex"/>
-                        <xs:attribute type="xs:integer" name="localIndex"/>
+                        <xs:attribute type="xs:integer" name="key"/>
+                        <xs:attribute type="xs:string" name="value"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
+                  <xs:attribute type="xs:string" name="container" use="required" fixed="simpleMap" />
+                  <xs:attribute type="xs:string" name="name" use="required" fixed="keySignature" />
                 </xs:complexType>
               </xs:element>
-              <xs:element name="renumberingMap">
+              <xs:element name="renumberingMap-map">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="renumberingMap-instance" maxOccurs="unbounded" minOccurs="1">
                       <xs:complexType>
-                        <xs:attribute type="xs:integer" name="measureIndex"/>
-                        <xs:attribute type="xs:integer" name="localIndex"/>
+                        <xs:attribute type="xs:integer" name="key"/>
+                        <xs:attribute type="xs:integer" name="value"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
+                  <xs:attribute type="xs:string" name="container" use="required" fixed="simpleMap"/>
+                  <xs:attribute type="xs:string" name="name" use="required" fixed="renumberingMap"/>
                 </xs:complexType>
               </xs:element>
-              <xs:element name="tempo">
+              <xs:element name="tempo-map">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="tempo-instance" type="myns:tempoType" />
+                    <xs:element name="tempo-instance" type="myns:tempoType" minOccurs="1" maxOccurs="unbounded"/>
                   </xs:sequence>
-                  <xs:attribute type="xs:string" name="container"/>
-                  <xs:attribute type="xs:string" name="name"/>
+                  <xs:attribute type="xs:string" name="container" use="required" fixed="numberObjectMap"/>
+                  <xs:attribute type="xs:string" name="name" use="required" fixed="tempo"/>
                 </xs:complexType>
               </xs:element>
-              <xs:element name="timeSignature" maxOccurs="1" minOccurs="0">
+              <xs:element name="timeSignature-map" maxOccurs="1" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="timeSignature-instance" maxOccurs="unbounded" minOccurs="1" type="myns:timeSignatureType" />
                   </xs:sequence>
-                  <xs:attribute type="xs:string" name="container"/>
-                  <xs:attribute type="xs:string" name="name"/>
+                  <xs:attribute type="xs:string" name="container" use="required" fixed="numberObjectMap"/>
+                  <xs:attribute type="xs:string" name="name" use="required" fixed="timeSignature"/>
                 </xs:complexType>
               </xs:element>
-            </xs:sequence>
+            </xs:all>
           </xs:complexType>
         </xs:element>
-      </xs:sequence>
+      </xs:all>
     </xs:complexType>
   </xs:element>
 </xs:schema>

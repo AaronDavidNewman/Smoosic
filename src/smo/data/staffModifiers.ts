@@ -9,7 +9,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, createChildElementRecurse } from './common';
+import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, createChildElementRecurse, createXmlAttribute } from './common';
 
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
@@ -45,6 +45,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
     return rv;
   }
   abstract serialize(): any;
+  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element
 }
 export interface StaffModifierBaseSer {
   attrs: SmoAttrs;
@@ -55,7 +56,8 @@ export interface StaffModifierBaseSer {
 }
 export function serializeStaffModXml(base: StaffModifierBase, namespace: string, parentElement: Element, tagName: string) {
   const ser = base.serialize();
-  createChildElementRecurse(ser, namespace, parentElement, tagName);
+  const el = createChildElementRecurse(ser, namespace, parentElement, tagName);
+  return el;
 }
 export type SoundSustain = 'percussive' | 'sustained';
 export type oscillatorType = 'sample' | 'sine' | 'sawtooth' | 'square' | 'triangle' | 'custom';
@@ -247,8 +249,8 @@ export class SmoInstrument extends StaffModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeStaffModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeStaffModXml(this, namespace, parentElement, tagName);
   }
   eq(other: SmoInstrument): boolean {
     let rv = true;
@@ -409,8 +411,8 @@ export class SmoStaffHairpin extends StaffModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeStaffModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeStaffModXml(this, namespace, parentElement, tagName);
   }
   constructor(params: SmoStaffHairpinParams) {
     super('SmoStaffHairpin');
@@ -559,8 +561,8 @@ export class SmoStaffTextBracket extends StaffModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeStaffModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeStaffModXml(this, namespace, parentElement, tagName);
   }
 
   constructor(params: SmoStaffTextBracketParams) {
@@ -763,6 +765,9 @@ export class SmoSlur extends StaffModifierBase {
     }
     return params;
   }
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeStaffModXml(this, namespace, parentElement, tagName);
+  }
   get controlPoints(): SvgPoint[] {
     const ar: SvgPoint[] = [{
       x: this.cp1x,
@@ -919,6 +924,9 @@ export class SmoTie extends StaffModifierBase {
       throw 'bad tie ' + JSON.stringify(params);
     }
     return params;
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeStaffModXml(this, namespace, parentElement, tagName);
   }
   // ### checkLines
   // If the note chords have changed, the lines may no longer be valid so update them

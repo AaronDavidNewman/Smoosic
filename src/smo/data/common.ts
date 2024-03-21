@@ -13,6 +13,13 @@ export interface SmoAttrs {
 }
 export const smoXmlNs = 'https://aarondavidnewman.github.io/Smoosic';
 
+// export abstract class SmoXmlSerializable {
+//   abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element
+// }
+export interface SmoXmlSerializable {
+  serializeXml: (namespace: string, parentElement: Element, tag: string) => Element;
+  ctor: string
+}
 export function createXmlAttributes(element: Element, obj: any) {
   Object.keys(obj).forEach((key) => {
     const attr = element.ownerDocument.createAttribute(key);
@@ -24,6 +31,53 @@ export function createXmlAttribute(element: Element, name: string, value: any) {
   const obj: any = {};
   obj[name] = value;
   createXmlAttributes(element, obj);
+}
+export function serializeXmlRecStringMap(namespace: string, parentElement: Element, 
+  data: Record<number | string, number | string>, name: string): Element {
+  const renumberingKeys = Object.keys(data);  
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-map`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'simpleMap');
+  createXmlAttribute(rec, 'name', name);
+      renumberingKeys.forEach((mapKey) => {
+        const inst = parentElement.ownerDocument.createElementNS(namespace, `${name}-instance`);
+        rec.appendChild(inst);
+        const val = isNaN(mapKey as any) ? data[mapKey] : data[parseInt(mapKey)];
+        createXmlAttribute(inst, 'value', data[parseInt(mapKey)]);
+        createXmlAttribute(inst, 'key', mapKey);
+      });
+  return rec;
+}
+export function serializeXmlRecord(namespace: string, parentElement: Element, 
+  data: Record<number | string, SmoXmlSerializable>, name: string): Element {
+  const renumberingKeys = Object.keys(data);
+  if (renumberingKeys.length === 0) {
+    return parentElement;
+  }
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-map`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'numberObjectMap');
+  createXmlAttribute(rec, 'name', name);
+  renumberingKeys.forEach((mapKey) => {
+    const val = isNaN(mapKey as any) ? data[mapKey] : data[parseInt(mapKey)];
+    const inst = val.serializeXml(namespace, rec, `${name}-instance`);
+    createXmlAttribute(inst, 'key', `${mapKey}`);
+  });
+  return rec;
+}
+export function serializeXmlArray(namespace: string, parentElement: Element, 
+  data: SmoXmlSerializable[], name: string): Element {
+  if (data.length === 0) {
+    return parentElement;
+  }
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-array`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'array');
+  createXmlAttribute(rec, 'name', name);
+  data.forEach((instance) => {
+    instance.serializeXml(namespace, rec, `${name}-instance`);;
+  });
+  return rec;
 }
 export function createChildElementRecurse(object: any, namespace: string, parentElement: Element, tag: string): Element {
   if (object === null || typeof(object) === 'undefined') {
@@ -47,9 +101,7 @@ export function createChildElementRecurse(object: any, namespace: string, parent
       continue;
     }
     // Array, create an array element and an instance element for 'key'
-    if (Array.isArray(child) && child.length > 0) {
-      createChildElementArray(child, namespace, el, key);
-    } else if (typeof(child) === 'object') {
+   if (typeof(child) === 'object') {
       // Object, create element for the object
       createChildElementRecurse(child, namespace, el, key);
     } else if (typeof(child) === 'string' || typeof(child) === 'number' || typeof(child) === 'boolean'){
@@ -73,29 +125,7 @@ export function createChildElementArray(object: any[], namespace: string, parent
   }
   return arEl;
 }
-export function createChildElementRecord(object: any, namespace: string, parentElement: Element, tag: string, isNumber: boolean) {
-  if (!object) {
-    return null;
-  }
-  const keys = Object.keys(object);
-  if (keys.length < 1) {
-    return null;
-  }
-  const el = parentElement.ownerDocument.createElementNS(namespace, tag);
-  const recType = isNumber ? 'numberRecord' : 'stringRecord';
-  createXmlAttribute(el, 'container', recType);
-  createXmlAttribute(el, 'name', tag);
-  parentElement.appendChild(el);
-  for (var i = 0; i < keys.length; ++i) {
-    const key = keys[i];
-    const rec = object[key];
-    const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
-    el.appendChild(instEl);
-    createChildElementRecurse(rec, namespace, instEl, `${tag}-instance`);
-    createXmlAttribute(instEl, 'key', key);
-  }
-  return el;
-}
+
 var nextId = 32768;
 export const getId = () => `smo` + (nextId++).toString();
 /**
@@ -225,9 +255,7 @@ export interface Transposable {
     logicalBox: SvgBox | null
 }
 
-export interface SmoSerializable {
-  serializeXml: (namespace: string, parentElement: Element, tag: string) => Element;
-}
+
 /**
  * All note, measure etc. modifiers have these attributes.  The SVG info
  * is for the tracker to track the artifacts in the UI (mouse events, etc)
@@ -242,14 +270,18 @@ export interface SmoModifierBase {
     serialize: () => any;
 }
 
-export function serializeXmlModifierArray(object: SmoSerializable[], namespace: string, parentElement: Element, tag: string) {
+export function serializeXmlModifierArray(object: SmoXmlSerializable[], namespace: string, parentElement: Element, tag: string) {
+  if (object.length === 0) {
+    return parentElement;
+  }
   const arEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-array`);
   parentElement.appendChild(arEl);
   createXmlAttribute(arEl, 'container', 'array');
-  createXmlAttribute(arEl, 'name', 'tag');
+  createXmlAttribute(arEl, 'name', `${tag}`);
   for (var j = 0; j < object.length; ++j) {
-    const instKey = `${tag}-instance`;
-    object[j].serializeXml(namespace, arEl, instKey);
+    const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
+    arEl.appendChild(instEl);
+    object[j].serializeXml(namespace, instEl, object[j].ctor);
   }
   return arEl;
 }

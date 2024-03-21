@@ -6,7 +6,7 @@
  * @module /smo/data/partInfo
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { createChildElementRecurse, createChildElementRecord, createXmlAttribute } from './common';
+import { createChildElementRecurse, createXmlAttribute, serializeXmlRecord, serializeXmlArray } from './common';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoLayoutManager, SmoLayoutManagerParamsSer, SmoLayoutManagerParams, SmoPageLayout } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
@@ -279,17 +279,7 @@ export class SmoPartInfo extends StaffModifierBase {
     parentElement.appendChild(el);
     const formattingKeys = Object.keys(this.measureFormatting);
     if (formattingKeys.length > 0) {
-      const recEl = parentElement.ownerDocument.createElementNS(namespace, 'measureFormatting-record');
-      createXmlAttribute(recEl, "name", "measureFormatting");
-      createXmlAttribute(recEl, "container", "record-number");
-      el.appendChild(recEl);
-      formattingKeys.forEach((fk) => {
-        const mf = this.measureFormatting[parseInt(fk)];
-        const mfInst = parentElement.ownerDocument.createElementNS(namespace, 'measureFormatting-instance');
-        recEl.appendChild(mfInst);
-        createXmlAttribute(mfInst, "key", fk);
-        mf.serializeXml(namespace, mfInst, "value");
-      });
+      serializeXmlRecord(namespace, el, this.measureFormatting, 'measureFormatting');
     }
     SmoPartAttributesBasic.forEach((attr) => {
       const obj = this as any;
@@ -300,6 +290,8 @@ export class SmoPartInfo extends StaffModifierBase {
     if (this.midiInstrument) {
       createChildElementRecurse(this.midiDevice, namespace, el, "midiInstrument");
     }
+    serializeXmlArray(namespace, el, this.textGroups, 'testGroups');
+    return el;
   }
   updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
     const tgid = typeof (textGroup) === 'string' ? textGroup :

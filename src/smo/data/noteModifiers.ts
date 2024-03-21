@@ -8,7 +8,6 @@
 import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase, 
   Clef, IsClef, createChildElementRecurse } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
 import { defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
 // const Smo = eval('globalThis.Smo');
@@ -49,12 +48,12 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
     return rv;
   }
   abstract serialize(): any;
-  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): void;
+  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element;
 }
 
 function  serializeNoteModXml(base: SmoNoteModifierBase, namespace: string, parentElement: Element, tagName: string) {
   const ser = base.serialize();
-  createChildElementRecurse(ser, namespace, parentElement, tagName);
+  return createChildElementRecurse(ser, namespace, parentElement, tagName);
 }
 export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
   if (typeof(params.clef) === 'string' && params.ctor === 'SmoClefChange') {
@@ -107,8 +106,8 @@ export class SmoClefChange extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeNoteModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 }
 /**
@@ -236,8 +235,8 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeNoteModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 
   constructor(parameters: Partial<GraceNoteParams>) {
@@ -313,8 +312,8 @@ export class SmoArpeggio extends SmoNoteModifierBase {
     }
     return rv;
   }
-  serializeXml(namespace: string, parentElement: Element, tag: string) {
-    serializeNoteModXml(this, namespace, parentElement, tag);
+  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
 }
 /**
@@ -409,8 +408,8 @@ export class SmoMicrotone extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tag: string) {
-    serializeNoteModXml(this, namespace, parentElement, tag);
+  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoMicrotoneParams) {
     super(parameters.ctor);
@@ -552,8 +551,8 @@ export class SmoOrnament extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tag: string) {
-    serializeNoteModXml(this, namespace, parentElement, tag);
+  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoOrnamentParams) {
     super('SmoOrnament');
@@ -683,8 +682,8 @@ export class SmoArticulation extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tag: string) {
-    serializeNoteModXml(this, namespace, parentElement, tag);
+  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoArticulationParameters) {
     super('SmoArticulation');
@@ -895,8 +894,8 @@ export class SmoLyric extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): void {
-    serializeNoteModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 
   // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
@@ -1079,8 +1078,8 @@ export class SmoDynamicText extends SmoNoteModifierBase {
       SmoDynamicText.persistArray, this, params);
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    serializeNoteModXml(this, namespace, parentElement, tagName);
+  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
+    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
   constructor(parameters: SmoDynamicTextParams) {
     super('SmoDynamicText');

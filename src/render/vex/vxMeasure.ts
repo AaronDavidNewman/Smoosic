@@ -439,7 +439,7 @@ export class VxMeasure implements VxMeasureIf {
       x: staffX,
       y: staffY,
       padLeft: this.smoMeasure.format.padLeft,
-      id: this.smoMeasure.attrs.id,
+      id: this.smoMeasure.id,
       staffX: this.smoMeasure.staffX,
       staffY: this.smoMeasure.staffY,
       staffWidth: this.smoMeasure.staffWidth,
@@ -554,9 +554,9 @@ export class VxMeasure implements VxMeasureIf {
     var j = 0;
     try {
       // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
-      group.classList.add(this.smoMeasure.attrs.id);
+      group.classList.add(this.smoMeasure.id);
       group.classList.add(mmClass);
-      group.id = this.smoMeasure.attrs.id;
+      group.id = this.smoMeasure.id;
       this.stave!.draw();
       this.smoMeasure.svg.element = group;
 

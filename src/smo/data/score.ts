@@ -6,7 +6,8 @@
  */
 import { SmoMusic } from './music';
 import { Clef, SvgDimensions, smoXmlNs, 
-  createChildElementRecord, createChildElementRecurse, serializeXmlModifierArray, createXmlAttribute } from './common';
+  createChildElementRecurse, serializeXmlModifierArray, createXmlAttribute,
+  serializeXmlRecStringMap, serializeXmlRecord, serializeXmlArray } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
@@ -338,14 +339,14 @@ export class SmoScore {
    * to a column at a measure index
    * @returns 
    */
-  serializeColumnMapped() {
+  serializeColumnMapped(func: (measure: SmoMeasure) => ColumnMappedParams) {
     const keySignature: Record<number, string> = {};
     const tempo: Record<number, SmoTempoText> = {};
     const timeSignature: Record<number, TimeSignature> = {};
     const renumberingMap: Record<number, number> = {};
     let previous: ColumnMappedParams | null = null;
     this.staves[0].measures.forEach((measure) => {
-      const current = measure.serializeColumnMapped();
+      const current = func(measure);
       const ix = measure.measureNumber.measureIndex;
       const currentInstrument = this.staves[0].getStaffInstrument(ix);
       current.keySignature = SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * currentInstrument.keyOffset);
@@ -471,7 +472,10 @@ export class SmoScore {
     this.systemGroups.forEach((gg) => {
       obj.systemGroups!.push(gg.serialize());
     });
-    obj.columnAttributeMap = this.serializeColumnMapped();
+    const getSerMeasure = (measure: SmoMeasure): ColumnMappedParams => {
+      return measure.serializeColumnMapped();
+    }
+    obj.columnAttributeMap = this.serializeColumnMapped(getSerMeasure);
     if (useDictionary) {
       smoSerialize.jsonTokens(obj);
       obj = smoSerialize.detokenize(obj, smoSerialize.tokenValues);
@@ -495,30 +499,29 @@ export class SmoScore {
     
     const scoreMetadata = { fonts: ser.metadata.fonts, preferences: ser.metadata.preferences,
       scoreInfo: ser.metadata.scoreInfo };
-    const scoreElement = createChildElementRecurse( scoreMetadata, namespace, rootElement, 'metadata');
-    const renumberingKeys = Object.keys(ser.metadata.renumberingMap);
-    if (renumberingKeys.length) {
-      const rec = doc.createElementNS(namespace, 'renumberingMap');
-      scoreElement.appendChild(rec);
-      renumberingKeys.forEach((mapKey) => {
-        const inst = doc.createElementNS(namespace, 'renumberingMap-instance');
-        rec.appendChild(inst);
-        createXmlAttribute(inst, 'localIndex', ser.metadata.renumberingMap[mapKey]);
-        createXmlAttribute(inst, 'measureIndex', mapKey);
-      });
+    createChildElementRecurse( scoreMetadata, namespace, rootElement, 'metadata');
+    if (this.textGroups.length > 0) {
+      serializeXmlArray(namespace, rootElement, this.textGroups, 'textGroups');
     }
-    createChildElementRecurse(ser.textGroups, namespace, rootElement, 'textGroups');
-    createChildElementRecurse(ser.systemGroups, namespace, rootElement, 'systemGroups');
-    createChildElementRecurse(ser.audioSettings, namespace, rootElement, 'audioSettings');
-    createChildElementRecurse(ser.layoutManager, namespace, rootElement, 'layoutManager');
-    createChildElementRecurse(ser.measureFormats, namespace, rootElement, 'measureFormats');
-    serializeXmlModifierArray(this.staves, namespace, rootElement, 'staves');
+    if (this.systemGroups.length) {
+      serializeXmlArray(namespace, rootElement, this.systemGroups, 'systemGroups');
+    }
+    this.audioSettings.serializeXml(namespace, rootElement, 'audioSettings');
+    if (this.layoutManager) {
+      this.layoutManager?.serializeXml(namespace, rootElement, 'layoutManager');
+    }
+    this.formattingManager?.serializeXml(namespace, rootElement, 'formattingManager')
+    serializeXmlArray(namespace, rootElement, this.staves,  'staves');
     const columnParamsElem = doc.createElementNS(namespace, 'columnAttributeMap');
     rootElement.appendChild(columnParamsElem);
-    createChildElementRecord(ser.columnAttributeMap.keySignature, namespace, columnParamsElem, 'keySignature', true);
-    createChildElementRecord(ser.columnAttributeMap.renumberingMap, namespace, columnParamsElem, 'renumberingMap', true);
-    createChildElementRecord(ser.columnAttributeMap.tempo, namespace, columnParamsElem, 'tempo', true);
-    createChildElementRecord(ser.columnAttributeMap.timeSignature, namespace, columnParamsElem, 'timeSignature', true);
+    const getSerMeasure = (measure: SmoMeasure): ColumnMappedParams => {
+      return measure.getColumnMapped();
+    }
+    const columnMappedObj = this.serializeColumnMapped(getSerMeasure);
+    serializeXmlRecStringMap(namespace, columnParamsElem, columnMappedObj.keySignature, 'keySignature');
+    serializeXmlRecord(namespace, columnParamsElem, columnMappedObj.timeSignature, 'timeSignature');
+    serializeXmlRecord(namespace, columnParamsElem, columnMappedObj.tempo, 'tempo');
+    serializeXmlRecStringMap(namespace, columnParamsElem, columnMappedObj.renumberingMap, 'renumberingMap');
     const ndoc = smoSerialize.prettifyXml(doc);
     const piElement = ndoc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
     ndoc.insertBefore(piElement, ndoc.firstChild);

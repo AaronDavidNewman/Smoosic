@@ -22,7 +22,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, 
-  TickAccidental, AccidentalArray, getId, createChildElementRecurse } from './common';
+  TickAccidental, AccidentalArray, getId, createChildElementRecurse, createXmlAttribute, serializeXmlModifierArray } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 /**
@@ -138,7 +138,6 @@ export interface SmoMeasureParams {
   tuplets: SmoTuplet[],
   transposeIndex: number,
   lines: number,
-  staffY: number,
   // bars: [1, 1], // follows enumeration in VF.Barline
   measureNumber: MeasureNumber,
   clef: Clef,
@@ -163,18 +162,6 @@ export interface SmoMeasureParamsSer {
    */
   ctor: string;
   /**
-   * id of the measure
-   */
-  attrs: SmoAttrs;
-  /**
-   * time signature serialization
-   */
-  timeSignature?: TimeSignatureParametersSer,
-  /**
-   * key signature
-   */
-  keySignature?: string,
-  /**
    * a list of tuplets (serialized)
    */
   tuplets: SmoTupletParamsSer[],
@@ -188,11 +175,6 @@ export interface SmoMeasureParamsSer {
    */
   lines: number,
   /**
-   * y coordinate of stave. TODO:  this should not be serialized
-   *  since it is calculated as part of layout
-   */
-  staffY: number,
-  /**
    * measure number, absolute and relative/remapped
    */
   measureNumber: MeasureNumber,
@@ -205,13 +187,24 @@ export interface SmoMeasureParamsSer {
    */
   voices: SmoVoiceSer[],
   /**
-   * tempo at this point
-   */
-  tempo: SmoTempoTextParamsSer,
-  /**
    * all other modifiers (barlines, etc)
    */
-  modifiers: SmoMeasureModifierBase[]
+  modifiers: SmoMeasureModifierBase[],
+  // the next 3 are not serialized as part of the measure in most cases, since they are
+  // mapped to specific measures in the score/system
+  /**
+   * key signature
+   */
+  keySignature?: string,
+  /**
+  * time signature serialization
+  */
+  timeSignature?: TimeSignatureParametersSer,
+  /**
+   * tempo at this point
+   */
+  tempo: SmoTempoTextParamsSer
+  
 }
 
 /**
@@ -248,7 +241,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     tuplets: [],
     transposeIndex: 0,
     modifiers: [],
-    staffY: 40,
     // bars: [1, 1], // follows enumeration in VF.Barline
     measureNumber: {
       localIndex: 0,
@@ -301,6 +293,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   tuplets: SmoTuplet[] = [];
   repeatSymbol: boolean = false;
   repeatCount: number = 0;
+  ctor: string='SmoMeasure';
   /**
    * Adjust for non-concert pitch intstruments
    */
@@ -335,7 +328,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   /**
    * Information for identifying this object
    */
-  attrs: SmoAttrs;
+  id: string;
 
   /**
    * Fill in components.  We assume the modifiers are already constructed,
@@ -407,10 +400,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     } else {
       this.format = new SmoMeasureFormat(params.format);
     }
-    this.attrs = {
-      id: getId().toString(),
-      type: 'SmoMeasure'
-    };
+    this.id = getId().toString();
     this.updateClefChangeNotes();
   }
 
@@ -517,6 +507,13 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       tempo: this.tempo.serialize()
     };
   }
+  getColumnMapped(): ColumnMappedParams {
+    return {
+      timeSignature: this.timeSignature,
+      keySignature: this.keySignature,
+      tempo: this.tempo
+    };
+  }
 
   /**
    * Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -577,8 +574,38 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
   serializeXml(namespace: string, parentElement: Element, tagName: string) {
     const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    const defaults = SmoMeasure.defaults;
     parentElement.appendChild(el);
-    
+    createXmlAttribute(el, 'ctor', 'SmoMeasure');
+    if (this.clef != defaults.clef) {
+      createXmlAttribute(el, 'clef', this.clef);
+    }
+    if (this.lines != defaults.lines) {
+      createXmlAttribute(el, 'lines', this.lines);
+    }
+    if (this.transposeIndex != defaults.transposeIndex) {
+      createXmlAttribute(el, 'transposeIndex', this.transposeIndex);
+    }
+    const ser = this.serialize();
+    createChildElementRecurse(ser.measureNumber, namespace, el, 'measureNumber');
+    this.format.serializeXml(namespace, el, 'format');
+    serializeXmlModifierArray(this.modifiers, namespace, el, 'modifiers');
+    const voicesEl = parentElement.ownerDocument.createElementNS(namespace, 'voices-array');
+    el.appendChild(voicesEl);
+    createXmlAttribute(voicesEl, 'name', 'voices');
+    createXmlAttribute(voicesEl, 'container', 'array');
+    this.voices.forEach((voice) => {
+      const voiceEl = parentElement.ownerDocument.createElementNS(namespace, 'voices-instance');
+      voicesEl.appendChild(voiceEl);
+      const notesEl = parentElement.ownerDocument.createElementNS(namespace, 'notes-array');
+      createXmlAttribute(notesEl, 'name', 'notes');
+      createXmlAttribute(notesEl, 'container', 'array');
+      voiceEl.appendChild(notesEl);
+      voice.notes.forEach((note) => {
+        note.serializeXml(namespace, notesEl, 'notes-instance');
+      });
+    });
+    return el;
   }
   /**
    * restore a serialized measure object.  Usually called as part of deserializing a score,
@@ -610,6 +637,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     for (j = 0; j < jsonObj.tuplets.length; ++j) {
       const tupJson = jsonObj.tuplets[j];
       const tupParams = SmoTuplet.defaults;
+      // Legacy schema had attrs.id, now it is just id
       if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
         tupParams.id = (tupJson as any).attrs.id;
       }

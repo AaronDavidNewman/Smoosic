@@ -10,9 +10,9 @@ import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrot
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
   SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer } from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId, createChildElementRecurse, createChildElementArray, createXmlAttribute } from './common';
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId, createChildElementRecurse, 
+  createXmlAttribute, serializeXmlArray, createChildElementArray, serializeXmlModifierArray} from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
-import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 
 // @internal
 export type NoteType = 'n' | 'r' | '/';
@@ -852,17 +852,11 @@ export class SmoNote implements Transposable {
     createXmlAttribute(noteElement, "ctor", this.fillStyle);
     createXmlAttribute(noteElement, "ctor", this.noteType);
     createChildElementRecurse(this.ticks, namespace, noteElement, "ticks");
-    if (this.pitches.length > 0) {
-      const pitchArEl = parentElement.ownerDocument.createElementNS(namespace, "pitches-array");
-      noteElement.appendChild(pitchArEl);
-      this.pitches.forEach((pitch) => {
-        createChildElementRecurse(pitch, namespace, pitchArEl, "pitches-instance");
-      });
-    }
-    SmoNote.serializeXmlModifierArray(namespace, noteElement, 'textModifiers', this.textModifiers);
-    SmoNote.serializeXmlModifierArray(namespace, noteElement, 'articulations', this.articulations);
-    SmoNote.serializeXmlModifierArray(namespace, noteElement, 'articulations', this.ornaments);
-    SmoNote.serializeXmlModifierArray(namespace, noteElement, 'graceNotes', this.graceNotes);
+    createChildElementArray(this.pitches, namespace, noteElement, 'pitches');
+    serializeXmlModifierArray(this.textModifiers, namespace, noteElement,  'textModifiers');
+    serializeXmlModifierArray(this.articulations, namespace, noteElement, 'articulations');
+    serializeXmlModifierArray(this.ornaments, namespace, noteElement, 'ornaments');
+    serializeXmlModifierArray(this.graceNotes, namespace, noteElement, 'graceNotes');
     if (this.clefNote) {
       this.clefNote.serializeXml(namespace, noteElement, "clefNote");
     }
