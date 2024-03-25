@@ -14,6 +14,7 @@ ClefNote as VexClefNote,
   * Most of the differences are trivial - e.g. different naming conventions for variables.
   */
 import { smoSerialize } from "./serializationHelpers";
+import { SmoMusic } from "../smo/data/music";
 // export type Vex = SmoVex;
 export const VexFlow = SmoVex.Flow;
 const VF = VexFlow;
@@ -53,8 +54,11 @@ export interface GlyphInfo {
 
 // DI interfaces to create vexflow objects
 export interface CreateVexNoteParams {
-  isTuplet: boolean, measureIndex: number, clef: string,
-  closestTicks: string, exactTicks: string, keys: string[],
+  isTuplet: boolean, 
+  measureIndex: number, 
+  clef: string,
+  stemTicks: string,
+  keys: string[],
   noteType: string
 }; 
 
@@ -186,10 +190,12 @@ export function getVexTuplets(params: SmoVexTupletParams) {
 export function getVexNoteParameters(params: CreateVexNoteParams) {
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
-    var duration =
-      params.isTuplet ?
-        params.closestTicks :
-        params.exactTicks;
+    // var duration =
+      // params.isTuplet ?
+        // params.closestTicks :
+        // params.exactTicks;
+
+    var duration: any = params.stemTicks;
     if (typeof (duration) === 'undefined') {
       console.warn('bad duration in measure ' + params.measureIndex);
       duration = '8';

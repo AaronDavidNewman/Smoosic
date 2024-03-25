@@ -303,17 +303,18 @@ export class MidiToSmo {
         const note = new SmoNote(defs);
         SmoNote.sortPitches(note);
         measure.voices[0].notes.push(note);
-        if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
-          const voiceLen = measure.voices[0].notes.length;
-          const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
-          const defs = SmoTuplet.defaults;
-          defs.notes = tupletNotes;
-          defs.stemTicks = ev.tupletInfo.stemTicks;
-          defs.numNotes = ev.tupletInfo.numNotes;
-          defs.totalTicks = ev.tupletInfo.totalTicks;
-          defs.startIndex = voiceLen - 3;
-          measure.tuplets.push(new SmoTuplet(defs));
-        }
+        //todo: needs to be check for nested tuplets
+        // if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
+        //   const voiceLen = measure.voices[0].notes.length;
+        //   const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
+        //   const defs = SmoTuplet.defaults;
+        //   defs.notes = tupletNotes;
+        //   defs.stemTicks = ev.tupletInfo.stemTicks;
+        //   defs.numNotes = ev.tupletInfo.numNotes;
+        //   defs.totalTicks = ev.tupletInfo.totalTicks;
+        //   defs.startIndex = voiceLen - 3;
+        //   measure.tuplets.push(new SmoTuplet(defs));
+        // }
         if (ev.isTied) {
           this.addToTieMap(measureIndex);
         }

@@ -27,6 +27,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
+import { SmoTuplet } from '../../smo/data/tuplet';
 const VF = VexFlow;
 
 declare var $: any;
@@ -142,15 +143,17 @@ export class VxMeasure implements VxMeasureIf {
   createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: Note | null = null;
     let timestamp = new Date().valueOf();
-    const closestTicks = SmoMusic.closestVexDuration(smoNote.tickCount);
-    const exactTicks = SmoMusic.ticksToDuration[smoNote.tickCount];
+    const stemTicks = SmoMusic.ticksToDuration[smoNote.stemTicks];
     const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
     const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
     const smoNoteParams = {
-      isTuplet: smoNote.isTuplet, measureIndex: this.smoMeasure.measureNumber.measureIndex,
-       clef: smoNote.clef,
-      closestTicks, exactTicks, keys,
-      noteType: smoNote.noteType };
+      isTuplet: smoNote.isTuplet, 
+      measureIndex: this.smoMeasure.measureNumber.measureIndex,
+      clef: smoNote.clef,
+      stemTicks,  
+      keys,
+      noteType: smoNote.noteType 
+    };
     const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
     if (smoNote.noteType === '/') {
       // vexNote = new VF.GlyphNote('\uE504', { duration });
@@ -321,37 +324,37 @@ export class VxMeasure implements VxMeasureIf {
     }
   }
 
-  /**
-   * Create the VF tuplet objects based on the smo tuplet objects
-   * @param vix 
-   */
-  // 
   createVexTuplets(vix: number) {
-    var j = 0;
-    var i = 0;
     this.vexTuplets = [];
     this.tupletToVexMap = {};
-    for (i = 0; i < this.smoMeasure.tuplets.length; ++i) {
-      const tp = this.smoMeasure.tuplets[i];
+    for (let i = 0; i < this.smoMeasure.tupletTrees.length; ++i) {
+      const tp = this.smoMeasure.tupletTrees[i];
       if (tp.voice !== vix) {
         continue;
       }
-      const vexNotes: Note[] = [];
-      for (j = 0; j < tp.notes.length; ++j) {
-        const smoNote = tp.notes[j];
-        vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
+      const traverseTupletTree = ( parentTuplet: SmoTuplet): void => {      
+        const vexNotes = [];
+        for (let smoNote of this.smoMeasure.tupletNotes(parentTuplet)) {
+          vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
+        }
+        const location = this.smoMeasure.getStemDirectionForTuplet(parentTuplet) === SmoNote.flagStates.up ?
+          VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+        const smoTupletParams = {
+          vexNotes,
+          numNotes: parentTuplet.numNotes,
+          notesOccupied: parentTuplet.notesOccupied,
+          location
+        }
+        const vexTuplet = getVexTuplets(smoTupletParams);
+
+        this.tupletToVexMap[parentTuplet.attrs.id] = vexTuplet;
+        this.vexTuplets.push(vexTuplet);
+        for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+          const tuplet = parentTuplet.childrenTuplets[i];
+          traverseTupletTree(tuplet);
+        }
       }
-      const location = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
-        VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
-      const smoTupletParams = {
-        vexNotes,
-        numNotes: tp.numNotes,
-        notesOccupied: tp.note_ticks_occupied,
-        location
-      }
-      const vexTuplet = getVexTuplets(smoTupletParams);
-      this.tupletToVexMap[tp.attrs.id] = vexTuplet;
-      this.vexTuplets.push(vexTuplet);
+      traverseTupletTree(tp);      
     }
   }
 

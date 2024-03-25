@@ -78,10 +78,12 @@ function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
   }
 }
 function smoNoteToStaveNote(smoNote: SmoNote) {
-  const duration =
-    smoNote.isTuplet ?
-      SmoMusic.closestVexDuration(smoNote.tickCount) :
-      SmoMusic.ticksToDuration[smoNote.tickCount];
+  // const duration =
+  //   smoNote.isTuplet ?
+  //     SmoMusic.closestVexDuration(smoNote.tickCount) :
+  //     SmoMusic.ticksToDuration[smoNote.tickCount];
+
+  const duration = SmoMusic.ticksToDuration[smoNote.stemTicks];
   const sn: StaveNoteStruct = {
     clef: smoNote.clef,
     duration,
@@ -427,20 +429,19 @@ function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
 }
 function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
   smoMeasure.voices.forEach((voice, voiceIx) => {
-    const tps = smoMeasure.tuplets.filter((tp) => tp.voice === voiceIx);
+    const tps = smoMeasure.tupletTrees.filter((tp) => tp.voice === voiceIx);
     for (var i = 0; i < tps.length; ++i) {
       const tp = tps[i];
       const nar: string[] = [];
-      for (var j = 0; j < tp.notes.length; ++j) {
-        const note = tp.notes[j];
+      for ( let note of smoMeasure.tupletNotes(tp)) {
         const vexNote = `${note.attrs.id}`;
         nar.push(vexNote);
       }
-      const direction = tp.getStemDirection(smoMeasure.clef) === SmoNote.flagStates.up ?
+      const direction = smoMeasure.getStemDirectionForTuplet(tp) === SmoNote.flagStates.up ?
           VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
       const tpParams: TupletOptions = {
-          num_notes: tp.num_notes,
-          notes_occupied: tp.notes_occupied,
+          num_notes: tp.numNotes,
+          notes_occupied: tp.notesOccupied,
           ratioed: false,
           bracketed: true,
           location: direction
@@ -493,9 +494,9 @@ function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: strin
     strs.push(`${bg.attrs.id}.setContext(context);`);
     strs.push(`${bg.attrs.id}.draw();`)
   });
-  smoMeasure.tuplets.forEach((tp) => {
+  smoMeasure.tupletTrees.forEach((tp) => {
     strs.push(`${tp.attrs.id}.setContext(context).draw();`)
-  })
+  });
 }
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects

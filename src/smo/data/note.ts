@@ -24,9 +24,9 @@ export type NoteStringParam = 'noteHead' | 'clef';
 // @internal
 export const NoteStringParams: NoteStringParam[] = ['noteHead', 'clef'];
 // @internal
-export type NoteNumberParam = 'beamBeats' | 'flagState';
+export type NoteNumberParam = 'beamBeats' | 'flagState' | 'stemTicks';
 // @internal
-export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState'];
+export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState', 'stemTicks'];
 // @internal
 export type NoteBooleanParam = 'hidden' | 'endBeam' | 'isCue';
 // @internal
@@ -49,6 +49,7 @@ export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCu
  * @param beamBeats how many ticks to use before beaming a group
  * @param flagState up down auto
  * @param ticks duration
+ * @param stemTicks visible duration (todo update this comment)
  * @param pitches SmoPitch array
  * @param isCue tiny notes
  * @category SmoParameters
@@ -116,6 +117,10 @@ export interface SmoNoteParams {
    * note duration
    */
   ticks: Ticks,
+  /**
+   * visible duration
+   */
+  stemTicks: number,
   /**
    * pitch for leger lines and sounds
    */
@@ -204,6 +209,10 @@ export interface SmoNoteParamsSer  {
     */
   ticks: Ticks,
   /**
+   * visible duration (todo: update this comment)
+   */
+  stemTicks: number,
+  /**
     * pitch for leger lines and sounds
     */
   pitches: Pitch[],
@@ -280,6 +289,7 @@ export class SmoNote implements Transposable {
   tones: SmoMicrotone[] = [];
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
+  stemTicks: number = 4096;
   beamBeats: number = 4096;
   beam_group: SmoAttrs | null = null;
   renderId: string | null = null;
@@ -319,6 +329,7 @@ export class SmoNote implements Transposable {
         denominator: 1,
         remainder: 0
       },
+      stemTicks: 4096,
       pitches: [{
         letter: 'b',
         octave: 4,
@@ -333,11 +344,9 @@ export class SmoNote implements Transposable {
     this.flagState = (this.flagState + 1) % 3;
   }
 
+  //todo: double check this
   get dots() {
-    if (this.isTuplet) {
-      return 0;
-    }
-    const vexDuration = SmoMusic.closestSmoDurationFromTicks(this.tickCount);
+    const vexDuration = SmoMusic.closestSmoDurationFromTicks(this.stemTicks);
     if (!vexDuration) {
       return 0;
     }
@@ -779,12 +788,19 @@ export class SmoNote implements Transposable {
    * @param ticks
    * @returns A note identical to `note` but with different duration
    */
-  static cloneWithDuration(note: SmoNote, ticks: Ticks | number) {
+  static cloneWithDuration(note: SmoNote, ticks: Ticks | number, stemTicks: number | null = null) {
     if (typeof(ticks) === 'number') {
       ticks = { numerator: ticks, denominator: 1, remainder: 0 };
     }
     const rv = SmoNote.clone(note);
     rv.ticks = ticks;
+    
+    if (stemTicks === null) {
+      rv.stemTicks = ticks.numerator + ticks.remainder;
+    } else {
+      rv.stemTicks = stemTicks;
+    }
+
     return rv;
   }
   static serializeModifier(modifiers: SmoNoteModifierBase[]) : object[] {

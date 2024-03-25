@@ -60,77 +60,77 @@ export class PasteBuffer {
     this.score = score;
   }
   setSelections(score: SmoScore, selections: SmoSelection[]) {
-    this.notes = [];
-    this.noteIndex = 0;
-    this.score = score;
-    if (selections.length < 1) {
-      return;
-    }
-    this.tupletNoteMap = {};
-    const first = selections[0];
-    const last = selections[selections.length - 1];
-    if (!first.note || !last.note) {
-      return;
-    }
+    // this.notes = [];
+    // this.noteIndex = 0;
+    // this.score = score;
+    // if (selections.length < 1) {
+    //   return;
+    // }
+    // this.tupletNoteMap = {};
+    // const first = selections[0];
+    // const last = selections[selections.length - 1];
+    // if (!first.note || !last.note) {
+    //   return;
+    // }
 
-    const startTuplet: SmoTuplet | null = first.measure.getTupletForNote(first.note);
-    if (startTuplet) {
-      if (startTuplet.getIndexOfNote(first.note) !== 0) {
-        return; // can't paste from the middle of a tuplet
-      }
-    }
-    const endTuplet: SmoTuplet | null = last.measure.getTupletForNote(last.note);
-    if (endTuplet) {
-      if (endTuplet.getIndexOfNote(last.note) !== endTuplet.notes.length - 1) {
-        return; // can't paste part of a tuplet.
-      }
-    }
-    this._populateSelectArray(selections);
+    // const startTuplet: SmoTuplet | null = first.measure.getTupletForNote(first.note);
+    // if (startTuplet) {
+    //   if (startTuplet.getIndexOfNote(first.note) !== 0) {
+    //     return; // can't paste from the middle of a tuplet
+    //   }
+    // }
+    // const endTuplet: SmoTuplet | null = last.measure.getTupletForNote(last.note);
+    // if (endTuplet) {
+    //   if (endTuplet.getIndexOfNote(last.note) !== endTuplet.notes.length - 1) {
+    //     return; // can't paste part of a tuplet.
+    //   }
+    // }
+    // this._populateSelectArray(selections);
   }
   // ### _populateSelectArray
   // copy the selected notes into the paste buffer with their original locations.
   _populateSelectArray(selections: SmoSelection[]) {
-    let selector: SmoSelector = SmoSelector.default;
-    this.modifiers = [];
-    selections.forEach((selection) => {
-      selector = JSON.parse(JSON.stringify(selection.selector));
-      const mod: StaffModifierBase[] = selection.staff.getModifiersAt(selector);
-      if (mod.length) {
-        mod.forEach((modifier: StaffModifierBase) => {
-          const cp: StaffModifierBase = StaffModifierBase.deserialize(modifier.serialize());
-          cp.attrs.id = getId().toString();
-          this.modifiers.push(cp);
-        });
-      }
-      const isTuplet: boolean = selection?.note?.isTuplet ?? false;
-      // We store copy in concert pitch.  The originalKey is the original key of the copy.
-      // the destKey is the originalKey in concert pitch.
-      const originalKey = selection.measure.keySignature;
-      const keyOffset = -1 * selection.measure.transposeIndex;
-      const destKey = SmoMusic.vexKeySignatureTranspose(originalKey, keyOffset).toLocaleLowerCase();
-      if (isTuplet) {
-        const tuplet = (selection.measure.getTupletForNote(selection.note) as SmoTuplet);
-        const index = tuplet.getIndexOfNote(selection.note);
-        if (index === 0) {
-          const ntuplet = SmoTuplet.cloneTuplet(tuplet);
-          this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-          ntuplet.notes.forEach((nnote) => {
-            const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
-              [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, destKey) as SmoNote;
-            this.notes.push({ selector, note: xposeNote, originalKey: destKey });
-            selector = JSON.parse(JSON.stringify(selector));
-            selector.tick += 1;
-          });
-        }
-      } else if (selection.note) {
-        const note = SmoNote.transpose(SmoNote.clone(selection.note),
-          [], keyOffset, selection.measure.keySignature, destKey) as SmoNote;
-        this.notes.push({ selector, note, originalKey: destKey });
-      }
-    });
-    this.notes.sort((a, b) =>
-      SmoSelector.gt(a.selector, b.selector) ? 1 : -1
-    );
+    // let selector: SmoSelector = SmoSelector.default;
+    // this.modifiers = [];
+    // selections.forEach((selection) => {
+    //   selector = JSON.parse(JSON.stringify(selection.selector));
+    //   const mod: StaffModifierBase[] = selection.staff.getModifiersAt(selector);
+    //   if (mod.length) {
+    //     mod.forEach((modifier: StaffModifierBase) => {
+    //       const cp: StaffModifierBase = StaffModifierBase.deserialize(modifier.serialize());
+    //       cp.attrs.id = getId().toString();
+    //       this.modifiers.push(cp);
+    //     });
+    //   }
+    //   const isTuplet: boolean = selection?.note?.isTuplet ?? false;
+    //   // We store copy in concert pitch.  The originalKey is the original key of the copy.
+    //   // the destKey is the originalKey in concert pitch.
+    //   const originalKey = selection.measure.keySignature;
+    //   const keyOffset = -1 * selection.measure.transposeIndex;
+    //   const destKey = SmoMusic.vexKeySignatureTranspose(originalKey, keyOffset).toLocaleLowerCase();
+    //   if (isTuplet) {
+    //     const tuplet = (selection.measure.getTupletForNote(selection.note) as SmoTuplet);
+    //     const index = tuplet.getIndexOfNote(selection.note);
+    //     if (index === 0) {
+    //       const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+    //       this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
+    //       ntuplet.notes.forEach((nnote) => {
+    //         const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
+    //           [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, destKey) as SmoNote;
+    //         this.notes.push({ selector, note: xposeNote, originalKey: destKey });
+    //         selector = JSON.parse(JSON.stringify(selector));
+    //         selector.tick += 1;
+    //       });
+    //     }
+    //   } else if (selection.note) {
+    //     const note = SmoNote.transpose(SmoNote.clone(selection.note),
+    //       [], keyOffset, selection.measure.keySignature, destKey) as SmoNote;
+    //     this.notes.push({ selector, note, originalKey: destKey });
+    //   }
+    // });
+    // this.notes.sort((a, b) =>
+    //   SmoSelector.gt(a.selector, b.selector) ? 1 : -1
+    // );
   }
 
   clearSelections() {
@@ -197,39 +197,39 @@ export class PasteBuffer {
     let j = 0;
     let ticksToFill = tickmap.durationMap[startTick];
     // TODO: bug here, need to handle tuplets in pre-part, create new tuplet
-    for (i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
-      const note = measure.voices[voiceIndex].notes[i];
-      // If this is a tuplet, clone all the notes at once.
-      if (note.isTuplet && ticksToFill >= note.tickCount) {
-        const tuplet = measure.getTupletForNote(note);
-        if (!tuplet) {
-          continue;  // we remove the tuplet after first iteration
-        }
-        const ntuplet: SmoTuplet = SmoTuplet.cloneTuplet(tuplet);
-        voice.notes = voice.notes.concat(ntuplet.notes as SmoNote[]);
-        measure.removeTupletForNote(note);
-        measure.tuplets.push(ntuplet);
-        ticksToFill -= tuplet.tickCount;
-      } else if (ticksToFill >= note.tickCount) {
-        ticksToFill -= note.tickCount;
-        voice.notes.push(SmoNote.clone(note));
-      } else {
-        const duration = note.tickCount - ticksToFill;
-        const durMap = SmoMusic.gcdMap(duration);
-        for (j = 0; j < durMap.length; ++j) {
-          const dd = durMap[j];
-          SmoNote.cloneWithDuration(note, {
-            numerator: dd,
-            denominator: 1,
-            remainder: 0
-          });
-        }
-        ticksToFill = 0;
-      }
-      if (ticksToFill < 1) {
-        break;
-      }
-    }
+    // for (i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
+    //   const note = measure.voices[voiceIndex].notes[i];
+    //   // If this is a tuplet, clone all the notes at once.
+    //   if (note.isTuplet && ticksToFill >= note.tickCount) {
+    //     const tuplet = measure.getTupletForNote(note);
+    //     if (!tuplet) {
+    //       continue;  // we remove the tuplet after first iteration
+    //     }
+    //     const ntuplet: SmoTuplet = SmoTuplet.cloneTuplet(tuplet);
+    //     voice.notes = voice.notes.concat(ntuplet.notes as SmoNote[]);
+    //     measure.removeTupletForNote(note);
+    //     measure.tuplets.push(ntuplet);
+    //     ticksToFill -= tuplet.tickCount;
+    //   } else if (ticksToFill >= note.tickCount) {
+    //     ticksToFill -= note.tickCount;
+    //     voice.notes.push(SmoNote.clone(note));
+    //   } else {
+    //     const duration = note.tickCount - ticksToFill;
+    //     const durMap = SmoMusic.gcdMap(duration);
+    //     for (j = 0; j < durMap.length; ++j) {
+    //       const dd = durMap[j];
+    //       SmoNote.cloneWithDuration(note, {
+    //         numerator: dd,
+    //         denominator: 1,
+    //         remainder: 0
+    //       });
+    //     }
+    //     ticksToFill = 0;
+    //   }
+    //   if (ticksToFill < 1) {
+    //     break;
+    //   }
+    // }
     return voice;
   }
 
@@ -314,13 +314,13 @@ export class PasteBuffer {
    * @returns 
    */
   static tupletOverlapIndex(t1: SmoTuplet, measure: SmoMeasure) {
-    for (var i = 0; i < measure.tuplets.length; ++i) {
-      const tt = measure.tuplets[i];
-      // TODO: what about other kinds of overlap?
-      if (tt.startIndex === t1.startIndex) {
-        return i;
-      }
-    }
+    // for (var i = 0; i < measure.tuplets.length; ++i) {
+    //   const tt = measure.tuplets[i];
+    //   // TODO: what about other kinds of overlap?
+    //   if (tt.startIndex === t1.startIndex) {
+    //     return i;
+    //   }
+    // }
     return -1;
   }
   /**
@@ -339,79 +339,79 @@ export class PasteBuffer {
     let j = 0;
     let tupletsPushed = 0;
     const totalDuration = tickmap.totalDuration;
-    while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
-      if (!this.score) {
-        return;
-      }
-      const selection = this.notes[this.noteIndex];
-      const note = selection.note;
-      if (note.noteType === 'n') {
-        const pitchAr: number[] = [];
-        note.pitches.forEach((pitch, ix) => {
-          pitchAr.push(ix);
-        });
-        SmoNote.transpose(note, pitchAr, measure.transposeIndex, selection.originalKey, measure.keySignature);
-      }
-      this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
-      if (note.isTuplet) {
-        const tuplet = this.tupletNoteMap[(note.tuplet as TupletInfo).id];
-        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
-        ntuplet.startIndex = voice.notes.length;
-        this.noteIndex += ntuplet.notes.length;
-        startSelector.tick += ntuplet.notes.length;
-        currentDuration += tuplet.tickCount;
-        for (i = 0; i < ntuplet.notes.length; ++i) {
-          const tn = ntuplet.notes[i];
-          tn.clef = measure.clef;
-          voice.notes.push(tn);
-        }
-        const tix = PasteBuffer.tupletOverlapIndex(ntuplet, measure);
-        // If this is overlapping an existing tuplet in the target measure, replace it
-        if (tix >= 0) {
-          measure.tuplets[tix] = ntuplet;
-        } else {
-          measure.tuplets.push(ntuplet);
-        }
-      } else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
-        // The whole note fits in the measure, paste it.
-        const nnote = SmoNote.clone(note);
-        nnote.clef = measure.clef;
-        voice.notes.push(nnote);
-        currentDuration += note.tickCount;
-        this.noteIndex += 1;
-        startSelector.tick += 1;
-      } else if (this.remainder > 0) {
-        // This is a note that spilled over the last measure
-        const nnote = SmoNote.cloneWithDuration(note, {
-          numerator: this.remainder,
-          denominator: 1,
-          remainder: 0
-        });
-        nnote.clef = measure.clef;
-        voice.notes.push(nnote);
-        currentDuration += this.remainder;
-        this.remainder = 0;
-      } else {
-        // The note won't fit, so we split it in 2 and paste the remainder in the next measure.
-        // TODO:  tie the last note to this one.
-        const partial = totalDuration - currentDuration;
-        const dar = SmoMusic.gcdMap(partial);
-        for (j = 0; j < dar.length; ++j) {
-          const ddd = dar[j];
-          const vnote = SmoNote.cloneWithDuration(note, {
-            numerator: ddd,
-            denominator: 1,
-            remainder: 0
-          });
-          voice.notes.push(vnote);
-        }
-        currentDuration += partial;
+    // while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
+    //   if (!this.score) {
+    //     return;
+    //   }
+    //   const selection = this.notes[this.noteIndex];
+    //   const note = selection.note;
+    //   if (note.noteType === 'n') {
+    //     const pitchAr: number[] = [];
+    //     note.pitches.forEach((pitch, ix) => {
+    //       pitchAr.push(ix);
+    //     });
+    //     SmoNote.transpose(note, pitchAr, measure.transposeIndex, selection.originalKey, measure.keySignature);
+    //   }
+    //   this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
+    //   if (note.isTuplet) {
+    //     const tuplet = this.tupletNoteMap[(note.tuplet as TupletInfo).id];
+    //     const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+    //     ntuplet.startIndex = voice.notes.length;
+    //     this.noteIndex += ntuplet.notes.length;
+    //     startSelector.tick += ntuplet.notes.length;
+    //     currentDuration += tuplet.tickCount;
+    //     for (i = 0; i < ntuplet.notes.length; ++i) {
+    //       const tn = ntuplet.notes[i];
+    //       tn.clef = measure.clef;
+    //       voice.notes.push(tn);
+    //     }
+    //     const tix = PasteBuffer.tupletOverlapIndex(ntuplet, measure);
+    //     // If this is overlapping an existing tuplet in the target measure, replace it
+    //     if (tix >= 0) {
+    //       measure.tuplets[tix] = ntuplet;
+    //     } else {
+    //       measure.tuplets.push(ntuplet);
+    //     }
+    //   } else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
+    //     // The whole note fits in the measure, paste it.
+    //     const nnote = SmoNote.clone(note);
+    //     nnote.clef = measure.clef;
+    //     voice.notes.push(nnote);
+    //     currentDuration += note.tickCount;
+    //     this.noteIndex += 1;
+    //     startSelector.tick += 1;
+    //   } else if (this.remainder > 0) {
+    //     // This is a note that spilled over the last measure
+    //     const nnote = SmoNote.cloneWithDuration(note, {
+    //       numerator: this.remainder,
+    //       denominator: 1,
+    //       remainder: 0
+    //     });
+    //     nnote.clef = measure.clef;
+    //     voice.notes.push(nnote);
+    //     currentDuration += this.remainder;
+    //     this.remainder = 0;
+    //   } else {
+    //     // The note won't fit, so we split it in 2 and paste the remainder in the next measure.
+    //     // TODO:  tie the last note to this one.
+    //     const partial = totalDuration - currentDuration;
+    //     const dar = SmoMusic.gcdMap(partial);
+    //     for (j = 0; j < dar.length; ++j) {
+    //       const ddd = dar[j];
+    //       const vnote = SmoNote.cloneWithDuration(note, {
+    //         numerator: ddd,
+    //         denominator: 1,
+    //         remainder: 0
+    //       });
+    //       voice.notes.push(vnote);
+    //     }
+    //     currentDuration += partial;
 
-        // Set the remaining length of the current note, this will be added to the
-        // next measure with the previous note's pitches
-        this.remainder = note.tickCount - partial;
-      }
-    }
+    //     // Set the remaining length of the current note, this will be added to the
+    //     // next measure with the previous note's pitches
+    //     this.remainder = note.tickCount - partial;
+    //   }
+    // }
   }
 
   // ### _populatePost
@@ -421,34 +421,34 @@ export class PasteBuffer {
     let startTicks = PasteBuffer._countTicks(voice);
     let existingIndex = 0;
     const totalDuration = tickmap.totalDuration;
-    while (startTicks < totalDuration) {
-      // Find the point in the music where the paste area runs out, or as close as we can get.
-      existingIndex = tickmap.durationMap.indexOf(startTicks);
-      existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
-      const note = measure.voices[voiceIndex].notes[existingIndex];
-      if (note.isTuplet) {
-        const tuplet = measure.getTupletForNote(note) as SmoTuplet;
-        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
-        startTicks += tuplet.tickCount;
-        voice.notes = voice.notes.concat(ntuplet.notes);
-        measure.tuplets.push(ntuplet);
-        measure.removeTupletForNote(note);
-      } else {
-        const ticksLeft = totalDuration - startTicks;
-        if (ticksLeft >= note.tickCount) {
-          startTicks += note.tickCount;
-          voice.notes.push(SmoNote.clone(note));
-        } else {
-          const remainder = totalDuration - startTicks;
-          voice.notes.push(SmoNote.cloneWithDuration(note, {
-            numerator: remainder,
-            denominator: 1,
-            remainder: 0
-          }));
-          startTicks = totalDuration;
-        }
-      }
-    }
+    // while (startTicks < totalDuration) {
+    //   // Find the point in the music where the paste area runs out, or as close as we can get.
+    //   existingIndex = tickmap.durationMap.indexOf(startTicks);
+    //   existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
+    //   const note = measure.voices[voiceIndex].notes[existingIndex];
+    //   if (note.isTuplet) {
+    //     const tuplet = measure.getTupletForNote(note) as SmoTuplet;
+    //     const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+    //     startTicks += tuplet.tickCount;
+    //     voice.notes = voice.notes.concat(ntuplet.notes);
+    //     measure.tuplets.push(ntuplet);
+    //     measure.removeTupletForNote(note);
+    //   } else {
+    //     const ticksLeft = totalDuration - startTicks;
+    //     if (ticksLeft >= note.tickCount) {
+    //       startTicks += note.tickCount;
+    //       voice.notes.push(SmoNote.clone(note));
+    //     } else {
+    //       const remainder = totalDuration - startTicks;
+    //       voice.notes.push(SmoNote.cloneWithDuration(note, {
+    //         numerator: remainder,
+    //         denominator: 1,
+    //         remainder: 0
+    //       }));
+    //       startTicks = totalDuration;
+    //     }
+    //   }
+    // }
   }
 
   _pasteVoiceSer(ser: any, vobj: any, voiceIx: number) {
@@ -470,96 +470,96 @@ export class PasteBuffer {
   }
 
   pasteSelections(selector: SmoSelector) {
-    let i = 0;
-    if (this.notes.length < 1) {
-      return;
-    }
-    const maxCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
-    const minCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
-    const backupNotes: PasteNote[] = [];
-    this.notes.forEach((bb) => {
-      const note = (SmoNote.deserialize(bb.note.serialize()));
-      const selector = JSON.parse(JSON.stringify(bb.selector));
-      backupNotes.push({ note, selector, originalKey: bb.originalKey });
-    });
-    this.destination = selector;
-    if (minCutVoice === maxCutVoice && minCutVoice > this.destination.voice) {
-      this.destination.voice = minCutVoice;
+  //   let i = 0;
+  //   if (this.notes.length < 1) {
+  //     return;
+  //   }
+  //   const maxCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
+  //   const minCutVoice = this.notes.map((n) => n.selector.voice).reduce((a, b) => a > b ? a : b);
+  //   const backupNotes: PasteNote[] = [];
+  //   this.notes.forEach((bb) => {
+  //     const note = (SmoNote.deserialize(bb.note.serialize()));
+  //     const selector = JSON.parse(JSON.stringify(bb.selector));
+  //     backupNotes.push({ note, selector, originalKey: bb.originalKey });
+  //   });
+  //   this.destination = selector;
+  //   if (minCutVoice === maxCutVoice && minCutVoice > this.destination.voice) {
+  //     this.destination.voice = minCutVoice;
       
-    }
-    this.modifiersToPlace = [];
-    if (this.notes.length < 1) {
-      return;
-    }
-    if (!this.score) {
-      return;
-    }
-    this.noteIndex = 0;
-    this.measureIndex = -1;
-    this.remainder = 0;
-    const voices = this._populateVoice(this.destination.voice);
-    const measureSel = JSON.parse(JSON.stringify(this.destination));
-    const selectors: SmoSelector[] = [];
-    for (i = 0; i < this.measures.length && i < voices.length; ++i) {
-      const measure: SmoMeasure = this.measures[i];
-      const nvoice: SmoVoice = voices[i];
-      const ser: any = measure.serialize();
-      // Make sure the key is concert pitch, it is what measure constructor expects
-      ser.transposeIndex = measure.transposeIndex; // default values are undefined, make sure the transpose is valid
-      ser.keySignature = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
-      ser.timeSignature = measure.timeSignature.serialize();
-      ser.tempo = measure.tempo.serialize();
-      const vobj: any = {
-        notes: []
-      };
-      nvoice.notes.forEach((note: SmoNote) => {
-        vobj.notes.push(note.serialize());
-      });
+  //   }
+  //   this.modifiersToPlace = [];
+  //   if (this.notes.length < 1) {
+  //     return;
+  //   }
+  //   if (!this.score) {
+  //     return;
+  //   }
+  //   this.noteIndex = 0;
+  //   this.measureIndex = -1;
+  //   this.remainder = 0;
+  //   const voices = this._populateVoice(this.destination.voice);
+  //   const measureSel = JSON.parse(JSON.stringify(this.destination));
+  //   const selectors: SmoSelector[] = [];
+  //   for (i = 0; i < this.measures.length && i < voices.length; ++i) {
+  //     const measure: SmoMeasure = this.measures[i];
+  //     const nvoice: SmoVoice = voices[i];
+  //     const ser: any = measure.serialize();
+  //     // Make sure the key is concert pitch, it is what measure constructor expects
+  //     ser.transposeIndex = measure.transposeIndex; // default values are undefined, make sure the transpose is valid
+  //     ser.keySignature = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+  //     ser.timeSignature = measure.timeSignature.serialize();
+  //     ser.tempo = measure.tempo.serialize();
+  //     const vobj: any = {
+  //       notes: []
+  //     };
+  //     nvoice.notes.forEach((note: SmoNote) => {
+  //       vobj.notes.push(note.serialize());
+  //     });
 
-      // TODO: figure out how to do this with multiple voices
-      this._pasteVoiceSer(ser, vobj, this.destination.voice);
-      const nmeasure = SmoMeasure.deserialize(ser);
-      // If this is the non-display buffer, don't try to reset the display rectangles.
-      // Q: Is this even required since we are going to re-render?
-      // A: yes, because until we do, the replaced measure needs the formatting info
-      if (measure.svg.logicalBox && measure.svg.logicalBox.width > 0) {
-        nmeasure.setBox(SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
-        nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
-        nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
-        nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
-        nmeasure.svg.element = measure.svg.element;
-      }
-      ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
-        (nmeasure as any)[flag] = (measure.svg as any)[flag];
-      });
-      this.score.replaceMeasure(measureSel, nmeasure);
-      measureSel.measure += 1;
-      selectors.push(
-        { staff: selector.staff, measure: nmeasure.measureNumber.measureIndex, voice: 0, tick: 0, pitches: [] }
-      );
-    }
-    this.replacementMeasures = [];
-    selectors.forEach((selector: SmoSelector) => {
-      const nsel: SmoSelection | null = SmoSelection.measureSelection(this.score as SmoScore, selector.staff, selector.measure);
-      if (nsel) {
-        this.replacementMeasures.push(nsel);
-      }
-    });
-    this.modifiersToPlace.forEach((mod) => {
-      let selection = SmoSelection.selectionFromSelector(this.score!, mod.modifier.endSelector);
-      while (selection && mod.ticksToStart !== 0) {
-        if (mod.ticksToStart < 0) {
-          selection = SmoSelection.nextNoteSelectionFromSelector(this.score!, selection.selector);
-        } else {
-          selection = SmoSelection.lastNoteSelectionFromSelector(this.score!, selection.selector);
-        }
-        mod.ticksToStart -= 1 * Math.sign(mod.ticksToStart);
-      }
-      if (selection) {
-        mod.modifier.startSelector = JSON.parse(JSON.stringify(selection.selector));
-        selection.staff.addStaffModifier(mod.modifier);
-      }
-    });
-    this.notes = backupNotes;
+  //     // TODO: figure out how to do this with multiple voices
+  //     this._pasteVoiceSer(ser, vobj, this.destination.voice);
+  //     const nmeasure = SmoMeasure.deserialize(ser);
+  //     // If this is the non-display buffer, don't try to reset the display rectangles.
+  //     // Q: Is this even required since we are going to re-render?
+  //     // A: yes, because until we do, the replaced measure needs the formatting info
+  //     if (measure.svg.logicalBox && measure.svg.logicalBox.width > 0) {
+  //       nmeasure.setBox(SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
+  //       nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
+  //       nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
+  //       nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
+  //       nmeasure.svg.element = measure.svg.element;
+  //     }
+  //     ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
+  //       (nmeasure as any)[flag] = (measure.svg as any)[flag];
+  //     });
+  //     this.score.replaceMeasure(measureSel, nmeasure);
+  //     measureSel.measure += 1;
+  //     selectors.push(
+  //       { staff: selector.staff, measure: nmeasure.measureNumber.measureIndex, voice: 0, tick: 0, pitches: [] }
+  //     );
+  //   }
+  //   this.replacementMeasures = [];
+  //   selectors.forEach((selector: SmoSelector) => {
+  //     const nsel: SmoSelection | null = SmoSelection.measureSelection(this.score as SmoScore, selector.staff, selector.measure);
+  //     if (nsel) {
+  //       this.replacementMeasures.push(nsel);
+  //     }
+  //   });
+  //   this.modifiersToPlace.forEach((mod) => {
+  //     let selection = SmoSelection.selectionFromSelector(this.score!, mod.modifier.endSelector);
+  //     while (selection && mod.ticksToStart !== 0) {
+  //       if (mod.ticksToStart < 0) {
+  //         selection = SmoSelection.nextNoteSelectionFromSelector(this.score!, selection.selector);
+  //       } else {
+  //         selection = SmoSelection.lastNoteSelectionFromSelector(this.score!, selection.selector);
+  //       }
+  //       mod.ticksToStart -= 1 * Math.sign(mod.ticksToStart);
+  //     }
+  //     if (selection) {
+  //       mod.modifier.startSelector = JSON.parse(JSON.stringify(selection.selector));
+  //       selection.staff.addStaffModifier(mod.modifier);
+  //     }
+  //   });
+  //   this.notes = backupNotes;
   }
 }
