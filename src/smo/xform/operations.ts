@@ -18,8 +18,9 @@ import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import {
-  SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
-  SmoUnmakeTupletActor, SmoContractTupletActor
+  /*SmoDuration,*/ /*SmoContractNoteActor, SmoStretchNoteActor,*/ SmoMakeTupletActor,
+  /*SmoUnmakeTupletActor,*/
+  SmoChangeDurationActor, /*SmoContractTupletActor*/
 } from './tickDuration';
 import { SmoBeamer } from './beamers';
 /**
@@ -168,13 +169,8 @@ export class SmoOperation {
   // note, if possible.  Works on tuplets also.
   static doubleDuration(selection: SmoSelection) {
     const note = selection.note;
-    const measure = selection.measure;
-    const tuplet = measure.getTupletForNote(note);
-    if (!tuplet) {
-      SmoDuration.doubleDurationNonTuplet(selection);
-    } else {
-      SmoDuration.doubleDurationTuplet(selection);
-    }
+    const newDuration = note!.stemTicks * 2
+    SmoChangeDurationActor.apply(selection, newDuration);
     return true;
   }
 
@@ -186,50 +182,17 @@ export class SmoOperation {
     const note = selection.note as SmoNote;
     let divisor = 2;
     const measure = selection.measure;
-    const tuplet = measure.getTupletForNote(note);
-    if (measure.timeSignature.actualBeats % 3 === 0 && note.tickCount === 6144) {
-      // special behavior, if this is dotted 1/4 in 6/8, split to 3
-      divisor = 3;
-    }
-    if (!tuplet) {
-      const nticks = note.tickCount / divisor;
-      if (!SmoMusic.validDurations[nticks]) {
-        return;
-      }
-      SmoContractNoteActor.apply({
-        startIndex: selection.selector.tick,
-        measure: selection.measure,
-        voice: selection.selector.voice,
-        newTicks: nticks
-      });
-      SmoBeamer.applyBeams(measure);
-    } else {
-      const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-      SmoContractTupletActor.apply({
-        changeIndex: startIndex,
-        measure,
-        voice: selection.selector.voice
-      });
-    }
+    const nticks = note.stemTicks / divisor;
+    SmoChangeDurationActor.apply(selection, nticks);
+    SmoBeamer.applyBeams(measure);
+    return true;
   }
 
   // ## makeTuplet
   // ## Description
   // Makes a non-tuplet into a tuplet of equal value.
   static makeTuplet(selection: SmoSelection, numNotes: number) {
-    const note = selection.note as SmoNote;
-    const measure = selection.measure;
-    if (measure.getTupletForNote(note)) {
-      return;
-    }
-    const nticks = note.tickCount;
-    SmoMakeTupletActor.apply({
-      index: selection.selector.tick,
-      totalTicks: nticks,
-      numNotes,
-      measure: selection.measure,
-      voice: selection.selector.voice
-    });
+    SmoMakeTupletActor.apply(selection, numNotes);
   }
   static addStaffModifier(selection: SmoSelection, modifier: StaffModifierBase) {
     selection.staff.addStaffModifier(modifier);
@@ -333,24 +296,7 @@ export class SmoOperation {
   // ## Description
   // Makes a tuplet into a single with the duration of the whole tuplet
   static unmakeTuplet(selection: SmoSelection) {
-    const note = selection.note;
-    const measure = selection.measure;
-    if (!measure.getTupletForNote(note)) {
-      return;
-    }
-    const tuplet = measure.getTupletForNote(note);
-    if (tuplet === null) {
-      return;
-    }
-    const startIndex = measure.tupletIndex(tuplet);
-    const endIndex = tuplet.notes.length + startIndex - 1;
-
-    SmoUnmakeTupletActor.apply({
-      startIndex,
-      endIndex,
-      measure,
-      voice: selection.selector.voice
-    });
+    //todo Nenad: implement this
   }
 
   // ## dotDuration
@@ -360,8 +306,8 @@ export class SmoOperation {
   static dotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = SmoMusic.getNextDottedLevel(note.tickCount);
-    if (nticks === note.tickCount) {
+    const nticks = SmoMusic.getNextDottedLevel(note.stemTicks);
+    if (nticks === note.stemTicks) {
       return;
     }
     // Don't dot if the thing on the right of the . is too small
@@ -383,12 +329,7 @@ export class SmoOperation {
     if (!SmoMusic.validDurations[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
       return;
     }
-    SmoStretchNoteActor.apply({
-      startIndex: selection.selector.tick,
-      measure,
-      voice: selection.selector.voice,
-      newTicks: nticks
-    });
+    SmoChangeDurationActor.apply(selection, nticks);
   }
 
   // ## undotDuration
@@ -398,16 +339,11 @@ export class SmoOperation {
   static undotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = SmoMusic.getPreviousDottedLevel(note.tickCount);
-    if (nticks === note.tickCount) {
+    const nticks = SmoMusic.getPreviousDottedLevel(note.stemTicks);
+    if (nticks === note.stemTicks) {
       return;
     }
-    SmoContractNoteActor.apply({
-      startIndex: selection.selector.tick,
-      measure,
-      voice: selection.selector.voice,
-      newTicks: nticks
-    });
+    SmoChangeDurationActor.apply(selection, nticks);
   }
 
   static transposeScore(score: SmoScore, offset: number) {
