@@ -605,19 +605,19 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
 
     //todo: implement this
-    // const tuplets = [];
+    const tuplets = [];
     for (j = 0; j < jsonObj.tupletTrees.length; ++j) {
       const tupJson = SmoTuplet.defaults;
       smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj.tupletTrees[j], tupJson);
       // const noteAr = noteSum.filter((nn: any) =>
-      //   nn.isTuplet && nn.tuplet.id === tupJson.attrs!.id);
+        // nn.isTuplet && nn.tuplet.id === tupJson.attrs!.id);
 
-      // // Bug fix:  A tuplet with no notes may be been overwritten
-      // // in a copy/paste operation
+      // Bug fix:  A tuplet with no notes may be been overwritten
+      // in a copy/paste operation
       // if (noteAr.length > 0) {
-      //   tupJson.notes = noteAr;
-      //   const tuplet = new SmoTuplet(tupJson);
-      //   tuplets.push(tuplet);
+        // tupJson.notes = noteAr;
+        const tuplet = new SmoTuplet(tupJson);
+        tuplets.push(tuplet);
       // }
     }
 
@@ -656,7 +656,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     params.keySignature = jsonObj.keySignature ?? 'C';
     params.voices = voices;
-    // params.tuplets = tuplets;
+    params.tupletTrees = tuplets;
     params.modifiers = modifiers;
     const rv = new SmoMeasure(params);
     // Handle migration for measure-mapped parameters
