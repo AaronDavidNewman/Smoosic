@@ -536,6 +536,7 @@ export class XmlState {
       }
     });
   }
+  //todo: adjust implementation
   // ### backtrackTuplets
   // If we received a tuplet end, go back through the voice
   // and construct the SmoTuplet.
@@ -556,8 +557,8 @@ export class XmlState {
       i += 1;
     }
     const tp = SmoTuplet.defaults;
-    tp.notes = notes;
-    tp.durationMap = durationMap;
+    // tp.notes = notes;
+    // tp.durationMap = durationMap;
     tp.voice = voiceId;
     const tuplet = new SmoTuplet(tp);
     // Store the tuplet with the staff ID and voice so we
@@ -586,7 +587,7 @@ export class XmlState {
     const completed: XmlCompletedTuplet[] = [];
     this.completedTuplets.forEach((tuplet) => {
       if (tuplet.voiceId === voiceId && tuplet.staffId === staffId) {
-        smoMeasure.tuplets.push(tuplet.tuplet);
+        // smoMeasure.tuplets.push(tuplet.tuplet);
       } else {
         completed.push(tuplet);
       }

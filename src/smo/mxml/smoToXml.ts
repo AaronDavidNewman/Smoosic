@@ -533,17 +533,18 @@ export class SmoToXml {
   }
   static tupletNotation(notationsElement: Element, tuplet: SmoTuplet, note: SmoNote) {
     const nn = XmlHelpers.createTextElementChild;
-    if (tuplet.getIndexOfNote(note) === 0) {
-      const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      XmlHelpers.createAttributes(tupletElement, {
-        number: 1, type: 'start'
-      });
-    } else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
-      const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      XmlHelpers.createAttributes(tupletElement, {
-        number: 1, type: 'stop'
-      });
-    }
+    //todo nenad: adjust implementation
+    // if (tuplet.getIndexOfNote(note) === 0) {
+    //   const tupletElement = nn(notationsElement, 'tuplet', null, '');
+    //   XmlHelpers.createAttributes(tupletElement, {
+    //     number: 1, type: 'start'
+    //   });
+    // } else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
+    //   const tupletElement = nn(notationsElement, 'tuplet', null, '');
+    //   XmlHelpers.createAttributes(tupletElement, {
+    //     number: 1, type: 'stop'
+    //   });
+    // }
   }
 
   /**
@@ -783,7 +784,7 @@ export class SmoToXml {
       }
       const duration = note.tickCount;
       smoState.measureTicks += duration;
-      const tuplet = measure.getTupletForNote(note);
+      const tuplet = measure.getTupletForNoteIndex(smoState.voiceIndex, smoState.voiceTickIndex);
       nn(noteElement, 'duration', { duration }, 'duration');
       SmoToXml.tie(noteElement, smoState);
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');

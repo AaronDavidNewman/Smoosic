@@ -128,7 +128,7 @@ import { SuiSampleMedia } from '../render/audio/samples';
 import { SmoScore, engravingFontTypes, isEngravingFont } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
-import { SmoDuration } from '../smo/xform/tickDuration';
+// import { SmoDuration } from '../smo/xform/tickDuration';
 import { createLoadTests } from '../../tests/file-load';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
@@ -232,7 +232,7 @@ export const Smo = {
     SmoOrnament,
     SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric, SmoArpeggio, SmoClefChange,
     // Smo Transformers
-    SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
+    SmoSelection, SmoSelector, /*SmoDuration,*/ UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap
     // help strings
     cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
