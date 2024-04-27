@@ -23,7 +23,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest
+  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
+  createTextNote
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
@@ -258,6 +259,7 @@ export class VxMeasure implements VxMeasureIf {
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
+      const textNotes = smoNote.getTextOrnaments();
       const vexNote = this.createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
       this.vexNotes.push(vexNote.noteData.staveNote);
@@ -267,6 +269,9 @@ export class VxMeasure implements VxMeasureIf {
         clefNoteAdded = true; // ignore 2nd in a measure
       }
       this.voiceNotes.push(vexNote.noteData.staveNote);
+      textNotes.forEach((tn) => {
+        this.voiceNotes.push(createTextNote(SmoOrnament.textNoteOrnaments[tn.ornament]));
+      });
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
         || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');

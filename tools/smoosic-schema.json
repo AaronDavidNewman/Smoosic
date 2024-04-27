@@ -1,0 +1,460 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aarondavidnewman.github.io/Smoosic/tools/smoosic-schema.json",
+  "type": "object",
+  "definitions": {
+    "stringMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "SmoAttrs": {
+      "$comment": "describes the id of an instance.  Use of type is depracated",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "$required": [
+        "id"
+      ]
+    },
+    "Ticks": {
+      "$comment": "a tuple that describes a duration of time (as in, of a note or pitch)",
+      "properties": {
+        "numerator": {
+          "type": "number",
+          "default": 4096
+        },
+        "denominator": {
+          "type": "number",
+          "default": 1
+        },
+        "remainder": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "Pitch": {
+      "letter": {
+        "type": "string",
+        "default": "c"
+      },
+      "accidental": {
+        "type": "string",
+        "default": "n"
+      },
+      "octave": {
+        "type": "integer",
+        "default": 4
+      },
+      "cautionary": {
+        "type": "boolean",
+        "default": false
+      },
+      "forced": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "FontInfo": {
+      "name": {
+        "type": "string"
+      },
+      "family": {
+        "type": "string"
+      },
+      "size": {
+        "type": "number",
+        "default": 12
+      },
+      "purpose": {
+        "type": "string"
+      },
+      "style": {
+        "type": "string",
+        "default": "normal"
+      },
+      "weight": {
+        "type": "string",
+        "default": "normal"
+      }
+    },
+    "SmoClefChange": {
+      "properties": {
+        "ctor": {
+          "const": "SmoClefChange"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "clef": {
+          "type": "string",
+          "default": "treble"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "GraceNoteParams": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoGraceNote"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "ticks": {
+          "$ref": "#/definitions/Ticks"
+        },
+        "pitches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Pitch"
+          }
+        },
+        "flagState": {
+          "$comment": "default is auto-stem direction",
+          "type": "number",
+          "default": 0
+        },
+        "noteType": {
+          "type": "string",
+          "default": "n"
+        },
+        "beamBeats": {
+          "type": "integer",
+          "default": 4096
+        },
+        "endBeam": {
+          "type": "boolean",
+          "default": false
+        },
+        "slash": {
+          "type": "boolean",
+          "default": false
+        },
+        "clef": {
+          "type": "string",
+          "default": "treble"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoArpeggio": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoArpeggio"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "typecode": {
+          "type": "integer",
+          "default": 0
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoMicrotone": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoMicrotone"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "tone": {
+          "type": "string",
+          "default": "flat25sz"
+        },
+        "typecode": {
+          "pitch": "number",
+          "default": 0
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoOrnament": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoOrnament"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "position": {
+          "type": "string",
+          "default": "above"
+        },
+        "offset": {
+          "type": "string",
+          "default": "on"
+        },
+        "ornament": {
+          "type": "string",
+          "default": "mordent"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoArticulation": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoArticulation"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "position": {
+          "type": "string",
+          "default": "above"
+        },
+        "offset": {
+          "type": "string",
+          "default": "on"
+        },
+        "articulation": {
+          "type": "string",
+          "default": "accent"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoLyric": {
+      "properties": {
+        "ctor": {
+          "constant": "SmoLyric"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "fontInfo": {
+          "$ref": "#/definitions/FontInfo"
+        },        
+        "classes": {
+          "type": "string",
+          "default": ""
+        },
+        "translateX": {
+          "type": "integer",
+          "default": 0
+        },
+        "translateY": {
+          "type": "integer",
+          "default": 0
+        },
+        "verse": {
+          "type": "integer",
+          "default": 0
+        },"adjustNoteWidthLyric": {
+          "type": "boolean",
+          "default": true
+        },"adjustNoteWidthChord": {
+          "type": "boolean",
+          "default": false
+        },"fill": {
+          "type": "string",
+          "default": ""
+        },"parser": {
+          "type": "integer",
+          "default": 0
+        },
+        "text": {
+          "type": "string",
+          "default": "\\xa0"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoSelector": {
+      "$comment": "a tuple that describes a location in a score: stave, measure, and optionally voice, note (tick) and pitch indices",
+      "properties": {
+        "staff": {
+          "type": "integer"
+        },
+        "measure": {
+          "type": "integer"
+        },
+        "tick": {
+          "type": "integer"
+        },
+        "pitches": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      "$required": [
+        "staff",
+        "measure"
+      ]
+    },
+    "SmoTupletNote": {
+      "ticks": {
+        "$ref": "#/definitions/Ticks"
+      },
+      "noteId": {
+        "type": "string"
+      },
+      "tupletId": {
+        "type": "string"
+      }
+    },
+    "SmoScorePreferences": {
+      "$comment": "overrides for UI behavior",
+      "type": "object",
+      "properties": {
+        "autoPlay": {
+          "type": "boolean",
+          "default": "true"
+        },
+        "autoAdvance": {
+          "type": "boolean",
+          "default": "true"
+        },
+        "showPiano": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "hideEmptyLines": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "transposingScore": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "defaultDupleDuration": {
+          "type": "integer",
+          "default": 4096
+        },
+        "defaultTripleDuration": {
+          "type": "integer",
+          "default": 6144
+        }
+      }
+    },
+    "SmoScoreInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subTitle": {
+          "type": "string"
+        },
+        "composer": {
+          "type": "string"
+        },
+        "copyright": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        }
+      }
+    },
+    "ScoreMetadata": {
+      "type": "object",
+      "properties": {
+        "fonts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FontInfo"
+          }
+        },
+        "preferences": {
+          "$ref": "#/definitions/SmoScorePreferences"
+        },
+        "renumberingMap": {
+          "$comment": "number to number map.  May also be serialized as strings",
+          "$ref": "#/definitions/stringMap"
+        },
+        "scoreInfo": {
+          "$ref": "#/definitions/SmoScoreInfo"
+        }
+      }
+    },
+    "SmoInstrumentParams": {
+      "type": "object",
+      "properties": {
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "family": {
+          "type": "string"
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "abbreviation": {
+          "type": "string"
+        },
+        "keyOffset": {
+          "type": "integer"
+        },
+        "midiInstrument": {
+          "type": "integer"
+        },
+        "midichannel": {
+          "type": "integer"
+        },
+        "midiport": {
+          "type": "integer"
+        },
+        "clef": {
+          "type": "string"
+        },
+        "mutes": {
+          "type": "string"
+        }
+      }
+    },
+    "SmoSystemStaffParams": {
+      "type": "object",
+      "properties": {
+        "ctor": {
+          "type": "string"
+        },
+        "staffId": {
+          "type": "integer"
+        },
+        "keySignatureMap": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "measureInstrumentMap": {
+          "additionalProperties": {
+            "type": "object",
+            "$ref": "#/definitions/SmoInstrumentParams"
+          }
+        }
+      }
+    }
+  }
+}

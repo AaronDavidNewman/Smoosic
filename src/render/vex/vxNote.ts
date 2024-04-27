@@ -112,12 +112,14 @@ export class VxNote {
   createOrnaments() {
     const o = this.noteData.smoNote.getOrnaments();
     o.forEach((ll) => {
-      const ornamentCode = getOrnamentGlyph(ll.ornament);
-      const mod = new VF.Ornament(ornamentCode);
-      if (ll.offset === SmoOrnament.offsets.after) {
-        mod.setDelayed(true);
+      if (!SmoOrnament.textNoteOrnaments[ll.ornament]) {
+        const ornamentCode = getOrnamentGlyph(ll.ornament);
+        const mod = new VF.Ornament(ornamentCode);
+        if (ll.offset === SmoOrnament.offsets.after) {
+          mod.setDelayed(true);
+        }
+        this.noteData.staveNote.addModifier(mod, 0);
       }
-      this.noteData.staveNote.addModifier(mod, 0);
     });
   }
   addLyricAnnotationToNote(vexNote: Note, lyric: SmoLyric) {

@@ -508,11 +508,16 @@ export class SmoNote implements Transposable {
   }
 
   getOrnaments() {
-    return this.ornaments.filter((oo) => oo.isJazz() === false);
+    return this.ornaments.filter((oo) => oo.isJazz() === false
+      && typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) !== 'string');
   }
 
   getJazzOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  getTextOrnaments() {
+    return this.ornaments.filter((oo) => typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) === 'string');
   }
 
   /**

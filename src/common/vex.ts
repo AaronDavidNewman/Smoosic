@@ -2,6 +2,7 @@ import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNot
   Voice as VexVoice, Formatter as VexFormatter, Accidental as VexAccidental, 
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
+  TextNote as VexTextNote,
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
@@ -32,6 +33,7 @@ export type FontStyle = VexFontStyle;
 export type FontWeight = VexFontWeight;
 export type Formatter = VexFormatter;
 export type Annotation = VexAnnotation;
+export type TextNote = VexTextNote;
 export type  StaveNoteStruct = VexStaveNoteStruct;
 export type StaveModifier = VexStaveModifier;
 export type StaveText = VexStaveText;
@@ -366,6 +368,9 @@ export function getVexGlyphFromChordCode(code: string) {
   }
   return ChordSymbolGlyphs[code].code;
 }
+export function createTextNote(code: string) {
+  return new VexTextNote({ glyph: code, duration: '8' }).setLine(2);
+}
 /**
  * Get the chord symbol glyph from the vex glyph
  * @export
@@ -418,13 +423,13 @@ export const ChordSymbolGlyphs: Record<string, { code: string }> = {
     code: 'csymMajorSeventh',
   },
   csymMinor: {
-    code: 'csymMinor',
+    code: 'minor',
   },
   minor: {
-    code: 'csymMinor',
+    code: 'minor',
   },
   '-': {
-    code: 'csymMinor',
+    code: 'minor',
   },
   '(': {
     code: 'csymParensLeftTall',

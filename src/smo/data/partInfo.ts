@@ -290,7 +290,7 @@ export class SmoPartInfo extends StaffModifierBase {
     if (this.midiInstrument) {
       createChildElementRecurse(this.midiDevice, namespace, el, "midiInstrument");
     }
-    serializeXmlArray(namespace, el, this.textGroups, 'testGroups');
+    serializeXmlArray(namespace, el, this.textGroups, 'textGroups');
     return el;
   }
   updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {

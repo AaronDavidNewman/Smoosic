@@ -492,6 +492,12 @@ export class SmoOrnament extends SmoNoteModifierBase {
     prallup: 'schleifer',
     tr: 'trill-mark'
   }
+  static readonly textNoteOrnaments: Record<string, string>  = {
+    breath: 'breath',
+    caesura: 'caesura_straight',
+    pedalOpen: 'pedal_open',
+    pedalClosed: 'pedal_close'
+  }
   // jazz ornaments in vex are articulations in music xml
   static readonly xmlJazz: Record<string, string> = {
     doit: 'doit',

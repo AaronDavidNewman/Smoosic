@@ -120,8 +120,15 @@ export function createChildElementArray(object: any[], namespace: string, parent
   createXmlAttribute(arEl, 'container', 'array');
   createXmlAttribute(arEl, 'name', tag);
   for (var j = 0; j < object.length; ++j) {
+    const inst = object[j];
     const instKey = `${tag}-instance`;
-    createChildElementRecurse(object[j], namespace, arEl, instKey);
+    if (typeof(inst) === 'number' || typeof(inst) === 'string' || typeof(inst) === 'boolean') {
+      const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
+      arEl.appendChild(instEl);
+      createXmlAttribute(instEl, 'value', inst);
+    } else {
+      createChildElementRecurse(object[j], namespace, arEl, instKey);
+    }
   }
   return arEl;
 }
