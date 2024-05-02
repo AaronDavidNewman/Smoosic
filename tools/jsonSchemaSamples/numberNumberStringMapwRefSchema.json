@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "renumberMap": {
+      "$ref": "#/definitions/renumberMapType"
+    }
+  },
+  "required": [
+    "renumberMap"
+  ],
+  "definitions": {
+    "renumberMapType": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^\\d+"
+      }
+    }
+  }
+}

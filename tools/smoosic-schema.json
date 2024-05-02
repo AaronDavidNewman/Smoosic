@@ -4,13 +4,15 @@
   "type": "object",
   "definitions": {
     "stringMap": {
+      "$comment": "create a string-string map, often used for measure to measure maps",
       "type": "object",
       "additionalProperties": {
         "type": "string"
       }
     },
     "SmoAttrs": {
-      "$comment": "describes the id of an instance.  Use of type is depracated",
+      "description": "describes the id of an object instance",
+      "type": "object",
       "properties": {
         "id": {
           "type": "string"
@@ -24,7 +26,7 @@
       ]
     },
     "Ticks": {
-      "$comment": "a tuple that describes a duration of time (as in, of a note or pitch)",
+      "description": "a tuple that describes a duration of time (as in, of a note or pitch).  4096/1 is 1/4 note",
       "properties": {
         "numerator": {
           "type": "number",
@@ -41,51 +43,61 @@
       }
     },
     "Pitch": {
-      "letter": {
-        "type": "string",
-        "default": "c"
-      },
-      "accidental": {
-        "type": "string",
-        "default": "n"
-      },
-      "octave": {
-        "type": "integer",
-        "default": 4
-      },
-      "cautionary": {
-        "type": "boolean",
-        "default": false
-      },
-      "forced": {
-        "type": "boolean",
-        "default": false
+      "type": "object",
+      "properties": {
+        "letter": {
+          "type": "string",
+          "default": "c"
+        },
+        "accidental": {
+          "type": "string",
+          "default": "n"
+        },
+        "octave": {
+          "type": "integer",
+          "default": 4
+        },
+        "cautionary": {
+          "type": "boolean",
+          "default": false
+        },
+        "forced": {
+          "type": "boolean",
+          "default": false
+        }
       }
     },
     "FontInfo": {
-      "name": {
-        "type": "string"
-      },
-      "family": {
-        "type": "string"
-      },
-      "size": {
-        "type": "number",
-        "default": 12
-      },
-      "purpose": {
-        "type": "string"
-      },
-      "style": {
-        "type": "string",
-        "default": "normal"
-      },
-      "weight": {
-        "type": "string",
-        "default": "normal"
+      "description": "description for a font.  Purpose can be used descriptively, e.g. lyrics or time signature",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number",
+          "default": 12
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string",
+          "default": "normal"
+        },
+        "weight": {
+          "type": "string",
+          "default": "normal"
+        }
       }
     },
+    "$comment": "here start the note modifier classes",
     "SmoClefChange": {
+      "description": "change the clef mid-measure",
+      "type": "object",
       "properties": {
         "ctor": {
           "const": "SmoClefChange"
@@ -102,10 +114,11 @@
         "ctor"
       ]
     },
-    "GraceNoteParams": {
+    "SmoGraceNote": {
+      "type": "object",
       "properties": {
         "ctor": {
-          "constant": "SmoGraceNote"
+          "const": "SmoGraceNote"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
@@ -150,9 +163,11 @@
       ]
     },
     "SmoArpeggio": {
+      "description": "indicate an arpeggio decoration on a note",
+      "type": "object",
       "properties": {
         "ctor": {
-          "constant": "SmoArpeggio"
+          "const": "SmoArpeggio"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
@@ -167,9 +182,11 @@
       ]
     },
     "SmoMicrotone": {
+      "description": "since microtones serve many purposes, they are treated more like ornaments than accidentals",
+      "type": "object",
       "properties": {
         "ctor": {
-          "constant": "SmoMicrotone"
+          "const": "SmoMicrotone"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
@@ -188,9 +205,31 @@
       ]
     },
     "SmoOrnament": {
+      "type": "object",
+      "examples": [
+        "mordent",
+        "mordentInverted",
+        "turn",
+        "turnInverted",
+        "trill",
+        "upprall",
+        "prallup",
+        "pralldown",
+        "upmordent",
+        "downmordent",
+        "lineprall",
+        "prallprall",
+        "scoop",
+        "fall_short",
+        "dropLong",
+        "doit",
+        "doitLong",
+        "flip",
+        "smear"
+      ],
       "properties": {
         "ctor": {
-          "constant": "SmoOrnament"
+          "const": "SmoOrnament"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
@@ -213,9 +252,20 @@
       ]
     },
     "SmoArticulation": {
+      "type": "object",
+      "examples": [
+        "accent",
+        "staccato",
+        "marcato",
+        "tenuto",
+        "upStroke",
+        "downStroke",
+        "pizzicato",
+        "fermata"
+      ],
       "properties": {
         "ctor": {
-          "constant": "SmoArticulation"
+          "const": "SmoArticulation"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
@@ -237,17 +287,62 @@
         "ctor"
       ]
     },
-    "SmoLyric": {
+    "SmoDynamicText": {
+      "type": "object",
+      "examples": [
+        "pp",
+        "p",
+        "mp",
+        "mf",
+        "f",
+        "ff",
+        "sfz"
+      ],
       "properties": {
         "ctor": {
-          "constant": "SmoLyric"
+          "const": "SmoDynamicText"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "xOffset": {
+          "type": "number",
+          "default": 0
+        },
+        "yOffsetLine": {
+          "type": "number",
+          "default": 11
+        },
+        "yOffsetPixels": {
+          "type": "number",
+          "default": 0
+        },
+        "fontSize": {
+          "type": "integer",
+          "default": 30
+        },
+        "text": {
+          "type": "string",
+          "default": "mp"
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
+    "SmoLyric": {
+      "type": "object",
+      "description": "used for lyrics, chord changes, and other text annotations that apply at the note level",
+      "properties": {
+        "ctor": {
+          "const": "SmoLyric"
         },
         "attrs": {
           "$ref": "#/definitions/SmoAttrs"
         },
         "fontInfo": {
           "$ref": "#/definitions/FontInfo"
-        },        
+        },
         "classes": {
           "type": "string",
           "default": ""
@@ -263,16 +358,20 @@
         "verse": {
           "type": "integer",
           "default": 0
-        },"adjustNoteWidthLyric": {
+        },
+        "adjustNoteWidthLyric": {
           "type": "boolean",
           "default": true
-        },"adjustNoteWidthChord": {
+        },
+        "adjustNoteWidthChord": {
           "type": "boolean",
           "default": false
-        },"fill": {
+        },
+        "fill": {
           "type": "string",
           "default": ""
-        },"parser": {
+        },
+        "parser": {
           "type": "integer",
           "default": 0
         },
@@ -285,8 +384,110 @@
         "ctor"
       ]
     },
+    "SmoNote": {
+      "type": "object",
+      "description": "a note represents pitches (or rest) that occur at a certain time",
+      "properties": {
+        "ctor": {
+          "const": "SmoNote"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "ticks": {
+          "$ref": "#/definitions/Ticks"
+        },
+        "pitches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Pitch"
+          }
+        },
+        "flagState": {
+          "$comment": "default is auto-stem direction",
+          "type": "number",
+          "default": 0
+        },
+        "noteType": {
+          "type": "string",
+          "default": "n"
+        },
+        "isCue": {
+          "description": "indicates the note should be displayed in a smaller size, and not played",
+          "type": "boolean",
+          "default": "false"
+        },
+        "noteHead": {
+          "type": "string",
+          "default": ""
+        },
+        "beamBeats": {
+          "description": "when beaming mode is auto, this determines how many ticks get a beam",
+          "type": "integer",
+          "default": 4096
+        },
+        "endBeam": {
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "indicates the note takes up ticks, but is not displayed",
+          "description": "often useful for piano parts where there are voices that don't persist the measure",
+          "type": "boolean",
+          "default": false
+        },
+        "clef": {
+          "type": "string",
+          "default": "treble"
+        },
+        "tupletId": {
+          "$comment": "reference to attribute ID a tuplet, if applicable",
+          "type": "string"
+        },
+        "textModifiers": {
+          "type": "array",
+          "items": {
+            "anyOf": [{
+                "$ref": "#/definitions/SmoDynamicText"
+              }, {
+                "$ref": "#/definitions/SmoLyric"
+              }
+            ]
+          }
+        },
+        "articulations": {
+          "type": "array",
+          "items": {
+            "$ref": "#definitions/SmoArticulation"
+          }
+        },
+        "ornaments": {
+          "type": "array",
+          "items": {
+            "$ref": "#definitions/SmoOrnament"
+          }
+        },
+        "graceNotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#definitions/SmoGraceNote"
+          }
+        },
+        "microtones": {
+          "type": "array",
+          "items": {
+            "$ref": "#definitions/SmoMicrotone"
+          }
+        }
+      },
+      "required": [
+        "ctor"
+      ]
+    },
     "SmoSelector": {
-      "$comment": "a tuple that describes a location in a score: stave, measure, and optionally voice, note (tick) and pitch indices",
+      "description": "a tuple that describes a location in a score: stave, measure, and optionally voice, note (tick) and pitch indices",
+      "$comment": "tick here refers to an index of the note, and not the number of tickes.  This is maybe unfortunate",
+      "type": "object",
       "properties": {
         "staff": {
           "type": "integer"
@@ -304,12 +505,262 @@
           }
         }
       },
-      "$required": [
+      "required": [
         "staff",
         "measure"
       ]
     },
+    "$comment": "here start measure modifiers.",
+    "$comment": "many modifiers affect an entire system, and some (volta) have a range of measures.",
+    "SmoFormatMeasure": {
+      "description": "change to default visual formatting within a measure or column of measures",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoFormatMeasure"
+        },
+        "customStretch": {
+          "description": "in pixels, add to the space we reserve for a measure",
+          "type": "number",
+          "default": 0
+        },
+        "proportionality": {
+          "description": "proportionality constant, higher numbers make shorter notes more 'clustered'",
+          "type": "number"
+        },
+        "autoJustify": {
+          "description": "turn off vertical justification for this measure/system",
+          "type": "boolean",
+          "default": false
+        },
+        "systemBreak": {
+          "description": "line break system before this measure",
+          "type": "boolean",
+          "default": false
+        },
+        "pageBreak": {
+          "description": "break page before this measure",
+          "type": "boolean",
+          "default": false
+        },
+        "restBreak": {
+          "description": "force break of a multi-measure rest in parts",
+          "type": "boolean",
+          "default": false
+        },
+        "skipMeasureCount": {
+          "description": "skip measure count, if system measure count is set for the score",
+          "type": "boolean",
+          "default": false
+        },
+        "padLeft": {
+          "description": "pixels of left padding before starting this measure",
+          "type": "number",
+          "default": 0
+        },
+        "padAllInSystem": {
+          "description": "indicates left padding applies to system",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "SmoBarlineEnum": {
+      "enum": [
+        "singleBar",
+        "doubleBar",
+        "endBar",
+        "startRepeat",
+        "endRepeat",
+        "noBar"
+      ]
+    },
+    "SmoBarlinePosition": {
+      "enum": [
+        "start",
+        "end"
+      ]
+    },
+    "SmoBarline": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoBarline"
+        },
+        "position": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "barline": {
+        "position": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "SmoRepeatSymbolEnum": {
+      "enum": [
+        "None",
+        "Coda",
+        "Segno",
+        "Dc",
+        "ToCoda",
+        "DcAlCoda",
+        "DcAlFine",
+        "Ds",
+        "DsAlCoda",
+        "DsAlFine",
+        "Fine"
+      ]
+    },
+    "SmoRepeatSymbol": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoRepeatSymbol"
+        },
+        "position": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "barline": {
+        "symbol": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "SmoVolta": {
+      "$comment": "first, second ending, etc.",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoVolta"
+        },
+        "startBar": {
+          "type": "number",
+          "default": 0
+        },
+        "endBar": {
+          "type": "number",
+          "default": 0
+        },
+        "xOffsetStart": {
+          "type": "number",
+          "default": 0
+        },
+        "xOffsetEnd": {
+          "type": "number",
+          "default": 0
+        },
+        "yOffset": {
+          "type": "number",
+          "default": 0
+        },
+        "number": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "HorizontalJustificationEnum": {
+      "enum": [
+        "left",
+        "right",
+        "center",
+        "centerStem"
+      ]
+    },
+    "SmoMeasureTextPositionEnum": {
+      "enum": [
+        "above",
+        "below",
+        "left",
+        "right",
+        "none"
+      ]
+    },
+    "SmoMeasureText": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoMeasureText"
+        },
+        "position": {
+          "type": "number",
+          "default": 0
+        },
+        "fontInfo": {
+          "$ref": "#/definitions/FontInfo",
+          "default": 0
+        },
+        "text": {
+          "type": "string",
+          "default": 0
+        },
+        "adjustX": {
+          "type": "number",
+          "default": 0
+        },
+        "adjustY": {
+          "type": "number",
+          "default": 0
+        },
+        "number": {
+          "type": "number",
+          "justification": 0
+        }
+      }
+    },
+    "SmoRehearsalMarkCardinalityEnum": {
+      "enum": [
+        "capitals",
+        "lowerCase",
+        "numbers"
+      ]
+    },
+    "SmoRehearsalMark": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoRehearsalMark"
+        },
+        "symbol": {
+          "type": "string",
+          "default": "A"
+        },
+        "cardinality": {
+          "type": "number",
+          "default": 0
+        },
+        "increment": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
     "SmoTupletNote": {
+      "description": "used as a reference to a note within a tuplet",
       "ticks": {
         "$ref": "#/definitions/Ticks"
       },
@@ -318,6 +769,626 @@
       },
       "tupletId": {
         "type": "string"
+      }
+    },
+    "SmoTuplet": {
+        "description": "triplet, etc.",
+      "type": "object",
+      "properties": {
+        "ctor": {
+          "const": "SmoTuplet"
+        },
+        "id": {
+          "type": "string"
+        },
+        "notes": {
+            "$comment": "measure contains both tuplets and notes, referenced via note ID and tuplet ID",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoTupletNote"
+          }
+        },
+        "numNotes": {
+          "type": "number",
+          "default": 3
+        },
+        "stemTicks": {
+          "type": "number",
+          "default": 2048
+        },
+        "totalTicks": {
+          "type": "number",
+          "default": 4096
+        },
+        "durationMap": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "ratioed": {
+          "type": "boolean",
+          "default": false
+        },
+        "bracketed": {
+          "type": "boolean",
+          "default": true
+        },
+        "voice": {
+          "type": "number",
+          "default": 0
+        },
+        "startIndex": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "SmoTempoModeEnum": {
+      "enum": [
+        "duration",
+        "text",
+        "custom"
+      ]
+    },
+    "SmoTempoText": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoTempoText"
+        },
+        "tempoMode": {
+          "type": "string",
+          "default": "duration"
+        },
+        "bpm": {
+          "type": "number",
+          "default": 120
+        },
+        "beatDuration": {
+          "type": "number",
+          "default": 4096
+        },
+        "tempoText": {
+          "type": "string",
+          "default": "allegro"
+        },
+        "customText": {
+          "type": "string",
+          "default": ""
+        },
+        "display": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "TimeSignature": {
+      "$comment": "maybe should be SmoTimeSignature?",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "TimeSignature"
+        },
+        "actualBeats": {
+          "type": "number",
+          "default": 4
+        },
+        "beatDuration": {
+          "type": "number",
+          "default": 4
+        },
+        "useSymbol": {
+          "type": "boolean",
+          "default": false
+        },
+        "displayString": {
+          "type": "string",
+          "default": ""
+        },
+        "display": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "SmoVoice": {
+      "description": "A voice is just a container for notes.  A measure can contain multiple voices.",
+      "type": "object",
+      "required": [
+        "notes"
+      ],
+      "properties": {
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoNote"
+          }
+        }
+      }
+    },
+    "SmoMeasure": {
+      "description": "All the information contained in a single measure of music",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoMeasure"
+        },
+        "timeSignature": {
+          "$ref": "#/definitions/TimeSignature"
+        },
+        "keySignature": {
+          "type": "string",
+          "default": "c"
+        },
+        "lines": {
+          "type": "number",
+          "default": 5
+        },
+        "clef": {
+          "type": "string",
+          "default": "treble"
+        },
+        "tempo": {
+          "$ref": "#/definitions/SmoTempoText"
+        },
+        "format": {
+          "$ref": "#/definitions/TimeSignature"
+        },
+        "tuplets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoTuplet"
+          }
+        },
+        "voices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoVoice"
+          }
+        },
+        "repeatSymbol": {
+          "$comment": "indicates the measure contents are replaced with a repeat symbol",
+          "type": "boolean",
+          "default": false
+        },
+        "repeatCount": {
+          "$comment": "if repeatSymbol, indicates the number of measures",
+          "type": "number",
+          "default": 0
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "anyOf": [{
+                "$ref": "#/definitions/SmoRepeatSymbol"
+              }, {
+                "$ref": "#/definitions/SmoBarline"
+              }, {
+                "$ref": "#/definitions/SmoMeasureText"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "$comment": "Here start staff modifiers.",
+    "$comment": "All staff modifiers contain a range of the score that they apply to.",
+    "SmoInstrument": {
+      "description": "an instrument configuration for a part.  A single instrument is",
+      "description:" "active at any given time on a stave or part",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoInstrument"
+        },
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "family": {
+          "type": "string"
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "abbreviation": {
+          "type": "string"
+        },
+        "keyOffset": {
+          "type": "integer"
+        },
+        "midiInstrument": {
+          "type": "integer"
+        },
+        "midichannel": {
+          "type": "integer"
+        },
+        "midiport": {
+          "type": "integer"
+        },
+        "clef": {
+          "type": "string"
+        },
+        "mutes": {
+          "type": "string"
+        }
+      }
+    },
+    "SmoStaffTextBracket": {
+      "description": "a line of text that spans some measures",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoStaffTextBracket"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "position": {
+          "$comment": "-1 bottom, 1 top",
+          "type": "number",
+          "default": 0
+        },
+        "text": {
+          "type": "string",
+          "default": ""
+        },
+        "superscript": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "SmoStaffHairpin": {
+      "$comment": "crescendo, dimenuendo, etc",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoStaffHairpin"
+        },
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "xOffsetLeft": {
+          "type": "number",
+          "default": -2
+        },
+        "xOffsetRight": {
+          "type": "number",
+          "default": 0
+        },
+        "yOffset": {
+          "type": "number",
+          "default": -50
+        },
+        "height": {
+          "type": "number",
+          "default": 10
+        },
+        "position": {
+          "type": "integer",
+          "default": 0
+        },
+        "hairpinType": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "SmoSlur": {
+      "$comment": "A phrase curve between measures",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoSlur"
+        },
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "spacing": {
+          "type": "number",
+          "default": 2
+        },
+        "thickness": {
+          "type": "number",
+          "default": 2
+        },
+        "xOffset": {
+          "type": "number",
+          "default": -2
+        },
+        "cp1x": {
+          "type": "number",
+          "default": -2
+        },
+        "cp1y": {
+          "type": "number",
+          "default": -2
+        },
+        "cp2x": {
+          "type": "number",
+          "default": -2
+        },
+        "cp2y": {
+          "type": "number",
+          "default": -2
+        },
+        "yOffset": {
+          "type": "number",
+          "default": -50
+        },
+        "position": {
+          "type": "integer",
+          "default": 0
+        },
+        "position_end": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "SmoTieLine": {
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "type": "number"
+        },
+        "to": {
+          "type": "number"
+        }
+      }
+    },
+    "SmoTie": {
+      "$comment": "A phrase curve between measures",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoTie"
+        },
+        "startSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "endSelector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "tie_spacing": {
+          "type": "number",
+          "default": 2
+        },
+        "cp1": {
+          "type": "number",
+          "default": -2
+        },
+        "cp2": {
+          "type": "number",
+          "default": -2
+        },
+        "first_x_shift": {
+          "type": "number"
+        },
+        "cp2y": {
+          "type": "number",
+          "default": -2
+        },
+        "yOffset": {
+          "type": "number",
+          "default": -50
+        },
+        "position": {
+          "type": "integer",
+          "default": 0
+        },
+        "position_end": {
+          "type": "integer",
+          "default": 0
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoTieLine"
+          }
+        }
+      }
+    },
+    "SmoGlobalLayout": {
+      "type": "object",
+      "properties": {
+        "svgScale": {
+          "type": "number",
+          "default": 0.55
+        },
+        "zoomScale": {
+          "type": "number",
+          "default": 2.0
+        },
+        "noteSpacing": {
+          "$comment": "additional pixels reserved between notes",
+          "type": "number",
+          "default": 1
+        },
+        "pageWidth": {
+          "$comment": "default is US letter",
+          "type": "number",
+          "default": 816
+        },
+        "pageHeight": {
+          "$comment": "default is US letter",
+          "type": "number",
+          "default": 1056
+        },
+        "proportionality": {
+          "$comment": "formatting constant, higher makes music clumpier",
+          "type": "number",
+          "default": 5
+        },
+        "maxMeasureSystem": {
+          "$comment": "auto-break.  0 means break is based on measure width",
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "SmoPageLayout": {
+      "$comment": "everything in pixels",
+      "type": "object",
+      "properties": {
+        "leftMargin": {
+          "type": "number",
+          "default": 30
+        },
+        "rightMargin": {
+          "type": "number",
+          "default": 30
+        },
+        "topMargin": {
+          "type": "number",
+          "default": 144
+        },
+        "bottomMargin": {
+          "type": "number",
+          "default": 72
+        },
+        "interGap": {
+          "$comment": "between systems",
+          "type": "number",
+          "default": 30
+        },
+        "intraGap": {
+          "$comment": "between staves in a system",
+          "type": "number",
+          "default": 10
+        }
+      }
+    },
+    "SmoLayoutManager": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoLayoutManager"
+        },
+        "globalLayout": {
+          "$ref": "#/definitions/SmoGlobalLayout"
+        },
+        "pageLayout": {
+          "$ref": "#/definitions/SmoPageLayout"
+        }
+      }
+    },
+    "SmoPartInfo": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoPartInfo"
+        },
+        "partName": {
+          "type": "string"
+        },
+        "partAbbreviation": {
+          "type": "string"
+        },
+        "stavesAfter": {
+          "type": "number"
+        },
+        "stavesBefore": {
+          "type": "number"
+        }
+      }
+    },
+    "SmoSystemStaff": {
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoSystemStaff"
+        },
+        "staffId": {
+          "type": "integer"
+        },
+        "keySignatureMap": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "measureInstrumentMap": {
+          "additionalProperties": {
+            "type": "object",
+            "$ref": "#/definitions/SmoInstrumentParams"
+          }
+        },
+        "measures": {
+          "type": "array",
+          "items": {
+            "$ref": "SmoMeasure"
+          }
+        },
+        "textBrackets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoStaffTextBracket"
+          }
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "anyOf": [{
+                "$ref": "#/definitions/SmoStaffHairpin"
+              }, {
+                "$ref": "#/definitions/SmoSlur"
+              }, {
+                "$ref": "#/definitions/SmoTie"
+              }
+            ]
+          }
+        }
       }
     },
     "SmoScorePreferences": {
@@ -395,64 +1466,6 @@
         },
         "scoreInfo": {
           "$ref": "#/definitions/SmoScoreInfo"
-        }
-      }
-    },
-    "SmoInstrumentParams": {
-      "type": "object",
-      "properties": {
-        "startSelector": {
-          "$ref": "#/definitions/SmoSelector"
-        },
-        "endSelector": {
-          "$ref": "#/definitions/SmoSelector"
-        },
-        "family": {
-          "type": "string"
-        },
-        "instrument": {
-          "type": "string"
-        },
-        "abbreviation": {
-          "type": "string"
-        },
-        "keyOffset": {
-          "type": "integer"
-        },
-        "midiInstrument": {
-          "type": "integer"
-        },
-        "midichannel": {
-          "type": "integer"
-        },
-        "midiport": {
-          "type": "integer"
-        },
-        "clef": {
-          "type": "string"
-        },
-        "mutes": {
-          "type": "string"
-        }
-      }
-    },
-    "SmoSystemStaffParams": {
-      "type": "object",
-      "properties": {
-        "ctor": {
-          "type": "string"
-        },
-        "staffId": {
-          "type": "integer"
-        },
-        "keySignatureMap": {
-          "$ref": "#/definitions/stringMap"
-        },
-        "measureInstrumentMap": {
-          "additionalProperties": {
-            "type": "object",
-            "$ref": "#/definitions/SmoInstrumentParams"
-          }
         }
       }
     }

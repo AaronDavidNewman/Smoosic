@@ -511,7 +511,6 @@ export class SmoOrnament extends SmoNoteModifierBase {
   toVex() {
     return SmoOrnament.ornaments[this.ornament.toLowerCase()];
   }
-
   isJazz() {
     return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
   }
