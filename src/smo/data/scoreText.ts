@@ -8,7 +8,7 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScoreModifierBase, ScaledPageLayout } from './scoreModifiers';
-import { SmoAttrs, SmoModifierBase, createChildElementRecurse, createXmlAttribute } from './common';
+import { SmoAttrs, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 import { TextFormatter } from '../../common/textformatter';
@@ -209,22 +209,6 @@ export class SmoScoreText extends SmoScoreModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    parentElement.appendChild(el);
-    const defaults = SmoTextGroup.defaults;
-    // Create attributes for non-default values
-    SmoScoreText.simpleAttributes.forEach((attr) => {
-       if (!(this as any)[attr] === (defaults as any)[attr]) {
-        createXmlAttribute(el, attr, (this as any)[attr]);
-       }
-    });
-    createChildElementRecurse({
-      size: this.fontInfo.size, family: this.fontInfo.family, weight: this.fontInfo.weight, style: this.fontInfo.style}, 
-      namespace, el, 'fontInfo');
-    return el;
-  }
-
   static get attributes(): string[] {
     return ['x', 'y', 'text', 'fontInfo', 'classes',
       'fill', 'width', 'height', 'scaleX', 'scaleY'];
@@ -600,36 +584,6 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    parentElement.appendChild(el);
-    const defaults = SmoTextGroup.defaults;
-    createXmlAttribute(el, 'ctor', 'SmoTextGroup');
-    // Create attributes for non-default values
-    SmoTextGroup.simpleAttributes.forEach((attr) => {
-       if (!(this as any)[attr] === (defaults as any)[attr]) {
-        createXmlAttribute(el, attr, (this as any)[attr]);
-       }
-    });
-    if (this.selector) {
-      createChildElementRecurse(this.selector, namespace, el, 'selector');
-    }
-    const tbEl = parentElement.ownerDocument.createElementNS(namespace, 'textBlocks-array');
-    el.appendChild(tbEl);
-    createXmlAttribute(tbEl, 'container', 'array');
-    createXmlAttribute(tbEl, 'name', 'textBlocks');
-    for (var i = 0; i < this.textBlocks.length; ++i) {
-      const textBlock = this.textBlocks[i];
-      const tbiEl = parentElement.ownerDocument.createElementNS(namespace, 'textBlocks-instance');
-      tbEl.appendChild(tbiEl);
-      createXmlAttribute(tbiEl, 'position', textBlock.position);
-      textBlock.text.serializeXml(namespace, tbiEl, 'text');
-    }
-    return el;
-  }
-  /* _isScoreText(st: ) {
-    return st.ctor && st.ctor === 'SmoScoreText';
-  } */
   constructor(params: SmoTextGroupParams) {
     super('SmoTextGroup');
     if (typeof (params) === 'undefined') {

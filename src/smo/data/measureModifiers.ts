@@ -5,7 +5,7 @@
  * **/
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
-import { SmoAttrs, MeasureNumber, SmoObjectParams, SvgBox, SmoModifierBase, getId, createChildElementRecurse } from './common';
+import { SmoAttrs, MeasureNumber, SmoObjectParams, SvgBox, SmoModifierBase, getId } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 
@@ -31,7 +31,6 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
     return rv;
   }
   abstract serialize(): any;
-  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element;
 }
 
 export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'proportionality' | 'padLeft' | 'measureIndex';
@@ -39,11 +38,6 @@ export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
   ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'skipMeasureCount' | 'pageBreak' | 'padAllInSystem' | 'restBreak' | 'forceRest';
 export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify','skipMeasureCount', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
-export function serializeMeasureModXml(base: SmoMeasureModifierBase, namespace: string, 
-  parentElement: Element, tagName: string): Element {
-  const ser = base.serialize();
-  return createChildElementRecurse(ser, namespace, parentElement, tagName);
-}
 /**
  * Constructor parameter for measure formatting object
  */
@@ -214,9 +208,6 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
 }
 /**
  * Used to create a {@link SmoBarline}
@@ -273,10 +264,6 @@ export class SmoBarline extends SmoMeasureModifierBase {
     params.ctor = 'SmoBarline';
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
-
   constructor(parameters: SmoBarlineParams | null) {
     super('SmoBarline');
     let ops = parameters as any;
@@ -375,9 +362,6 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
   constructor(parameters: SmoRepeatSymbolParams) {
     super('SmoRepeatSymbol');
     if (!parameters.symbol) {
@@ -469,9 +453,6 @@ export class SmoVolta extends SmoMeasureModifierBase {
     params.ctor = 'SmoVolta';
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
   static get defaults(): SmoVoltaParams {
     return JSON.parse(JSON.stringify({
       startBar: 1,
@@ -554,10 +535,6 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
     params.ctor = 'SmoMeasureText';
     return params as SmoMeasureTextParamsSer;  // trivial class, no 'is'
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
-
   constructor(parameters: SmoMeasureTextParams | null) {
     super('SmoMeasureText');
     let pobj = parameters as any;
@@ -661,9 +638,6 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoRehearsalMark.defaults, SmoRehearsalMark.attributes, this, params);
     params.ctor = 'SmoRehearsalMark';
     return params as SmoRehearsalMarkParamsSer;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
   }
   constructor(parameters: SmoRehearsalMarkParams) {
     super('SmoRehearsalMark');
@@ -858,10 +832,6 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
     params.ctor = 'SmoTempoText';
     return params as SmoTempoTextParamsSer;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
-
   constructor(parameters: SmoTempoTextParams | null) {
     super('SmoTempoText');
     let pobj: any = parameters;
@@ -959,10 +929,6 @@ export class TimeSignature extends SmoMeasureModifierBase {
     rv.ctor = 'TimeSignature';
     return rv as TimeSignatureParametersSer;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeMeasureModXml(this, namespace, parentElement, tagName);
-  }
-
   constructor(params: TimeSignatureParameters) {
     super('TimeSignature');
     this.actualBeats = params.actualBeats;

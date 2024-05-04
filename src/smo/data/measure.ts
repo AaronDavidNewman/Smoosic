@@ -22,7 +22,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, 
-  TickAccidental, AccidentalArray, getId, createChildElementRecurse, createXmlAttribute, serializeXmlModifierArray } from './common';
+  TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
 /**
@@ -571,41 +571,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       throw 'invalid measure';
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    const defaults = SmoMeasure.defaults;
-    parentElement.appendChild(el);
-    createXmlAttribute(el, 'ctor', 'SmoMeasure');
-    if (this.clef != defaults.clef) {
-      createXmlAttribute(el, 'clef', this.clef);
-    }
-    if (this.lines != defaults.lines) {
-      createXmlAttribute(el, 'lines', this.lines);
-    }
-    if (this.transposeIndex != defaults.transposeIndex) {
-      createXmlAttribute(el, 'transposeIndex', this.transposeIndex);
-    }
-    const ser = this.serialize();
-    createChildElementRecurse(ser.measureNumber, namespace, el, 'measureNumber');
-    this.format.serializeXml(namespace, el, 'format');
-    serializeXmlModifierArray(this.modifiers, namespace, el, 'modifiers');
-    const voicesEl = parentElement.ownerDocument.createElementNS(namespace, 'voices-array');
-    el.appendChild(voicesEl);
-    createXmlAttribute(voicesEl, 'name', 'voices');
-    createXmlAttribute(voicesEl, 'container', 'array');
-    this.voices.forEach((voice) => {
-      const voiceEl = parentElement.ownerDocument.createElementNS(namespace, 'voices-instance');
-      voicesEl.appendChild(voiceEl);
-      const notesEl = parentElement.ownerDocument.createElementNS(namespace, 'notes-array');
-      createXmlAttribute(notesEl, 'name', 'notes');
-      createXmlAttribute(notesEl, 'container', 'array');
-      voiceEl.appendChild(notesEl);
-      voice.notes.forEach((note) => {
-        note.serializeXml(namespace, notesEl, 'notes-instance');
-      });
-    });
-    return el;
   }
   /**
    * restore a serialized measure object.  Usually called as part of deserializing a score,

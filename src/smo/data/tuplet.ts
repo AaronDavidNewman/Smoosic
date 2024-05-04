@@ -8,7 +8,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote, SmoNoteParamsSer, SmoTupletNote } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { getId, SmoAttrs, Clef, createChildElementRecurse } from './common';
+import { getId, SmoAttrs, Clef } from './common';
 
 /**
  * Parameters for tuplet construction
@@ -158,10 +158,6 @@ export class SmoTuplet {
       throw 'bad tuplet ' + JSON.stringify(params);
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const ser = this.serialize();
-    createChildElementRecurse(ser, namespace, parentElement, tagName);
   }
   static calculateStemTicks(totalTicks: number, numNotes: number) {
     const stemValue = totalTicks / numNotes;

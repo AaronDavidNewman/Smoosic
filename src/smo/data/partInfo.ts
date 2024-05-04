@@ -6,7 +6,7 @@
  * @module /smo/data/partInfo
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { createChildElementRecurse, createXmlAttribute, serializeXmlRecord, serializeXmlArray } from './common';
+import { createXmlAttribute } from './common';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoLayoutManager, SmoLayoutManagerParamsSer, SmoLayoutManagerParams, SmoPageLayout } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';
@@ -272,26 +272,6 @@ export class SmoPartInfo extends StaffModifierBase {
       throw 'bad part info ' + JSON.stringify(rv);
     }
     return rv;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    createXmlAttribute(el, "ctor", "SmoPartInfo");
-    parentElement.appendChild(el);
-    const formattingKeys = Object.keys(this.measureFormatting);
-    if (formattingKeys.length > 0) {
-      serializeXmlRecord(namespace, el, this.measureFormatting, 'measureFormatting');
-    }
-    SmoPartAttributesBasic.forEach((attr) => {
-      const obj = this as any;
-      if (obj[attr] && obj[attr] !== (SmoPartInfo.defaults as any)[attr]) {
-        createXmlAttribute(el, attr, obj[attr]);
-      }
-    });
-    if (this.midiInstrument) {
-      createChildElementRecurse(this.midiDevice, namespace, el, "midiInstrument");
-    }
-    serializeXmlArray(namespace, el, this.textGroups, 'textGroups');
-    return el;
   }
   updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
     const tgid = typeof (textGroup) === 'string' ? textGroup :

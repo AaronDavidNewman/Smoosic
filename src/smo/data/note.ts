@@ -10,8 +10,8 @@ import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrot
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
   SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer } from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId, createChildElementRecurse, 
-  createXmlAttribute, serializeXmlArray, createChildElementArray, serializeXmlModifierArray} from './common';
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,  
+  createXmlAttribute,  serializeXmlModifierArray} from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
 
 // @internal
@@ -837,37 +837,6 @@ export class SmoNote implements Transposable {
       throw 'bad note ' + JSON.stringify(params);
     }
     return params;
-  }
-  static serializeXmlModifierArray(namespace: string, parentElement: Element, modifierName: string, noteModifiers: SmoNoteModifierBase[]) {
-    if (noteModifiers.length) {
-      const modifierArEl = parentElement.ownerDocument.createElementNS(namespace, `${modifierName}-array`);
-      createXmlAttribute(modifierArEl, "name", modifierName);
-      createXmlAttribute(modifierArEl, "container", "array");
-      noteModifiers.forEach((modifier) => {
-        modifier.serializeXml(namespace, modifierArEl, `${modifierName}-instance`);
-      });
-    }
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const noteElement = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    parentElement.appendChild(noteElement);
-    createXmlAttribute(noteElement, "ctor", "SmoNote");
-    createXmlAttribute(noteElement, "clef", this.clef);
-    createXmlAttribute(noteElement, "flagState", this.flagState);
-    createXmlAttribute(noteElement, "ctor", this.fillStyle);
-    createXmlAttribute(noteElement, "ctor", this.noteType);
-    createChildElementRecurse(this.ticks, namespace, noteElement, "ticks");
-    createChildElementArray(this.pitches, namespace, noteElement, 'pitches');
-    serializeXmlModifierArray(this.textModifiers, namespace, noteElement,  'textModifiers');
-    serializeXmlModifierArray(this.articulations, namespace, noteElement, 'articulations');
-    serializeXmlModifierArray(this.ornaments, namespace, noteElement, 'ornaments');
-    serializeXmlModifierArray(this.graceNotes, namespace, noteElement, 'graceNotes');
-    if (this.clefNote) {
-      this.clefNote.serializeXml(namespace, noteElement, "clefNote");
-    }
-    if (this.arpeggio) {
-      this.arpeggio.serializeXml(namespace, noteElement, "arpeggio");
-    }
   }
   /**
    * restore note modifiers and create a SmoNote object

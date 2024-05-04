@@ -6,7 +6,7 @@
  * @module /smo/data/noteModifiers
  */
 import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase, 
-  Clef, IsClef, createChildElementRecurse } from './common';
+  Clef, IsClef } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
@@ -48,13 +48,9 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
     return rv;
   }
   abstract serialize(): any;
-  abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element;
 }
 
-function  serializeNoteModXml(base: SmoNoteModifierBase, namespace: string, parentElement: Element, tagName: string) {
-  const ser = base.serialize();
-  return createChildElementRecurse(ser, namespace, parentElement, tagName);
-}
+
 export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
   if (typeof(params.clef) === 'string' && params.ctor === 'SmoClefChange') {
     return true;
@@ -105,9 +101,6 @@ export class SmoClefChange extends SmoNoteModifierBase {
       throw('corrupt clef change');
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
 }
 /**
@@ -235,10 +228,6 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tagName);
-  }
-
   constructor(parameters: Partial<GraceNoteParams>) {
     super('SmoGraceNote');
     smoSerialize.serializedMerge(SmoGraceNote.parameterArray, SmoGraceNote.defaults, this);
@@ -311,9 +300,6 @@ export class SmoArpeggio extends SmoNoteModifierBase {
       throw 'bad arpeggio ' + JSON.stringify(rv);
     }
     return rv;
-  }
-  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
 }
 /**
@@ -407,9 +393,6 @@ export class SmoMicrotone extends SmoNoteModifierBase {
       throw 'bad microtone ' + JSON.stringify(params);
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoMicrotoneParams) {
     super(parameters.ctor);
@@ -556,9 +539,6 @@ export class SmoOrnament extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tag);
-  }
   constructor(parameters: SmoOrnamentParams) {
     super('SmoOrnament');
     smoSerialize.serializedMerge(SmoOrnament.parameterArray, SmoOrnament.defaults, this);
@@ -686,9 +666,6 @@ export class SmoArticulation extends SmoNoteModifierBase {
       throw 'bad articulation ' + JSON.stringify(params);
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tag: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tag);
   }
   constructor(parameters: SmoArticulationParameters) {
     super('SmoArticulation');
@@ -899,10 +876,6 @@ export class SmoLyric extends SmoNoteModifierBase {
     }
     return params;
   }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tagName);
-  }
-
   // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
   // you want, so it is off by default.
   get adjustNoteWidth() {
@@ -1082,9 +1055,6 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
       SmoDynamicText.persistArray, this, params);
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string): Element {
-    return serializeNoteModXml(this, namespace, parentElement, tagName);
   }
   constructor(parameters: SmoDynamicTextParams) {
     super('SmoDynamicText');

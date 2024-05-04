@@ -5,9 +5,7 @@
  * @module /smo/data/score
  */
 import { SmoMusic } from './music';
-import { Clef, SvgDimensions, smoXmlNs, 
-  createChildElementRecurse, serializeXmlModifierArray, createXmlAttribute,
-  serializeXmlRecStringMap, serializeXmlRecord, serializeXmlArray } from './common';
+import { Clef, SvgDimensions, smoXmlNs } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
@@ -487,49 +485,6 @@ export class SmoScore {
     return obj as SmoScoreParamsSer;
   }
 
-  /**
-   * serialize the document in Smoosic XML format
-   * @returns 
-   */
- serializeXml() {
-    const namespace = smoXmlNs;
-    const doc = document.implementation.createDocument(namespace, '', null);
-    
-    let ser: SmoScoreParamsSer = this.serialize({ skipStaves: false, useDictionary: false });
-    const rootElement = doc.createElementNS(namespace, 'score');
-    // const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
-    doc.appendChild(rootElement);
-    
-    const scoreMetadata = { fonts: ser.metadata.fonts, preferences: ser.metadata.preferences,
-      scoreInfo: ser.metadata.scoreInfo };
-    createChildElementRecurse( scoreMetadata, namespace, rootElement, 'metadata');
-    if (this.textGroups.length > 0) {
-      serializeXmlArray(namespace, rootElement, this.textGroups, 'textGroups');
-    }
-    if (this.systemGroups.length) {
-      serializeXmlArray(namespace, rootElement, this.systemGroups, 'systemGroups');
-    }
-    this.audioSettings.serializeXml(namespace, rootElement, 'audioSettings');
-    if (this.layoutManager) {
-      this.layoutManager?.serializeXml(namespace, rootElement, 'layoutManager');
-    }
-    this.formattingManager?.serializeXml(namespace, rootElement, 'formattingManager')
-    serializeXmlArray(namespace, rootElement, this.staves,  'staves');
-    const columnParamsElem = doc.createElementNS(namespace, 'columnAttributeMap');
-    rootElement.appendChild(columnParamsElem);
-    const getSerMeasure = (measure: SmoMeasure): ColumnMappedParams => {
-      return measure.getColumnMapped();
-    }
-    const columnMappedObj = this.serializeColumnMapped(getSerMeasure);
-    serializeXmlRecStringMap(namespace, columnParamsElem, columnMappedObj.keySignature, 'keySignature');
-    serializeXmlRecord(namespace, columnParamsElem, columnMappedObj.timeSignature, 'timeSignature');
-    serializeXmlRecord(namespace, columnParamsElem, columnMappedObj.tempo, 'tempo');
-    serializeXmlRecStringMap(namespace, columnParamsElem, columnMappedObj.renumberingMap, 'renumberingMap');
-    const ndoc = smoSerialize.prettifyXml(doc);
-    const piElement = ndoc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
-    ndoc.insertBefore(piElement, ndoc.firstChild);
-    return ndoc;
-  }
   updateScorePreferences(pref: SmoScorePreferences) {
     this.preferences = pref;
     SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;

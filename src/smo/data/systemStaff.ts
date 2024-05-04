@@ -6,8 +6,7 @@
  * @module /smo/data/systemStaff
  * **/
 import { SmoObjectParams, SmoAttrs, MeasureNumber, getId, 
-  serializeXmlRecStringMap, createXmlAttribute, serializeXmlArray, 
-  serializeXmlRecord, serializeXmlModifierArray } from './common';
+   createXmlAttribute } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
@@ -266,26 +265,6 @@ export class SmoSystemStaff implements SmoObjectParams {
       throw ('bad staff ' + JSON.stringify(params));
     }
     return params;
-  }
-  serializeXml(namespace: string, parentElement: Element, tagName: string) {
-    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
-    parentElement.appendChild(el);
-    const ser = this.serialize({ skipMaps: true });
-    SmoSystemStaff.serializableElements.forEach((param) => {
-      createXmlAttribute(el, param, (ser as any)[param]);
-    });
-    const mods = this.modifiers.concat(this.textBrackets);
-    serializeXmlModifierArray(mods, namespace, el, 'modifiers');
-    if (Object.keys(this.renumberingMap).length > 0) {
-      serializeXmlRecStringMap(namespace, el, this.renumberingMap, 'renumberingMap');
-    }
-    // partInfo has records so we need it to deserialize
-    this.partInfo.serializeXml(namespace, el, 'partInfo');
-    serializeXmlArray(namespace, el, this.measures, 'measures');
-    serializeXmlRecord(namespace, el, this.measureInstrumentMap, 'measureInstrumentMap');
-    createXmlAttribute(el, 'ctor', 'SmoSystemStaff');
-    createXmlAttribute(el, 'staffId', this.staffId);
-    return el;
   }
   // ### deserialize
   // parse formerly serialized staff.
