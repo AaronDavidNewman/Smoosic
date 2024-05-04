@@ -451,6 +451,9 @@ export class SmoScore {
     obj.metadata!.renumberingMap = JSON.parse(JSON.stringify(this.renumberingMap));
     obj.metadata!.preferences = this.preferences.serialize();
     obj.metadata!.scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
+    if (typeof(obj?.metadata?.scoreInfo?.version) !== 'number'){
+      obj.metadata!.scoreInfo.version = 0;
+    }
     if (this.formattingManager) {
       obj.measureFormats = this.formattingManager.serialize();
     }
