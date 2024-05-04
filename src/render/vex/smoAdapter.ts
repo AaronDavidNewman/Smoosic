@@ -107,6 +107,11 @@ export function vexAnnotationPosition(chordPos: number) {
   return VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
 }
 
+/**
+ * Parse the SmoLyric text and convert it to a VEX chord symbol
+ * @param athis 
+ * @returns 
+ */
 export function  getVexChordBlocks(athis: SmoLyric) {
   let mod = VF.ChordSymbol.symbolModifiers.NONE;
   let isGlyph = false;

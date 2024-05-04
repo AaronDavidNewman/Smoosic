@@ -5,7 +5,9 @@
  * staff modifiers.
  * @module /smo/data/systemStaff
  * **/
-import { SmoObjectParams, SmoAttrs, MeasureNumber, getId } from './common';
+import { SmoObjectParams, SmoAttrs, MeasureNumber, getId, 
+  serializeXmlRecStringMap, createXmlAttribute, serializeXmlArray, 
+  serializeXmlRecord, serializeXmlModifierArray } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
@@ -17,7 +19,13 @@ import { SmoSelector } from '../xform/selections';
 import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { FontInfo } from '../../common/vex';
-
+/**
+ * indicate that we need to serialize the key signature, etc.
+ * maps beause we are going to be deserializing again in a different score
+ */
+export interface SmoStaffSerializationOptions {
+  skipMaps: boolean
+}
 /**
  * Constructor parameters for {@link SmoSystemStaff}.
  * Usually you will call
@@ -41,30 +49,48 @@ export interface SmoSystemStaffParams {
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
   textBrackets?: SmoStaffTextBracket[];
-  alignWithPrevious?: boolean;
 }
 /**
  * Serialized components of a stave
- * @param staffId the index of the staff in the score
- * @param renumberingMap For alternate number, pickups, etc.
- * @param keySignatureMap map of keys to measures
- * @param measureInstrumentMap map of instruments to staves
- * @param measures array of {@link SmoMeasure}
- * @param modifiers slurs and such
- * @param partInfo information about the part 
  * @category serialization
  */
-export interface SmoSystemStaffParamsSer {
+export interface SmoSystemStaffParamsSer {  
+  /**
+   * class name
+   */
   ctor: string,
+  /**
+   * index of the staff
+   */
   staffId: number,
+  /**
+   * map of measure numbers vs. indices of measures
+   */
   renumberingMap?: Record<number, number>,
-  keySignatureMap: Record<number, string>,
+  /**
+   * locations of key signature changes
+   */
+  keySignatureMap?: Record<number, string>,
+  /**
+   * map of measures to instruments (clef, transpose, sounds)
+   */
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
+  /**
+   * measure container
+   */
   measures: SmoMeasureParamsSer[],
+  /**
+   * array of modifiers like slurs
+   */
   modifiers: StaffModifierBaseSer[],
-  partInfo?: SmoPartInfoParamsSer;
-  textBrackets?: SmoStaffTextBracketParamsSer[];
-  alignWithPrevious?: boolean;
+  /**
+   * Associated part information for this stave
+   */
+  partInfo: SmoPartInfoParamsSer;
+  /**
+   * text brackets are another kind of modifier
+   */
+  textBrackets: SmoStaffTextBracketParamsSer[];
 }
 
 function isSmoSystemStaffParamsSer(params: Partial<SmoSystemStaffParamsSer>):params is SmoSystemStaffParamsSer {
@@ -110,7 +136,6 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
     return rv;
   }
-
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
@@ -189,7 +214,16 @@ export class SmoSystemStaff implements SmoObjectParams {
       this.partInfo = new SmoPartInfo(partDefs);
     }
   }
-
+  /**
+   * records need to be serialized separately from other elements in parameters
+   *
+   * @static
+   * @type {string[]}
+   * @memberof SmoSystemStaff
+   */
+  static serializableElements: string[] = ['ctor', 'staffId'];
+  static recordElements: string[] = ['renumberingMap', 'keySignatureMap', 'measureInstrumentMap'];
+  
   // ### defaultParameters
   // the parameters that get saved with the score.
   static get defaultParameters() {
@@ -204,11 +238,13 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
   // ### serialize
   // JSONify self.
-  serialize(): SmoSystemStaffParamsSer {
+  serialize(options: SmoStaffSerializationOptions): SmoSystemStaffParamsSer {
     const params: Partial<SmoSystemStaffParamsSer> = {
       ctor: 'SmoSystemStaff'
     };
-    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
+    if (!options.skipMaps) {
+      smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
+    }
     params.measures = [];
     params.measureInstrumentMap = {};
     const ikeys: string[] = Object.keys(this.measureInstrumentMap);
@@ -231,7 +267,26 @@ export class SmoSystemStaff implements SmoObjectParams {
     }
     return params;
   }
-
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const el = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    parentElement.appendChild(el);
+    const ser = this.serialize({ skipMaps: true });
+    SmoSystemStaff.serializableElements.forEach((param) => {
+      createXmlAttribute(el, param, (ser as any)[param]);
+    });
+    const mods = this.modifiers.concat(this.textBrackets);
+    serializeXmlModifierArray(mods, namespace, el, 'modifiers');
+    if (Object.keys(this.renumberingMap).length > 0) {
+      serializeXmlRecStringMap(namespace, el, this.renumberingMap, 'renumberingMap');
+    }
+    // partInfo has records so we need it to deserialize
+    this.partInfo.serializeXml(namespace, el, 'partInfo');
+    serializeXmlArray(namespace, el, this.measures, 'measures');
+    serializeXmlRecord(namespace, el, this.measureInstrumentMap, 'measureInstrumentMap');
+    createXmlAttribute(el, 'ctor', 'SmoSystemStaff');
+    createXmlAttribute(el, 'staffId', this.staffId);
+    return el;
+  }
   // ### deserialize
   // parse formerly serialized staff.
   static deserialize(jsonObj: SmoSystemStaffParamsSer): SmoSystemStaff {
@@ -489,18 +544,20 @@ export class SmoSystemStaff implements SmoObjectParams {
       measure.setChordAdjustWidth(adjustNoteWidth);
     });
   }
-  addTextBracket(bracketParams: SmoStaffTextBracket) {    
+  addTextBracket(bracketParams: SmoStaffTextBracket) {
     const nb = new SmoStaffTextBracket(bracketParams);
     const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
+   
     brackets.push(new SmoStaffTextBracket(bracketParams));
-    this.textBrackets = brackets;
+    
   }
   removeTextBracket(bracketParams: SmoStaffTextBracket) {    
     const nb = new SmoStaffTextBracket(bracketParams);
     const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
-    this.textBrackets = brackets;
+      brackets.push(new SmoStaffTextBracket(bracketParams));
+      this.textBrackets = brackets;
   }
   getTextBracketsStartingAt(selector: SmoSelector) {
     return this.textBrackets.filter((tb) => SmoSelector.eq(tb.startSelector, selector));
@@ -690,11 +747,13 @@ export class SmoSystemStaff implements SmoObjectParams {
       } else {
         localIndex += 1;
       }
+      // since systemIndex is a render-time decision, we don't update it here.
+      const systemIndex = measure.measureNumber.systemIndex;
       // If this is the first full measure, call it '1'
       const numberObj: MeasureNumber = {
         localIndex,
         measureIndex: i,
-        systemIndex: i,
+        systemIndex,
         staffId: this.staffId
       };
       measure.setMeasureNumber(numberObj);

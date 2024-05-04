@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "livingThings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/speciesType"
+      }
+    }
+  },
+  "required": [
+    "livingThings"
+  ],
+  "definitions": {
+    "speciesType": {
+      "type": "object",
+      "properties": {
+        "species": {
+          "type": "string"
+        },
+        "population": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "species"
+      ]
+    }
+  }
+}

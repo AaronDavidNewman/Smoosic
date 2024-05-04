@@ -8,15 +8,12 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, 
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
-  SmoClefChangeParamsSer, SmoClefChange } from './noteModifiers';
+  SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer } from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId, createChildElementRecurse, 
+  createXmlAttribute, serializeXmlArray, createChildElementArray, serializeXmlModifierArray} from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
-import { SmoTupletParamsSer } from './tuplet';
 
-export interface TupletInfo {
-  id: string;
-}
 // @internal
 export type NoteType = 'n' | 'r' | '/';
 // @internal
@@ -91,7 +88,7 @@ export interface SmoNoteParams {
   /**
    * if this note is part of a tuplet
    */
-  tuplet: TupletInfo | undefined,
+  tupletId: string | null,
   /**
    * does this note force the end of a beam group
    */
@@ -130,6 +127,7 @@ export interface SmoNoteParams {
   clefNote: SmoClefChangeParamsSer
 }
 
+export type SmoNoteTextModifierSer = SmoLyricParamsSer | SmoDynamicTextSer;
 /**
  * The serializable bits of a Note.  Notes will always 
  * have a type, and if a sounded note, can contain pitches.  It will always
@@ -154,7 +152,7 @@ export interface SmoNoteParamsSer  {
   /**
     * lyrics, annotations
     */
-  textModifiers: SmoNoteModifierBase[],
+  textModifiers: SmoNoteTextModifierSer[],
   /**
     * articulations attached to the note
     */
@@ -178,7 +176,7 @@ export interface SmoNoteParamsSer  {
   /**
     * if this note is part of a tuplet
     */
-  tuplet: SmoTupletParamsSer | undefined,
+  tupletId?: string,
   /**
     * does this note force the end of a beam group
     */
@@ -216,6 +214,12 @@ export interface SmoNoteParamsSer  {
     */
   clefNote? : SmoClefChangeParamsSer
 }
+
+export interface SmoTupletNote {
+  ticks: Ticks,
+  noteId: string,
+  tupletId: string
+}
 function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
   if (params.ctor && params.ctor === 'SmoNote') {
    return true;
@@ -234,6 +238,7 @@ export class SmoNote implements Transposable {
     NoteStringParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
+    this.tupletId = params.tupletId;
     this.noteType = params.noteType ? params.noteType : defs.noteType;
     NoteNumberParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
@@ -250,8 +255,9 @@ export class SmoNote implements Transposable {
     this.pitches = JSON.parse(JSON.stringify(pitches));
     this.clef = params.clef ? params.clef : defs.clef;
     this.fillStyle = params.fillStyle ? params.fillStyle : '';
-    if (params.tuplet) {
-      this.tuplet = params.tuplet;
+    // legacy tuplet, now we just need the tuplet id
+    if ((params as any).tuplet) {
+      this.tupletId = (params as any).tuplet.id;
     }
     this.attrs = {
       id: getId().toString(),
@@ -276,7 +282,7 @@ export class SmoNote implements Transposable {
   noteType: NoteType = 'n';
   fillStyle: string = '';
   hidden: boolean = false;
-  tuplet: TupletInfo | null = null;
+  tupletId: string | null = null;
   tones: SmoMicrotone[] = [];
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
@@ -293,7 +299,8 @@ export class SmoNote implements Transposable {
    */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'
+    , 'tupletId'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it
@@ -501,11 +508,16 @@ export class SmoNote implements Transposable {
   }
 
   getOrnaments() {
-    return this.ornaments.filter((oo) => oo.isJazz() === false);
+    return this.ornaments.filter((oo) => oo.isJazz() === false
+      && typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) !== 'string');
   }
 
   getJazzOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  getTextOrnaments() {
+    return this.ornaments.filter((oo) => typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) === 'string');
   }
 
   /**
@@ -652,7 +664,7 @@ export class SmoNote implements Transposable {
    * Return true if this note is part of a tuplet
    */
   get isTuplet(): boolean {
-    return this.tuplet !== null && typeof(this.tuplet.id) !== 'undefined';
+    return typeof(this.tupletId) !== 'undefined' && this.tupletId !== null &&  this.tupletId.length > 0;
   }
 
   addMicrotone(tone: SmoMicrotone) {
@@ -817,11 +829,45 @@ export class SmoNote implements Transposable {
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
     }
+    if (this.tupletId) {
+      params.tupletId = this.tupletId;
+    }
     this._serializeModifiers(params);
     if (!isSmoNoteParamsSer(params)) {
       throw 'bad note ' + JSON.stringify(params);
     }
     return params;
+  }
+  static serializeXmlModifierArray(namespace: string, parentElement: Element, modifierName: string, noteModifiers: SmoNoteModifierBase[]) {
+    if (noteModifiers.length) {
+      const modifierArEl = parentElement.ownerDocument.createElementNS(namespace, `${modifierName}-array`);
+      createXmlAttribute(modifierArEl, "name", modifierName);
+      createXmlAttribute(modifierArEl, "container", "array");
+      noteModifiers.forEach((modifier) => {
+        modifier.serializeXml(namespace, modifierArEl, `${modifierName}-instance`);
+      });
+    }
+  }
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const noteElement = parentElement.ownerDocument.createElementNS(namespace, tagName);
+    parentElement.appendChild(noteElement);
+    createXmlAttribute(noteElement, "ctor", "SmoNote");
+    createXmlAttribute(noteElement, "clef", this.clef);
+    createXmlAttribute(noteElement, "flagState", this.flagState);
+    createXmlAttribute(noteElement, "ctor", this.fillStyle);
+    createXmlAttribute(noteElement, "ctor", this.noteType);
+    createChildElementRecurse(this.ticks, namespace, noteElement, "ticks");
+    createChildElementArray(this.pitches, namespace, noteElement, 'pitches');
+    serializeXmlModifierArray(this.textModifiers, namespace, noteElement,  'textModifiers');
+    serializeXmlModifierArray(this.articulations, namespace, noteElement, 'articulations');
+    serializeXmlModifierArray(this.ornaments, namespace, noteElement, 'ornaments');
+    serializeXmlModifierArray(this.graceNotes, namespace, noteElement, 'graceNotes');
+    if (this.clefNote) {
+      this.clefNote.serializeXml(namespace, noteElement, "clefNote");
+    }
+    if (this.arpeggio) {
+      this.arpeggio.serializeXml(namespace, noteElement, "arpeggio");
+    }
   }
   /**
    * restore note modifiers and create a SmoNote object

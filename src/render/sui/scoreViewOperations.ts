@@ -1586,10 +1586,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const selections = SmoSelection.innerSelections(this.storeScore, inst.startSelector, inst.endSelector);
       SmoOperation.changeInstrument(inst, selections);
     })
-    if (instrument.alignWithPrevious && instrument.staffId > 0) {
+    if (instrument.staffId > 0) {
+      const selection = SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
       const sel = SmoSelector.default;
       sel.staff = instrument.staffId - 1;
-      const selection = SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
       if (selection) {
         let grp = this.storeScore.getSystemGroupForStaff(selection);
         if (grp) {
@@ -1602,7 +1602,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
         }
       }
     }
-
     this.viewAll();
     return this.renderer.updatePromise();
   }

@@ -42,7 +42,7 @@ export class SuiScoreFontAdapter extends SuiComponentAdapter {
     return PromiseHelpers.emptyPromise();
   }
   changeFont(purpose: number, name: string, fontInfo: FontInfo): FontPurpose {
-    const fontSize = SmoScoreText.fontPointSize(fontInfo.family);
+    const fontSize = SmoScoreText.fontPointSize(fontInfo.size);
     const fontFamily = fontInfo.family ?? 'Arial';
     const fp: FontPurpose = {
       name,

@@ -5,10 +5,10 @@
  * @module /smo/data/tuplet
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNote, SmoNoteParamsSer } from './note';
+import { SmoNote, SmoNoteParamsSer, SmoTupletNote } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { getId, SmoAttrs, Clef } from './common';
+import { getId, SmoAttrs, Clef, createChildElementRecurse } from './common';
 
 /**
  * Parameters for tuplet construction
@@ -20,7 +20,7 @@ import { getId, SmoAttrs, Clef } from './common';
  */
 export interface SmoTupletParams {
   notes: SmoNote[],
-  attrs?: SmoAttrs,
+  id?: string,
   numNotes: number,
   stemTicks: number,
   totalTicks: number,
@@ -42,11 +42,11 @@ export interface SmoTupletParamsSer {
   /**
    * attributes for ID
    */
-  attrs: SmoAttrs,
+  id: string,
   /**
    * info about the serialized notes
    */
-  notes: SmoNoteParamsSer[],
+  notes: SmoTupletNote[],
   /**
    * numNotes in the duplet (not necessarily same as notes array size)
    */
@@ -80,7 +80,10 @@ export interface SmoTupletParamsSer {
    */
   startIndex: number
 }
-
+export interface SmoClonedTupletIf {
+  tuplet: SmoTuplet,
+  notes: SmoNote[]
+}
 /**
  * tuplets must be serialized with their id attribute, enforce this
  * @param params a possible-valid SmoTupletParamsSer
@@ -90,7 +93,7 @@ function isSmoTupletParamsSer(params: Partial<SmoTupletParamsSer>): params is Sm
   if (!params.ctor || !(params.ctor === 'SmoTuplet')) {
     return false;
   }
-  if (!params.attrs || !(typeof(params.attrs.id) === 'string')) {
+  if (!params.id || !(typeof(params.id) === 'string')) {
     return false;
   }
   return true;
@@ -113,7 +116,7 @@ export class SmoTuplet {
       startIndex: 0
     }));
   }
-  attrs: SmoAttrs;
+  id: string;
   notes: SmoNote[];
   numNotes: number = 3;
   stemTicks: number = 2048;
@@ -133,7 +136,7 @@ export class SmoTuplet {
 
   static get parameterArray() {
     return ['stemTicks', 'ticks', 'totalTicks',
-      'durationMap', 'attrs', 'ratioed', 'bracketed', 'voice', 'startIndex', 'numNotes'];
+      'durationMap', 'id', 'ratioed', 'bracketed', 'voice', 'startIndex', 'numNotes'];
   }
 
   serialize(): SmoTupletParamsSer {
@@ -141,7 +144,12 @@ export class SmoTuplet {
       notes: []
     };
     this.notes.forEach((nn) => {
-      params.notes!.push(nn.serialize());
+      if (!nn.tupletId) {
+        throw 'bad tuplet when serializing';
+      }
+      params.notes!.push({
+        noteId: nn.attrs.id, tupletId: nn.tupletId, ticks: nn.ticks
+      });
     });
     params.ctor = 'SmoTuplet';
     smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
@@ -151,7 +159,10 @@ export class SmoTuplet {
     }
     return params;
   }
-
+  serializeXml(namespace: string, parentElement: Element, tagName: string) {
+    const ser = this.serialize();
+    createChildElementRecurse(ser, namespace, parentElement, tagName);
+  }
   static calculateStemTicks(totalTicks: number, numNotes: number) {
     const stemValue = totalTicks / numNotes;
     let stemTicks = SmoTuplet.longestTuplet;
@@ -167,18 +178,16 @@ export class SmoTuplet {
     smoSerialize.vexMerge(this, SmoTuplet.defaults);
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
     this.notes = params.notes;
-    this.attrs = {
-      id: getId().toString(),
-      type: 'SmoTuplet'
-    };
+    this.id = getId().toString();
     this._adjustTicks();
   }
   static get longestTuplet() {
     return 8192;
   }
-  static cloneTuplet(tuplet: SmoTuplet): SmoTuplet {
+  static cloneTuplet(tuplet: SmoTuplet, tupletNotes: SmoNote[]): SmoTuplet {
     let i = 0;
-    const noteAr = tuplet.notes;
+    const noteAr = tupletNotes;
+    const dupNotes: SmoNote[] = [];
     const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
     // Add any remainders for oddlets
@@ -187,8 +196,6 @@ export class SmoTuplet {
 
     const numNotes: number = tuplet.numNotes;
     const stemTicks = SmoTuplet.calculateStemTicks(totalTicks, numNotes);
-
-    const tupletNotes: SmoNote[] = [];
 
     noteAr.forEach((note) => {
       const textModifiers = note.textModifiers;
@@ -209,12 +216,12 @@ export class SmoTuplet {
         note.textModifiers = ntmAr;
       }
       i += 1;
-      tupletNotes.push(note);
+      dupNotes.push(note);
     });
     const rv = new SmoTuplet({
       numNotes: tuplet.numNotes,
       voice: tuplet.voice,
-      notes: tupletNotes,
+      notes: dupNotes,
       stemTicks,
       totalTicks,
       ratioed: false,
@@ -233,7 +240,7 @@ export class SmoTuplet {
       // TODO:  notes_occupied needs to consider vex duration
       note.ticks.denominator = 1;
       note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-      note.tuplet = this.attrs;
+      note.tupletId = this.id;
     }
 
     // put all the remainder in the first note of the tuplet

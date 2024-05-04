@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoSelection, SmoSelector } from './selections';
-import { SmoNote, TupletInfo } from '../data/note';
+import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoTuplet } from '../data/tuplet';
@@ -112,8 +112,9 @@ export class PasteBuffer {
         const tuplet = (selection.measure.getTupletForNote(selection.note) as SmoTuplet);
         const index = tuplet.getIndexOfNote(selection.note);
         if (index === 0) {
-          const ntuplet = SmoTuplet.cloneTuplet(tuplet);
-          this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
+          const tupletNotes = tuplet.notes;
+          const ntuplet = SmoTuplet.cloneTuplet(tuplet, tupletNotes);
+          this.tupletNoteMap[ntuplet.id] = ntuplet;
           ntuplet.notes.forEach((nnote) => {
             const xposeNote = SmoNote.transpose(SmoNote.clone(nnote),
               [], -1 * selection.measure.transposeIndex, selection.measure.keySignature, destKey) as SmoNote;
@@ -205,7 +206,7 @@ export class PasteBuffer {
         if (!tuplet) {
           continue;  // we remove the tuplet after first iteration
         }
-        const ntuplet: SmoTuplet = SmoTuplet.cloneTuplet(tuplet);
+        const ntuplet: SmoTuplet = SmoTuplet.cloneTuplet(tuplet, tuplet.notes);
         voice.notes = voice.notes.concat(ntuplet.notes as SmoNote[]);
         measure.removeTupletForNote(note);
         measure.tuplets.push(ntuplet);
@@ -337,7 +338,6 @@ export class PasteBuffer {
     let currentDuration = tickmap.durationMap[startSelector.tick];
     let i = 0;
     let j = 0;
-    let tupletsPushed = 0;
     const totalDuration = tickmap.totalDuration;
     while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
       if (!this.score) {
@@ -353,9 +353,9 @@ export class PasteBuffer {
         SmoNote.transpose(note, pitchAr, measure.transposeIndex, selection.originalKey, measure.keySignature);
       }
       this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
-      if (note.isTuplet) {
-        const tuplet = this.tupletNoteMap[(note.tuplet as TupletInfo).id];
-        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+      if (note.isTuplet && note.tupletId) {
+        const tuplet = this.tupletNoteMap[note.tupletId];
+        const ntuplet = SmoTuplet.cloneTuplet(tuplet, tuplet.notes);
         ntuplet.startIndex = voice.notes.length;
         this.noteIndex += ntuplet.notes.length;
         startSelector.tick += ntuplet.notes.length;
@@ -427,9 +427,13 @@ export class PasteBuffer {
       existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
       const note = measure.voices[voiceIndex].notes[existingIndex];
       if (note.isTuplet) {
-        const tuplet = measure.getTupletForNote(note) as SmoTuplet;
-        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+        const tuplet = measure.getTupletForNote(note);
+        if (!tuplet) {
+          throw 'bad tuplet in copy paste';
+        }
+        const ntuplet = SmoTuplet.cloneTuplet(tuplet, tuplet.notes);        
         startTicks += tuplet.tickCount;
+
         voice.notes = voice.notes.concat(ntuplet.notes);
         measure.tuplets.push(ntuplet);
         measure.removeTupletForNote(note);

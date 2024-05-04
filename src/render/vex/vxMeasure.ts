@@ -23,7 +23,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
-  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest
+  createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
+  createTextNote
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
@@ -258,6 +259,7 @@ export class VxMeasure implements VxMeasureIf {
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
+      const textNotes = smoNote.getTextOrnaments();
       const vexNote = this.createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
       this.vexNotes.push(vexNote.noteData.staveNote);
@@ -267,6 +269,9 @@ export class VxMeasure implements VxMeasureIf {
         clefNoteAdded = true; // ignore 2nd in a measure
       }
       this.voiceNotes.push(vexNote.noteData.staveNote);
+      textNotes.forEach((tn) => {
+        this.voiceNotes.push(createTextNote(SmoOrnament.textNoteOrnaments[tn.ornament]));
+      });
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
         || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');
@@ -350,7 +355,7 @@ export class VxMeasure implements VxMeasureIf {
         location
       }
       const vexTuplet = getVexTuplets(smoTupletParams);
-      this.tupletToVexMap[tp.attrs.id] = vexTuplet;
+      this.tupletToVexMap[tp.id] = vexTuplet;
       this.vexTuplets.push(vexTuplet);
     }
   }
@@ -439,7 +444,7 @@ export class VxMeasure implements VxMeasureIf {
       x: staffX,
       y: staffY,
       padLeft: this.smoMeasure.format.padLeft,
-      id: this.smoMeasure.attrs.id,
+      id: this.smoMeasure.id,
       staffX: this.smoMeasure.staffX,
       staffY: this.smoMeasure.staffY,
       staffWidth: this.smoMeasure.staffWidth,
@@ -554,9 +559,9 @@ export class VxMeasure implements VxMeasureIf {
     var j = 0;
     try {
       // bound each measure in its own SVG group for easy deletion and mapping to screen coordinate
-      group.classList.add(this.smoMeasure.attrs.id);
+      group.classList.add(this.smoMeasure.id);
       group.classList.add(mmClass);
-      group.id = this.smoMeasure.attrs.id;
+      group.id = this.smoMeasure.id;
       this.stave!.draw();
       this.smoMeasure.svg.element = group;
 

@@ -4,7 +4,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoArticulation, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
-import { Pitch, PitchLetter } from '../data/common';
+import { Pitch, PitchLetter, createXmlAttributes, createXmlAttribute } from '../data/common';
 import { SmoSelector } from '../xform/selections';
 import { SmoBarline } from '../data/measureModifiers';
 
@@ -470,15 +470,9 @@ export class XmlHelpers {
     return el;
   }
   static createAttributes(element: Element, obj: any) {
-    Object.keys(obj).forEach((key) => {
-      const attr = element.ownerDocument.createAttribute(key);
-      attr.value = obj[key];
-      element.setAttributeNode(attr);
-    });
+    createXmlAttributes(element, obj);
   }
   static createAttribute(element: Element, name: string, value: any) {
-    const obj: any = {};
-    obj[name] = value;
-    XmlHelpers.createAttributes(element, obj);
+    createXmlAttribute(element, name, value);
   }
 }

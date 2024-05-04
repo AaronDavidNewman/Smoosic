@@ -11,6 +11,127 @@ export interface SmoAttrs {
     id: string,
     type: string
 }
+export const smoXmlNs = 'https://aarondavidnewman.github.io/Smoosic';
+
+// export abstract class SmoXmlSerializable {
+//   abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element
+// }
+export interface SmoXmlSerializable {
+  serializeXml: (namespace: string, parentElement: Element, tag: string) => Element;
+  ctor: string
+}
+export function createXmlAttributes(element: Element, obj: any) {
+  Object.keys(obj).forEach((key) => {
+    const attr = element.ownerDocument.createAttribute(key);
+    attr.value = obj[key];
+    element.setAttributeNode(attr);
+  });
+}
+export function createXmlAttribute(element: Element, name: string, value: any) {
+  const obj: any = {};
+  obj[name] = value;
+  createXmlAttributes(element, obj);
+}
+export function serializeXmlRecStringMap(namespace: string, parentElement: Element, 
+  data: Record<number | string, number | string>, name: string): Element {
+  const renumberingKeys = Object.keys(data);  
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-map`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'simpleMap');
+  createXmlAttribute(rec, 'name', name);
+      renumberingKeys.forEach((mapKey) => {
+        const inst = parentElement.ownerDocument.createElementNS(namespace, `${name}-instance`);
+        rec.appendChild(inst);
+        const val = isNaN(mapKey as any) ? data[mapKey] : data[parseInt(mapKey)];
+        createXmlAttribute(inst, 'value', data[parseInt(mapKey)]);
+        createXmlAttribute(inst, 'key', mapKey);
+      });
+  return rec;
+}
+export function serializeXmlRecord(namespace: string, parentElement: Element, 
+  data: Record<number | string, SmoXmlSerializable>, name: string): Element {
+  const renumberingKeys = Object.keys(data);
+  if (renumberingKeys.length === 0) {
+    return parentElement;
+  }
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-map`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'numberObjectMap');
+  createXmlAttribute(rec, 'name', name);
+  renumberingKeys.forEach((mapKey) => {
+    const val = isNaN(mapKey as any) ? data[mapKey] : data[parseInt(mapKey)];
+    const inst = val.serializeXml(namespace, rec, `${name}-instance`);
+    createXmlAttribute(inst, 'key', `${mapKey}`);
+  });
+  return rec;
+}
+export function serializeXmlArray(namespace: string, parentElement: Element, 
+  data: SmoXmlSerializable[], name: string): Element {
+  if (data.length === 0) {
+    return parentElement;
+  }
+  const rec = parentElement.ownerDocument.createElementNS(namespace, `${name}-array`);
+  parentElement.appendChild(rec);
+  createXmlAttribute(rec, 'container', 'array');
+  createXmlAttribute(rec, 'name', name);
+  data.forEach((instance) => {
+    instance.serializeXml(namespace, rec, `${name}-instance`);;
+  });
+  return rec;
+}
+export function createChildElementRecurse(object: any, namespace: string, parentElement: Element, tag: string): Element {
+  if (object === null || typeof(object) === 'undefined') {
+    return parentElement;
+  }
+  if (Array.isArray(object)) {
+    return createChildElementArray(object, namespace, parentElement, tag);
+  }
+  // if this is a simple type, don't create an element just add an attribute to the parent element
+  if (typeof(object) === 'string' || typeof(object) === 'number' || typeof(object) === 'boolean') {
+    createXmlAttribute(parentElement, tag, object);
+    return parentElement;
+  }
+  const el = parentElement.ownerDocument.createElementNS(namespace, tag);
+  parentElement.appendChild(el);
+  const keys = Object.keys(object);
+  for (var i = 0; i < keys.length; ++i) {
+    const key = keys[i];
+    const child = object[key];
+    if (child === null && typeof(child) === 'undefined') {
+      continue;
+    }
+    // Array, create an array element and an instance element for 'key'
+   if (typeof(child) === 'object') {
+      // Object, create element for the object
+      createChildElementRecurse(child, namespace, el, key);
+    } else if (typeof(child) === 'string' || typeof(child) === 'number' || typeof(child) === 'boolean'){
+      createXmlAttribute(el, key, child);
+    }
+  };
+  return el;
+}
+export function createChildElementArray(object: any[], namespace: string, parentElement: Element, tag: string) {
+  // Don't make empty array elements
+  if (object.length < 1) {
+    return parentElement;
+  }
+  const arEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-array`);
+  parentElement.appendChild(arEl);
+  createXmlAttribute(arEl, 'container', 'array');
+  createXmlAttribute(arEl, 'name', tag);
+  for (var j = 0; j < object.length; ++j) {
+    const inst = object[j];
+    const instKey = `${tag}-instance`;
+    if (typeof(inst) === 'number' || typeof(inst) === 'string' || typeof(inst) === 'boolean') {
+      const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
+      arEl.appendChild(instEl);
+      createXmlAttribute(instEl, 'value', inst);
+    } else {
+      createChildElementRecurse(object[j], namespace, arEl, instKey);
+    }
+  }
+  return arEl;
+}
 
 var nextId = 32768;
 export const getId = () => `smo` + (nextId++).toString();
@@ -141,6 +262,7 @@ export interface Transposable {
     logicalBox: SvgBox | null
 }
 
+
 /**
  * All note, measure etc. modifiers have these attributes.  The SVG info
  * is for the tracker to track the artifacts in the UI (mouse events, etc)
@@ -151,7 +273,24 @@ export interface Transposable {
 export interface SmoModifierBase {
     ctor: string,
     logicalBox: SvgBox | null,
-    attrs: SmoAttrs
+    attrs: SmoAttrs,
+    serialize: () => any;
+}
+
+export function serializeXmlModifierArray(object: SmoXmlSerializable[], namespace: string, parentElement: Element, tag: string) {
+  if (object.length === 0) {
+    return parentElement;
+  }
+  const arEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-array`);
+  parentElement.appendChild(arEl);
+  createXmlAttribute(arEl, 'container', 'array');
+  createXmlAttribute(arEl, 'name', `${tag}`);
+  for (var j = 0; j < object.length; ++j) {
+    const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
+    arEl.appendChild(instEl);
+    object[j].serializeXml(namespace, instEl, object[j].ctor);
+  }
+  return arEl;
 }
 
 /**

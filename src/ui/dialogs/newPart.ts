@@ -14,7 +14,6 @@ declare var $: any;
 
 export class SuiNewPartAdapter extends SuiComponentAdapter {
   instrument: SmoInstrument;
-  alignWithPreviousVal: boolean = true;
   constructor(view: SuiScoreViewOperations) {
     super(view);
     const selection = this.view.tracker.selections[0];
@@ -25,12 +24,6 @@ export class SuiNewPartAdapter extends SuiComponentAdapter {
   }
   writeStringParam(paramName: SmoInstrumentStringParamType, value: string) {
     this.instrument[paramName] = value;
-  }
-  set alignWithPrevious(val: boolean) {
-    this.alignWithPreviousVal = val;
-  }
-  get alignWithPrevious() {
-    return this.alignWithPreviousVal;
   }
   get transposeIndex() {
     return this.instrument.keyOffset;
@@ -60,7 +53,6 @@ export class SuiNewPartAdapter extends SuiComponentAdapter {
     const staffParams: SmoSystemStaffParams = SmoSystemStaff.defaults;
     staffParams.staffId = this.view.storeScore.staves.length;
     staffParams.measureInstrumentMap[0] = this.instrument;
-    staffParams.alignWithPrevious = this.alignWithPreviousVal;
     await this.view.addStaff(staffParams);
   }
   async cancel() {
@@ -88,10 +80,6 @@ export class SuiNewPartDialog extends SuiDialogAdapterBase<SuiNewPartAdapter> {
             smoName: 'instrumentName',
             control: 'SuiTextInputComponent',
             label: 'Part Name'
-          },  {
-            smoName: 'alignWithPrevious',
-            control: 'SuiToggleComponent',
-            label: 'Align Notes with Previous Staff'
           }, {
             smoName: 'subFamily',
             control: 'SuiDropdownComponent',

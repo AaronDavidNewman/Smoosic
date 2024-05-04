@@ -54,8 +54,10 @@ export class defaultRibbonLayout {
       'navGrowLeft', 'navGrowRight'];
   }
   static get articulateButtonIds() {
-    return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton', 'mordentButton', 'mordentInvertedButton', 'trillButton'
-      , 'scoopButton', 'dropButton', 'dropLongButton', 'doitButton', 'doitLongButton', 'flipButton', 'smearButton'];
+    return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton', 'mordentButton', 'mordentInvertedButton', 'trillButton',
+        'pedalOpenButton', 'caesuraButton', 'pedalClosedButton', 'breathButton',
+       'scoopButton', 'dropButton', 'dropLongButton', 'doitButton', 'doitLongButton', 'flipButton', 'smearButton'
+    ];
   }
 
   static get intervalIds() {
@@ -1135,6 +1137,42 @@ export class defaultRibbonLayout {
       ctor: 'ArticulationButtons',
       group: 'articulations',
       id: 'mordentButton'
+    }, {
+      leftText: '',
+      rightText: '',
+      icon: 'icon-bravura icon-breath',
+      classes: 'icon collapsed articulation',
+      action: 'collapseChild',
+      ctor: 'ArticulationButtons',
+      group: 'articulations',
+      id: 'breathButton'
+    }, {
+      leftText: '',
+      rightText: '',
+      icon: 'icon-bravura icon-caesura',
+      classes: 'icon collapsed articulation',
+      action: 'collapseChild',
+      ctor: 'ArticulationButtons',
+      group: 'articulations',
+      id: 'caesuraButton'
+    }, {
+      leftText: '',
+      rightText: '',
+      icon: 'icon-bravura icon-pedal-open',
+      classes: 'icon collapsed articulation',
+      action: 'collapseChild',
+      ctor: 'ArticulationButtons',
+      group: 'articulations',
+      id: 'pedalOpenButton'
+    }, {
+      leftText: '',
+      rightText: '',
+      icon: 'icon-bravura icon-pedal-closed',
+      classes: 'icon collapsed articulation',
+      action: 'collapseChild',
+      ctor: 'ArticulationButtons',
+      group: 'articulations',
+      id: 'pedalClosedButton'
     }, {
       leftText: '',
       rightText: '',
