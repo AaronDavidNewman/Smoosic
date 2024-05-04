@@ -5,7 +5,7 @@ import {
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
   SuiLoadFileDialog, SuiLoadMidiDialog,
   SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog,
-  SuiSaveSmoosicXmlDialog
+  SuiSaveJsonValidationDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
 
@@ -47,8 +47,8 @@ export class SuiFileMenu extends SuiMenuBase {
       value: 'exportXml'
     }, {
       icon: '',
-      text: 'Export SMO XML',
-      value: 'SMOXML'
+      text: 'Export SMO For Validation',
+      value: 'SMOJSON'
     }, {
       icon: '',
       text: 'Export Midi',
@@ -130,10 +130,10 @@ export class SuiFileMenu extends SuiMenuBase {
         view: this.view,
         startPromise: this.closePromise
       });
-    } else if (text === 'SMOXML') {
-      createAndDisplayDialog(SuiSaveSmoosicXmlDialog, {
+    } else if (text === 'SMOJSON') {
+      createAndDisplayDialog(SuiSaveJsonValidationDialog, {
         ctor: 'SuiSaveSmoosicXmlDialog',
-        id: 'saveSmoXml',
+        id: 'saveSmoJson',
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,

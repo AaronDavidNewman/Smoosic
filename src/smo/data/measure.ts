@@ -520,7 +520,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    * note modifiers, etc.
    */
   serialize(): SmoMeasureParamsSer {
-    const params: Partial<SmoMeasureParamsSer> = {};
+    const params: Partial<SmoMeasureParamsSer> = { "ctor": "SmoMeasure" };
     let ser = true;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
     // Don't serialize default things

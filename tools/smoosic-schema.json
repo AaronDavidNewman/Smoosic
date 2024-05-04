@@ -3,59 +3,42 @@
   "$id": "https://aarondavidnewman.github.io/Smoosic/tools/smoosic-schema.json",
   "$title": "Serialization of Musical Objects",
   "type": "object",
-  "required": [
-    "score"
-  ],
   "properties": {
-    "score": {
-      "type": "object",
-      "required": [
-        "ctor"
-      ],
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/scoreModifierSchema/ScoreMetadata"
-        },
-        "staves": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SmoSystemStaff"
-          }
-        },
-        "textGroups": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/scoreTextSchema/SmoTextGroup"
-          }
-        },
-        "systemGroups": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/scoreModifierSchema/SmoSystemGroup"
-          }
-        },
-        "audioSettings": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/scoreModifierSchema/SmoAudioPlayer"
-          }
-        },
-        "layoutManager": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/scoreLayoutSchema/SmoLayoutManager"
-          }
-        },
-        "measureFormats": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/scoreModifierSchema/SmoFormattingManager"
-          }
-        },
-        "columnAttributeMap": {
-          "$rer": "#/definitions/scoreModifierSchema/ColumnParameters"
-        }
+    "metadata": {
+      "$ref": "#/definitions/scoreModifierSchema/ScoreMetadata"
+    },
+    "staves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SmoSystemStaff"
       }
+    },
+    "textGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scoreTextSchema/SmoTextGroup"
+      }
+    },
+    "systemGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scoreModifierSchema/SmoSystemGroup"
+      }
+    },
+    "audioSettings": {
+      "$ref": "#/definitions/scoreModifierSchema/SmoAudioPlayerSettings"
+    },
+    "layoutManager": {
+      "$ref": "#/definitions/scoreLayoutSchema/SmoLayoutManager"
+    },
+    "measureFormats": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scoreModifierSchema/SmoFormattingManager"
+      }
+    },
+    "columnAttributeMap": {
+      "$rer": "#/definitions/scoreModifierSchema/ColumnParameters"
     }
   },
   "definitions": {
@@ -140,7 +123,7 @@
             "default": 12
           },
           "purpose": {
-            "type": "string"
+            "type": "number"
           },
           "style": {
             "type": "string",
@@ -1742,10 +1725,14 @@
           }
         }
       },
-      "SmoAudioPlayer": {
+      "SmoAudioPlayerSettings": {
         "description": "a very minimal configuration for global audio settings",
         "type": "object",
+        "required": ["ctor"],
         "properties": {
+          "ctor": {
+            "const": "SmoAudioPlayerSettings"
+          },
           "playerType": {
             "description": "either 'sampler' or 'string'",
             "type": "string"
