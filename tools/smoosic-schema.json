@@ -512,7 +512,7 @@
     },
     "$comment": "here start measure modifiers.",
     "$comment": "many modifiers affect an entire system, and some (volta) have a range of measures.",
-    "SmoFormatMeasure": {
+    "SmoMeasureFormat": {
       "description": "change to default visual formatting within a measure or column of measures",
       "type": "object",
       "required": [
@@ -520,7 +520,7 @@
       ],
       "properties": {
         "ctor": {
-          "const": "SmoFormatMeasure"
+          "const": "SmoMeasureFormat"
         },
         "customStretch": {
           "description": "in pixels, add to the space we reserve for a measure",
@@ -772,7 +772,7 @@
       }
     },
     "SmoTuplet": {
-        "description": "triplet, etc.",
+      "description": "triplet, etc.",
       "type": "object",
       "properties": {
         "ctor": {
@@ -782,7 +782,7 @@
           "type": "string"
         },
         "notes": {
-            "$comment": "measure contains both tuplets and notes, referenced via note ID and tuplet ID",
+          "$comment": "measure contains both tuplets and notes, referenced via note ID and tuplet ID",
           "type": "array",
           "items": {
             "$ref": "#/definitions/SmoTupletNote"
@@ -985,7 +985,7 @@
     "$comment": "All staff modifiers contain a range of the score that they apply to.",
     "SmoInstrument": {
       "description": "an instrument configuration for a part.  A single instrument is",
-      "description:" "active at any given time on a stave or part",
+      "description:": "active at any given time on a stave or part",
       "type": "object",
       "required": [
         "ctor"
@@ -1064,7 +1064,7 @@
       }
     },
     "SmoStaffHairpin": {
-      "$comment": "crescendo, dimenuendo, etc",
+      "description": "crescendo, dimenuendo, etc",
       "type": "object",
       "required": [
         "ctor"
@@ -1106,7 +1106,7 @@
       }
     },
     "SmoSlur": {
-      "$comment": "A phrase curve between measures",
+      "description": "A phrase curve between measures",
       "type": "object",
       "required": [
         "ctor"
@@ -1179,7 +1179,7 @@
       }
     },
     "SmoTie": {
-      "$comment": "A phrase curve between measures",
+      "description": "A phrase curve between measures",
       "type": "object",
       "required": [
         "ctor"
@@ -1233,14 +1233,20 @@
         }
       }
     },
+    "$comment": "SmoGlobalLayout, SmoPageLayout, and SmoLayoutManager are technically score modifiers.  But we have independent",
+    "$comment": "layouts for parts vs. the score, so we need to define these before we define parts",
+    "$comment": "the same thing can be said of score text classes",
     "SmoGlobalLayout": {
+      "description": "layout describes the physical media on which the music is visually rendered.",
       "type": "object",
       "properties": {
         "svgScale": {
+          "description": "This is the scaling of the music, independent of the container.  i.e., smaller value means smaller notes",
           "type": "number",
           "default": 0.55
         },
         "zoomScale": {
+          "description": "the scaling of the physical media (zoom level)",
           "type": "number",
           "default": 2.0
         },
@@ -1260,12 +1266,12 @@
           "default": 1056
         },
         "proportionality": {
-          "$comment": "formatting constant, higher makes music clumpier",
+          "$comment": "formatting constant, higher makes short notes more clustered",
           "type": "number",
           "default": 5
         },
         "maxMeasureSystem": {
-          "$comment": "auto-break.  0 means break is based on measure width",
+          "$comment": "automatic system break.  0 means break is based on measure width",
           "type": "number",
           "default": 0
         }
@@ -1304,6 +1310,7 @@
       }
     },
     "SmoLayoutManager": {
+      "description": "the overall physical layout of the music on the media",
       "type": "object",
       "required": [
         "ctor"
@@ -1320,7 +1327,117 @@
         }
       }
     },
+    "$comment": "here start the score text classes.",
+    "description": "Score text necessarily is not associated with a musical element, e.g. page footers and headers",
+    "description": "They can be attached to a point in the score (SmoSelector) but not an individual note",
+    "description" :"pagination settings",
+    "SmoScoreText": {
+      "description": "SmoScoreText is a single line of text, with a single font, at a point on a page.",
+      "description": "SmoScoreText instances are combined into a SmoTextGroup defined below",
+      "type": "object",
+      "required": [
+        "ctor"
+      ],
+      "properties": {
+        "ctor": {
+          "const": "SmoScoreText"
+        },
+        "x": {
+          "type": "number",
+          "default": 0
+        },
+        "y": {
+          "type": "number",
+          "default": 0
+        },
+        "width": {
+          "$comment": "this can usually be ignored, as it is determined by the bounding box and font",
+          "type": "number"
+        },
+        "height": {
+          "$comment": "this can usually be ignored, as it is determined by the bounding box and font",
+          "type": "number"
+        },
+        "fontInfo": {
+          "$ref": "#/definitions/FontInfo"
+        },
+        "fill": {
+          "type": "string"
+        },
+        "classes": {
+          "type": "string"
+        }
+      }
+    },
+    "SmoTextGroupPositionEnum": {
+      "$comment": "positions in a group for multiple SmoText instances",
+      "enum": ["ABOVE", "BELOW", "LEFT", "RIGHT"]
+    },
+    "SmoTextGroupPaginationEnum": {
+      "description": "for page-oriented text like title, footer etc",
+      "enum": ["EVERY", "EVEN", "ODD", "ONCE", "SUBSEQUENT"]
+    },
+    "SmoTextBlock": {
+      "description": "a SmoScoreText in a SmoTextGroup",
+      "text": {
+        "$ref": "#/definitions/SmoScoreText"
+      },
+      "position": {
+        "description": "one of SmoTextGroupPositionEnum",
+        "type": "number",
+        "default": 0
+      }
+    },
+    "SmoTextGroup": {
+      "type": "object",
+      "required": ["ctor"],
+      "properties": {
+        "ctor": {
+          "const": "SmoTextGroup"
+        },
+        "attrs": {
+          "$ref": "#/definitions/SmoAttrs"
+        },
+        "justification": {
+          "type": "number",
+          "default": 0
+        },
+        "relativePosition": {
+          "type": "number",
+          "default": 0
+        },
+        "purpose": {
+          "description": "This can be used by applications to identify a text group as a certain role, e.g. title",
+          "type": "string"
+        },
+        "pagination": {
+          "type": "number",
+          "default": 0
+        },
+        "spacing": {
+          "description": "this is the spacing between text blocks",
+          "type": "number",
+          "default": 2
+        },
+        "attachToSelector": {
+          "description": "indicates the text group is attached to a musical element",
+          "type": "boolean"
+        },
+        "selector": {
+          "$ref": "#/definitions/SmoSelector"
+        },
+        "textBlocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoTextBlock"
+          }
+        }
+      }
+    },
     "SmoPartInfo": {
+      "description": "A part is a mini-score involving one or more staves.  Parts can have their own text and layout settings.",
+      "description": "a SmoSystemStaff will contain a part.  Parts split between staves should be the same for each stave, except for the ",
+      "description": "stavesBefore or stavesAfter field.",
       "type": "object",
       "required": [
         "ctor"
@@ -1335,15 +1452,65 @@
         "partAbbreviation": {
           "type": "string"
         },
+        "layoutManager": {
+          "$ref": "#/definitions/SmoLayoutManager"
+        },
+        "measureFormatting": {
+          "type": "object",
+          "additionalParameters": {
+            "$ref": "#/definitions/SmoMeasureFormat"
+          }
+        },
+        "textGroups": {
+          "type": "array",
+          "items": "#/definitions/SmoTextGroup"
+        },
         "stavesAfter": {
           "type": "number"
         },
         "stavesBefore": {
           "type": "number"
+        },
+        "preserveTextGroups": {
+          "description": "indicates part should use different text groups than the score.",
+          "description": " this is almost always what you want",
+          "description": "Smotocol doesn't specify how to share text between score and parts, but you could do it with 'Purpose'",
+          "type": "boolean",
+          "default": true
+        },
+        "cueInScore": {
+          "description": "indicates cue size in score, like in a concerto",
+          "type": "boolean",
+          "default": false
+        },
+        "midiDevice": {
+          "type": "string"
+        },
+        "midiInstrument": {
+          "type": "object",
+          "properties": {
+            "channel": {
+              "type": "number"
+            },
+            "patch": {
+              "type": "number"
+            },
+            "volume": {
+              "type": "number"
+            },
+            "pan": {
+              "type": "number"
+            }
+          }
+        },
+        "expandMultimeasureRests": {
+          "description": "if false, block rests are the default",
+          "type": "boolean"
         }
       }
     },
     "SmoSystemStaff": {
+      "description": "a measure container representing a stave in the system, throughout the score",
       "type": "object",
       "required": [
         "ctor"
@@ -1355,12 +1522,15 @@
         "staffId": {
           "type": "integer"
         },
+        "partInfo": {
+          "$ref": "#/definitions/SmoPartInfo"
+        },
         "keySignatureMap": {
           "$ref": "#/definitions/stringMap"
         },
         "measureInstrumentMap": {
+          "type": "object",
           "additionalProperties": {
-            "type": "object",
             "$ref": "#/definitions/SmoInstrumentParams"
           }
         },
@@ -1468,6 +1638,65 @@
           "$ref": "#/definitions/SmoScoreInfo"
         }
       }
+    },
+    "SmoFormattingManager": {
+      "description": "not really a class, but a map of measure formats to parts, persisted in the score",
+      "type": "object",
+      "properties": {
+        "partIndex": {
+          "type": "number"
+        },
+        "measureFormats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SmoMeasureFormat"
+          }
+        }
+      }
+    },
+    "SmoAudioPlayerParameters": {
+        "description": "a very minimal configuration for global audio settings",
+      "type": "object",
+      "properties": {
+        "playerType": {
+          "description": "either 'sampler' or 'string'",
+          "type": "string"
+        },
+        "reverbEnable": {
+          "type": "boolean"
+        },
+        "reverbDelay": {
+          "type": "number"
+        },
+        "reverbDecay": {
+          "type": "number"
+        }
+      }
+    }, "SmoSystemGroupParams": {
+        "description": "a grouping of staves within the full score.  Applications may format these vertically, and implement visual grouping",
+        "type": "object",
+        "required": ["ctor"],
+        "properties": {
+            "ctor": {
+                "const": "SmoSystemGroupParams"
+            },
+            "leftConnector": {
+                "type": "number"
+            },
+            "rightConnector": {
+                "type": "number"
+            },
+            "justify": {
+                "description": "indicates whether to justify the staves in this group",
+                "type": "boolean"
+            },
+            "startSelector": {
+                "$ref": "#/definitions/SmoSelector"
+            },
+            "endSelector": {
+                "$ref": "#/definitions/SmoSelector"
+            }
+        }
     }
   }
 }
