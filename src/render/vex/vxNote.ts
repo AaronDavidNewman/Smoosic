@@ -18,7 +18,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
-  addChordGlyph } from '../../common/vex';
+  addChordGlyph, 
+  TabNote} from '../../common/vex';
 
 const VF = VexFlow;
 
@@ -35,7 +36,8 @@ export interface VexNoteModifierIf {
   smoNote: SmoNote,
   staveNote: Note,
   voiceIndex: number,
-  tickIndex: number
+  tickIndex: number,
+  tabNote?: TabNote
 }
 
 export class VxNote {

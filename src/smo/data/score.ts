@@ -8,15 +8,19 @@ import { SmoMusic } from './music';
 import { Clef, SvgDimensions, smoXmlNs } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams, SmoMeasureParamsSer } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
-  SmoMeasureFormatParamsSer } from './measureModifiers';
+import {
+  SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters,
+  SmoMeasureFormatParamsSer
+} from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
-import { SmoSystemGroup, SmoSystemGroupParamsSer, SmoScoreModifierBase, SmoPageLayout, 
+import {
+  SmoSystemGroup, SmoSystemGroupParamsSer, SmoScoreModifierBase, SmoPageLayout,
   SmoFormattingManager, SmoAudioPlayerSettings, SmoAudioPlayerParameters, SmoLayoutManagerParamsSer,
   SmoLayoutManager, FontPurpose,
-  SmoScoreInfo, SmoScoreInfoKeys, ScoreMetadataSer,  SmoScorePreferences, SmoPageLayoutParams, 
-  SmoLayoutManagerParams, SmoFormattingManagerParams } from './scoreModifiers';
-import { SmoTextGroup, SmoScoreText, SmoTextGroupParamsSer }   from './scoreText';
+  SmoScoreInfo, SmoScoreInfoKeys, ScoreMetadataSer, SmoScorePreferences, SmoPageLayoutParams,
+  SmoLayoutManagerParams, SmoFormattingManagerParams
+} from './scoreModifiers';
+import { SmoTextGroup, SmoScoreText, SmoTextGroupParamsSer } from './scoreText';
 import { SmoSystemStaff, SmoSystemStaffParams, SmoSystemStaffParamsSer } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -25,7 +29,7 @@ import { FontInfo } from '../../common/vex';
 /**
  * List of engraving fonts available in Smoosic
  */
-export type engravingFontType =  'Bravura' |  'Gonville' | 'Petaluma' | 'Leland';
+export type engravingFontType = 'Bravura' | 'Gonville' | 'Petaluma' | 'Leland';
 /**
  * Arrary of engraving fonts available in Smoosic
  */
@@ -56,7 +60,7 @@ export interface SmoScoreParams {
   preferences: SmoScorePreferences,
   /**
    * contained {@link SmoSystemStaffParams} objects
-   */  
+   */
   staves: SmoSystemStaffParams[],
   activeStaff?: number,
   /**
@@ -97,7 +101,7 @@ export interface SmoScoreParamsSer {
   metadata: ScoreMetadataSer,
   /**
    * contained {@link SmoSystemStaffParams} objects
-   */  
+   */
   staves: SmoSystemStaffParamsSer[],
   /**
    * score text, not part of specific music
@@ -126,7 +130,7 @@ export interface SmoScoreParamsSer {
   /**
    * dictionary compression for serialization
    */
-  dictionary: Record<string,string>
+  dictionary: Record<string, string>
 }
 
 export interface SmoScoreSerializeOptions {
@@ -285,7 +289,10 @@ export class SmoScore {
   }
   static get scoreMetadataDefaults(): ScoreMetadataSer {
     return JSON.parse(JSON.stringify({
-      fonts: [],
+      fonts: [{ name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
+      { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
+      { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false },
+      { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false } ],
       scoreInfo: SmoScore.scoreInfoDefaults,
       renumberingMap: {},
       preferences: new SmoScorePreferences(SmoScorePreferences.defaults)
@@ -355,7 +362,7 @@ export class SmoScore {
         renumberingMap[0] = 0;
         previous = current;
       } else {
-        if (typeof(this.renumberingMap[measure.measureNumber.measureIndex]) === 'number') {
+        if (typeof (this.renumberingMap[measure.measureNumber.measureIndex]) === 'number') {
           renumberingMap[measure.measureNumber.measureIndex] = this.renumberingMap[measure.measureNumber.measureIndex];
         }
         if (current.keySignature !== previous!.keySignature) {
@@ -449,7 +456,7 @@ export class SmoScore {
     obj.metadata!.renumberingMap = JSON.parse(JSON.stringify(this.renumberingMap));
     obj.metadata!.preferences = this.preferences.serialize();
     obj.metadata!.scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
-    if (typeof(obj?.metadata?.scoreInfo?.version) !== 'number'){
+    if (typeof (obj?.metadata?.scoreInfo?.version) !== 'number') {
       obj.metadata!.scoreInfo.version = 0;
     }
     if (this.formattingManager) {
@@ -583,12 +590,12 @@ export class SmoScore {
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
     // 'score' attribute name changes to 'metadata'
-    if (typeof((jsonObj as any).score) !== 'undefined') {
+    if (typeof ((jsonObj as any).score) !== 'undefined') {
       jsonObj.metadata = (jsonObj as any).score;
     }
     // meaning of customProportion has changed, backwards-compatiblity
-    if (typeof(jsonObj.metadata) === 'undefined') {
-      throw 'bad score ' + JSON.stringify(jsonObj);
+    if (typeof (jsonObj.metadata) === 'undefined') {
+      jsonObj.metadata = SmoScore.scoreMetadataDefaults;
     }
     // upconvert old proportion operator
     const jsonPropUp = jsonObj.metadata.preferences as any;
@@ -606,7 +613,7 @@ export class SmoScore {
       SmoScore.upConvertGlobalLayout(jsonObj);
     }
     if (!jsonObj.layoutManager) {
-      throw 'bad score, layout mgr ' + JSON.stringify(jsonObj);
+      jsonObj.layoutManager = { ctor: "SmoLayoutManager", ...SmoLayoutManager.defaults };
     }
     const layoutManagerParams: SmoLayoutManagerParams = {
       globalLayout: jsonObj.layoutManager.globalLayout,
@@ -625,7 +632,7 @@ export class SmoScore {
     // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       ['renumberingMap', 'fonts'],
-      SmoScore.scoreMetadataDefaults, params);    
+      SmoScore.scoreMetadataDefaults, params);
     smoSerialize.serializedMerge(
       ['renumberingMap', 'fonts'],
       jsonObj.metadata, params);
@@ -681,7 +688,7 @@ export class SmoScore {
     params.staves = staves;
     if (upconvertFormat) {
       formattingManager = SmoScore.measureFormatFromLegacyScore(params as any, jsonObj);
-    } else  {
+    } else {
       const measureParams: SmoFormattingManagerParams = {
         measureFormats: [],
         partIndex: -1
@@ -768,11 +775,11 @@ export class SmoScore {
     const maxIndex = this.staves[0].measures.length - 1;
     const increment = toAdd ? 1 : -1;
     for (var i = indexToDelete; i < maxIndex; ++i) {
-      if (typeof(this.renumberingMap[i]) === 'number') {
+      if (typeof (this.renumberingMap[i]) === 'number') {
         this.renumberingMap[i] = this.renumberingMap[i] + increment;
       }
     }
-    if (typeof(this.renumberingMap[maxIndex]) === 'number' && !toAdd) {
+    if (typeof (this.renumberingMap[maxIndex]) === 'number' && !toAdd) {
       delete this.renumberingMap[maxIndex];
     }
   }
@@ -780,7 +787,7 @@ export class SmoScore {
   updateRenumberingMap(measureIndex: number, localIndex: number) {
     if (measureIndex === 0) {
       this.renumberingMap[0] = localIndex;
-    } else if (typeof(this.renumberingMap[measureIndex]) === 'number') {
+    } else if (typeof (this.renumberingMap[measureIndex]) === 'number') {
       if (measureIndex === localIndex) {
         delete this.renumberingMap[measureIndex];
       } else {
@@ -1117,10 +1124,10 @@ export class SmoScore {
   updateSystemGroups() {
     const grpToKeep: SmoSystemGroup[] = [];
     this.systemGroups.forEach((grp) => {
-      if (grp.startSelector.staff < this.staves.length && 
+      if (grp.startSelector.staff < this.staves.length &&
         grp.endSelector.staff < this.staves.length
-        ) {
-          grpToKeep.push(grp);
+      ) {
+        grpToKeep.push(grp);
       }
     });
     this.systemGroups = grpToKeep;

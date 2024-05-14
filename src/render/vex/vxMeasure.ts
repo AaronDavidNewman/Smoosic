@@ -8,15 +8,16 @@
 import { SmoNote } from '../../smo/data/note';
 import { SmoMusic } from '../../smo/data/music';
 import { layoutDebug } from '../sui/layoutDebug';
-import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, 
-  SmoArpeggio, SmoNoteModifierBase, VexAnnotationParams } from '../../smo/data/noteModifiers';
+  SmoArpeggio, SmoNoteModifierBase, VexAnnotationParams, SmoTabNote } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { Clef, IsClef } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
+import { SmoTabStave } from '../../smo/data/staffModifiers';
 import { toVexBarlineType, vexBarlineType, vexBarlinePosition, toVexBarlinePosition, toVexSymbol,
   toVexTextJustification, toVexTextPosition, getVexChordBlocks, toVexStemDirection } from './smoAdapter';
 import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
@@ -24,7 +25,8 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
-  createTextNote
+  createTextNote, TabStave, createTabStave, TabNotePosition, TabNoteStruct,
+  CreateVexNoteParams, TabNote
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
@@ -43,6 +45,8 @@ export class VxMeasure implements VxMeasureIf {
   selection: SmoSelection;
   softmax: number;
   smoMeasure: SmoMeasure;
+  smoTabStave?: SmoTabStave;
+  tabStave?: TabStave;
   rendered: boolean = false;
   noteToVexMap: Record<string, Note> = {};
   beamToVexMap: Record<string, Beam> = {};
@@ -75,6 +79,7 @@ export class VxMeasure implements VxMeasureIf {
     this.vexBeamGroups = [];
     this.beamToVexMap = {};
     this.softmax = softmax;
+    this.smoTabStave = selection.staff.getTabStaveForMeasure(selection.selector);
   }
 
   static get fillStyle() {
@@ -142,17 +147,27 @@ export class VxMeasure implements VxMeasureIf {
    */
   createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
     let vexNote: Note | null = null;
+    let smoTabNote: SmoTabNote | null = null;
     let timestamp = new Date().valueOf();
+    let tabNote: TabNote | null = null;
     const closestTicks = SmoMusic.closestVexDuration(smoNote.tickCount);
     const exactTicks = SmoMusic.ticksToDuration[smoNote.tickCount];
     const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
     const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, noteHead);
-    const smoNoteParams = {
+    const smoNoteParams: CreateVexNoteParams = {
       isTuplet: smoNote.isTuplet, measureIndex: this.smoMeasure.measureNumber.measureIndex,
-       clef: smoNote.clef,
+      clef: smoNote.clef,
       closestTicks, exactTicks, keys,
       noteType: smoNote.noteType };
     const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
+    if (this.tabStave) {
+      smoTabNote = this.smoTabStave!.getTabNoteFromNote(smoNote);
+      if (smoTabNote) {
+        const positions: TabNotePosition[] = [];
+        smoTabNote.positions.forEach((pp) => positions.push({ str: pp.string, fret: pp.fret }));
+        tabNote = new VF.TabNote({ positions, duration });
+      }
+    }
     if (smoNote.noteType === '/') {
       // vexNote = new VF.GlyphNote('\uE504', { duration });
       vexNote = getSlashGlyph();
@@ -165,6 +180,9 @@ export class VxMeasure implements VxMeasureIf {
         isUp: smoNote.flagState === SmoNote.flagStates.up
       }
       applyStemDirection(smoVexStemParams, noteParams);
+      if (smoTabNote && tabNote) {
+        tabNote.setStemDirection(noteParams.stem_direction);
+      }
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
       vexNote = new VF.StaveNote(noteParams);
@@ -256,6 +274,7 @@ export class VxMeasure implements VxMeasureIf {
     this.voiceNotes = [];
     const voice = this.smoMeasure.voices[voiceIx];
     let clefNoteAdded = false;
+    
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
@@ -263,6 +282,7 @@ export class VxMeasure implements VxMeasureIf {
       const vexNote = this.createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote.noteData.staveNote;
       this.vexNotes.push(vexNote.noteData.staveNote);
+
       if (vexNote.noteData.smoNote.clefNote && !clefNoteAdded) {
         const cf = new VF.ClefNote(vexNote.noteData.smoNote.clefNote.clef, 'small');
         this.voiceNotes.push(cf);
@@ -472,6 +492,11 @@ export class VxMeasure implements VxMeasureIf {
     }
     // Connect it to the rendering context and draw!
     this.stave.setContext(this.context.getContext());
+    if (this.smoTabStave && this.smoTabStave?.logicalBox?.width) {
+      const box = this.smoTabStave.logicalBox;
+      this.tabStave = createTabStave(this.smoTabStave.logicalBox, this.smoTabStave.spacing, this.smoTabStave.numLines);
+      this.tabStave.setContext(this.context.getContext());
+    }
 
     this.createMeasureModifiers();
 

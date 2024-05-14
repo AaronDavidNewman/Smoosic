@@ -10,8 +10,9 @@ import { vexGlyph } from '../vex/glyphDimensions';
 import { SmoDynamicText, SmoLyric, SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
 import { SmoBeamer } from '../../smo/xform/beamers';
+import { SmoSelector } from '../../smo/xform/selections';
 import { SmoScore } from '../../smo/data/score';
-import { SmoStaffHairpin, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { SmoStaffHairpin, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { layoutDebug } from './layoutDebug';
 import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
@@ -843,6 +844,15 @@ export class SuiLayoutFormatter {
         lyric.musicYOffset = yBottomOffset;
       });
     }
+    const mmsel = SmoSelector.measureSelector(stave.staffId, measure.measureNumber.measureIndex);
+    const tabStave = stave.getTabStaveForMeasure(mmsel);
+    if (tabStave) {
+      const staveStartY = yBottom;
+      const staveHeight = tabStave.spacing * tabStave.numLines;
+      tabStave.logicalBox = { x: measure.svg.staffX, y: staveStartY, width: measure.svg.staffWidth, height: staveHeight };
+      yBottom += staveHeight;
+    }
+
     return { belowBaseline: yBottom, aboveBaseline: yTop };
   }
 }

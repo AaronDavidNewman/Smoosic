@@ -11,7 +11,8 @@ import { SmoMusic } from './music';
 import { SmoMeasure, SmoMeasureParamsSer } from './measure';
 import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta, SmoBarline } from './measureModifiers';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams, 
-  SmoTie, SmoStaffTextBracket, SmoStaffTextBracketParamsSer, StaffModifierBaseSer } from './staffModifiers';
+  SmoTie, SmoStaffTextBracket, SmoStaffTextBracketParamsSer, 
+  StaffModifierBaseSer, SmoTabStave, SmoTabStaveParamsSer } from './staffModifiers';
 import { SmoPartInfo, SmoPartInfoParamsSer } from './partInfo';
 import { SmoTextGroup } from './scoreText';
 import { SmoSelector } from '../xform/selections';
@@ -30,24 +31,47 @@ export interface SmoStaffSerializationOptions {
  * Usually you will call
  * {@link SmoSystemStaff.defaults}, and modify the parameters you need to change,
  * or get the defaults from an existing staff
- * @param staffId the index of the staff in the score
  * @param renumberingMap For alternate number, pickups, etc.
  * @param keySignatureMap map of keys to measures
  * @param measureInstrumentMap map of instruments to staves
  * @param measures array of {@link SmoMeasure}
  * @param modifiers slurs and such
- * @param partInfo information about the part
+ * @param partInfo 
  * @category SmoParameters
  */
 export interface SmoSystemStaffParams {
+  /* the index of the staff in the score */
   staffId: number,
+  /**
+   *   For alternate number, pickups, etc.
+   * */ 
   renumberingMap: Record<number, number>,
+  /**
+   * map of keys to measures 
+   */
   keySignatureMap: Record<number, string>,
+  /* map of instruments to staves */
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
+  /**
+   * array of {@link SmoMeasure})
+   */
   measures: SmoMeasure[],
+  /** 
+   * modifiers slurs and such
+   * */ 
   modifiers: StaffModifierBase[],
+  /**
+   * information about the part
+   */
   partInfo?: SmoPartInfo;
+  /**
+   * text lines
+   */
   textBrackets?: SmoStaffTextBracket[];
+  /**
+   *guitar tablature
+   */
+  tabStaves: SmoTabStave[]
 }
 /**
  * Serialized components of a stave
@@ -90,6 +114,10 @@ export interface SmoSystemStaffParamsSer {
    * text brackets are another kind of modifier
    */
   textBrackets: SmoStaffTextBracketParamsSer[];
+  /**
+   * guitar tablature
+   */
+  tabStaves: SmoTabStave[];
 }
 
 function isSmoSystemStaffParamsSer(params: Partial<SmoSystemStaffParamsSer>):params is SmoSystemStaffParamsSer {
@@ -144,6 +172,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   modifiers: StaffModifierBase[] = [];
   textBrackets: SmoStaffTextBracket[] = [];
   bracketMap: Record<number, SVGSVGElement[]> = {};
+  tabStaves: SmoTabStave[] = [];
   attrs: SmoAttrs = {
     id: '',
     type: 'SmoSystemStaff'
@@ -161,7 +190,8 @@ export class SmoSystemStaff implements SmoObjectParams {
       measureInstrumentMap: {},
       textBrackets: [],
       measures: [],
-      modifiers: []
+      modifiers: [],
+      tabStaves: []
     }));
   }
   setMappedStaffId(value: number) {
@@ -239,7 +269,8 @@ export class SmoSystemStaff implements SmoObjectParams {
   // JSONify self.
   serialize(options: SmoStaffSerializationOptions): SmoSystemStaffParamsSer {
     const params: Partial<SmoSystemStaffParamsSer> = {
-      ctor: 'SmoSystemStaff'
+      ctor: 'SmoSystemStaff',
+      tabStaves: []
     };
     if (!options.skipMaps) {
       smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
@@ -247,6 +278,9 @@ export class SmoSystemStaff implements SmoObjectParams {
     params.measures = [];
     params.measureInstrumentMap = {};
     const ikeys: string[] = Object.keys(this.measureInstrumentMap);
+    this.tabStaves.forEach((ts) => {
+      params.tabStaves?.push(ts.serialize());
+    });
     ikeys.forEach((ikey: string) => {
       params.measureInstrumentMap![parseInt(ikey, 10)] = this.measureInstrumentMap[parseInt(ikey, 10)].serialize();
     });
@@ -275,6 +309,11 @@ export class SmoSystemStaff implements SmoObjectParams {
     params.modifiers = [];
     params.textBrackets = [];
     params.renumberingMap = jsonObj.renumberingMap ?? {};
+    if (jsonObj.tabStaves) {
+      jsonObj.tabStaves.forEach((ts) => {
+        params.tabStaves.push(StaffModifierBase.deserialize(ts));
+      });
+    }
     if (jsonObj.partInfo) {
       // Deserialize the text groups first
       const tgs: SmoTextGroup[] = [];
@@ -436,7 +475,51 @@ export class SmoSystemStaff implements SmoObjectParams {
   isRehearsal(index: number) {
     return !(typeof(this.measures[index].getRehearsalMark()) === 'undefined');
   }
-
+  removeTabStaves(delList: SmoTabStave[]) {
+    if (delList.length < 1) {
+      return;
+    }
+    const newList: SmoTabStave[] = [];
+    this.tabStaves.forEach((ts) => {
+      if (delList.findIndex((xx:SmoTabStave) => xx.attrs.id === ts.attrs.id) < 0) {
+        newList.push(ts);
+      }
+    });
+    this.tabStaves = newList;
+  }
+  updateTabStave(ts: SmoTabStave) {
+    if (!this.tabStaves.length) {
+      this.tabStaves.push(ts);
+      return;
+    }
+    const toRemove: SmoTabStave[] = [];
+    for (var i = 0; i < this.tabStaves.length; ++i) {
+      const ex = this.tabStaves[i];
+      if (SmoTabStave.overlaps(ex, ts)) {
+        const starts = SmoSelector.order(ex.startSelector, ts.startSelector);
+        const ends = SmoSelector.order(ex.startSelector, ex.endSelector);
+        // If the tabs are the same type and overlap, then just merge them
+        if (SmoTabStave.featuresEqual(ex, ts)) {
+          ex.startSelector = starts[0];
+          ex.endSelector = ends[0];
+          return;
+        } else {
+          // if the tabs overlap, but don't match
+          if (SmoSelector.lt(starts[0], ts.startSelector))  {
+            toRemove.push(ex);
+            break;
+          }
+        }
+      }
+    }
+    this.removeTabStaves(toRemove);
+    this.tabStaves.push(ts);
+  }
+  getTabStaveForMeasure(selector: SmoSelector): SmoTabStave | undefined {
+    return this.tabStaves.find((ts) => 
+      SmoSelector.sameStaff(ts.startSelector, selector) && ts.startSelector.measure <= selector.measure
+        && ts.endSelector.measure >= selector.measure);
+  }
   // ### addStaffModifier
   // add a staff modifier, or replace a modifier of same type
   // with same endpoints.

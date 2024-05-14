@@ -1069,3 +1069,65 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     }
   }
 }
+
+export interface SmoFretPosition {
+  string: number,
+  fret: number
+}
+export interface SmoTabNoteParams {
+  positions: SmoFretPosition[]
+  noteId: string,
+  flagState: number,
+  noteHead: number,
+  isAssigned: boolean
+}
+
+export interface SmoTabNoteParamsSer extends SmoTabNoteParams {
+  ctor: string
+}
+
+function isSmoTabNoteParamsSer(params: Partial<SmoTabNoteParamsSer>): params is SmoTabNoteParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoTabNote') {
+    return false;
+  }
+  return true;
+}
+export class SmoTabNote extends SmoNoteModifierBase {
+  static get defaults(): SmoTabNoteParams  {
+    return JSON.parse(JSON.stringify({
+      positions: [],
+      noteId: '',
+      isAssigned: false,
+      flagState: SmoTabNote.flagStates.None,
+      noteHead: SmoTabNote.noteHeads.number
+    }));
+  }
+  positions: SmoFretPosition[];
+  noteId: string;
+  isAssigned: boolean;
+  noteHead: number;
+  flagState: number;
+  static get flagStates() {
+    return { None: 0, Up: 1, Down: -1 };
+  }
+  static get noteHeads() {
+    return { number: 0, x: 1 };
+  }
+  constructor(params: SmoTabNoteParams) {
+    super('SmoTabNote');
+    this.positions = params.positions
+    this.noteId =  params.noteId;
+    this.isAssigned = params.isAssigned;
+    this.noteHead = params.noteHead;
+    this.flagState = params.flagState;
+  }
+  serialize(): SmoTabNoteParamsSer {
+    var params = { ctor: 'SmoTabNote' };
+    smoSerialize.serializedMergeNonDefault(SmoTabNote.defaults,
+      ['positions', 'noteId', 'isAssigned', 'noteHead', 'flagState'], this, params);
+    if (!isSmoTabNoteParamsSer(params)) {
+      throw 'bad params in SmoTabNote';
+    }
+    return params;
+  }
+}

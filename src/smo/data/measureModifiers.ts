@@ -938,3 +938,4 @@ export class TimeSignature extends SmoMeasureModifierBase {
     this.displayString = params.displayString;
   }
 }
+

@@ -8,7 +8,9 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, 
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
-  SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer } from './noteModifiers';
+  SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer, SmoTabNote,
+  SmoTabNoteParamsSer, 
+  SmoTabNoteParams} from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,  
   createXmlAttribute,  serializeXmlModifierArray} from './common';
@@ -89,6 +91,10 @@ export interface SmoNoteParams {
    * if this note is part of a tuplet
    */
   tupletId: string | null,
+  /*
+  * If a custom tab note is assigned to this note
+  */
+  tabNote?: SmoTabNote,
   /**
    * does this note force the end of a beam group
    */
@@ -178,6 +184,10 @@ export interface SmoNoteParamsSer  {
     */
   tupletId?: string,
   /**
+   * If a custom tab note is here, keep track of it
+   */
+  tabNote?: SmoTabNoteParamsSer,
+  /**
     * does this note force the end of a beam group
     */
   endBeam: boolean,
@@ -249,6 +259,9 @@ export class SmoNote implements Transposable {
     if (params.clefNote) {
       this.clefNote = new SmoClefChange(params.clefNote);
     }
+    if (params.tabNote) {
+      this.tabNote = new SmoTabNote(params.tabNote);
+    }
     const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
     this.ticks = JSON.parse(JSON.stringify(ticks));
@@ -276,6 +289,7 @@ export class SmoNote implements Transposable {
   pitches: Pitch[] = [];
   noteHead: string = '';
   arpeggio?: SmoArpeggio;
+  tabNote?: SmoTabNote;
   clef: string = 'treble';
   clefNote: SmoClefChange | null = null;
   graceNotes: SmoGraceNote[] = [];
@@ -534,7 +548,13 @@ export class SmoNote implements Transposable {
       this.ornaments = [];
     }
   }
-
+  setTabNote(params: SmoTabNoteParams) {
+    this.tabNote = new SmoTabNote(params);
+    this.tabNote.isAssigned = true;
+  }
+  clearTabNote() {
+    this.tabNote = undefined;
+  }
   /**
    * Toggle the ornament up/down/off
    * @param articulation
@@ -823,6 +843,9 @@ export class SmoNote implements Transposable {
   serialize(): SmoNoteParamsSer {
     var params: Partial<SmoNoteParamsSer> = { ctor: 'SmoNote' };
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
+    if (this.tabNote) {
+      params.tabNote = this.tabNote.serialize();
+    }
     if (this.clefNote) {
       params.clefNote = this.clefNote.serialize();
     }
