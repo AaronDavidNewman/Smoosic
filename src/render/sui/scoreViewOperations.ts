@@ -26,7 +26,7 @@ import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoSlur,
-   SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+   SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
@@ -492,9 +492,51 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.setDirty();
     await this.renderer.updatePromise();
   }
-
+  async updateTabStave(tabStave: SmoTabStave) {
+    const selections = SmoSelection.getMeasuresBetween(this.score, tabStave.startSelector, tabStave.endSelector);
+    const altSelections = this._getEquivalentSelections(selections);
+    if (selections.length === 0) {
+      return;
+    }
+    this._undoSelections('updateTabStave', selections);
+    const staff: number = selections[0].selector.staff;
+    const altStaff = altSelections[0].selector.staff;
+    const altTabStave = new SmoTabStave(tabStave.serialize());
+    altTabStave.startSelector.staff = altStaff;
+    altTabStave.endSelector.staff = altStaff;
+    altTabStave.attrs.id = tabStave.attrs.id;
+    this.score.staves[staff].updateTabStave(tabStave);
+    this.storeScore.staves[altStaff].updateTabStave(altTabStave);
+    await this.renderer.updatePromise();
+  }
+  async removeTabStave() {
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    if (selections.length === 0) {
+      return;
+    }
+    this._undoSelections('updateTabStave', selections);
+    const stavesToRemove: SmoTabStave[] = [];
+    const altStavesToRemove: SmoTabStave[] = [];
+    const added: Record<string, SmoTabStave> = {};
+    selections.forEach((sel, ix) => {
+      const altSel = altSelections[ix];
+      const tabStave = sel.staff.getTabStaveForMeasure(sel.selector);
+      const altTabStave = altSel.staff.getTabStaveForMeasure(altSel.selector);
+      if (tabStave && altTabStave) {
+        if (!added[tabStave.attrs.id]) {
+          added[tabStave.attrs.id] = tabStave;
+          stavesToRemove.push(tabStave);
+          altStavesToRemove.push(altTabStave);
+        }
+      }
+    });
+    selections[0].staff.removeTabStaves(stavesToRemove);
+    altSelections[0].staff.removeTabStaves(altStavesToRemove);
+    await this.renderer.updatePromise();
+  }
   /**
-   * UPdate tempo for all or part of the score
+   * Update tempo for all or part of the score
    * @param measure the measure with the tempo.  Tempo is measure-wide parameter
    * @param scoreMode if true, update whole score.  Else selections
    * @returns 

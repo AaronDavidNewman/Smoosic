@@ -19,7 +19,8 @@ import { Clef, IsClef } from '../../smo/data/common';
 import { SvgPage } from '../sui/svgPageMap';
 import { SmoTabStave } from '../../smo/data/staffModifiers';
 import { toVexBarlineType, vexBarlineType, vexBarlinePosition, toVexBarlinePosition, toVexSymbol,
-  toVexTextJustification, toVexTextPosition, getVexChordBlocks, toVexStemDirection } from './smoAdapter';
+  toVexTextJustification, toVexTextPosition, getVexChordBlocks, toVexStemDirection,
+  VexTabNotePositions } from './smoAdapter';
 import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   Formatter, Accidental, Annotation, StaveNoteStruct, StaveText, StaveModifier,
   createStaveText, renderDynamics, applyStemDirection,
@@ -58,7 +59,9 @@ export class VxMeasure implements VxMeasureIf {
   tickmapObject: MeasureTickmaps | null = null;
   stave: Stave | null = null; // vex stave
   voiceNotes: Note[] = []; // notes for current voice, as rendering
+  tabNotes: TabNote[] = [];
   voiceAr: Voice[] = [];
+  tabVoice: Voice | null = null;
   formatter: Formatter | null = null;
   allCues: boolean = false;
   modifiersToBox: SmoNoteModifierBase[] = [];
@@ -160,13 +163,13 @@ export class VxMeasure implements VxMeasureIf {
       closestTicks, exactTicks, keys,
       noteType: smoNote.noteType };
     const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
-    if (this.tabStave) {
+    if (this.tabStave && smoNote.noteType === 'n') {
       smoTabNote = this.smoTabStave!.getTabNoteFromNote(smoNote);
       if (smoTabNote) {
-        const positions: TabNotePosition[] = [];
-        smoTabNote.positions.forEach((pp) => positions.push({ str: pp.string, fret: pp.fret }));
+        const numLines = this.smoTabStave!.numLines - 1;
+        const positions: TabNotePosition[] = VexTabNotePositions(smoTabNote, numLines);
         tabNote = new VF.TabNote({ positions, duration });
-      }
+      }      
     }
     if (smoNote.noteType === '/') {
       // vexNote = new VF.GlyphNote('\uE504', { duration });
@@ -212,6 +215,10 @@ export class VxMeasure implements VxMeasureIf {
       staveNote: vexNote,
       voiceIndex: voiceIx,
       tickIndex: tickIndex
+    }
+    if (tabNote) {
+      noteData.tabNote = tabNote;
+      this.tabNotes.push(tabNote);
     }
     const modObj = new VxNote(noteData);
     modObj.addModifiers();
@@ -492,9 +499,10 @@ export class VxMeasure implements VxMeasureIf {
     }
     // Connect it to the rendering context and draw!
     this.stave.setContext(this.context.getContext());
-    if (this.smoTabStave && this.smoTabStave?.logicalBox?.width) {
-      const box = this.smoTabStave.logicalBox;
-      this.tabStave = createTabStave(this.smoTabStave.logicalBox, this.smoTabStave.spacing, this.smoTabStave.numLines);
+    if (this.smoTabStave && this.smoMeasure.svg.tabStaveBox?.width) {
+      const box = this.smoMeasure.svg.tabStaveBox;
+      this.tabStave = createTabStave(box, this.smoTabStave.spacing, this.smoTabStave.numLines);
+      this.tabStave.setNoteStartX(this.tabStave.getNoteStartX() + this.smoMeasure.svg.adjX);
       this.tabStave.setContext(this.context.getContext());
     }
 
@@ -531,15 +539,17 @@ export class VxMeasure implements VxMeasureIf {
         this.voiceAr.push(voice);
       }
     }
-
     // Need to format for x position, then set y position before drawing dynamics.
     this.formatter = new VF.Formatter({ softmaxFactor: this.softmax, globalSoftmax: false });
     this.formatter.joinVoices(this.voiceAr);
-    /* this.voiceAr.forEach((voice) => {
-      if (this.formatter) {
-        this.formatter.joinVoices([voice]);
-      }
-    });*/
+    if (this.tabStave) {
+      this.tabVoice = createVoice({
+        actualBeats: this.smoMeasure.timeSignature.actualBeats,
+        beatDuration: this.smoMeasure.timeSignature.beatDuration,
+        notes: this.tabNotes
+      });
+      this.formatter.joinVoices([this.tabVoice]);
+    }
   }
   /**
    * Create the Vex formatter that calculates the X and Y positions of the notes.  A formatter
@@ -568,6 +578,9 @@ export class VxMeasure implements VxMeasureIf {
     this.dbgLeftX = this.smoMeasure.staffX +  this.smoMeasure.format.padLeft + this.smoMeasure.svg.adjX;
     this.dbgWidth = staffWidth;
     this.formatter.format(voices, staffWidth);
+    if (this.tabVoice && this.tabNotes.length) {
+      this.formatter.format([this.tabVoice], staffWidth);
+    }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   /**
@@ -609,6 +622,14 @@ export class VxMeasure implements VxMeasureIf {
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.getContext().closeGroup();
+      if (this.tabStave) {
+        const tabStaveId = `${this.smoMeasure.id}-tab`;
+        const tabGroup = this.context.getContext().openGroup() as SVGSVGElement;
+        tabGroup.classList.add(tabStaveId);
+        this.tabStave.draw();
+        this.tabVoice?.draw(this.context.getContext(), this.tabStave);
+        this.context.getContext().closeGroup();
+      }
       // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 
       this.rendered = true;

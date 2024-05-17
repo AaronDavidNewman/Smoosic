@@ -207,6 +207,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.modifiers = params.modifiers;
     this.textBrackets = params.textBrackets ?? [];
     this.renumberingMap = params.renumberingMap;
+    this.tabStaves = params.tabStaves;
     if (Object.keys(params.measureInstrumentMap).length === 0) {
       const instrument = new SmoInstrument(SmoInstrument.defaults);
       instrument.startSelector.staff = instrument.endSelector.staff = this.staffId;
@@ -519,6 +520,18 @@ export class SmoSystemStaff implements SmoObjectParams {
     return this.tabStaves.find((ts) => 
       SmoSelector.sameStaff(ts.startSelector, selector) && ts.startSelector.measure <= selector.measure
         && ts.endSelector.measure >= selector.measure);
+  }
+  getTabStavesForMeasureRow(measures: SmoMeasure[]) {
+    const rv: SmoTabStave[] = [];
+    const added: Record<string, boolean> = {};
+    measures.forEach((mm) => {
+      const ts = this.getTabStaveForMeasure(SmoSelector.measureSelector(mm.measureNumber.staffId, mm.measureNumber.measureIndex));
+      if (ts && !added[ts.attrs.id]) {
+        added[ts.attrs.id] = true;
+        rv.push(ts);
+      }
+    });
+    return rv;
   }
   // ### addStaffModifier
   // add a staff modifier, or replace a modifier of same type

@@ -207,6 +207,9 @@ export class SuiLayoutFormatter {
       measure.svg.pageIndex = this.currentPage;
 
       // calculate vertical offsets from the baseline
+      const stave = this.score.staves[measure.measureNumber.staffId];
+      const tabStave = stave.getTabStaveForMeasure({ staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex, 
+        voice: 0, tick: 0, pitches: [] });
       const offsets = this.estimateMeasureHeight(measure);
       measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
       measure.setY(y - measure.yTop, 'estimateColumns height');
@@ -215,6 +218,11 @@ export class SuiLayoutFormatter {
       // Add custom width to measure:
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
       this.estimateMeasureWidth(measure, scoreLayout, contextMap);
+      if (tabStave) {
+        measure.svg.tabStaveBox = { x, y: measure.svg.logicalBox.y + measure.svg.logicalBox.height,
+          width: measure.svg.logicalBox.width, height: tabStave.numLines * tabStave.spacing };
+        offsets.belowBaseline += measure.svg.tabStaveBox.height;
+      }
       y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
@@ -577,6 +585,12 @@ export class SuiLayoutFormatter {
     for (i = 0; i < rowCount; ++i) {
       // lowest staff has greatest staffY value.
       const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
+      
+      let lowestTabStaff = rowAdj.reduce((a, b) => 
+        a.svg.tabStaveBox && b.svg.tabStaveBox && 
+          a.svg.tabStaveBox.y + a.svg.tabStaveBox.height > b.svg.tabStaveBox.y + b.svg.tabStaveBox.height ?
+          a : b
+      );
       const lowestStaff = rowAdj.reduce((a, b) =>
         a.staffY > b.staffY ? a : b
       );
@@ -592,6 +606,9 @@ export class SuiLayoutFormatter {
         const adj = lowestStaff.staffY - measure.staffY;
         measure.setY(measure.staffY + adj, 'justifyY');
         measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
+        if (lowestTabStaff.svg.tabStaveBox && measure.svg.tabStaveBox) {
+          measure.svg.tabStaveBox.y = measure.svg.tabStaveBox.y + lowestTabStaff.svg.tabStaveBox.y - measure.svg.tabStaveBox.y;
+        }
       });
       const rightStaff = rowAdj.reduce((a, b) =>
         a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
@@ -845,14 +862,6 @@ export class SuiLayoutFormatter {
       });
     }
     const mmsel = SmoSelector.measureSelector(stave.staffId, measure.measureNumber.measureIndex);
-    const tabStave = stave.getTabStaveForMeasure(mmsel);
-    if (tabStave) {
-      const staveStartY = yBottom;
-      const staveHeight = tabStave.spacing * tabStave.numLines;
-      tabStave.logicalBox = { x: measure.svg.staffX, y: staveStartY, width: measure.svg.staffWidth, height: staveHeight };
-      yBottom += staveHeight;
-    }
-
     return { belowBaseline: yBottom, aboveBaseline: yTop };
   }
 }

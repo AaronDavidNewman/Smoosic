@@ -522,6 +522,9 @@ export class VxSystem {
           }
           smoGroupMap[justifyGroup].voices =
             smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
+          if (vv.tabVoice) {
+            smoGroupMap[justifyGroup].voices.concat(vv.tabVoice);
+          }
         }
       });
     }

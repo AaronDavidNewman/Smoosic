@@ -130,7 +130,9 @@ import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
 import { createLoadTests } from '../../tests/file-load';
-import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket } from '../smo/data/staffModifiers';
+import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket,
+  SmoTabStave
+ } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
 import { SmoAudioPitch } from '../smo/data/music';
@@ -222,7 +224,7 @@ export const Smo = {
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
     SmoStaffTextBracket,
-    SmoInstrument, SmoSlur, SmoTie,
+    SmoInstrument, SmoSlur, SmoTie, SmoTabStave,
     // score modifiers
     SmoSystemGroup, SmoAudioPlayerSettings, SmoTextGroup,
     // measure modifiers

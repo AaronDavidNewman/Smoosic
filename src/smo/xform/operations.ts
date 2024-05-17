@@ -13,7 +13,8 @@ import {
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
-  SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams } from '../data/staffModifiers';
+  SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams,
+  SmoTabStave } from '../data/staffModifiers';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
@@ -123,6 +124,14 @@ export class SmoOperation {
     selection.measure.populateVoice(voiceIx);
   }
 
+  static setTabStave(score: SmoScore, tabStave: SmoTabStave) {
+    score.staves[tabStave.startSelector.staff].updateTabStave(tabStave);
+  }
+  static removeTabStave(score: SmoScore, tabStaves: SmoTabStave[]) {
+    if (tabStaves.length > 0) {
+      score.staves[tabStaves[0].startSelector.staff].removeTabStaves(tabStaves);
+    }
+  }
   static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
     const selectors: SmoSelector[] = [];
     let i = 0;

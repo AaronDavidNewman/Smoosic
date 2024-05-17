@@ -951,7 +951,6 @@ export class SmoTabStave extends StaffModifierBase {
   spacing: number = 13;
   numLines: number = 6;
   stringPitches: Pitch[];
-  logicalBox: SvgBox | null = null;
   /** The default guitar tuning.  Different instruments could have different tuning */
   static get defaultStringPitches(): Pitch[] {
     return JSON.parse(JSON.stringify([

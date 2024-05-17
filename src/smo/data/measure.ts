@@ -84,7 +84,8 @@ export interface MeasureSvg {
   hideMultimeasure: boolean,
   multimeasureLength: number,
   multimeasureEndBarline: number,
-  element: SVGSVGElement | null
+  element: SVGSVGElement | null,
+  tabStaveBox?: SvgBox
 }
 
 /**
