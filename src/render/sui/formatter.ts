@@ -118,7 +118,7 @@ export class SuiLayoutFormatter {
     let pageAdj = 0;
     const lm: SmoLayoutManager = this.score!.layoutManager!;
     // See if this measure breaks a page.
-    const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
+    const maxY = bottomMeasure.lowestY;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
       this.currentPage += 1;
       // If this is a new page, make sure there is a layout for it.
@@ -136,8 +136,7 @@ export class SuiLayoutFormatter {
 
       // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
-        measure.setBox(SvgHelpers.boxPoints(
-          measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
+        measure.adjustY(pageAdj);
         measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
         measure.svg.pageIndex = this.currentPage;
       });
@@ -192,6 +191,7 @@ export class SuiLayoutFormatter {
       maxColumnStartX = Math.max(maxColumnStartX, startX);
     });
     measures.forEach((measure) => {
+      let tabHeight = 0;
       measure.svg.maxColumnStartX = maxColumnStartX;
       SmoBeamer.applyBeams(measure);
       voiceCount += measure.voices.length;
@@ -218,12 +218,15 @@ export class SuiLayoutFormatter {
       // Add custom width to measure:
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
       this.estimateMeasureWidth(measure, scoreLayout, contextMap);
+      // account for the extra stave for tablature in the height, also set the dimensions of the stave tab
       if (tabStave) {
+        const stemHeight = tabStave.showStems ? vexGlyph.dimensions['stem'].height : 0;
+        tabHeight = stemHeight + tabStave.numLines * tabStave.spacing;
         measure.svg.tabStaveBox = { x, y: measure.svg.logicalBox.y + measure.svg.logicalBox.height,
-          width: measure.svg.logicalBox.width, height: tabStave.numLines * tabStave.spacing };
+          width: measure.svg.logicalBox.width, height: tabHeight };
         offsets.belowBaseline += measure.svg.tabStaveBox.height;
       }
-      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap + tabHeight;
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
@@ -347,7 +350,7 @@ export class SuiLayoutFormatter {
         // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
         // start of staff.
         const bottomMeasure: SmoMeasure = currentLine.reduce((a, b) =>
-          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
+          a.lowestY > b.lowestY ? a : b
         );
         this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
         const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
@@ -380,7 +383,7 @@ export class SuiLayoutFormatter {
         }
 
         // Now start rendering on the next system.
-        y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
+        y = bottomMeasure.lowestY + scoreLayout.interGap;
   
         currentLine = [];
         systemIndex = 0;

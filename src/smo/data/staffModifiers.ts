@@ -935,6 +935,7 @@ export interface SmoTabStaveParams {
   endSelector: SmoSelector,
   spacing: number,
   numLines: number,
+  showStems: boolean,
   stringPitches?: Pitch[]
 }
 
@@ -950,6 +951,7 @@ export class SmoTabStave extends StaffModifierBase {
   endSelector: SmoSelector = SmoSelector.default;
   spacing: number = 13;
   numLines: number = 6;
+  showStems: boolean = true;
   stringPitches: Pitch[];
   /** The default guitar tuning.  Different instruments could have different tuning */
   static get defaultStringPitches(): Pitch[] {
@@ -968,9 +970,9 @@ export class SmoTabStave extends StaffModifierBase {
    * @param stringPitches 
    * @returns 
    */
-  static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[]): SmoFretPosition {
+  static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[], transposeIndex: number): SmoFretPosition {
     const pitchAr = stringPitches.map((pp) => SmoMusic.smoPitchToInt(pp));
-    const pitchInt = SmoMusic.smoPitchToInt(pitch);
+    const pitchInt = SmoMusic.smoPitchToInt(pitch) + (-1 * transposeIndex);
     // if the note is lower than the lowest pitch, there is really no valid string so just
     // pick lowest note.
     if (pitchInt < pitchAr[0]) {
@@ -990,9 +992,9 @@ export class SmoTabStave extends StaffModifierBase {
    * @param stringPitches 
    * @returns 
    */
-  static getDefaultPositionsForStaff(pitches: Pitch[], stringPitches: Pitch[]): SmoFretPosition[] {
+  static getDefaultPositionsForStaff(pitches: Pitch[], stringPitches: Pitch[], transposeIndex: number): SmoFretPosition[] {
     const rv: SmoFretPosition[] = [];
-    pitches.forEach((pp) => rv.push(SmoTabStave.getDefaultPositionForStaff(pp, stringPitches)));
+    pitches.forEach((pp) => rv.push(SmoTabStave.getDefaultPositionForStaff(pp, stringPitches, transposeIndex)));
     return rv;
   }
 
@@ -1001,15 +1003,19 @@ export class SmoTabStave extends StaffModifierBase {
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default,
       spacing: 13,
-      numLines: 6
+      numLines: 6,
+      showStems: true
     }
   }
-  static parameterArray: string[] = ['startSelector', 'endSelector', 'spacing', 'numLines'];
+  static parameterArray: string[] = ['startSelector', 'endSelector', 'spacing', 'numLines', 'showStems'];
   static featuresEqual(st1: SmoTabStave, st2: SmoTabStave): boolean {
     if (st1.numLines !== st2.numLines) {
       return false;
     }
     if (st1.stringPitches.length !== st2.stringPitches.length) {
+      return false;
+    }
+    if (st1.showStems !== st2.showStems) {
       return false;
     }
     for (var i = 0; i < st1.stringPitches.length; ++i) {
@@ -1030,11 +1036,11 @@ export class SmoTabStave extends StaffModifierBase {
      }
      return false;
   }
-  getTabNoteFromNote(note: SmoNote) {
+  getTabNoteFromNote(note: SmoNote, transposeIndex: number) {
     if (note.tabNote) {
       return note.tabNote;
     }
-    const positions = SmoTabStave.getDefaultPositionsForStaff(note.pitches, this.stringPitches);
+    const positions = SmoTabStave.getDefaultPositionsForStaff(note.pitches, this.stringPitches, transposeIndex);
     return new SmoTabNote({
       positions, noteId: note.attrs.id, isAssigned: false, flagState: SmoTabNote.flagStates.None,
         noteHead: SmoTabNote.noteHeads.number

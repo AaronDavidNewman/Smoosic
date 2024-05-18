@@ -1,6 +1,6 @@
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { SmoBarline, SmoMeasureText, SmoRepeatSymbol, SmoVolta } from '../../smo/data/measureModifiers';
-import { SmoTie } from '../../smo/data/staffModifiers';
+import { SmoTabStave, SmoTie } from '../../smo/data/staffModifiers';
 import { SmoLyric, VexAnnotationParams, SmoTabNote, SmoFretPosition } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
 import { TabNotePosition, VexFlow } from '../../common/vex';
@@ -10,10 +10,11 @@ const VF = VexFlow;
  * @module
  * 
  **/
-export function VexTabNotePositions(note: SmoTabNote, numLines: number): TabNotePosition[] {
-  const rv:TabNotePosition[] = [];
-  note.positions.forEach((pp) => {
-    rv.push({ str: (numLines + 1) - pp.string, fret: pp.fret });
+export function VexTabNotePositions(stave: SmoTabStave, tabNote: SmoTabNote, smoNote: SmoNote): TabNotePosition[] {
+  const numLines = stave.numLines;
+  const rv = tabNote.positions.map((pp) => { 
+    const fret = smoNote.isRest() ? 'r' : pp.fret;
+    return { str: (numLines + 1) - pp.string, fret }
   });
   return rv;
 }

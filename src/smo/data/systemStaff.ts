@@ -501,16 +501,10 @@ export class SmoSystemStaff implements SmoObjectParams {
         const ends = SmoSelector.order(ex.startSelector, ex.endSelector);
         // If the tabs are the same type and overlap, then just merge them
         if (SmoTabStave.featuresEqual(ex, ts)) {
-          ex.startSelector = starts[0];
-          ex.endSelector = ends[0];
-          return;
-        } else {
-          // if the tabs overlap, but don't match
-          if (SmoSelector.lt(starts[0], ts.startSelector))  {
-            toRemove.push(ex);
-            break;
-          }
+          ts.startSelector = starts[0];
+          ts.endSelector = ends[1];
         }
+        toRemove.push(ex);
       }
     }
     this.removeTabStaves(toRemove);

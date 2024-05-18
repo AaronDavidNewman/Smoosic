@@ -532,6 +532,7 @@ export class PasteBuffer {
         nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
         nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
         nmeasure.svg.element = measure.svg.element;
+        nmeasure.svg.tabElement = measure.svg.tabElement;
       }
       ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
         (nmeasure as any)[flag] = (measure.svg as any)[flag];

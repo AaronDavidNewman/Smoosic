@@ -507,6 +507,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     altTabStave.attrs.id = tabStave.attrs.id;
     this.score.staves[staff].updateTabStave(tabStave);
     this.storeScore.staves[altStaff].updateTabStave(altTabStave);
+    this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
     await this.renderer.updatePromise();
   }
   async removeTabStave() {
@@ -533,6 +534,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     selections[0].staff.removeTabStaves(stavesToRemove);
     altSelections[0].staff.removeTabStaves(altStavesToRemove);
+    this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
     await this.renderer.updatePromise();
   }
   /**

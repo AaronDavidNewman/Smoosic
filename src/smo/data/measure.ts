@@ -85,7 +85,8 @@ export interface MeasureSvg {
   multimeasureLength: number,
   multimeasureEndBarline: number,
   element: SVGSVGElement | null,
-  tabStaveBox?: SvgBox
+  tabStaveBox?: SvgBox,
+  tabElement?: SVGSVGElement
 }
 
 /**
@@ -997,7 +998,27 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   get yTop(): number {
     return this.svg.yTop;
   }
-
+  /**
+   * return the lowest y (highest value) in this measure svg
+   *
+   * @readonly
+   */
+  get lowestY(): number {
+    if (this.svg.tabStaveBox) {
+      return this.svg.tabStaveBox.y + this.svg.tabStaveBox.height;
+    } else {
+      return this.svg.logicalBox.y + this.svg.logicalBox.height;
+    }
+  }
+  /**
+   * adjust the y for the render boxes to account for the page and margins
+   */
+  adjustY(yOffset: number) {
+    this.svg.logicalBox.y += yOffset;
+    if (this.svg.tabStaveBox) {
+      this.svg.tabStaveBox.y += yOffset;
+    }
+  }
   /**
    * WHen setting an instrument, offset the pitches to match the instrument key
    * @param offset 

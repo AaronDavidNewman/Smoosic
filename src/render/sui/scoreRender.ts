@@ -398,6 +398,10 @@ export class SuiScoreRender {
     if (measure.svg.element) {
       measure.svg.element.remove();
       measure.svg.element = null;
+      if (measure.svg.tabElement) {
+        measure.svg.tabElement.remove();
+        measure.svg.tabElement = undefined;
+      }
     }
     const renderPage = this.renderedPages[measure.svg.pageIndex];
     if (renderPage) {

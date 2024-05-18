@@ -163,12 +163,16 @@ export class VxMeasure implements VxMeasureIf {
       closestTicks, exactTicks, keys,
       noteType: smoNote.noteType };
     const { noteParams, duration } = getVexNoteParameters(smoNoteParams);
-    if (this.tabStave && smoNote.noteType === 'n') {
-      smoTabNote = this.smoTabStave!.getTabNoteFromNote(smoNote);
+    if (this.tabStave && this.smoTabStave) {
+      smoTabNote = this.smoTabStave.getTabNoteFromNote(smoNote, this.smoMeasure.transposeIndex);
       if (smoTabNote) {
-        const numLines = this.smoTabStave!.numLines - 1;
-        const positions: TabNotePosition[] = VexTabNotePositions(smoTabNote, numLines);
-        tabNote = new VF.TabNote({ positions, duration });
+        const positions: TabNotePosition[] = VexTabNotePositions(this.smoTabStave, smoTabNote, smoNote);
+        if (positions.length) {
+          tabNote = new VF.TabNote({ positions, duration: duration });
+          if (!smoNote.isRest() && this.smoTabStave.showStems) {
+            tabNote.render_options.draw_stem = true;
+          }
+        }
       }      
     }
     if (smoNote.noteType === '/') {
@@ -458,6 +462,10 @@ export class VxMeasure implements VxMeasureIf {
     if (this.smoMeasure.svg.element !== null) {
       this.smoMeasure.svg.element.remove();
       this.smoMeasure.svg.element = null;
+      if (this.smoMeasure.svg.tabElement) {
+        this.smoMeasure.svg.tabElement.remove();
+        this.smoMeasure.svg.tabElement = undefined;
+      }
     }
     if (this.smoMeasure.svg.hideEmptyMeasure) {
       return;
@@ -501,6 +509,9 @@ export class VxMeasure implements VxMeasureIf {
     this.stave.setContext(this.context.getContext());
     if (this.smoTabStave && this.smoMeasure.svg.tabStaveBox?.width) {
       const box = this.smoMeasure.svg.tabStaveBox;
+      box.y -= this.context.box.y;
+      box.x = staffX - this.context.box.x;
+      box.width = this.smoMeasure.staffWidth;
       this.tabStave = createTabStave(box, this.smoTabStave.spacing, this.smoTabStave.numLines);
       this.tabStave.setNoteStartX(this.tabStave.getNoteStartX() + this.smoMeasure.svg.adjX);
       this.tabStave.setContext(this.context.getContext());
@@ -592,7 +603,6 @@ export class VxMeasure implements VxMeasureIf {
     }
 
     var group = this.context.getContext().openGroup() as SVGSVGElement;
-    this.smoMeasure.svg.element = group;
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
     try {
@@ -629,6 +639,7 @@ export class VxMeasure implements VxMeasureIf {
         this.tabStave.draw();
         this.tabVoice?.draw(this.context.getContext(), this.tabStave);
         this.context.getContext().closeGroup();
+        this.smoMeasure.svg.tabElement = tabGroup;
       }
       // layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
 

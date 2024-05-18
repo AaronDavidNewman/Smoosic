@@ -342,7 +342,7 @@ export interface DialogDom {
   }
   // ### positionModifier()
   positionFromModifier() {
-    if (this.modifier === null || this.modifier.logicalBox === null) {
+    if (!this.modifier || this.modifier.logicalBox === null) {
       this.positionGlobally();
       return;
     }

@@ -33,6 +33,12 @@ export class SuiTabStaveAdapter extends SuiComponentAdapter {
   get spacing(): number {
     return this.tabStave.spacing;
   }
+  get showStems(): boolean {
+    return this.tabStave.showStems;
+  }
+  set showStems(value: boolean) {
+    this.tabStave.showStems = value;
+  }
   async commit() {
     this.view.updateTabStave(this.tabStave);
   }
@@ -64,11 +70,16 @@ export class SuiTabStaveDialog extends SuiDialogAdapterBase<SuiTabStaveAdapter> 
             defaultValue: 13,
             control: 'SuiRockerComponent',
             label: 'Space between lines'
+          }, {
+            smoName: 'showStems',
+            control: 'SuiToggleComponent',
+            label: 'Show Stems'
           }],
           staticText: []
       };
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiTabStaveAdapter(parameters.view, parameters.modifier);
     super(SuiTabStaveDialog.dialogElements, { adapter, ...parameters });
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
   }
 }
