@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoTabStave } from '../../smo/data/staffModifiers';
+import { Pitch } from '../../smo/data/common';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
@@ -39,6 +40,19 @@ export class SuiTabStaveAdapter extends SuiComponentAdapter {
   set showStems(value: boolean) {
     this.tabStave.showStems = value;
   }
+  get allMeasures(): boolean {
+    return this.tabStave.allMeasures;
+  }
+  set allMeasures(value: boolean) {
+    this.tabStave.allMeasures = value;
+  }
+  get stringPitches(): Pitch[] {
+    return this.tabStave.stringPitches;
+  }
+  set stringPitches(value: Pitch[]) {
+    this.tabStave.stringPitches = value;
+    this.numLines = this.tabStave.stringPitches.length;
+  }
   async commit() {
     this.view.updateTabStave(this.tabStave);
   }
@@ -60,11 +74,9 @@ export class SuiTabStaveDialog extends SuiDialogAdapterBase<SuiTabStaveAdapter> 
       {
         label: 'Tab Properties',
         elements:
-          [{
-            smoName: 'numLines',
-            defaultValue: 6,
-            control: 'SuiRockerComponent',
-            label: 'Line Count' 
+          [{smoName: 'stringPitches',
+           control:'SuiPitchArrayComponent', 
+           label: 'Pitches'
           }, {
             smoName: 'spacing',
             defaultValue: 13,
@@ -74,6 +86,10 @@ export class SuiTabStaveDialog extends SuiDialogAdapterBase<SuiTabStaveAdapter> 
             smoName: 'showStems',
             control: 'SuiToggleComponent',
             label: 'Show Stems'
+          }, {
+            smoName: 'allMeasures',
+            control: 'SuiToggleComponent',
+            label: 'Apply to all measures'
           }],
           staticText: []
       };

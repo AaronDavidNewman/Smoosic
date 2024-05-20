@@ -489,6 +489,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.tabStaves = newList;
   }
   updateTabStave(ts: SmoTabStave) {
+    if (ts.allMeasures) {
+      ts.startSelector.measure = 0;
+      ts.endSelector.measure = this.measures.length - 1;
+      this.tabStaves = [ts];
+      return;
+    }
     if (!this.tabStaves.length) {
       this.tabStaves.push(ts);
       return;

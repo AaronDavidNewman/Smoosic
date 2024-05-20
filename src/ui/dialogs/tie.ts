@@ -86,7 +86,6 @@ export class SuiTieAttributesDialog extends SuiDialogAdapterBase<SuiTieAdapter> 
   static dialogElements: DialogDefinition =
       {
         label: 'Tie Properties',
-
         staticText: [
           { label: 'Tie Properties' },
           { fromNote: 'From Note' },

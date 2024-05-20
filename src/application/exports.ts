@@ -81,6 +81,7 @@ import { SuiRockerComponent, SuiRockerComposite } from '../ui/dialogs/components
 import { SuiFontComponent } from '../ui/dialogs/components/fontComponent';
 import { SuiTextBlockComponent } from '../ui/dialogs/components/textInPlace';
 import { SuiTreeComponent } from '../ui/dialogs/components/tree';
+import { SuiPitchArrayComponent, SuiPitchComponent, SuiPitchComposite } from '../ui/dialogs/components/pitch';
 import {
     SuiLyricComponent, SuiChordComponent,
     SuiNoteTextComponent
@@ -200,6 +201,8 @@ export const Smo = {
     SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent, SuiArpeggioDialog, SuiClefChangeDialog,
+    SuiPitchArrayComponent, SuiPitchComponent,
+  SuiPitchComposite, 
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,

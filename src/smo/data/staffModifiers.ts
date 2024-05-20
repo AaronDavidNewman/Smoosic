@@ -910,6 +910,9 @@ export class SmoTie extends StaffModifierBase {
   // ### checkLines
   // If the note chords have changed, the lines may no longer be valid so update them
   checkLines(fromNote: SmoNote, toNote: SmoNote) {
+    if (this.lines.length < 1) {
+      return;
+    }
     const maxTo = this.lines.map((ll) => ll.to).reduce((a, b) => a > b ? a : b);
     const maxFrom = this.lines.map((ll) => ll.from).reduce((a, b) => a > b ? a : b);
     if (maxTo < toNote.pitches.length && maxFrom < fromNote.pitches.length) {
@@ -930,12 +933,37 @@ export class SmoTie extends StaffModifierBase {
   }
 }
 
+/**
+ * Parameters for SmoTabStave
+ */
 export interface SmoTabStaveParams {
+  /**
+   * start selector, by measure
+   */
   startSelector: SmoSelector,
+  /**
+   * end selector, by measure
+   */
   endSelector: SmoSelector,
+  /**
+   * space between staves, in pixels
+   */
   spacing: number,
+  /**
+   * number of lines
+   */
   numLines: number,
+  /**
+   * Default setting of showing stems
+   */
   showStems: boolean,
+  /**
+   * If true, the score should keep a single tab stave for all measures
+   */
+  allMeasures: boolean,
+  /**
+   * The strings for each line
+   */
   stringPitches?: Pitch[]
 }
 
@@ -952,6 +980,7 @@ export class SmoTabStave extends StaffModifierBase {
   spacing: number = 13;
   numLines: number = 6;
   showStems: boolean = true;
+  allMeasures: boolean = true;
   stringPitches: Pitch[];
   /** The default guitar tuning.  Different instruments could have different tuning */
   static get defaultStringPitches(): Pitch[] {
@@ -975,16 +1004,17 @@ export class SmoTabStave extends StaffModifierBase {
     const pitchInt = SmoMusic.smoPitchToInt(pitch) + (-1 * transposeIndex);
     // if the note is lower than the lowest pitch, there is really no valid string so just
     // pick lowest note.
+    const lastIndex = pitchAr.length - 1;
     if (pitchInt < pitchAr[0]) {
-      return { fret: 0, string: 0 };
+      return { fret: 0, string: 1 };
     }
     // If the note is between this and the next string, count the frets
-    for (var i = 0; i < pitchAr.length - 1; i++) {
+    for (var i = 0; i < lastIndex; i++) {
       if (pitchInt >= pitchAr[i] && pitchInt < pitchAr[i + 1]) {
-        return { string: i, fret: pitchInt - pitchAr[i] };
+        return { string: i + 1, fret: pitchInt - pitchAr[i] };
       }
     }
-    return { string: 5, fret: pitchInt - pitchAr[5] };
+    return { string: lastIndex + 1, fret: pitchInt - pitchAr[lastIndex] };
   }
   /**
    * Find default fret positions for a set of pitches from a note
@@ -1004,10 +1034,12 @@ export class SmoTabStave extends StaffModifierBase {
       endSelector: SmoSelector.default,
       spacing: 13,
       numLines: 6,
-      showStems: true
+      showStems: true,
+      allMeasures: true,
+      stringPitches: SmoTabStave.defaultStringPitches
     }
   }
-  static parameterArray: string[] = ['startSelector', 'endSelector', 'spacing', 'numLines', 'showStems'];
+  static parameterArray: string[] = ['startSelector', 'endSelector', 'spacing', 'numLines', 'showStems', 'allMeasures'];
   static featuresEqual(st1: SmoTabStave, st2: SmoTabStave): boolean {
     if (st1.numLines !== st2.numLines) {
       return false;
@@ -1055,6 +1087,7 @@ export class SmoTabStave extends StaffModifierBase {
     } else {
       this.stringPitches = params.stringPitches;
     }
+    this.stringPitches.sort((pa, pb) => SmoMusic.smoPitchToInt(pa) > SmoMusic.smoPitchToInt(pb) ? 1 : -1);
   }
   serialize():any {
     const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabStave' };
