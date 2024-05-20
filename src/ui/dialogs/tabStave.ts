@@ -17,9 +17,14 @@ export class SuiTabStaveAdapter extends SuiComponentAdapter {
     if (modifier) {
       this.tabStave = modifier;
     } else {
-      this.tabStave = new SmoTabStave(SmoTabStave.defaults);
-      this.tabStave.startSelector = JSON.parse(JSON.stringify(this.selections[0].selector));
-      this.tabStave.endSelector = JSON.parse(JSON.stringify(this.selections[this.selections.length - 1].selector));
+      const tabStave = this.selections[0].staff.getTabStaveForMeasure(this.selections[0].selector);
+      if (tabStave) {
+        this.tabStave = tabStave
+      } else {
+        this.tabStave = new SmoTabStave(SmoTabStave.defaults);
+        this.tabStave.startSelector = JSON.parse(JSON.stringify(this.selections[0].selector));
+        this.tabStave.endSelector = JSON.parse(JSON.stringify(this.selections[this.selections.length - 1].selector));
+      }
     }
   }
   get numLines(): number {

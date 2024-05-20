@@ -155,6 +155,15 @@ export class vexGlyph {
         yBottom: 3,
         spacingRight: 5,
         vexGlyph: 'gClef'
+      }, // This isn't accurate, but I don't
+      // want to add extra space just for clef.
+      tab: {
+        width: 27.3,
+        height: 39,
+        yTop: 3,
+        yBottom: 3,
+        spacingRight: 5,
+        vexGlyph: 'tab'
       },
       bassClef: {
         width: 36,

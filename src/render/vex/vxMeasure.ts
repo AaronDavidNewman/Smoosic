@@ -31,6 +31,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
+import { vexGlyph } from './glyphDimensions';
 const VF = VexFlow;
 
 declare var $: any;
@@ -59,7 +60,7 @@ export class VxMeasure implements VxMeasureIf {
   tickmapObject: MeasureTickmaps | null = null;
   stave: Stave | null = null; // vex stave
   voiceNotes: Note[] = []; // notes for current voice, as rendering
-  tabNotes: TabNote[] = [];
+  tabNotes: Note[] = [];
   voiceAr: Voice[] = [];
   tabVoice: Voice | null = null;
   formatter: Formatter | null = null;
@@ -152,7 +153,7 @@ export class VxMeasure implements VxMeasureIf {
     let vexNote: Note | null = null;
     let smoTabNote: SmoTabNote | null = null;
     let timestamp = new Date().valueOf();
-    let tabNote: TabNote | null = null;
+    let tabNote: StemmableNote | null = null;
     const closestTicks = SmoMusic.closestVexDuration(smoNote.tickCount);
     const exactTicks = SmoMusic.ticksToDuration[smoNote.tickCount];
     const noteHead = smoNote.isRest() ? 'r' : smoNote.noteHead;
@@ -168,9 +169,14 @@ export class VxMeasure implements VxMeasureIf {
       if (smoTabNote) {
         const positions: TabNotePosition[] = VexTabNotePositions(this.smoTabStave, smoTabNote, smoNote);
         if (positions.length) {
-          tabNote = new VF.TabNote({ positions, duration: duration });
-          if (!smoNote.isRest() && this.smoTabStave.showStems) {
-            tabNote.render_options.draw_stem = true;
+          if (!smoNote.isRest()) {
+            tabNote = new VF.TabNote({ positions, duration: duration });
+            if (this.smoTabStave.showStems) {
+              tabNote.render_options.draw_stem = true;
+              tabNote.render_options.draw_dots = true;
+            }
+          } else {
+            tabNote = new VF.StaveNote(noteParams);
           }
         }
       }      
@@ -509,11 +515,16 @@ export class VxMeasure implements VxMeasureIf {
     this.stave.setContext(this.context.getContext());
     if (this.smoTabStave && this.smoMeasure.svg.tabStaveBox?.width) {
       const box = this.smoMeasure.svg.tabStaveBox;
+      let tabWidth = 0;
       box.y -= this.context.box.y;
       box.x = staffX - this.context.box.x;
       box.width = this.smoMeasure.staffWidth;
       this.tabStave = createTabStave(box, this.smoTabStave.spacing, this.smoTabStave.numLines);
-      this.tabStave.setNoteStartX(this.tabStave.getNoteStartX() + this.smoMeasure.svg.adjX);
+      if (this.smoMeasure.svg.forceClef) {
+        this.tabStave.addTabGlyph();
+        tabWidth = vexGlyph.dimensions['tab'].width;
+      }
+      this.tabStave.setNoteStartX(this.tabStave.getNoteStartX() + this.smoMeasure.svg.adjX - tabWidth);
       this.tabStave.setContext(this.context.getContext());
     }
 

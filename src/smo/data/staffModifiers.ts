@@ -1093,6 +1093,7 @@ export class SmoTabStave extends StaffModifierBase {
     const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabStave' };
     smoSerialize.serializedMergeNonDefault(SmoTabStave.defaults,
       SmoTabStave.parameterArray, this, params);
+    params.stringPitches = JSON.parse(JSON.stringify(this.stringPitches));
     return params;
   }
 }

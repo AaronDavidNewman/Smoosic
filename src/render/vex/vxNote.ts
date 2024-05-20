@@ -5,7 +5,7 @@ import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric, 
-  SmoArpeggio, SmoNoteModifierBase, VexAnnotationParams } from '../../smo/data/noteModifiers';
+  SmoArpeggio, SmoNoteModifierBase, VexAnnotationParams, SmoTabNote } from '../../smo/data/noteModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 import { SvgHelpers } from '../sui/svgHelpers';
@@ -18,7 +18,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
-  addChordGlyph, 
+  addChordGlyph, StaveNote,
   TabNote} from '../../common/vex';
 
 const VF = VexFlow;
@@ -37,7 +37,7 @@ export interface VexNoteModifierIf {
   staveNote: Note,
   voiceIndex: number,
   tickIndex: number,
-  tabNote?: TabNote
+  tabNote?: StemmableNote | TabNote
 }
 
 export class VxNote {
@@ -57,6 +57,13 @@ export class VxNote {
       for (var j = 0; j < this.noteData.smoNote.pitches.length; ++j) {
         if (!this.noteData.vxMeasure.isWholeRest()) {
           this.noteData.staveNote.addModifier(new VF.Dot(), j);
+          if (this.noteData.tabNote) {
+            const tabDot = new VF.Dot();
+            if (this.noteData.tabNote.getCategory() === VF.TabNote.CATEGORY && j === 0) {
+              tabDot.setDotShiftY(this.noteData.tabNote.glyphProps.dot_shiftY);
+            }
+            this.noteData.tabNote.addModifier(tabDot, 0);
+          }
         }
       }
     }

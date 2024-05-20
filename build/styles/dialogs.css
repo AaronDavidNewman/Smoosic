@@ -394,6 +394,10 @@ body.showAttributeDialog .attributeDialog {
 .pitch-array-parent .pitch-array-container .multiControl.smoControl.pitchContainer {
   border: none;
 }
+.pitch-array-container {
+  display: flex;
+  flex-flow: column-reverse;
+}
 .attributeModal .smoControl.multiControl {
   flex: 1 1 100%;
   flex-flow: row wrap;
