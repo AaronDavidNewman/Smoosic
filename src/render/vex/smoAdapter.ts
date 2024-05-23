@@ -11,10 +11,8 @@ const VF = VexFlow;
  * 
  **/
 export function VexTabNotePositions(stave: SmoTabStave, tabNote: SmoTabNote, smoNote: SmoNote): TabNotePosition[] {
-  const numLines = stave.numLines;
   const rv = tabNote.positions.map((pp) => { 
-    const fret = smoNote.isRest() ? 'r' : pp.fret;
-    return { str: (numLines + 1) - pp.string, fret }
+    return { str: pp.string, fret: pp.fret }
   });
   return rv;
 }

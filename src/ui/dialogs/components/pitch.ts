@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from '../components/baseComponent';
+import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent, SuiBaseComponentParams } from '../components/baseComponent';
 import { Pitch, PitchLetter } from '../../../smo/data/common';
 import { SmoMusic } from '../../../smo/data/music';
 import { DomBuilder, buildDom } from '../../../common/htmlHelpers';
@@ -8,7 +8,7 @@ import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations'
 import { SuiDropdownComposite } from './dropdown';
 import { SuiRockerComposite } from './rocker';
 import { SuiButtonComposite } from './button';
-import { SmoTabStave } from '../../../../typedoc';
+import { SmoTabStave } from '../../../smo/data/staffModifiers';
 declare var $: any;
 export interface SuiPitchComponentParams {
   id: string,
@@ -17,6 +17,7 @@ export interface SuiPitchComponentParams {
   smoName: string,
   control: string
 }
+
 export class SuiPitchComponent extends SuiComponentBase {
   view: SuiScoreViewOperations;
   staticText: Record<string, string>;
@@ -25,7 +26,7 @@ export class SuiPitchComponent extends SuiComponentBase {
   octaveCtrl: SuiRockerComposite;
   defaultValue: Pitch;
 
-  constructor(dialog: SuiDialogNotifier, parameter: SuiPitchComponentParams) {
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
     super(dialog, parameter);
     this.dialog = dialog;
     this.view = this.dialog.getView();
@@ -139,6 +140,11 @@ export interface SuiPitchArrayParams {
   control: string,
   pitches?: Pitch[]
 }
+
+// this allows us to use the pitch array for different purposes, to support reset
+export type getDefaultPitchesFcn = () => Pitch[];
+export const getTabNotePitchesFcn: getDefaultPitchesFcn = () => { return SmoTabStave.defaultStringPitches };
+
 export class SuiPitchArrayComponent extends SuiComponentParent {
   getButtonControlName(index: number) {
     return  `${this.id}-delButton-${index}`;
@@ -146,22 +152,30 @@ export class SuiPitchArrayComponent extends SuiComponentParent {
   getPitchControlName(index: number) {
     return `${this.id}-pitchCtrl-${index}`;
   }
+  resetButton: SuiButtonComposite;
   pitchControls: SuiPitchArrayItem[] = [];
+  pitches: Pitch[];
   createdShell: boolean = false;
-  constructor(dialog: SuiDialogNotifier, parameters: SuiPitchArrayParams) {
+  defaultPitchFinder: getDefaultPitchesFcn;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiBaseComponentParams, def: getDefaultPitchesFcn) {
     super(dialog, parameters);
-    if (!parameters.pitches) {
-      parameters.pitches = SmoTabStave.defaults.stringPitches;
-    }
-    if (!parameters.pitches) {
-      throw 'no pitches somehow?';
-    }
-    this.setPitchControls(parameters.pitches);
+    this.defaultPitchFinder = def;
+    this.pitches = this.defaultPitchFinder();
+    this.setPitchControls();    
+    this.resetButton = new SuiButtonComposite(this.dialog, {
+      id: `${this.id}-resetButton`,
+      classes: '',
+      label: 'Reset Pitches',
+      smoName: `${this.id}-resetButton`,
+      control: 'SuiButtonComposite',
+      icon: 'icon-cross',
+      parentControl: this
+    });
   }
-  setPitchControls(pitches: Pitch[]) {
+  setPitchControls() {
     this.pitchControls = [];
-    for (var i = 0; i < pitches.length; ++i) {
-      const pitch = pitches[i];
+    for (var i = 0; i < this.pitches.length; ++i) {
+      const pitch = this.pitches[i];
       const buttonControlName = this.getButtonControlName(i);
       const pitchControlName = this.getPitchControlName(i);
       const buttonCtrl: SuiButtonComposite = new SuiButtonComposite(this.dialog,  {
@@ -185,9 +199,9 @@ export class SuiPitchArrayComponent extends SuiComponentParent {
         buttonCtrl, pitchCtrl, pitch
       });
     }
-    this.pitchControls.sort((pa, pb) => SmoMusic.smoPitchToInt(pa.pitch) > SmoMusic.smoPitchToInt(pb.pitch) ? -1 : 1);
   }
   bind() {
+    this.resetButton.bind();
     this.pitchControls.forEach((pc) => {
       pc.buttonCtrl.bind();
       pc.pitchCtrl.bind();
@@ -202,7 +216,7 @@ export class SuiPitchArrayComponent extends SuiComponentParent {
         attr('id', this.parameterId);
       return q;
     } 
-    const q = b('div').classes('pitch-array-container');
+    const q = b('div').classes('pitch-array-container').append(b('div').append(this.resetButton.html));
     this.pitchControls.forEach((row) => {
       q.append(b('div').classes('pitch-array-item').append(row.buttonCtrl.html).append(row.pitchCtrl.html));
     });
@@ -213,16 +227,20 @@ export class SuiPitchArrayComponent extends SuiComponentParent {
     return $('#' + pid);
   }
   setValue(pitches: Pitch[]) {
+    this.pitches = pitches;
+    this.setPitchControls();
     this.updateControls();
-    this.pitchControls.forEach((pc, i) => {
+    for (var i = 0; i < this.pitchControls.length; ++i) {
+      const pc = this.pitchControls[i];
       pc.pitchCtrl.setValue(pitches[i]);
-    });
+    }
   }
   getValue() {
     const rv: Pitch[] = [];
-    this.pitchControls.forEach((pc) => {
+    for (var i = 0; i < this.pitchControls.length; ++i) {
+      const pc = this.pitchControls[i];
       rv.push(pc.pitchCtrl.getValue());
-    });
+    }
     return rv;
   }
   updateControls() {
@@ -245,12 +263,24 @@ export class SuiPitchArrayComponent extends SuiComponentParent {
       } else {
         pitches.push(pc.pitchCtrl.getValue());
       }
-    });
+    });    
     if (removed && this.pitchControls.length < 2) {
       return; // don't let user delete all the strings
     }
-    this.setPitchControls(pitches);    
+    // If the user asked to reset, update the pitches to default
+    // then reset.
+    if (this.resetButton.changeFlag) {
+      this.pitches = this.defaultPitchFinder();
+      this.pitches.sort((a, b) => SmoMusic.smoPitchToInt(a) > SmoMusic.smoPitchToInt(b) ? -1 : 1);
+    } else {
+      this.pitches = pitches;
+    }
+    this.setValue(this.pitches);
     this.handleChanged();
-    this.setValue(pitches);
+  }
+}
+export class SuiPitchArrayComponentTab extends SuiPitchArrayComponent {
+  constructor(dialog: SuiDialogNotifier, parameters: SuiBaseComponentParams, def: getDefaultPitchesFcn) {
+    super(dialog, parameters, getTabNotePitchesFcn);
   }
 }

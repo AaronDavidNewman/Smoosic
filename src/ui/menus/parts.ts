@@ -5,6 +5,7 @@ import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { SuiPartInfoDialog } from '../dialogs/partInfo';
 import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
 import { SuiNewPartDialog } from '../dialogs/newPart';
+import { SuiTabStaveDialog } from '../dialogs/tabStave';
 declare var $: any;
 
 export class SuiPartMenu extends SuiMenuBase {
@@ -42,6 +43,10 @@ export class SuiPartMenu extends SuiMenuBase {
         icon: '',
         text: 'Instrument Properties',
         value: 'editInstrument'
+      }, {
+        icon: '',
+        text: 'Guitar Tablature',
+        value: 'tabStave'
       }, {
         icon: '',
         text: 'Cancel',
@@ -113,6 +118,17 @@ export class SuiPartMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
   }
+  tabStave() {
+    createAndDisplayDialog<SuiTabStaveDialog>(SuiTabStaveDialog, {
+      ctor: 'SuiTabStaveDialog',
+      id: 'tabStaveDialog',
+      tracker: this.view.tracker,
+      completeNotifier: this.completeNotifier,
+      startPromise: null,
+      view: this.view,
+      eventSource: this.eventSource
+    });
+  }
   removePart() {
     this.view.removeStaff();
     this.complete();
@@ -180,6 +196,9 @@ export class SuiPartMenu extends SuiMenuBase {
       this.complete();
     } else if (op === 'editInstrument') {
       this.editInstrument();
+      this.complete();
+    } else if (op === 'tabStave') {
+      this.tabStave();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();

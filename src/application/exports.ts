@@ -72,6 +72,7 @@ import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog, SuiSaveVexDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
+
 import { SuiTextInputComponent, SuiTextInputComposite } from '../ui/dialogs/components/textInput';
 import { SuiDropdownComponent, SuiDropdownComposite } from '../ui/dialogs/components/dropdown';
 import { SuiButtonComposite, SuiButtonComponent } from '../ui/dialogs/components/button';
@@ -81,7 +82,8 @@ import { SuiRockerComponent, SuiRockerComposite } from '../ui/dialogs/components
 import { SuiFontComponent } from '../ui/dialogs/components/fontComponent';
 import { SuiTextBlockComponent } from '../ui/dialogs/components/textInPlace';
 import { SuiTreeComponent } from '../ui/dialogs/components/tree';
-import { SuiPitchArrayComponent, SuiPitchComponent, SuiPitchComposite } from '../ui/dialogs/components/pitch';
+import { SuiPitchArrayComponent, SuiPitchArrayComponentTab, 
+   SuiPitchComponent, SuiPitchComposite } from '../ui/dialogs/components/pitch';
 import {
     SuiLyricComponent, SuiChordComponent,
     SuiNoteTextComponent
@@ -201,7 +203,7 @@ export const Smo = {
     SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent, SuiArpeggioDialog, SuiClefChangeDialog,
-    SuiPitchArrayComponent, SuiPitchComponent,
+    SuiPitchArrayComponent, SuiPitchArrayComponentTab, SuiPitchComponent,
   SuiPitchComposite, 
     SuiXhrLoader,PromiseHelpers,
     // Rendering components

@@ -1002,19 +1002,16 @@ export class SmoTabStave extends StaffModifierBase {
   static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[], transposeIndex: number): SmoFretPosition {
     const pitchAr = stringPitches.map((pp) => SmoMusic.smoPitchToInt(pp));
     const pitchInt = SmoMusic.smoPitchToInt(pitch) + (-1 * transposeIndex);
-    // if the note is lower than the lowest pitch, there is really no valid string so just
-    // pick lowest note.
+    // if the note is higher than the highest string, count the frets.
     const lastIndex = pitchAr.length - 1;
-    if (pitchInt < pitchAr[0]) {
-      return { fret: 0, string: 1 };
-    }
     // If the note is between this and the next string, count the frets
     for (var i = 0; i < lastIndex; i++) {
-      if (pitchInt >= pitchAr[i] && pitchInt < pitchAr[i + 1]) {
+      if (pitchInt >= pitchAr[i]) {
         return { string: i + 1, fret: pitchInt - pitchAr[i] };
       }
     }
-    return { string: lastIndex + 1, fret: pitchInt - pitchAr[lastIndex] };
+    // if lower that the lowest string, there is no fret so just return 0
+    return { string: lastIndex + 1, fret: 0 };
   }
   /**
    * Find default fret positions for a set of pitches from a note
@@ -1087,7 +1084,7 @@ export class SmoTabStave extends StaffModifierBase {
     } else {
       this.stringPitches = params.stringPitches;
     }
-    this.stringPitches.sort((pa, pb) => SmoMusic.smoPitchToInt(pa) > SmoMusic.smoPitchToInt(pb) ? 1 : -1);
+    this.stringPitches.sort((pa, pb) => SmoMusic.smoPitchToInt(pa) > SmoMusic.smoPitchToInt(pb) ? -1 : 1);
   }
   serialize():any {
     const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabStave' };

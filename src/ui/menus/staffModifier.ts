@@ -1,9 +1,4 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
-import { SuiTabStaveDialog, SuiTabStaveAdapter } from '../dialogs/tabStave';
-import { createAndDisplayDialog } from '../dialogs/dialog';
-import { getId } from '../../smo/data/common';
-import { SuiScoreView } from '../../render/sui/scoreView';
-import { SmoOperation } from '../../smo/xform/operations';
 
 declare var $: any;
 
@@ -54,10 +49,6 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       text: 'Reset slurs',
       value: 'resetSlurs'
     }, {
-      icon: 'none',
-      text: 'Tab Stave',
-      value: 'setTabStave'
-    }, {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
@@ -93,17 +84,6 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
         self.complete();
       });
       return;
-    } else if (op === 'setTabStave') {
-      createAndDisplayDialog<SuiTabStaveDialog>(SuiTabStaveDialog, {
-        ctor: 'SuiTabStaveDialog',
-        id: getId(),
-        tracker: this.view.tracker,
-        completeNotifier: this.completeNotifier,
-        startPromise: null,
-        view: this.view,
-        eventSource: this.eventSource,
-  // definition: DialogDefinition,
-      });
     }
     // else cancel...
     this.complete();

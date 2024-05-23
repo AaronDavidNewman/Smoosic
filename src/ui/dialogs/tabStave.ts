@@ -58,6 +58,9 @@ export class SuiTabStaveAdapter extends SuiComponentAdapter {
     this.tabStave.stringPitches = value;
     this.numLines = this.tabStave.stringPitches.length;
   }
+  resetStrings() {
+    this.tabStave.stringPitches = SmoTabStave.defaultStringPitches;
+  }
   async commit() {
     this.view.updateTabStave(this.tabStave);
   }
@@ -80,7 +83,7 @@ export class SuiTabStaveDialog extends SuiDialogAdapterBase<SuiTabStaveAdapter> 
         label: 'Tab Properties',
         elements:
           [{smoName: 'stringPitches',
-           control:'SuiPitchArrayComponent', 
+           control:'SuiPitchArrayComponentTab', 
            label: 'Pitches'
           }, {
             smoName: 'spacing',
