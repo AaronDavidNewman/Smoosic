@@ -1078,6 +1078,7 @@ export interface SmoTabNoteParams {
   positions: SmoFretPosition[]
   noteId: string,
   flagState: number,
+  flagThrough: boolean,
   noteHead: number,
   isAssigned: boolean
 }
@@ -1099,6 +1100,7 @@ export class SmoTabNote extends SmoNoteModifierBase {
       noteId: '',
       isAssigned: false,
       flagState: SmoTabNote.flagStates.None,
+      flagThrough: false,
       noteHead: SmoTabNote.noteHeads.number
     }));
   }
@@ -1107,6 +1109,7 @@ export class SmoTabNote extends SmoNoteModifierBase {
   isAssigned: boolean;
   noteHead: number;
   flagState: number;
+  flagThrough: boolean;
   static get flagStates() {
     return { None: 0, Up: 1, Down: -1 };
   }
@@ -1120,11 +1123,12 @@ export class SmoTabNote extends SmoNoteModifierBase {
     this.isAssigned = params.isAssigned;
     this.noteHead = params.noteHead;
     this.flagState = params.flagState;
+    this.flagThrough = params.flagThrough;
   }
   serialize(): SmoTabNoteParamsSer {
     var params = { ctor: 'SmoTabNote' };
     smoSerialize.serializedMergeNonDefault(SmoTabNote.defaults,
-      ['positions', 'noteId', 'isAssigned', 'noteHead', 'flagState'], this, params);
+      ['positions', 'noteId', 'isAssigned', 'noteHead', 'flagState', 'flagThrough'], this, params);
     if (!isSmoTabNoteParamsSer(params)) {
       throw 'bad params in SmoTabNote';
     }

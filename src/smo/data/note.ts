@@ -782,7 +782,7 @@ export class SmoNote implements Transposable {
         const pitch = SmoMusic.transposePitchForKey(original, originalKey, destinationKey, offset);
         note.pitches[index] = pitch;
       }
-    }
+    }    
     SmoNote.sortPitches(note);
     return note;
   }

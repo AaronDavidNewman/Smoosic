@@ -174,6 +174,7 @@ export class VxMeasure implements VxMeasureIf {
             if (this.smoTabStave.showStems) {
               tabNote.render_options.draw_stem = true;
               tabNote.render_options.draw_dots = true;
+              tabNote.render_options.draw_stem_through_stave = smoTabNote.flagThrough;
             }
           } else {
             tabNote = new VF.StaveNote(noteParams);

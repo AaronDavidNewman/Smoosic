@@ -448,6 +448,7 @@ export class SmoOperation {
     const note = selection.note;
     if (measure && note) {
       const pitchar: Pitch[] = [];
+      const tabStave: SmoTabStave | undefined = selection.staff.getTabStaveForMeasure(selection.selector);
       note.pitches.forEach((opitch, pitchIx) => {
         // Only translate selected pitches
         const shouldXpose = selection.selector.pitches.length === 0 ||
@@ -482,6 +483,21 @@ export class SmoOperation {
         pitchar.push(trans as Pitch);
       });
       note.pitches = pitchar;
+      // If this note has a tab stave, try to preserve the assigned string.
+      // If not possible, find the default string/fret for the note
+      if (note.tabNote) {
+        note.tabNote.positions.forEach((pp, ix) => {
+          if (pp.fret + offset > 0) {
+            pp.fret = pp.fret + offset;
+          } else if (tabStave && note.pitches.length > ix) {
+            const position = SmoTabStave.getDefaultPositionForStaff(note.pitches[ix], tabStave.stringPitches, offset);
+            pp.fret = position.fret;
+            pp.string = position.string;
+          } else {
+            pp.fret = 0;          
+          }
+        });
+      }
       return true;
     }
     return false;

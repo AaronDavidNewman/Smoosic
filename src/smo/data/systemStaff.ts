@@ -762,6 +762,9 @@ export class SmoSystemStaff implements SmoObjectParams {
         nm.push(measure);
       }
     });
+    this.tabStaves.forEach((ts) => {
+      ts.endSelector.measure = this.measures.length - 1;
+    });
     const sm: StaffModifierBase[] = [];
     this.modifiers.forEach((mod) => {
       // Bug: if we are deleting a measure before the selector, change the measure number.
@@ -860,6 +863,10 @@ export class SmoSystemStaff implements SmoObjectParams {
       if (mod.endSelector.measure < this.measures.length) {
         mod.endSelector.measure += 1;
       }
+    });
+    // If there is a tab stave, it should extend the length of the stave.
+    this.tabStaves.forEach((ts) => {
+        ts.endSelector.measure = this.measures.length - 1;
     });
     this.numberMeasures();
   }

@@ -1072,7 +1072,7 @@ export class SmoTabStave extends StaffModifierBase {
     const positions = SmoTabStave.getDefaultPositionsForStaff(note.pitches, this.stringPitches, transposeIndex);
     return new SmoTabNote({
       positions, noteId: note.attrs.id, isAssigned: false, flagState: SmoTabNote.flagStates.None,
-        noteHead: SmoTabNote.noteHeads.number
+        noteHead: SmoTabNote.noteHeads.number, flagThrough: false
     });
   }
   constructor(params: SmoTabStaveParams) {
