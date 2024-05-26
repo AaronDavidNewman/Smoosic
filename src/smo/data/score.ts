@@ -261,6 +261,10 @@ export class SmoScore {
     if (!this.formattingManager) {
       this.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
     }
+    // Set beaming rules based on preferences.
+    const pref = this.preferences;
+    SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
+    SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
     if (this.staves.length) {
       this.numberStaves();
     }

@@ -127,6 +127,15 @@ export class SmoBeamer {
     }
     return false;
   }
+  allEighth() {
+    for (var i = 0; i < this.currentGroup.length; ++i) {
+      const cg = this.currentGroup[i];
+      if (cg.tickCount !== 2048) {
+        return false;
+      }
+    }
+    return true;
+  }
   beamNote(tickmap: TickMap, index: number, note: SmoNote) {
     this.beamBeats = note.beamBeats;
     this.duration += tickmap.deltaMap[index];
@@ -151,7 +160,6 @@ export class SmoBeamer {
         this._advanceGroup();
         return;
       }
-
       // is this beamable length-wise
       const stemTicks = SmoMusic.closestDurationTickLtEq(note.tickCount) * tuplet.durationMap[tupletIndex];
       if (note.noteType === 'n' && stemTicks < 4096) {
@@ -176,6 +184,14 @@ export class SmoBeamer {
     if (note.endBeam) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
+    }
+    if (this.measure.timeSignature.actualBeats % 4 === 0) {
+        if (this.duration < 8192 && this.allEighth()) {
+          return;
+        } else if (this.duration === 8192) {
+          this._completeGroup(tickmap.voice);
+          this._advanceGroup();    
+        }
     }
 
     if (this.duration === this.beamBeats) {
