@@ -174,12 +174,12 @@ export class layoutDebug {
 
   static addTextDebug(value: number) {
     layoutDebug._textDebug.push(value);
-    console.log(value);
+    //console.log(value);
   }
 
   static addDialogDebug(value: string) {
     layoutDebug._dialogEvents.push(value);
-    console.log(value);
+    // console.log(value);
   }
 
   static measureHistory(measure: SmoMeasure, oldVal: string, newVal: any, description: string) {

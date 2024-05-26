@@ -184,7 +184,8 @@ export class MidiToSmo {
    * @returns 
    */
   getMetadata(ticks: number) {
-    return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
+    return { tempo: this.getTempo(ticks), 
+      timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks).toLowerCase() };
   }
   /**
    * We process 3 types of metadata at present:  time signature, tempo and keysignature.
@@ -213,7 +214,7 @@ export class MidiToSmo {
       } else if (mtype === 'keySignature') {
         const mdata = trackEvent.key!;
         if (mdata === 0) {
-          this.keySignatureMap[ticks] = 'C';
+          this.keySignatureMap[ticks] = 'c';
         } else {
           // there seem to be different ways to encode this...
           let signed = mdata / 256;
@@ -528,7 +529,7 @@ export class MidiToSmo {
       }
       curSmo.timeSignature = metadata.timeSignature;
       curSmo.tempo = metadata.tempo;
-      curSmo.keySignature = metadata.keySignature;
+      curSmo.keySignature = metadata.keySignature.toLowerCase();
 
       if (cur.type === 'noteOn' || cur.type === 'noteOff') {
         const mm = this.pushPopMidiEvent(cur, rv.length);
@@ -587,45 +588,49 @@ export class MidiToSmo {
     let staves: SmoSystemStaff[] = [];
     // go through the tracks.  If this is midi format 1, split tracks into their own channels
     const tracks = this.getTrackData(this.midi);
-    tracks.forEach((trackEvents: MidiTrackEvent[], trackIx: number) => {
-      this.eventIndex = 0; // index into current track
-      this.trackIndex = trackIx;
-      this.eot = false;
-      this.tieMap[trackIx] = [];
-      const collapsed: EventSmoData[] = this.collapseMidiEvents(trackEvents);
-      const expanded: EventSmoData[] = this.expandMidiEvents(collapsed);
-      if (expanded.length > 0) {
-        const staffDef = SmoSystemStaff.defaults;
-        staffDef.staffId = trackIx;
-        staffDef.measures = this.createNotesFromEvents(expanded);
+    try {
+      tracks.forEach((trackEvents: MidiTrackEvent[], trackIx: number) => {
+        this.eventIndex = 0; // index into current track
+        this.trackIndex = trackIx;
+        this.eot = false;
+        this.tieMap[trackIx] = [];
+        const collapsed: EventSmoData[] = this.collapseMidiEvents(trackEvents);
+        const expanded: EventSmoData[] = this.expandMidiEvents(collapsed);
+        if (expanded.length > 0) {
+          const staffDef = SmoSystemStaff.defaults;
+          staffDef.staffId = trackIx;
+          staffDef.measures = this.createNotesFromEvents(expanded);
 
-        const staff = new SmoSystemStaff(staffDef);
-        // For notes that are tied across measures, add the tie
-        this.tieMap[trackIx].forEach((mm) => {
-          const startMeasure = staffDef.measures[mm - 1];
-          const endMeasure = staffDef.measures[mm];
-          const endIx = startMeasure.voices[0].notes.length - 1;
-          const startNote = startMeasure.voices[0].notes[endIx];
-          const endNote = endMeasure.voices[0].notes[0];
-          if (startNote.noteType === 'n' &&
-            endNote.noteType === 'n' && SmoMusic.pitchArraysMatch(startNote.pitches, endNote.pitches)) {
-            const tieDefs = SmoTie.defaults;
-            tieDefs.startSelector = {
-              staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,
-              pitches: []
+          const staff = new SmoSystemStaff(staffDef);
+          // For notes that are tied across measures, add the tie
+          this.tieMap[trackIx].forEach((mm) => {
+            const startMeasure = staffDef.measures[mm - 1];
+            const endMeasure = staffDef.measures[mm];
+            const endIx = startMeasure.voices[0].notes.length - 1;
+            const startNote = startMeasure.voices[0].notes[endIx];
+            const endNote = endMeasure.voices[0].notes[0];
+            if (startNote.noteType === 'n' &&
+              endNote.noteType === 'n' && SmoMusic.pitchArraysMatch(startNote.pitches, endNote.pitches)) {
+              const tieDefs = SmoTie.defaults;
+              tieDefs.startSelector = {
+                staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,
+                pitches: []
+              }
+              tieDefs.endSelector = {
+                staff: trackIx, measure: mm, voice: 0, tick: 0,
+                pitches: []
+              }
+              tieDefs.lines.push({ from: 0, to: 0 });
+              const tie = new SmoTie(tieDefs);
+              staff.modifiers.push(tie);
             }
-            tieDefs.endSelector = {
-              staff: trackIx, measure: mm, voice: 0, tick: 0,
-              pitches: []
-            }
-            tieDefs.lines.push({ from: 0, to: 0 });
-            const tie = new SmoTie(tieDefs);
-            staff.modifiers.push(tie);
-          }
-        });
-        staves.push(staff);
-      }
-    });
+          });
+          staves.push(staff);
+        }
+      });
+    } catch (exception) {
+      console.warn(exception);
+    }
     if (staves.length === 0) {
       return SmoScore.getEmptyScore(SmoScore.defaults);
     }

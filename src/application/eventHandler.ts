@@ -51,6 +51,7 @@ export class SuiEventHandler implements ModalEventHandler {
     Qwerty.displayKb();
   }
   static instance: SuiEventHandler;
+  static debugMask: number = 0;
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
@@ -126,7 +127,9 @@ export class SuiEventHandler implements ModalEventHandler {
     }
     this.resizing = true;
     setTimeout(function () {
-      console.log('resizing');
+      if (SuiEventHandler.debugMask) {
+        console.log('resizing');
+      }
       self.resizing = false;
       self.piano!.handleResize();
       self.view.refreshViewport();
@@ -223,9 +226,11 @@ export class SuiEventHandler implements ModalEventHandler {
       return;
     }
 
-    console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+    if (SuiEventHandler.debugMask) {
+      console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
       evdata.code + "'"
       + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+    }
     evdata.preventDefault();
 
     if (SuiEventHandler.keyboardUi) {

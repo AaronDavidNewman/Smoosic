@@ -1070,6 +1070,11 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   }
 }
 
+export interface SmoTabBend {
+  bendType: number,
+  release: boolean,
+  text: string
+}
 export interface SmoFretPosition {
   string: number,
   fret: number

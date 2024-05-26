@@ -277,8 +277,11 @@ export class smoSerialize {
       "ph": "forceRest",
       "qh": "instrument",
       "rh": "shortText",
-      "sh": "hideEmptyLines"
-      }`;
+      "sh": "hideEmptyLines",
+      "th": "tabStaves",
+      "uh": "noteId",
+      "vh": "tupletId",
+      "wh": "metadata"      }`;
     return JSON.parse(_tm);
   }
 
@@ -442,8 +445,10 @@ export class smoSerialize {
     const m2 = {};
     mkar.forEach((mk) => {
       m2[map[mk]] = mk;
-    })
-    console.log(JSON.stringify(m2, null, ' '));
+    });
+    if (Object.keys(m2).length) {
+      console.log(JSON.stringify(m2, null, ' '));
+    }
   }
 
   // ### serializedMerge

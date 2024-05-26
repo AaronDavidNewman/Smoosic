@@ -12,7 +12,8 @@ import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAu
   SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
-  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange } from '../../smo/data/noteModifiers';
+  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange, 
+  SmoTabNote} from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
@@ -129,7 +130,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const xml = parser.parseFromString(req.value, 'text/xml');
     const score = XmlToSmo.convert(xml);
     score.layoutManager!.zoomToWidth($('body').width());
-    self.changeScore(score);
+    await self.changeScore(score);
   }
   /**
    * load a remote score in SMO format
@@ -595,6 +596,26 @@ export class SuiScoreViewOperations extends SuiScoreView {
         }
       }
     }
+    await this.renderer.updatePromise();
+  }
+  async updateTabNote(tabNote: SmoTabNote) {
+    const selections = SmoSelection.getMeasuresBetween(this.score, 
+      this.tracker.getExtremeSelection(-1).selector, this.tracker.getExtremeSelection(1).selector);
+    const altSelections = this._getEquivalentSelections(selections);
+    this._undoSelections('updateTabNote', selections);
+    SmoOperation.updateTabNote(selections, tabNote);
+    SmoOperation.updateTabNote(altSelections, tabNote);
+    this.renderer.addToReplaceQueue(selections);
+    await this.renderer.updatePromise();
+  }
+  async removeTabNote() {
+    const selections = SmoSelection.getMeasuresBetween(this.score, 
+      this.tracker.getExtremeSelection(-1).selector, this.tracker.getExtremeSelection(1).selector);
+    const altSelections = this._getEquivalentSelections(selections);
+    this._undoSelections('updateTabNote', selections);
+    SmoOperation.removeTabNote(selections);
+    SmoOperation.removeTabNote(altSelections);
+    this.renderer.addToReplaceQueue(selections);
     await this.renderer.updatePromise();
   }
   /**

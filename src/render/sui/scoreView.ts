@@ -588,7 +588,7 @@ export abstract class SuiScoreView {
    * @param score 
    * @returns 
    */
-  changeScore(score: SmoScore) {
+  async changeScore(score: SmoScore) {
     this.storeUndo.reset();
     SuiAudioPlayer.stopPlayer();
     this.renderer.score = score;
@@ -604,7 +604,7 @@ export abstract class SuiScoreView {
     if (this.storeScore.isPartExposed()) {
       this.exposePart(this.score.staves[0]);
     }
-    const rv = this.renderPromise();
+    const rv = await this.awaitRender();
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;
   }

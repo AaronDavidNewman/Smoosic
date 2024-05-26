@@ -146,7 +146,12 @@ export class SuiLayoutFormatter {
   measureToLeft(measure: SmoMeasure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
-    return (i > 0 ? this.score!.staves[j].measures[i - 1] : null);
+    return (i > 0 ? this.score!.staves[j].measures[i - 1] : measure);
+  }
+  measureAbove(measure: SmoMeasure) {
+    const j = measure.measureNumber.staffId;
+    const i = measure.measureNumber.measureIndex;
+    return (j > 0 ? this.score!.staves[j - 1].measures[i] : measure);
   }
    // {measures,y,x}  the x and y at the left/bottom of the render
   /**
@@ -176,13 +181,14 @@ export class SuiLayoutFormatter {
     measures.forEach((measure) => {
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.
-      let measureToLeft = this.measureToLeft(measure);
-      if (!measureToLeft) {
-        measureToLeft = measure;
-      }
+      const measureToLeft = this.measureToLeft(measure);
+      const measureAbove = this.measureAbove(measure);
       s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
       s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
       s.tempoLast = measureToLeft.getTempo();
+      if (measure.measureNumber.staffId > 0) {
+        s.tempoLast = measureAbove.getTempo();
+      }
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.getLastClef();
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
@@ -211,6 +217,7 @@ export class SuiLayoutFormatter {
       const tabStave = stave.getTabStaveForMeasure({ staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex, 
         voice: 0, tick: 0, pitches: [] });
       const offsets = this.estimateMeasureHeight(measure);
+
       measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
       measure.setY(y - measure.yTop, 'estimateColumns height');
       measure.setX(x, 'render:estimateColumn');
@@ -712,9 +719,11 @@ export class SuiLayoutFormatter {
     }
     measure.svg.forceTempo = false;
     const tempo = measure.getTempo();
-    if (tempo && measure.measureNumber.measureIndex === 0) {
+    // always print tempo for the first measure, if indicated
+    if (tempo && measure.measureNumber.measureIndex === 0 && measure.measureNumber.staffId === 0) {
       measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     } else if (tempo && tempoLast) {
+      // otherwise get tempo from the measure prior.  But only one tempo per system.
       if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
         measure.svg.forceTempo = tempo.display;
       }

@@ -84,7 +84,7 @@ export class SuiFileMenu extends SuiMenuBase {
       tracker: this.tracker
     });
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     const self = this;
     if (text === 'saveFile') {
@@ -111,7 +111,7 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'newFile') {
       const score = SmoScore.getDefaultScore(SmoScore.defaults, null);
-      this.view.changeScore(score);
+      await this.view.changeScore(score);
     } else if (text === 'quickSave') {
       this.view.quickSave();
     } else if (text === 'printScore') {

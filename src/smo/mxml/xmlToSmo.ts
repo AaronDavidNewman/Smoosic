@@ -776,7 +776,7 @@ export class XmlToSmo {
       smoMeasure.tempo = xmlState.tempo;
       smoMeasure.format.proportionality = XmlToSmo.customProportionDefault;
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
-      smoMeasure.keySignature = xmlState.keySignature;
+      smoMeasure.keySignature = xmlState.keySignature.toLowerCase();
       smoMeasure.timeSignature = SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
       smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
       smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;

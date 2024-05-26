@@ -7,7 +7,8 @@ import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoOrnament,
-  SmoDynamicText } from '../data/noteModifiers';
+  SmoDynamicText, 
+  SmoTabNote} from '../data/noteModifiers';
 import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
@@ -432,6 +433,20 @@ export class SmoOperation {
           });
         });
       });
+    });
+  }
+  static updateTabNote(selections: SmoSelection[], tabNote: SmoTabNote) {
+    selections.forEach((sel) => {
+      if (sel.note) {
+        sel.note.setTabNote(tabNote);
+      }
+    });
+  }
+  static removeTabNote(selections: SmoSelection[]) {
+    selections.forEach((sel) => {
+      if (sel.note) {
+        sel.note.clearTabNote();
+      }
     });
   }
   // ## transpose

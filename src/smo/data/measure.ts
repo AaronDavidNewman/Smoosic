@@ -974,6 +974,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.voices = voices;
     this.tuplets = tuplets;
   }
+  get measureNumberDbg(): string {
+    return `${this.measureNumber.measureIndex}/${this.measureNumber.systemIndex}/${this.measureNumber.staffId}`;
+  }
   /**
    * Get rendered or estimated start y
    */
