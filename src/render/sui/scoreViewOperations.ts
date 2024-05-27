@@ -954,6 +954,21 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
     await this.renderer.updatePromise();
   }
+  async clearAllBeams(): Promise<void> {
+    this._undoScore('clearAllBeams');
+    SmoOperation.clearAllBeamGroups(this.score);
+    SmoOperation.clearAllBeamGroups(this.storeScore);
+    await this.awaitRender();
+  }
+  async clearSelectedBeams() {
+    const selections = this.tracker.selections;
+    const measures = SmoSelection.getMeasureList(selections);
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.clearBeamGroups(this.score, selections);
+    SmoOperation.clearBeamGroups(this.storeScore, altSelections);
+    this._renderChangedMeasures(measures);
+    await this.renderer.updatePromise();
+  }
   /**
    * toggle the 'end beam' flag for selected notes
    * @returns 

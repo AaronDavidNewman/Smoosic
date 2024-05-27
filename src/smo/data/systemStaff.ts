@@ -625,14 +625,14 @@ export class SmoSystemStaff implements SmoObjectParams {
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
    
     brackets.push(new SmoStaffTextBracket(bracketParams));
-    
+    this.textBrackets = brackets;
   }
   removeTextBracket(bracketParams: SmoStaffTextBracket) {    
     const nb = new SmoStaffTextBracket(bracketParams);
     const brackets = this.textBrackets.filter((tb) => SmoSelector.lteq(tb.startSelector, nb.startSelector)
       || SmoSelector.gteq(tb.endSelector, nb.startSelector) || tb.position !== nb.position);
-      brackets.push(new SmoStaffTextBracket(bracketParams));
-      this.textBrackets = brackets;
+    brackets.push(new SmoStaffTextBracket(bracketParams));
+    this.textBrackets = brackets;
   }
   getTextBracketsStartingAt(selector: SmoSelector) {
     return this.textBrackets.filter((tb) => SmoSelector.eq(tb.startSelector, selector));

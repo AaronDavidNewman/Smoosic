@@ -57,6 +57,7 @@ export class SmoBeamer {
   }
   measure: SmoMeasure;
   duration: number;
+  measureDuration: number;
   meterNumbers: number[];
   beamBeats: number;
   skipNext: number;
@@ -65,6 +66,7 @@ export class SmoBeamer {
     this.measure = measure;
     this._removeVoiceBeam(measure, voice);
     this.duration = 0;
+    this.measureDuration = 0;
     this.meterNumbers = [measure.timeSignature.actualBeats, measure.timeSignature.beatDuration];
     // beam on 1/4 notes in most meter, triple time dotted quarter
     this.beamBeats = 2 * 2048;
@@ -139,6 +141,7 @@ export class SmoBeamer {
   beamNote(tickmap: TickMap, index: number, note: SmoNote) {
     this.beamBeats = note.beamBeats;
     this.duration += tickmap.deltaMap[index];
+    this.measureDuration += tickmap.deltaMap[index];
     if (note.noteType === '/') {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
@@ -193,7 +196,13 @@ export class SmoBeamer {
           this._advanceGroup();    
         }
     }
-
+    // If we are aligned to a beat on the measure, and we are in common time
+    if (this.currentGroup.length > 1 && this.measure.timeSignature.beatDuration === 4 && 
+      this.measureDuration % 4096 === 0) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return;
+    }
     if (this.duration === this.beamBeats) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();

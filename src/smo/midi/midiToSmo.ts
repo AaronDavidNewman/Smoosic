@@ -15,6 +15,7 @@ import { SmoLayoutManager } from "../data/scoreModifiers";
 import { SmoTie } from "../data/staffModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
 import { SmoTuplet } from "../data/tuplet";
+import { SmoOperation } from "../xform/operations";
 
 export type MidiEventType = 'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
   'cuePoint' | 'channelPrefix' | 'portPrefix' | 'endOfTrack' | 'setTempo' | 'smpteOffset' | 'timeSignature' | 'keySignature' |
@@ -656,6 +657,7 @@ export class MidiToSmo {
     // if no scale given in score, default to something small.
     layoutDefaults.globalLayout.svgScale = 0.65;
     layoutDefaults.globalLayout.zoomScale = 1.5;
+    SmoOperation.clearAllBeamGroups(rv);
     return rv;
   }
 }

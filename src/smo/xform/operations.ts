@@ -639,6 +639,29 @@ export class SmoOperation {
       }
     }
   }
+  static clearAllBeamGroups(score: SmoScore) {    
+    score.staves.forEach((ss) => {
+      ss.measures.forEach((mm) => {
+        mm.voices.forEach((vv) => {
+          const triple = mm.timeSignature.actualBeats % 3 === 0;
+          vv.notes.forEach((note) => {
+            note.beamBeats = triple ? score.preferences.defaultTripleDuration : score.preferences.defaultDupleDuration;
+            note.endBeam = false;
+          });
+        });
+      });
+    });
+  }
+  static clearBeamGroups(score: SmoScore, selections: SmoSelection[])  {
+    selections.forEach((ss) => {
+      if (ss.note) {
+        const triple = ss.measure.timeSignature.actualBeats % 3 === 0;
+        const note = ss.note;
+        note.beamBeats = triple ? score.preferences.defaultTripleDuration : score.preferences.defaultDupleDuration;
+        note.endBeam = false;
+      }
+    });
+  }
 
   static toggleBeamDirection(selections: SmoSelection[]) {
     const note0 = selections[0].note as SmoNote;

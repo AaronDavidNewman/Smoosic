@@ -109,11 +109,11 @@ export abstract class SuiScoreView {
    * await on the full update of the score, also resetting the viewport (to reflect layout changes)
    * @returns 
    */
-  refreshViewport(): Promise<any> {
+  async refreshViewport(): Promise<any> {
     this.renderer.preserveScroll();
     this.renderer.setViewport();
     this.renderer.setRefresh();
-    return this.renderer.renderPromise();
+    await this.renderer.renderPromise();
   }
   handleScrollEvent(scrollLeft: number, scrollTop: number) {
     this.tracker.scroller.handleScroll(scrollLeft, scrollTop);

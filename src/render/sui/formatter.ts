@@ -454,6 +454,9 @@ export class SuiLayoutFormatter {
         // TODO: Consider engraving font and adjust grace note size?
         noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
+        if (!note.isRest() && note.endBeam) {
+          noteWidth += vexGlyph.dimensions.flag.width;
+        }
         note.pitches.forEach((pitch) => {
           const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
           const accidentals = tmObj.accidentalArray.filter((ar) =>
