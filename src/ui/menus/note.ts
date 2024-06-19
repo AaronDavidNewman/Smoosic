@@ -1,6 +1,7 @@
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import {SuiArpeggioDialog } from '../dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../dialogs/clefChange';
+import { SuiNoteHeadDialog } from '../dialogs/noteHead';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 declare var $: any;
 export class SuiNoteMenu extends SuiMenuBase {
@@ -15,6 +16,10 @@ export class SuiNoteMenu extends SuiMenuBase {
         icon: '',
         text: 'Arpeggio',
         value: 'arpeggioDialog'
+      },{
+        icon: '',
+        text: 'Note Head',
+        value: 'noteHeadDialog'
       },{
         icon: '',
         text: 'Change Clef',
@@ -45,6 +50,18 @@ export class SuiNoteMenu extends SuiMenuBase {
         eventSource: this.eventSource,
         tracker: this.tracker,
         ctor: 'SuiArpeggioDialog',
+        id: 'insert-dialog',
+        modifier: null
+      });
+      this.complete();
+    } else if (text === 'noteHeadDialog') {
+      createAndDisplayDialog(SuiNoteHeadDialog, {
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        startPromise: this.closePromise,
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiNoteHeadDialog',
         id: 'insert-dialog',
         modifier: null
       });

@@ -999,11 +999,16 @@ export class SmoTabStave extends StaffModifierBase {
    * @param stringPitches 
    * @returns 
    */
-  static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[], transposeIndex: number): SmoFretPosition {
+  static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[], transposeIndex: number, stringIndex?: number): SmoFretPosition {
     const pitchAr = stringPitches.map((pp) => SmoMusic.smoPitchToInt(pp));
     const pitchInt = SmoMusic.smoPitchToInt(pitch) + (-1 * transposeIndex);
+    stringIndex = stringIndex ?? -1;
     // if the note is higher than the highest string, count the frets.
     const lastIndex = pitchAr.length - 1;
+    // If the user wants to preserve a certain string, find the fret for that if we can.
+    if (stringIndex > 0 && stringIndex < pitchAr.length && pitchAr[stringIndex] <= pitchInt ) {
+      return { string: stringIndex + 1, fret: pitchInt - pitchAr[stringIndex] };
+    }
     // If the note is between this and the next string, count the frets
     for (var i = 0; i < lastIndex; i++) {
       if (pitchInt >= pitchAr[i]) {

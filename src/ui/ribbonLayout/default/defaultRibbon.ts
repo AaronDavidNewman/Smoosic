@@ -868,7 +868,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '-',
-      icon: 'icon-sharp',
+      icon: 'icon-bravura icon-accidentalSharp',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -886,7 +886,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'r',
-      icon: 'icon-rest',
+      icon: 'icon-bravura icon-restQuarter',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -1140,7 +1140,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-bravura icon-breath',
+      icon: 'icon-bravura icon-breathMarkComma',
       classes: 'icon collapsed articulation',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
@@ -1158,7 +1158,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-bravura icon-pedal-open',
+      icon: 'icon-bravura icon-keyboardPedalPed',
       classes: 'icon collapsed articulation',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
@@ -1167,7 +1167,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-bravura icon-pedal-closed',
+      icon: 'icon-bravura icon-keyboardPedalUp',
       classes: 'icon collapsed articulation',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
@@ -1176,8 +1176,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-trill',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-ornamentTrill',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1185,8 +1185,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-scoop',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-brassScoop',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1195,8 +1195,8 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-drop',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-brassFallLipShort',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1205,8 +1205,8 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-drop-long',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-brassFallRoughMedium',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1215,8 +1215,8 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-doit',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-brassDoitMedium',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1225,8 +1225,8 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-doit-long',
-      classes: 'icon collapsed articulation',
+      icon: 'icon-bravura icon-brassLiftMedium',
+      classes: 'icon collapsed articulation oversize',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
       group: 'articulations',
@@ -1235,7 +1235,7 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-flip',
+      icon: 'icon-bravura icon-brassFlip',
       classes: 'icon collapsed articulation',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',
@@ -1245,7 +1245,7 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-smear',
+      icon: 'icon-bravura icon-brassSmear',
       classes: 'icon collapsed articulation',
       action: 'collapseChild',
       ctor: 'ArticulationButtons',

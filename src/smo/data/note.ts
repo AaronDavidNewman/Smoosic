@@ -10,7 +10,8 @@ import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrot
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
   SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer, SmoTabNote,
   SmoTabNoteParamsSer, 
-  SmoTabNoteParams} from './noteModifiers';
+  SmoTabNoteParams,
+  SmoFretPosition} from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,  
   createXmlAttribute,  serializeXmlModifierArray} from './common';
@@ -236,6 +237,13 @@ function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNot
   }
   return false;
 }
+export function isSmoNote(transposable: Transposable): transposable is SmoNote {
+  if (Array.isArray((transposable as any).graceNotes)) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
@@ -306,6 +314,7 @@ export class SmoNote implements Transposable {
   keySignature: string = 'c';
   logicalBox: SvgBox | null = null;
   isCue: boolean = false;
+  hasTabNote: boolean = true;
   accidentalsRendered: string[] = [];// set by renderer if accidental is to display
   /**
    * used in serialization
@@ -782,7 +791,25 @@ export class SmoNote implements Transposable {
         const pitch = SmoMusic.transposePitchForKey(original, originalKey, destinationKey, offset);
         note.pitches[index] = pitch;
       }
-    }    
+    }
+    // If the fret position can be adjusted on the current string, keep the tab note.  Else
+    // delete the tab note, and auto-generate it to display default
+    if (isSmoNote(note)) {
+      const sn: SmoNote = note;
+      if (sn.tabNote && sn.tabNote.positions.length > 0) {
+        const frets: SmoFretPosition[] = [];
+        sn.tabNote.positions.forEach((pos) => {
+          if (pos.fret + offset > 0) {
+            frets.push({ string: pos.string, fret: pos.fret + offset});
+          }
+        });
+        if (frets.length) {
+          sn.tabNote.positions = frets;
+        } else {
+          sn.tabNote = undefined;
+        }
+      }
+    }
     SmoNote.sortPitches(note);
     return note;
   }

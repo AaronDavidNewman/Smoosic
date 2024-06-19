@@ -25,6 +25,8 @@ import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef,
   TickAccidental, AccidentalArray, getId } from './common';
 import { SmoSelector } from '../xform/selections';
 import { FontInfo } from '../../common/vex';
+import { SmoTabStave } from './staffModifiers';
+import { SmoFretPosition } from './noteModifiers';
 /**
  * Voice is just a container for {@link SmoNote}
  */
@@ -1029,11 +1031,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    */
   transposeToOffset(offset: number, targetKey: string, newClef?: Clef) {
     const diff = offset - this.transposeIndex;
+    newClef = newClef ?? this.clef;
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         const pitches: number[] = [...Array(note.pitches.length).keys()];
         // when the note is a rest, preserve the rest but match the new clef.
-        if (newClef && note.noteType === 'r') {
+        if (newClef !== this.clef && note.noteType === 'r') {
           const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
           note.pitches = [defp];
         } else {

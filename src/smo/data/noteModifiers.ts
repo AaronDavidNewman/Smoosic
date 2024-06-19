@@ -208,6 +208,7 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   clef: string = 'treble';
   noteType: string = 'n';
   renderId: string | null = null;
+  hasTabNote: boolean = false;
 
   tickCount() {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;

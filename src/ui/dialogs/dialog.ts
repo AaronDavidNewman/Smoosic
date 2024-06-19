@@ -136,7 +136,7 @@ export interface DialogDom {
           component.options = [];
 
           element.options.forEach((option) => {
-            component.options!.push({ value: option.value, label: option.label });
+            component.options!.push({ value: option.value, label: option.label, css: option.css });
           });
         }
         output.push(component as DialogTranslationElement);

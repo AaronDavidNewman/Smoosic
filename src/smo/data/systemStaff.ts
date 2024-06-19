@@ -443,6 +443,7 @@ export class SmoSystemStaff implements SmoObjectParams {
         const measure = this.measures[i];
         const concertKey = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
         const targetKey = SmoMusic.vexKeySigWithOffset(concertKey, entry.instrument.keyOffset);
+        const tabStave: SmoTabStave | undefined = this.getTabStaveForMeasure(SmoSelector.fromMeasure(measure));
         measure.transposeToOffset(entry.instrument.keyOffset, targetKey, entry.instrument.clef);
         measure.transposeIndex = entry.instrument.keyOffset;
         measure.keySignature = targetKey;

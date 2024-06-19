@@ -59,11 +59,6 @@ export class SuiTabNoteDialog extends SuiDialogAdapterBase<SuiTabNoteAdapter> {
         label: 'Tab Properties',
         elements:
           [{
-            smoName: 'spacing',
-            defaultValue: 13,
-            control: 'SuiRockerComponent',
-            label: 'Space between lines'
-          }, {
             smoName: 'showStems',
             control: 'SuiToggleComponent',
             label: 'Show Stems'

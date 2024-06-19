@@ -47,7 +47,9 @@ export class SmoSelector {
   static measureSelector(staff: number, measure: number): SmoSelector {
     return { staff, measure, voice: 0, tick: 0, pitches: [] };
   }
-
+  static fromMeasure(measure: SmoMeasure) {
+    return SmoSelector.measureSelector(measure.measureNumber.staffId, measure.measureNumber.localIndex);
+  }
   // TODO:  tick in selector s/b tickIndex
   static sameNote(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice

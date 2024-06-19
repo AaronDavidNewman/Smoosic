@@ -89,11 +89,13 @@ export class VxMeasure implements VxMeasureIf {
   static get fillStyle() {
     return '#000';
   }
-
+  // Treat a rest like a whole rest if there is only a single rest in the measure
+  // and the measure length is not a pickup
   isWholeRest() {
     return (this.smoMeasure.voices.length === 1 &&
       this.smoMeasure.voices[0].notes.length === 1 &&
-      this.smoMeasure.voices[0].notes[0].isRest()
+      this.smoMeasure.voices[0].notes[0].isRest() &&
+      this.smoMeasure.getMaxTicksVoice() > 4096
       );
   }
   createCollisionTickmap() {
