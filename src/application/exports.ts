@@ -48,8 +48,7 @@ import { SuiInsertMeasures } from '../ui/dialogs/addMeasure';
 import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
 import { SuiTimeSignatureDialog } from '../ui/dialogs/timeSignature';
 import { SuiTempoDialog } from '../ui/dialogs/tempo';
-import { SuiNoteHeadAdapter, SuiNoteHeadDialog } from '../ui/dialogs/noteHead';
-import { SuiNoteHeadButtonComponent } from '../ui/dialogs/components/buttonArray';
+import { SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiNoteHeadButtonComponent } from '../ui/dialogs/noteHead';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
 import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
 import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
@@ -66,6 +65,7 @@ import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
+import { SuiOrnamentDialog, SuiOrnamentButtonComponent } from '../ui/dialogs/ornament';
 import { SuiArpeggioDialog } from '../ui/dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../ui/dialogs/clefChange';
 import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
@@ -191,7 +191,7 @@ export const Smo = {
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
-    SuiPartInfoDialog, 
+    SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent,
     SuiNoteHeadAdapter, SuiNoteHeadDialog,
     SuiNoteHeadButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */

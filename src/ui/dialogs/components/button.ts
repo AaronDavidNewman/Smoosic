@@ -15,6 +15,7 @@ export interface SuiButtonComponentParams {
   control: string,
   icon: string
 }
+
 // ## SuiToggleComponent
 // Simple on/off behavior.  No value just used to notifiy parent dialog
 export class SuiButtonComponent extends SuiComponentBase {

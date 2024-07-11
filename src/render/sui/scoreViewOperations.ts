@@ -15,7 +15,7 @@ import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation,
   SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange, 
   SmoTabNote} from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
-import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
+import { UndoBuffer } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -31,6 +31,7 @@ import { StaffModifierBase, SmoSlur,
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
+import { parseJsonText } from 'typescript';
 declare var $: any;
 declare var SmoConfig: SmoRenderConfiguration;
 
@@ -54,18 +55,24 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async addTextGroup(textGroup: SmoTextGroup): Promise<void> {
     const altNew = SmoTextGroup.deserializePreserveId(textGroup.serialize());
-    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
-      UndoBuffer.bufferSubtypes.ADD);
-    if (this.isPartExposed()) {
-      this.score.updateTextGroup(textGroup, true);
+    const isPartExposed = this.isPartExposed();
+    let selector = textGroup.selector ?? SmoSelector.default;
+    const partInfo = this.score.staves[0].partInfo;
+    const bufType = isPartExposed && partInfo.preserveTextGroups 
+      ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+    if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+      selector.staff = this.staffMap[0];
+    }  
+    this.storeUndo.addBuffer('remove text group', bufType,
+      selector, textGroup, UndoBuffer.bufferSubtypes.ADD);
+    this.score.updateTextGroup(textGroup, true);
+    if (isPartExposed) {
       const partInfo = this.storeScore.staves[this._getEquivalentStaff(0)].partInfo;
       partInfo.updateTextGroup(altNew, true);
     } else {
-      this.score.addTextGroup(textGroup);
-      this.storeScore.addTextGroup(altNew);
+      this.storeScore.updateTextGroup(altNew, true);
     }
-    await this.renderer.renderScoreModifiers();
-    return this.renderer.updatePromise()
+    await this.renderer.rerenderTextGroups();
   }
 
   /**
@@ -74,23 +81,36 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async removeTextGroup(textGroup: SmoTextGroup): Promise<void> {
+    let selector = textGroup.selector ?? SmoSelector.default;
+    const partInfo = this.score.staves[0].partInfo;
+    const isPartExposed = this.isPartExposed();
+    const bufType = isPartExposed && partInfo.preserveTextGroups 
+      ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+    let ogText = partInfo.textGroups.find((tt) => tt.attrs.id === textGroup.attrs.id);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      ogText = partInfo.textGroups.find((tg) => tg.attrs.id === textGroup.attrs.id);
+    }
+    if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+      selector.staff = this.staffMap[0];
+    } else {
+      selector.staff = this.staffMap[selector.staff];
+    }
+    if (!ogText) {
+      return;
+    }
+    this.storeUndo.addBuffer('remove text group', bufType,
+      selector, ogText, UndoBuffer.bufferSubtypes.REMOVE);
     this.score.updateTextGroup(textGroup, false);
     const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize());
     textGroup.elements.forEach((el) => el.remove());
     textGroup.elements = [];
-    const isPartExposed = this.isPartExposed();
     if (!isPartExposed) {
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-        UndoBuffer.bufferSubtypes.REMOVE);
       this.storeScore.updateTextGroup(altGroup, false);
     } else {
       const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
-      stave.partInfo.textGroups = this.score.textGroups;
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-        UndoBuffer.bufferSubtypes.REMOVE);      
+      stave.partInfo.updateTextGroup(textGroup, false);
     }
-    await this.renderer.renderScoreModifiers();
-    return this.renderer.updatePromise()
+    await this.renderer.rerenderTextGroups();
   }
 
   /**
@@ -101,18 +121,41 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async updateTextGroup(newVersion: SmoTextGroup): Promise<void> {
+    const selector = newVersion.selector ?? SmoSelector.default;
     const isPartExposed = this.isPartExposed();
+    const partInfo = this.score.staves[0].partInfo;
+    // Back up the original score text
+    let ogtg = this.storeScore.textGroups.find((tg) => tg.attrs.id === newVersion.attrs.id);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      ogtg = partInfo.textGroups.find((tg) => tg.attrs.id === newVersion.attrs.id);
+    }
+    if (!ogtg) {
+      // there is nothing to update, return.
+      return;
+    }
+    if (ogtg) {
+      const bufType = isPartExposed && partInfo.preserveTextGroups 
+        ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+      // if this is part text, make sure the undo buffer is associated with the part stave
+      // in the full score, so undo works properly
+      if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+        selector.staff = this.staffMap[0];
+      } else {
+        selector.staff = this.staffMap[selector.staff];
+      }
+      this.storeUndo.addBuffer('modify text',
+        bufType, selector, ogtg, UndoBuffer.bufferSubtypes.UPDATE);
+    }
     const altNew = SmoTextGroup.deserializePreserveId(newVersion.serialize());
     this.score.updateTextGroup(newVersion, true);
     // If this is part text, don't store it in the score text, except for the displayed score
     if (!isPartExposed) {
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, UndoBuffer.bufferSubtypes.UPDATE);
       this.storeScore.updateTextGroup(altNew, true);
     } else {
       this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altNew, true);
     }
     // TODO: only render the one TG.
-    await this.renderer.renderScoreModifiers();
+    await this.renderer.rerenderTextGroups();
     // return this.renderer.updatePromise();
   }
   /**
@@ -199,58 +242,43 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param tone 
    * @returns 
    */
-  async addRemoveMicrotone(tone: SmoMicrotone): Promise<void> {
-    const selections = this.tracker.selections;
-    const altSelections = this._getEquivalentSelections(selections);
-    const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
-
-    SmoOperation.addRemoveMicrotone(null, selections, tone);
-    SmoOperation.addRemoveMicrotone(null, altSelections, tone);
-    this._renderChangedMeasures(measureSelections);
-    return this.renderer.updatePromise()
+  async addRemoveMicrotone(tone: SmoMicrotone) {
+    await this.modifyCurrentSelections('add/remove microtone', (score, selections) => {
+      SmoOperation.addRemoveMicrotone(null, selections, tone);
+    })
   }
   async addRemoveArpeggio(code: SmoArpeggioType) {
-      const selections = this.tracker.selections;
-      const altSelections = this._getEquivalentSelections(selections);
-      const measureSelections = this._undoTrackerMeasureSelections('add/remove arpeggio');
-      [selections, altSelections].forEach((selType) => {
-        selType.forEach((sel) => {
-        if (sel.note) {
-          if (code === 'none') {
-            sel.note.arpeggio = undefined;
-          } else {
-            sel.note.arpeggio = new SmoArpeggio({ type: code });
+    await this.modifyCurrentSelections('add/remove addRemoveArpeggio',
+      (score, selections) => {
+        selections.forEach((sel) => {
+          if (sel.note) {
+            if (code === 'none') {
+              sel.note.arpeggio = undefined;
+            } else {
+              sel.note.arpeggio = new SmoArpeggio({ type: code });
+            }
           }
-        }
       });
     });
-    this._renderChangedMeasures(measureSelections);
-    await this.renderer.updatePromise()
   }
   /**
    * A clef change mid-measure (clefNote)
    * @param clef 
    */
   async addRemoveClefChange(clef: SmoClefChange) {
-    const selections = [this.tracker.selections[0]];
-    const altSelections = this._getEquivalentSelections(selections);
-    const measureSelections = this._undoTrackerMeasureSelections('add/remove clef change');
-    [selections, altSelections].forEach((selType) => {
-      selType.forEach((sel) => {
-        if (sel.note) {
+    await this.modifyCurrentSelections('add/remove addRemoveClefChange',
+      (score, selections) => {
+        selections.forEach((sel) => {
           const measureClef = sel.measure.clef;
-          // If the clef is the same as measure clef, remove any clef change from Note
-          if (measureClef === clef.clef) {
-            sel.note.clefNote = null;
-          } else {
-            sel.note.clefNote = clef;
+          if (sel.note) {
+            if (measureClef === clef.clef) {
+              sel.note.clefNote = null;
+            } else {
+              sel.note.clefNote = clef;
+            }
           }
-          sel.measure.updateClefChangeNotes();
-        }
       });
-    });
-    this._renderChangedMeasures(measureSelections);
-    await this.renderer.updatePromise()
+    });   
   }
   /**
    * Modify the dynamics assoicated with the specific selection
@@ -259,13 +287,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async addDynamic(selection: SmoSelection, dynamic: SmoDynamicText): Promise<void> {
-    this._undoFirstMeasureSelection('add dynamic');
-    this._removeDynamic(selection, dynamic);
-    const equiv = this._getEquivalentSelection(selection);
-    SmoOperation.addDynamic(selection, dynamic);
-    SmoOperation.addDynamic(equiv!, SmoNoteModifierBase.deserialize(dynamic.serialize() as any));
-    this.renderer.addToReplaceQueue(selection);
-    await this.renderer.updatePromise()
+    await this.modifySelection('add dynamic', selection, (score, selections) => {
+      SmoOperation.addDynamic(selections[0], dynamic);
+    });
   }
   /**
    * Remove dynamics from the selection 
@@ -282,7 +306,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         SmoOperation.removeDynamic(equiv, altModifiers[0] as SmoDynamicText);
       }
     }
-    await this.renderer.updatePromise()
+    await this.renderer.updatePromise();
   }
   /**
    * Remove dynamics from the current selection
@@ -1174,12 +1198,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param head 
    */
   async setNoteHead(head: string): Promise<void> {
-    const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set note head');
-    SmoOperation.setNoteHead(selections, head);
-    SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
-    this._renderChangedMeasures(measureSelections);
-    return this.renderer.updatePromise();
+    await this.modifyCurrentSelections('set note head', (score, selections) => {
+      SmoOperation.setNoteHead(selections, head);
+    });
   }
 
   /**

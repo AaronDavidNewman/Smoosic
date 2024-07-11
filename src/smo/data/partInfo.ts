@@ -282,4 +282,10 @@ export class SmoPartInfo extends StaffModifierBase {
       this.textGroups.push(textGroup);
     }
   }
+  removeTextGroup(textGroup: SmoTextGroup) {
+    this.updateTextGroup(textGroup, false);
+  }
+  addTextGroup(textGroup: SmoTextGroup) {
+    this.updateTextGroup(textGroup, true);
+  }
 }

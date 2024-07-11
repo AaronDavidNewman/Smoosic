@@ -5,49 +5,138 @@ import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
-import { getButtonsFcn, SuiButtonArrayComponent } from './components/buttonArray';
+import { getButtonsFcn, SuiButtonArrayComponent, SuiButtonArrayParameters } from './components/buttonArray';
 import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComponent';
+import { SmoOperation } from '../../smo/xform/operations';
+import { SuiButtonComponentParams } from './components/button';
 
 const noteHeadButtonFactory: getButtonsFcn = () => {
-  return [
-    { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadXBlack',
-      id: 'noteheadBlackX',
-      label:'X',
-      smoName: 'x2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpBlack',
-      id: 'noteheadTriangleXUp',
-      label:'Triangle Up',
-      smoName: 'T2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadCircleX',
-      id: 'noteheadCircleX',
-      label:'Circle X',
-      smoName: 'X3'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondBlack',
-      id: 'noteheadDiamondBlack',
-      label:'Diamond',
-      smoName: 'D2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadSquareBlack',
-      id: 'noteheadSquareBlack',
-      label:'Square',
-      smoName: 'S2'
-    }, { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadBlack',
-      id: 'noteheadBlack',
-      label:'Default',
-      smoName: ''
-    }
-  ]
+  const params: SuiButtonArrayParameters = {
+    label: 'Note Heads',
+    rows: [{
+      label: 'Note Shapes',
+      classes: 'pad-span',
+      buttons: [
+        {classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-noteheadXBlack',
+          id: 'noteheadBlackX',
+          label:'X',
+          smoName: 'CX'
+        },  { classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpBlack',
+          id: 'noteheadTriangleXUp',
+          label:'Triangle Up',
+          smoName: 'TU'
+        },  { classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleDownBlack',
+          id: 'noteheadCircleX',
+          label:'Triangle Down',
+          smoName: 'TD'
+        },  { classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondBlack',
+          id: 'noteheadDiamondBlack',
+          label:'Diamond',
+          smoName: 'D'
+        },  { classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-noteheadSquareBlack',
+          id: 'noteheadSquareBlack',
+          label:'Square',
+          smoName: 'SQ'
+        }
+      ]
+      }, {
+        label: 'Note Heads',
+        classes: 'pad-span',
+        buttons: [
+          { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondWhole',
+            id: 'noteheadDiamondWhole',
+            label:'Diamond whole',
+            smoName: 'D0'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondHalf',
+            id: 'noteheadDiamondHalf',
+            label:'Diamond open',
+            smoName: 'D1'
+          },  { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondBlack',
+            id: 'noteheadDiamondBlack',
+            label:'Diamond closed',
+            smoName: 'D2'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpWhole',
+            id: 'noteheadTriangleUpWhole',
+            label:'Triangle up whole',
+            smoName: 'T0'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpHalf',
+            id: 'noteheadTriangleUpHalf',
+            label:'Triangle up open',
+            smoName: 'T1'
+          },  { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpBlack',
+            id: 'noteheadTriangleUpBlack',
+            label:'Triangle up closed',
+            smoName: 'T2'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadXWhole',
+            id: 'noteheadXWhole',
+            label:'X Whole',
+            smoName: 'X0'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadXHalf',
+            id: 'noteheadXHalf',
+            label:'X Helf',
+            smoName: 'X1'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadXBlack',
+            id: 'noteheadXBlack',
+            label:'X Closed',
+            smoName: 'X2'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadMoonBlack',
+            id: 'noteheadMoonBlack',
+            label:'Moon Black',
+            smoName: 'RE'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleLeftBlack',
+            id: 'noteheadTriangleLeftBlack',
+            label:'Left Triangle Closed',
+            smoName: 'FA'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleRightBlack',
+            id: 'noteheadTriangleRightBlack',
+            label:'Right Triangle Close',
+            smoName: 'FAUP'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-noteheadBlack',
+            id: 'noteheadBlack',
+            label:'Default',
+            smoName: ''
+          }
+        ]
+      }
+    ]
+  }
+  return params;
 }
 export class SuiNoteHeadButtonComponent extends SuiButtonArrayComponent {
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
@@ -59,6 +148,7 @@ export class SuiNoteHeadAdapter extends SuiComponentAdapter {
   code: string = '';
   constructor(view: SuiScoreViewOperations) {
     super(view);
+    this.view.groupUndo(true);
     this.selections = SmoSelection.getMeasureList(this.view.tracker.selections);
   }
   get noteHead() {
@@ -66,11 +156,14 @@ export class SuiNoteHeadAdapter extends SuiComponentAdapter {
   }
   set noteHead(value: string) {
     this.code = value;
+    this.view.modifyCurrentSelections('set note head', (score, selections) => {
+      SmoOperation.setNoteHead(selections, this.code);
+    });
   }
-  async commit() {
-    await this.view.setNoteHead(this.code);
+  async commit() {    
   }
   async cancel() {
+    this.view.undo();
   }
   async remove() { 
   }

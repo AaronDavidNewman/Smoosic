@@ -195,10 +195,12 @@ body.showAttributeDialog .attributeDialog {
   top: 0;
 	display:none;
 }
-
+button.nav-link {
+  width: 100%;
+}
 .attributeModal {
 	position:absolute;
-  width:380px;
+  min-width:380px;
 	background: #fff;
 	border-style: groove;
 	border-width: 2px;
@@ -406,17 +408,41 @@ body.showAttributeDialog .attributeDialog {
   border: 2px #ddd outset;
 }
 .attributeModal .smoControl.buttonArray {
-  flex: 1 1 100%;
-  flex-flow: row wrap;
-  justify-content: center;
-  bottom:8px;
-  left:8px;
+  flex-flow: column nowrap;
   border: 2px #ddd outset;
 }
-
+.pad-span {
+  padding: 5px;
+}
+.attributeModal .smoControl.buttonArray .button-array-row{
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content:space-between;
+}
+.button-array-buttons {
+  display: flex;
+  align-items: center;
+}
+.button-array-label {
+  display: flex;
+}
+.nav-item {
+  border-bottom: 1px solid #eee;
+}
 .attributeModal .smoControl.buttonArray .icon-bravura {
   top:-5px;
   left:8px;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.articulations-above {
+  top:-5px;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.articulations-below {
+  bottom:-5px;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-brassFallRoughMedium,
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-brassLiftMedium {
+  font-size:20px;
+  top:50%;
 }
 .smoControl.buttonArray button:hover {
   background:#334488;

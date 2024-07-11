@@ -110,17 +110,11 @@ div.ribbonButtonContainer.expanded {
 .controls-top button
  {
 	padding: 5px 0;
-	font-size: 0.7em;
 	border: 1px #44e solid;
 	position:relative;
   border-radius:5px;
-}
-
-
-.controls-top button {
-	width:30px;
+	min-width: 50px;
 	height:50px;
-	font-size:0.7em;
 }
 
 .controls-top div {
@@ -133,12 +127,14 @@ div.ribbonButtonContainer.expanded {
 	border-radius:3px;
 	opacity:0.7;
 }
-
-.controls-top button span.ribbon-button-text {
-	position:absolute;
-  left:2px;
+.controls-top .ribbonButtonContainer .left-text {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
 }
-
+.controls-top .ribbonButtonContainer .text-span .icon-bravura {
+  display: block;
+}
 button#MicrotoneButtons  {
     width:35px;
 }
@@ -202,16 +198,6 @@ button#MicrotoneButtons  {
     left:20%;
     font-size:1.4em;
 }
-#articulationButtons .left-text {
-    font-size: 1.4em;
-    position: absolute;
-    top: 10%;
-    left: 12%;
-}
-#StaveButtons {
-    width:55px;
-    font-size:1.2em;
-}
 
 #clefAddRemove .icon {
     font-size:0.7em;
@@ -248,10 +234,6 @@ button#MicrotoneButtons  {
     font-size:1.6em;
     top:0;
     left:20%;
-}
-
-#NoteButtons span.icon {
-	font-size:2em;
 }
 
 #articulationButtons  .icon-articulation{
@@ -316,13 +298,6 @@ button#MicrotoneButtons  {
 }
 .controls-top button.duration span.ribbon-button-hotkey {
 	font-size:1.6em;
-}
-
-
-.controls-top .text-span {
-	position:absolute;
-	top: 30%;
-	left: 0;
 }
 
 button.addChord .left-text .icon {
@@ -449,10 +424,6 @@ button.addChord .left-text .icon {
 	left:30%;
 	top:30%;
 }
-#NavigationButtons {
-	width:55px;
-	font-size:1.7em;
-}
 
 #NavigationButtons.expandedChildren {
 	font-size: 1.4em;
@@ -468,34 +439,15 @@ button.addChord .left-text .icon {
     font-size:0.5em;
 }
 
-#UpOctaveButton,#DownOctaveButton {
-	width:50px;
-	font-size:0.6em;
-}
-#ToggleAccidental ,#ToggleCourtesy {
-	font-size:1em;
-	width:60px;
-}
+
 #ToggleAccidental .ribbon-button-hotkey,#ToggleCourtesy .ribbon-button-hotkey  {
 	font-size:0.7em;
-}
-
-.controls-left button.icon span.icon,
-.controls-top button.icon span.icon {
-	top:10%;
 }
 
 .controls-left button.icon span.icon:before,
 .controls-top button.icon span.icon:before{
 	font-size:1.6em;
 }
-
-.controls-top button span.ribbon-button-hotkey {
-	position:absolute;
-	right:2px;
-	top:33%;
-}
-
 .controls-left .articulations button span.ribbon-button-text {
 	font-size:2em;
 }

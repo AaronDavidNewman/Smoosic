@@ -1,4 +1,5 @@
-import { SuiMenuBase, SuiMenuParams, MenuChoiceDefinition, MenuDefinition } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuChoiceDefinition, MenuDefinition, 
+  SuiConfiguredMenuOption, SuiConfiguredMenu } from './menu';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiScoreViewDialog } from '../dialogs/scoreView';
 import { SuiInstrumentDialog } from '../dialogs/instrument';
@@ -8,204 +9,160 @@ import { SuiNewPartDialog } from '../dialogs/newPart';
 import { SuiTabStaveDialog } from '../dialogs/tabStave';
 declare var $: any;
 
-export class SuiPartMenu extends SuiMenuBase {
-  constructor(params: SuiMenuParams) {
-    super(params);
-  }
-  static defaults: MenuDefinition = {
-    label: 'Parts',
-    menuItems: [
-      {
-        icon: '',
+export const createNotePartMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {
+    icon: '',
         text: 'Create New Part/Stave',
         value: 'createPart'
-      }, {
-        icon: 'cancel-circle',
-        text: 'Remove Selected Parts/Staves',
-        value: 'removePart'
-      }, {
-        icon: '',
-        text: 'Part Properties',
-        value: 'editPart'
-      },  {
-        icon: '',
-        text: 'Page Layout',
-        value: 'pageLayout'
-      }, {
-        icon: '',
-        text: 'View Partial Score',
-        value: 'view'
-      }, {
-        icon: '',
-        text: 'View All',
-        value: 'viewAll'
-      }, {
-        icon: '',
-        text: 'Instrument Properties',
-        value: 'editInstrument'
-      }, {
-        icon: '',
-        text: 'Guitar Tablature',
-        value: 'tabStave'
-      }, {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-      }
-    ]
-  };
-  getDefinition() {
-    return SuiPartMenu.defaults;
-  }
-  createPart() {
+  }, display: () => true,
+  handler: async(menu: SuiMenuBase) => {
     createAndDisplayDialog(SuiNewPartDialog,
       {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        eventSource: this.eventSource,
+        completeNotifier: menu.completeNotifier!,
+        view: menu.view,
+        eventSource: menu.eventSource,
         id: 'newPartDialog',
         ctor: 'SuiNewPartDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
+        tracker: menu.view.tracker,
+        modifier: menu,
+        startPromise: menu.closePromise
       });
   }
-  execView() {
+}
+export const removePartMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {    
+      icon: 'cancel-circle',
+      text: 'Remove Selected Parts/Staves',
+      value: 'removePart'
+  }, display: () => true,
+  handler: async (menu: SuiMenuBase) => {
+    await menu.view.removeStaff();
+  }
+}
+export const partPropertiesMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {    
+    icon: '',
+    text: 'Part Properties',
+    value: 'editPart'
+  }, display: (menu: SuiMenuBase) => menu.view.isPartExposed(),
+  handler: async (menu: SuiMenuBase) => {
+    const selection = menu.view.tracker.selections[0];
+    if (menu.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
+      menu.view.exposePart(selection.staff);
+    }
+    await menu.view.renderPromise();
+    createAndDisplayDialog(SuiPartInfoDialog,
+      {
+        completeNotifier: menu.completeNotifier!,
+        view: menu.view,
+        eventSource: menu.eventSource,
+        id: 'editPart',
+        ctor: 'SuiPartInfoDialog',
+        tracker: menu.view.tracker,
+        modifier: null,
+        startPromise: menu.closePromise
+      }
+    );
+  }
+}
+export const pageLayoutMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {
+    icon: '',
+    text: 'Page Layout',
+    value: 'pageLayout'
+  }, display: (menu: SuiMenuBase) => menu.view.isPartExposed(),
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiPageLayoutDialog,
+      {
+        completeNotifier: menu.completeNotifier!,
+        view: menu.view,
+        eventSource: menu.eventSource,
+        id: 'layoutDialog',
+        ctor: 'SuiPageLayoutDialog',
+        tracker: menu.view.tracker,
+        modifier: null,
+        startPromise: menu.closePromise
+      });
+  }
+}
+
+export const viewPartialScoreMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {
+    icon: '',
+    text: 'View Partial Score',
+    value: 'view'
+  }, display: (menu: SuiMenuBase) => !menu.view.isPartExposed(),
+  handler: async (menu: SuiMenuBase) => {
     createAndDisplayDialog(SuiScoreViewDialog,
       {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        eventSource: this.eventSource,
+        completeNotifier: menu.completeNotifier!,
+        view: menu.view,
+        eventSource: menu.eventSource,
         id: 'scoreViewDialog',
         ctor: 'SuiScoreViewDialog',
-        tracker: this.view.tracker,
+        tracker: menu.view.tracker,
         modifier: null,
-        startPromise: this.closePromise
+        startPromise: menu.closePromise
       });
   }
-  editPart() {
-    const selection = this.view.tracker.selections[0];
-    const self = this;
-
-    if (this.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
-      this.view.exposePart(selection.staff);
-    }
-    this.view.renderPromise().then(() => {
-      createAndDisplayDialog(SuiPartInfoDialog,
-        {
-          completeNotifier: self.completeNotifier!,
-          view: self.view,
-          eventSource: self.eventSource,
-          id: 'editPart',
-          ctor: 'SuiPartInfoDialog',
-          tracker: self.view.tracker,
-          modifier: null,
-          startPromise: self.closePromise
-        }
-      );
-    });
+}
+export const viewFullScoreMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {
+    icon: '',
+    text: 'View All',
+    value: 'viewAll'
+  }, display: (menu: SuiMenuBase) => menu.view.score.staves.length < menu.view.storeScore.staves.length,
+  handler: async (menu: SuiMenuBase) => {
+    await menu.view.viewAll();
+    menu.complete();
   }
-  editInstrument() {
+}
+
+export const editInstrumentMenuOption: SuiConfiguredMenuOption = {
+  menuChoice: {
+    icon: '',
+    text: 'Instrument Properties',
+    value: 'editInstrument'
+  }, display: (menu: SuiMenuBase) => true,
+  handler: async (menu: SuiMenuBase) => {
     createAndDisplayDialog(SuiInstrumentDialog,
       {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        eventSource: this.eventSource,
+        completeNotifier: menu.completeNotifier!,
+        view: menu.view,
+        eventSource: menu.eventSource,
         id: 'instrumentModal',
         ctor: 'SuiInstrumentDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
+        tracker: menu.view.tracker,
+        modifier: menu,
+        startPromise: menu.closePromise
       });
   }
-  tabStave() {
+}
+export const tabStaveMenuOption: SuiConfiguredMenuOption = {
+  menuChoice:  {
+    icon: '',
+    text: 'Guitar Tablature',
+    value: 'tabStave'
+  }, display: (menu: SuiMenuBase) => true,
+  handler: async (menu: SuiMenuBase) => {
     createAndDisplayDialog<SuiTabStaveDialog>(SuiTabStaveDialog, {
       ctor: 'SuiTabStaveDialog',
       id: 'tabStaveDialog',
-      tracker: this.view.tracker,
-      completeNotifier: this.completeNotifier,
+      tracker: menu.view.tracker,
+      completeNotifier: menu.completeNotifier,
       startPromise: null,
-      view: this.view,
-      eventSource: this.eventSource
+      view: menu.view,
+      eventSource: menu.eventSource
     });
   }
-  removePart() {
-    this.view.removeStaff();
-    this.complete();
-  }
-  pageLayout() {
-    createAndDisplayDialog(SuiPageLayoutDialog,
-      {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        eventSource: this.eventSource,
-        id: 'layoutDialog',
-        ctor: 'SuiPageLayoutDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
-      });
-  }
-  preAttach() {
-    const fullScore = this.view.score.staves.length < this.view.storeScore.staves.length;
-    const defs: MenuChoiceDefinition[] = [];
-    this.menuItems.forEach((item) => {
-      // Only show 'display all' if the full score is not already displayed
-      if (item.value === 'viewAll') {
-        if (!fullScore) {
-          defs.push(item);
-        }
-      } else if (item.value === 'pageLayout') {
-        // only show the page layout in part menu if we are in part mode
-        if (this.view.isPartExposed()) {
-          defs.push(item);
-        }
-      } else if (item.value === 'view') {
-        if (this.view.isPartExposed() === false) {
-          // don't let the user restrict the view if we are already viewing a part.
-          defs.push(item);
-        }
-      } else if (item.value === 'editPart') {
-        if (this.view.isPartExposed()) {
-          item.text = 'Part Properties';
-          defs.push(item);
-        }
-      } else {
-        defs.push(item);
-      }
-    });
-    this.menuItems = defs;
-  }
+}
+export const SuiPartMenuOptions: SuiConfiguredMenuOption[] = [
+  createNotePartMenuOption, removePartMenuOption, partPropertiesMenuOption, pageLayoutMenuOption, viewPartialScoreMenuOption, 
+  editInstrumentMenuOption, viewFullScoreMenuOption, tabStaveMenuOption
+];
 
-  selection(ev: any) {
-    const op: string = $(ev.currentTarget).attr('data-value');
-    if (op === 'pageLayout') {
-      this.pageLayout();
-      this.complete();
-    } else if (op === 'view') {
-      this.execView();
-      this.complete();
-    } else if (op === 'createPart') {
-      this.createPart();
-      this.complete();
-    } else if (op === 'removePart') {
-      this.removePart();
-      this.complete();
-    } else if (op === 'editPart') {
-      this.editPart();
-      this.complete();
-    } else if (op === 'editInstrument') {
-      this.editInstrument();
-      this.complete();
-    } else if (op === 'tabStave') {
-      this.tabStave();
-      this.complete();
-    } else if (op === 'cancel') {
-      this.complete();
-    } else if (op === 'viewAll') {
-      this.view.viewAll();
-      this.complete();
-    }
-  }
-  keydown() { }
+export class SuiPartMenu extends SuiConfiguredMenu {
+  constructor(params: SuiMenuParams) {
+    super(params, 'Parts', SuiPartMenuOptions);
+  }  
 }

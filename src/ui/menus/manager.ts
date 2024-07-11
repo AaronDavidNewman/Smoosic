@@ -11,7 +11,7 @@ import { CompleteNotifier, ModalComponent } from '../common';
 import { BrowserEventSource, EventHandler } from '../eventSource';
 import { KeyBinding } from '../../application/common';
 import { Qwerty } from '../qwerty';
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, SuiConfiguredMenu, SuiConfiguredMenuOption } from './menu';
 declare var $: any;
 
 export interface SuiMenuManagerParams {
@@ -201,7 +201,7 @@ export class SuiMenuManager {
       $('body').off('menuDismiss').on('menuDismiss', () => {
         layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
         self.unattach();
-        $('body').removeClass('slash-menu');
+        $('body').removeClass('slash-menu d-block');
         self.closeMenuPromise = null;
         resolve();
       });
@@ -289,7 +289,7 @@ export class SuiMenuManager {
 
   bindEvents() {
     this.hotkeyBindings = { };
-    $('body').addClass('slash-menu');
+    $('body').addClass('slash-menu d-block');
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {

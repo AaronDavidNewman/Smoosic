@@ -632,7 +632,6 @@ export class SmoScore {
     });
     const layoutManager = new SmoLayoutManager(layoutManagerParams);
 
-
     // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       ['renumberingMap', 'fonts'],
@@ -910,6 +909,17 @@ export class SmoScore {
       }
     });
     this.updateRenumberForAddDelete(measureIndex, false);
+  }
+  /**
+   * coordinate the ids of the display score with the stored score
+   * @param other 
+   */
+  synchronizeTextGroups(other: SmoTextGroup[]) {
+    this.textGroups = [];
+    other.forEach((tg) => {
+      const ntg = SmoTextGroup.deserializePreserveId(tg);
+      this.textGroups.push(ntg);
+    });
   }
   /**
    * get a measure 'compatible' with the measure at the given index, in terms

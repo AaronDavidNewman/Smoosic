@@ -2,83 +2,105 @@ import { createAndDisplayDialog } from '../dialogs/dialog';
 import {SuiArpeggioDialog } from '../dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../dialogs/clefChange';
 import { SuiNoteHeadDialog } from '../dialogs/noteHead';
-import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
+import { SuiOrnamentDialog } from '../dialogs/ornament';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition, SuiMenuHandler, SuiMenuShowOption, 
+  SuiConfiguredMenuOption, SuiConfiguredMenu } from './menu';
 declare var $: any;
-export class SuiNoteMenu extends SuiMenuBase {
-  static defaults: MenuDefinition = {
-    label: 'Measure',
-    menuItems: [
-      {
-        icon: '',
-        text: 'Toggle Cue',
-        value: 'toggleCueCmd'
-      }, {
-        icon: '',
-        text: 'Arpeggio',
-        value: 'arpeggioDialog'
-      },{
-        icon: '',
-        text: 'Note Head',
-        value: 'noteHeadDialog'
-      },{
-        icon: '',
-        text: 'Change Clef',
-        value: 'clefNoteDialog'
-      }, {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-      }
-    ]
-  };
-
-  getDefinition() {
-    return SuiNoteMenu.defaults;
-  }
+export class SuiNoteMenu extends SuiConfiguredMenu {
   constructor(params: SuiMenuParams) {
-    super(params);
-  }
-  async selection(ev: any) {
-    const text = $(ev.currentTarget).attr('data-value');
-    if (text === 'toggleCueCmd') {
-      await this.view.toggleCue();
-    } else if (text === 'arpeggioDialog') {
-      createAndDisplayDialog(SuiArpeggioDialog, {
-        view: this.view,
-        completeNotifier: this.completeNotifier,
-        startPromise: this.closePromise,
-        eventSource: this.eventSource,
-        tracker: this.tracker,
-        ctor: 'SuiArpeggioDialog',
-        id: 'insert-dialog',
-        modifier: null
-      });
-      this.complete();
-    } else if (text === 'noteHeadDialog') {
-      createAndDisplayDialog(SuiNoteHeadDialog, {
-        view: this.view,
-        completeNotifier: this.completeNotifier,
-        startPromise: this.closePromise,
-        eventSource: this.eventSource,
-        tracker: this.tracker,
-        ctor: 'SuiNoteHeadDialog',
-        id: 'insert-dialog',
-        modifier: null
-      });
-      this.complete();
-    } else if (text === 'clefNoteDialog') {
-      createAndDisplayDialog(SuiClefChangeDialog, {
-        view: this.view,
-        completeNotifier: this.completeNotifier,
-        startPromise: this.closePromise,
-        eventSource: this.eventSource,
-        tracker: this.tracker,
-        ctor: 'SuiClefChangeDialog',
-        id: 'insert-dialog',
-        modifier: null
-      });
-      this.complete();
-    }
-    this.complete();    
+    super(params, 'Notes', SuiNoteMenuOptions);
+  }  
+}
+
+const toggleCueMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    await menu.view.toggleCue();
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Toggle Cue',
+    value: 'toggleCueMenuOption'
   }
 }
+const arpeggioMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiArpeggioDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiArpeggioDialog',
+      id: 'insert-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Arpeggio',
+    value: 'arpeggioDialog'
+  }
+}
+
+const noteHeadMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiNoteHeadDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiNoteHeadDialog',
+      id: 'insert-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Note Head',
+    value: 'noteHeadDialog'
+  }
+}
+
+const clefNoteDialogMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiClefChangeDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiClefChangeDialog',
+      id: 'insert-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Change Clef',
+    value: 'clefNoteDialog'
+  }
+}
+
+const ornamentNoteDialogMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiOrnamentDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiOrnamentDialog',
+      id: 'ornament-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Ornaments',
+    value: 'ornamentDialog'
+  }
+}
+const SuiNoteMenuOptions: SuiConfiguredMenuOption[] = [
+  toggleCueMenuOption, arpeggioMenuOption, clefNoteDialogMenuOption, noteHeadMenuOption, ornamentNoteDialogMenuOption
+]

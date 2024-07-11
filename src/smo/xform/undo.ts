@@ -5,9 +5,9 @@ import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoMusic } from '../data/music';
 import { SmoOperation } from './operations';
 import { SmoScore } from '../data/score';
-import { SmoMeasure } from '../data/measure';
+import { SmoMeasure, SmoMeasureParamsSer } from '../data/measure';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoTextGroup } from '../data/scoreText';
+import { SmoTextGroup, SmoTextGroupContainer } from '../data/scoreText';
 import { SmoSelector } from './selections';
 
 export interface UndoEntry {
@@ -16,7 +16,6 @@ export interface UndoEntry {
   selector: SmoSelector,
   subtype: number,
   grouped: boolean,
-  firstInGroup: boolean,
   json?: any
 }
 export function copyUndo(entry: UndoEntry): UndoEntry {
@@ -26,7 +25,6 @@ export function copyUndo(entry: UndoEntry): UndoEntry {
     selector: entry.selector,
     subtype: entry.subtype,
     grouped: entry.grouped,
-    firstInGroup: entry.firstInGroup,
     json: undefined
   };
   if (entry.json) {
@@ -34,12 +32,33 @@ export function copyUndo(entry: UndoEntry): UndoEntry {
   }
   return obj;
 }
+export class UndoSet {
+  buffers: UndoEntry[];
+  constructor() {
+    this.buffers = [];
+  }
+  get isEmpty() { 
+    return this.buffers.length === 0;
+  }
+  push(entry: UndoEntry) {
+    this.buffers.push(entry);
+  }
+  pop(): UndoEntry | undefined {
+    return this.buffers.pop();
+  }
+  get length(): number {
+    return this.buffers.length;
+  }
+};
 /**
  * manage a set of undo or redo operations on a score.  The objects passed into
- * undo must implement serialize()/deserialize()
- * 
- * ## Buffer format:
- * A buffer is one of 7 things:
+ * undo must implement serialize()/deserialize().
+ * Only one undo buffer is kept for the score.  Undo is always done on the stored
+ * score and translated to the display score.
+ * UndoBuffer contains an undoEntry array.  An undoEntry might contain several
+ * undo operations, if the were done together as a block.  This happens often when 
+ * several changes are made while a dialog box is open.
+ * an undoEntry is one of 7 things:
  * * A single measure,
  * * A single staff
  *  * the whole score
@@ -59,7 +78,7 @@ export class UndoBuffer {
     return {
       FIRST: 1,
       MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
-      SCORE_ATTRIBUTES: 7, STAFF_MODIFIER: 8, LAST: 8
+      SCORE_ATTRIBUTES: 7, STAFF_MODIFIER: 8, PART_MODIFIER: 9, LAST: 9
     };
   }
   static get bufferSubtypes() {
@@ -74,19 +93,19 @@ export class UndoBuffer {
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
   static serializeMeasure(measure: SmoMeasure) {
-    const json: any = measure.serialize();
+    const json: SmoMeasureParamsSer = measure.serialize();
     const columnMapped : any = measure.serializeColumnMapped();
     Object.keys(columnMapped).forEach((key) => {
-      json[key] = columnMapped[key];
+      (json as any)[key] = columnMapped[key];
     });
     return json;
   }
-  buffer: UndoEntry[] = [];
+  buffer: UndoSet[] = [];
   reconcile: number = -1;
   opCount: number;
   _grouping: boolean;
   constructor() {
-    this.buffer = [];
+    this.buffer.push(new UndoSet());
     this.opCount = 0;
     this._grouping = false;
   }
@@ -96,17 +115,31 @@ export class UndoBuffer {
   // Allows a set of operations to be bunched into a single group
   set grouping(val) {
     if (this._grouping === true && val === false) {
-      const buf = this.peek();
-      // If we have been grouping, indicate that the last buffer is the
-      // fist part of a group
-      if (buf) {
-        buf.firstInGroup = true;
-      }
+      const nbuf = new UndoSet();
+      this.buffer.push(nbuf);
     }
     this._grouping = val;
   }
   reset() {
     this.buffer = [];
+  }
+  /**
+   * return true if any of the last 2 buffers have undo operations.
+   * @returns 
+   */
+  buffersAvailable() {
+    if (this.buffer.length < 1) {
+      return false;
+    }
+    const lastIx = this.buffer.length - 1;
+    const penIx = this.buffer.length - 2;
+    if (lastIx >= 0 && this.buffer[lastIx].length > 0) {
+      return true;
+    }
+    if (penIx >= 0 && this.buffer[penIx].length > 0) {
+      return true;
+    }
+    return false;
   }
   // ### addBuffer
   // Description:
@@ -114,6 +147,7 @@ export class UndoBuffer {
   // are about to perform.  For instance, if we are adding a crescendo, we back up the
   // staff the crescendo will go on.
   addBuffer(title: string, type: number, selector: SmoSelector, obj: any, subtype: number) {
+    this.checkNull();
     let i = 0;
     let j = 0;
     if (typeof(type) !== 'number' || type < UndoBuffer.bufferTypes.FIRST || type > UndoBuffer.bufferTypes.LAST) {
@@ -124,8 +158,7 @@ export class UndoBuffer {
       type,
       selector,
       subtype,
-      grouped: this._grouping,
-      firstInGroup: false
+      grouped: this._grouping
     };
     if (type === UndoBuffer.bufferTypes.RECTANGLE) {
       // RECTANGLE obj is {score, topLeft, bottomRight}
@@ -145,7 +178,7 @@ export class UndoBuffer {
     } else if (type === UndoBuffer.bufferTypes.COLUMN) {
       // COLUMN obj is { score, measureIndex }
       const ix = obj.measureIndex;
-      const measures: SmoMeasure[] = [];
+      const measures: SmoMeasureParamsSer[] = [];
       obj.score.staves.forEach((staff: SmoSystemStaff) => {
         measures.push(UndoBuffer.serializeMeasure(staff.measures[ix]));
       });
@@ -165,35 +198,96 @@ export class UndoBuffer {
       this.buffer.splice(0, 1);
     }
     this.opCount += 1;
-    this.buffer.push(undoObj);
+    const buff = this.buffer[this.buffer.length - 1];
+    buff.push(undoObj);
+    if (!this._grouping) {
+      this.buffer.push(new UndoSet());
+    }
   }
 
+  checkNull() {
+    if (this.buffer.length === 0) {
+      this.buffer.push(new UndoSet());
+    }
+  }
   // ### _pop
   // ### Description:
   // Internal method to pop the top buffer off the stack.
-  _pop(): UndoEntry | null {
-    if (this.buffer.length < 1) {
-      return null;
+  popUndoSet(): UndoSet | null {
+    this.checkNull();
+    const lastBufIx = this.buffer.length - 1;
+    if (!this.buffer[lastBufIx].isEmpty) {
+      return  this.buffer.pop() ?? null;
+    } else if (lastBufIx >= 1) {
+      const buf = this.buffer.splice(lastBufIx - 1, 1);
+      return buf[0] ?? null;
     }
-    const buf: UndoEntry = this.buffer.pop() as UndoEntry;
-    return buf;
+    return null;
   }
 
   // ## Before undoing, peek at the top action in the q
   // so it can be re-rendered
-  peek(): UndoEntry | null {
-    if (this.buffer.length < 1) {
-      return null;
+  peekUndoSet(): UndoSet | null {
+    this.checkNull();
+    const lastBufIx = this.buffer.length - 1;
+    if (!this.buffer[lastBufIx].isEmpty) {
+      return this.buffer[lastBufIx];
     }
-    return this.buffer[this.buffer.length - 1];
+    if (lastBufIx >= 1) {
+      return this.buffer[lastBufIx - 1];
+    }
+    return null;
   }
-  peekIndex(index: number) {
-    if (this.buffer.length - index < 1) {
-      return null;
+  undoTypePeek(func: (buf: UndoEntry) => boolean) {
+    const undoSet = this.peekUndoSet();
+    if (!undoSet || undoSet.length === 0) {
+      return false;
     }
-    return this.buffer[this.buffer.length - (1 + index)];
+    for (let i = 0; i < undoSet.buffers.length; ++i) {
+      const buf = undoSet.buffers[i];
+      if (func(buf)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  undoScorePeek(): boolean {
+    return this.undoTypePeek((buf) => buf.type === UndoBuffer.bufferTypes.SCORE);
+  }
+  undoScoreTextGroupPeek(): boolean {
+    return this.undoTypePeek((buf) => buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER &&
+       buf.json && buf.json.ctor === 'SmoTextGroup');
+  }
+  undoPartTextGroupPeek(): boolean {
+    return this.undoTypePeek((buf) => buf.type === UndoBuffer.bufferTypes.PART_MODIFIER &&
+       buf.json && buf.json.ctor === 'SmoTextGroup');
   }
 
+  getMeasureRange(): number[] {
+    let min = -1;
+    let max = 0;
+    const undoSet = this.peekUndoSet();
+    if (undoSet) {
+      undoSet.buffers.forEach((buf) => {
+        if (min < 0) {
+          min = buf.selector.measure;
+        }
+        max = Math.max(max, buf.selector.measure);
+        min = Math.min(min, buf.selector.measure);
+      });
+    }
+    return [Math.max(0, min), max];
+  }
+  undoTextGroup(score: SmoTextGroupContainer, staffMap: Record<number, number>, buf: UndoEntry) {
+    const obj = SmoTextGroup.deserializePreserveId(buf.json);
+    obj.attrs.id = buf.json.attrs.id;
+    // undo of add is remove, undo of remove is add.  Undo of update is remove and add older version
+    if (buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
+      score.removeTextGroup(obj);
+    } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+      score.addTextGroup(obj);
+    }
+  }
   // ## undo
   // ## Description:
   // Undo the operation at the top of the undo stack.  This is done by replacing
@@ -202,21 +296,12 @@ export class UndoBuffer {
     let i = 0;
     let j = 0;
     let mix = 0;
-    let buf: UndoEntry | null = null;
-    let peekIndex = 0;
-    if (pop) {
-      buf = this._pop();
-    } else {
-      buf = this.peekIndex(peekIndex);
-      if (buf) {
-        buf = copyUndo(buf);
-      }
-    }
-    if (!buf) {
+    let bufset: UndoSet | null = this.popUndoSet();
+    if (!bufset) {
       return score;
     }
-    const grouping = buf.firstInGroup;
-    while (buf) {
+    for (let i = 0; i < bufset.buffers.length; ++i) {
+      const buf = bufset.buffers[bufset.buffers.length - (i + 1)];
       if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
         for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
           for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
@@ -278,14 +363,12 @@ export class UndoBuffer {
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
         // Currently only one type like this: SmoTextGroup
         if (buf.json && buf.json.ctor === 'SmoTextGroup') {
-          const obj = SmoTextGroup.deserializePreserveId(buf.json);
-          obj.attrs.id = buf.json.attrs.id;
-          // undo of add is remove, undo of remove is add.  Undo of update is remove and add older version
-          if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
-            score.removeTextGroup(obj);
-          } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
-            score.addTextGroup(obj);
-          }
+          this.undoTextGroup(score, staffMap, buf);
+        }
+      } else if (buf.type === UndoBuffer.bufferTypes.PART_MODIFIER) {
+        if (buf.json && buf.json.ctor === 'SmoTextGroup') {
+          const part = score.staves[buf.selector.staff].partInfo;
+          this.undoTextGroup(part, staffMap, buf);
         }
       } else {
         if (typeof(staffMap[buf.selector.staff]) === 'number') {
@@ -293,45 +376,9 @@ export class UndoBuffer {
           const staff = SmoSystemStaff.deserialize(buf.json);
           score.replaceStaff(buf.selector.staff, staff);
         }
-      }
-      const peekBuf = this.peekIndex(peekIndex + 1);
-      // If buf is grouped and not the first in the group, also undo the next buffer
-      if (grouping && peekBuf !== null && peekBuf.grouped && buf.firstInGroup === false) {
-        // For the backup/full score, we actually pop the buffer.  For the visible score, we 
-        // just use copies of the buffer.
-        if (pop) {
-          buf = this._pop();
-        } else {
-          peekIndex += 1;
-          buf = this.peekIndex(peekIndex);
-          if (buf) {
-            buf = copyUndo(buf);
-          }
-        }
-      } else {
-        buf = null;
-      }
+      }      
     }
     return score;
   }
 }
 
-// ## SmoUndoable
-// Convenience functions to save the score state before operations so we can undo the operation.
-// Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
-export class SmoUndoable {
-  // ### undoScoreObject
-  // Called when a score object is being modified.  There is no need to update the score as it contains a
-  // reference to the object
-  static changeTextGroup(score: SmoScore, undoBuffer: UndoBuffer, object: any, subtype: number) {
-    undoBuffer.addBuffer('modify text',
-      UndoBuffer.bufferTypes.SCORE_MODIFIER, SmoSelector.default, object, subtype);
-    if (subtype === UndoBuffer.bufferSubtypes.REMOVE) {
-      SmoOperation.removeTextGroup(score, object);
-    } else if (subtype === UndoBuffer.bufferSubtypes.ADD) {
-      SmoOperation.addTextGroup(score, object);
-    }
-    // Update operation, there is nothing to do since the text is already
-    // part of the score
-  }
-}

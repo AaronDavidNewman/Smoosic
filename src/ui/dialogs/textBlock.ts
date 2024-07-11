@@ -20,6 +20,7 @@ import { SuiTextBlockComponent } from './components/textInPlace';
 
 import { EventHandler } from '../eventSource';
 import { SuiInlineText } from '../../render/sui/textRender';
+import { UndoBuffer } from '../../smo/xform/undo';
 
 declare var $: any;
 
@@ -178,6 +179,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       edited = true;
     } else {
       // Make sure there is a score text to start the editing.
+      parameters.modifier = SmoTextGroup.deserializePreserveId(parameters.modifier);
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
     super(SuiTextBlockDialog.dialogElements, parameters);
@@ -313,6 +315,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
     // Use layout context because render may have reset svg.
+    const subtype = this.isNew ? UndoBuffer.bufferSubtypes.ADD : UndoBuffer.bufferSubtypes.UPDATE;
     this.view.updateTextGroup(this.modifier);
   }
   highlightActiveRegion() {
@@ -407,6 +410,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      const subtype = this.isNew ? UndoBuffer.bufferSubtypes.ADD : UndoBuffer.bufferSubtypes.UPDATE;
       this.view.updateTextGroup(this.modifier);
       this._complete();
     });

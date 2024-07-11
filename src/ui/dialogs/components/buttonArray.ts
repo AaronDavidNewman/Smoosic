@@ -6,12 +6,22 @@ import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations'
 import { SuiButtonComponentParams } from './button';
 
 declare var $: any;
+export interface SuiButtonComponentRowParameters {
+  label: string,
+  classes: string
+  buttons: SuiButtonComponentParams[]
+}
+export interface SuiButtonArrayParameters {
+  label: string,
+  rows: SuiButtonComponentRowParameters[] 
+}
 declare interface SuiButtonCompositeParams extends SuiButtonComponentParams {
   parentControl: SuiComponentParent
 }
 export class SuiButtonArrayButton extends SuiComponentBase {
   icon: string;
   classes: string;
+  position?: string;
   iButtonState: number = SuiButtonArrayButton.buttonState.initial;
   parentControl: SuiComponentParent;
   static buttonStateString: string[] = ['initial', 'pushed', 'disabled'];
@@ -57,39 +67,97 @@ export class SuiButtonArrayButton extends SuiComponentBase {
     });
   }
 }
-
-export type getButtonsFcn = () => SuiButtonComponentParams[];
-export class SuiButtonArrayComponent extends SuiComponentParent {
+export interface SuiButtonComponentRow {
+  label: string,
+  classes: string,
+  buttons: SuiButtonArrayButton[]
+}
+export type getButtonsFcn = () => SuiButtonArrayParameters;
+export abstract class SuiButtonArrayBase extends SuiComponentParent {
   view: SuiScoreViewOperations;
-  buttons: SuiButtonArrayButton[] = [];
+  buttonRows: SuiButtonComponentRow[] = [];
   pressed: string = '';
 
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
     super(dialog, parameter);
     this.dialog = dialog;
-    const bparams = buttonFactory();
-    bparams.forEach((bp) => {
-      const param = {
-        parentControl: this, ...bp
-      }
-      this.buttons.push(new SuiButtonArrayButton(dialog, param));
-    })
+    const rowParams = buttonFactory();
+    rowParams.rows.forEach((bparams) => {
+      const row: SuiButtonComponentRow = {
+        label: bparams.label,
+        classes: bparams.classes,
+        buttons: []
+      };
+      this.buttonRows.push(row);
+      bparams.buttons.forEach((bp) => {
+        const param = {
+          parentControl: this, ...bp
+        }
+        row.buttons.push(new SuiButtonArrayButton(dialog, param));
+      });
+    });
+
     this.view = this.dialog.getView();
   }
   get html() {
     const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
-      .attr('id', this.parameterId)
-    this.buttons.forEach((bb) => {
-      if (bb.smoName === this.pressed) {
-        bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
-      } else {
-        bb.buttonState = SuiButtonArrayButton.buttonState.initial;
-      }
-      q.append(bb.html);
-    });
+      .attr('id', this.parameterId);
+    const rows = this.buttonRows;
+    for (let i = 0; i < this.buttonRows.length; ++i) {
+      const buttonRow = this.buttonRows[i];
+      const r = b('div').classes(`button-array-label`)
+       .append(b('span').classes(`${buttonRow.classes}`).text(buttonRow.label))
+       .append(b('div').classes('button-array-row'));
+       buttonRow.buttons.forEach((bb) => {
+        if (bb.smoName === this.pressed) {
+          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+        } else {
+          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+        }
+        r.append(bb.html);
+      });
+      q.append(r);
+    }
     return q;
   }
+
+  abstract changed(): void;
+  abstract bind():void;
+}
+
+export class SuiButtonArrayComponent extends SuiButtonArrayBase {
+  pressed: string = '';
+
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
+    super(dialog, parameter, buttonFactory);
+  }
+  get html() {
+    const b = buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
+      .attr('id', this.parameterId);
+    const rows = this.buttonRows;
+    for (let i = 0; i < this.buttonRows.length; ++i) {
+      const buttonRow = this.buttonRows[i];
+      const r = b('div').classes(`button-array-row`);
+      const s = b('div').classes('button-array-label')
+        .append(b('span').classes(`${buttonRow.classes}`).text(buttonRow.label));
+      const t = b('div').classes('button-array-buttons');
+       buttonRow.buttons.forEach((bb) => {
+        if (bb.smoName === this.pressed) {
+          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+        } else {
+          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+        }
+        t.append(bb.html);
+      });
+      r.append(s);
+      r.append(t);
+      q.append(r);
+    }
+    return q;
+  }
+
   getValue(): string {   
     return this.pressed;
   }
@@ -98,66 +166,68 @@ export class SuiButtonArrayComponent extends SuiComponentParent {
   }
   changed() {
     this.changeFlag = true;
-    this.buttons.forEach((bb) => {
-      if (bb.changeFlag) {
-        this.pressed = bb.smoName;
-        bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
-      } else {
-        bb.buttonState = SuiButtonArrayButton.buttonState.initial;
-      }
-    });
+    const rowKeys = Object.keys(this.buttonRows);
+    for (let i = 0; i < rowKeys.length; ++i) {
+      const buttonRow = this.buttonRows[i];
+      buttonRow.buttons.forEach((bb) => {
+        if (bb.changeFlag) {
+          this.pressed = bb.smoName;
+          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+        } else {
+          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+        }
+      });
+    }
     this.handleChanged();
     this.changeFlag = false;
   }
   bind() {
-    this.buttons.forEach((bb) => {
-      bb.bind();
-    });
+    const rowKeys = Object.keys(this.buttonRows);
+    for (let i = 0; i < rowKeys.length; ++i) {    
+      const buttonRow = this.buttonRows[i];
+      buttonRow.buttons.forEach((bb) => {
+        bb.bind();
+      });
+    }
   }
 }
-const noteHeadButtonFactory:getButtonsFcn = () => {
-  return [
-    { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadXBlack',
-      id: 'noteheadBlackX',
-      label:'X',
-      smoName: 'x2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadTriangleUpBlack',
-      id: 'noteheadTriangleXUp',
-      label:'Triangle Up',
-      smoName: 'T2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadCircleX',
-      id: 'noteheadCircleX',
-      label:'Circle X',
-      smoName: 'X3'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadDiamondBlack',
-      id: 'noteheadDiamondBlack',
-      label:'Diamond',
-      smoName: 'D2'
-    },  { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadSquareBlack',
-      id: 'noteheadSquareBlack',
-      label:'Square',
-      smoName: 'S2'
-    }, { classes: 'icon collapseParent button-array',
-      control: 'SuiButtonArrayButton',
-      icon: 'icon-bravura ribbon-button-text icon-noteheadBlack',
-      id: 'noteheadBlack',
-      label:'Default',
-      smoName: ''
-    }
-  ]
-}
-export class SuiNoteHeadButtonComponent extends SuiButtonArrayComponent {
+export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
+  pressedArray: string[] = [];
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
-    super(dialog, parameter, noteHeadButtonFactory);
+    super(dialog, parameter, buttonFactory);
+  }
+  getValue(): string[] {   
+    return this.pressedArray;
+  }
+  setValue(val: string[]) {
+    this.pressedArray = val;
+  }
+  changed() {
+    this.changeFlag = true;
+    const rowKeys = Object.keys(this.buttonRows);
+    const pressed: string[] = [];
+    for (let i = 0; i < rowKeys.length; ++i) {
+      const buttonRow = this.buttonRows[i];
+      buttonRow.buttons.forEach((bb) => {
+        if (bb.changeFlag) {
+          pressed.push(bb.smoName);
+          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+        } else {
+          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+        }
+      });
+    }
+    this.pressedArray = pressed;
+    this.handleChanged();
+    this.changeFlag = false;
+  }
+  bind() {
+    const rowKeys = Object.keys(this.buttonRows);
+    for (let i = 0; i < rowKeys.length; ++i) {    
+      const buttonRow = this.buttonRows[i];
+      buttonRow.buttons.forEach((bb) => {
+        bb.bind();
+      });
+    }
   }
 }

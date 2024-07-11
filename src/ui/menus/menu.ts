@@ -49,13 +49,14 @@ export interface MenuTranslation {
 export interface SuiMenuParams {
   ctor: string,
   position: SvgBox,
-  tracker: SuiTracker,
+  tracker: SuiTracker,  
   score: SmoScore,
   completeNotifier: CompleteNotifier,
   closePromise: Promise<void> | null
   view: SuiScoreViewOperations,
   eventSource: BrowserEventSource,
-  undoBuffer: UndoBuffer
+  undoBuffer: UndoBuffer,
+  items?: MenuDefinition
 }
 export abstract class SuiMenuBase {
   label: string;
@@ -71,7 +72,8 @@ export abstract class SuiMenuBase {
   tracker: SuiTracker;
   constructor(params: SuiMenuParams) {
     this.ctor = params.ctor;
-    const definition: MenuDefinition = this.getDefinition();
+    const definition: MenuDefinition = 
+       params.items ?? this.getDefinition();
     this.label = definition.label;
     this.menuItems = definition.menuItems;
     this.completeNotifier = params.completeNotifier;
@@ -105,4 +107,69 @@ export abstract class SuiMenuBase {
   }
   // Most menus don't process their own events
   keydown() {}
+}
+
+export type SuiMenuHandler = (menu: SuiMenuBase) => Promise<void>;
+export type SuiMenuShowOption = (menu: SuiMenuBase) => boolean;
+export interface SuiConfiguredMenuOption {
+  menuChoice: MenuChoiceDefinition,
+  handler: SuiMenuHandler,
+  display: SuiMenuShowOption
+}
+
+const cancelOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    menu.complete();
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Cancel',
+    value: 'cancel'
+  }
+}
+export class SuiConfiguredMenu extends SuiMenuBase {
+  menuOptions: SuiConfiguredMenuOption[] = [];
+  label: string = '';
+  constructor(params: SuiMenuParams, label: string, options: SuiConfiguredMenuOption[]) {
+    const cancel = options.find((op) => op.menuChoice.value === 'cancel');
+    if (!cancel) {
+      options.push(cancelOption);
+    }
+    super({ items: SuiConfiguredMenu.definitionFromOptions(label, options), ...params });
+    this.menuOptions = options;
+  }
+  async selection(ev: any) {
+    const text = $(ev.currentTarget).attr('data-value');
+    for (let i = 0; i < this.menuOptions.length; ++ i) {
+      const option: SuiConfiguredMenuOption = this.menuOptions[i];
+      if (option.menuChoice.value === text) {
+        await option.handler(this);
+        break;
+      }
+    }
+    this.complete();
+  }
+  static definitionFromOptions(label: string, options: SuiConfiguredMenuOption[]) {
+    const menuItems = options.map(oo => oo.menuChoice);
+    return { label, menuItems };
+  }
+  getDefinition(): MenuDefinition {
+    const choices: MenuChoiceDefinition[] = [];
+    for (let i = 0; i < this.menuOptions.length; ++ i) {
+      const option: SuiConfiguredMenuOption = this.menuOptions[i];
+      choices.push(option.menuChoice);
+    }
+    return {
+      label: this.label,
+      menuItems: choices
+    };
+  }
+  preAttach(): void {
+    this.menuItems = [];
+    this.menuOptions.forEach((option) => {
+      if (option.display(this)) {
+        this.menuItems.push(option.menuChoice);
+      }
+   });
+  }
 }
