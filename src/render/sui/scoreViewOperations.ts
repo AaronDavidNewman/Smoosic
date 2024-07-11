@@ -86,7 +86,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const isPartExposed = this.isPartExposed();
     const bufType = isPartExposed && partInfo.preserveTextGroups 
       ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
-    let ogText = partInfo.textGroups.find((tt) => tt.attrs.id === textGroup.attrs.id);
+    let ogText = this.storeScore.textGroups.find((tg) => tg.attrs.id === textGroup.attrs.id);
     if (isPartExposed && partInfo.preserveTextGroups) {
       ogText = partInfo.textGroups.find((tg) => tg.attrs.id === textGroup.attrs.id);
     }

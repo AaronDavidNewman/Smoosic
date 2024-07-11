@@ -39,7 +39,7 @@ export function isModifierWithDialog(modifier: SmoModifier) {
       return createAndDisplayDialog(SuiDynamicModifierDialog, parameters);
     } else if (ctor === 'SmoVolta') {
       return createAndDisplayDialog(SuiVoltaAttributeDialog, parameters);
-    } else if (ctor === 'SmoTextGroup') {
+    } else if (ctor === 'SmoTextGroup') {      
       return createAndDisplayDialog(SuiTextBlockDialog, parameters);
     } else if (ctor === 'SmoStaffTextBracket') {
       return createAndDisplayDialog(SuiTextBracketDialog, parameters);
