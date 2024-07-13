@@ -135,7 +135,8 @@ export interface SmoScoreParamsSer {
 
 export interface SmoScoreSerializeOptions {
   skipStaves: boolean,
-  useDictionary: boolean
+  useDictionary: boolean,
+  preserveStaffIds: boolean // preserve staff modifiers IDs to keep in sync
 }
 // dont' deserialize trivial text blocks saved by mistake
 export function isEmptyTextBlock(params: Partial<SmoTextGroupParamsSer>): params is SmoTextGroupParamsSer {
@@ -444,6 +445,7 @@ export class SmoScore {
   serialize(options?: SmoScoreSerializeOptions): SmoScoreParamsSer {
     const skipStaves = options?.skipStaves ?? false;
     const useDictionary = options?.skipStaves ?? true;
+    const preserveIds = options?.preserveStaffIds ?? false;
     let obj: Partial<SmoScoreParamsSer> = {
       layoutManager: { ctor: 'SmoLayoutManager', ...SmoLayoutManager.defaults },
       audioSettings: {},
@@ -470,7 +472,7 @@ export class SmoScore {
     obj.audioSettings = this.audioSettings.serialize();
     if (!skipStaves) {
       this.staves.forEach((staff: SmoSystemStaff) => {
-        obj.staves!.push(staff.serialize({ skipMaps: true }));
+        obj.staves!.push(staff.serialize({ skipMaps: true, preserveIds: preserveIds }));
       });
     } else {
       obj.staves = [];

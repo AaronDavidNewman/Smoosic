@@ -45,6 +45,11 @@ export abstract class StaffModifierBase implements SmoModifierBase {
     const rv = new ctor(params);
     return rv;
   }
+  serializeWithId() {
+    const ser = this.serialize();
+    ser.attrs = JSON.parse(JSON.stringify(this.attrs));
+    return ser;
+  }
   abstract serialize(): any;
 }
 export interface StaffModifierBaseSer {
@@ -549,6 +554,11 @@ export class SmoStaffTextBracket extends StaffModifierBase {
       throw(' bad text bracket ' + JSON.stringify(params));
     }
     return params;
+  }
+  serializeWithId():SmoStaffTextBracketParamsSer {
+    const ser = this.serialize();
+    ser.attrs = JSON.parse(JSON.stringify(this.attrs));
+    return ser;
   }
   constructor(params: SmoStaffTextBracketParams) {
     super('SmoStaffTextBracket');

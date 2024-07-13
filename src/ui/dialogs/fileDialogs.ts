@@ -403,7 +403,7 @@ export class SuiSaveJsonValidationAdapter extends SuiComponentAdapter {
     this.fileName = value;
   }
   _saveScore() {
-    const json = this.view.storeScore.serialize({ useDictionary: false, skipStaves: false });
+    const json = this.view.storeScore.serialize({ useDictionary: false, skipStaves: false, preserveStaffIds: false });
     const jsonText = JSON.stringify(json);
     if (!this.fileName.endsWith('.json')) {
       this.fileName = this.fileName + '.json';

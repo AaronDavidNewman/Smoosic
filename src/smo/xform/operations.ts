@@ -30,6 +30,7 @@ import { SmoBeamer } from './beamers';
 export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |
   'doubleGraceNoteDuration' | 'halveGraceNoteDuration';
 
+export type createStaffModifierType<T> = (fromSelection: SmoSelection, toSelection: SmoSelection) => T;
 /**
  * SmoOperation is a collection of static methods that operate on/change/transform the music.  Most methods
  * take the score, a selection or selection array, and the parameters of the operation.
@@ -806,62 +807,56 @@ export class SmoOperation {
   static addOrReplaceBracket(modifier: SmoStaffTextBracket, fromSelection: SmoSelection, toSelection: SmoSelection) {
     fromSelection.staff.addTextBracket(modifier);
   }
-  static ritard(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createRitardBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.RITARD;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static accelerando(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createAccelerandoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.ACCEL;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static crescendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createCrescendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.CRESCENDO;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static dimenuendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createDimenuendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.CRESCENDO;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static crescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createCrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffHairpinParams = SmoStaffHairpin.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.hairpinType = SmoStaffHairpin.types.CRESCENDO;
     const modifier = new SmoStaffHairpin(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
 
-  static decrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createDecrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffHairpinParams = SmoStaffHairpin.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.hairpinType = SmoStaffHairpin.types.DECRESCENDO;
     const modifier = new SmoStaffHairpin(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-  static tie(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createTie(fromSelection: SmoSelection, toSelection: SmoSelection) {
     // By default, just tie all the pitches to all the other pitches in order
     const lines = SmoTie.createLines(fromSelection.note as SmoNote, toSelection.note as SmoNote);
     const params: SmoTieParams = SmoTie.defaults;
@@ -869,7 +864,6 @@ export class SmoOperation {
     params.endSelector = toSelection.selector;
     params.lines = lines;
     const modifier = new SmoTie(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
 
@@ -1007,10 +1001,9 @@ export class SmoOperation {
     }
     return params;
   }
-  static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlurParams {
+  static createSlur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlur {
     const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
     const modifier: SmoSlur = new SmoSlur(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
   static addStaff(score: SmoScore, parameters: SmoSystemStaffParams): SmoSystemStaff {
@@ -1142,3 +1135,4 @@ export class SmoOperation {
     });
   }
 }
+

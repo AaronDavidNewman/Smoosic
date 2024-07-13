@@ -268,13 +268,17 @@ export class UndoBuffer {
     let max = 0;
     const undoSet = this.peekUndoSet();
     if (undoSet) {
-      undoSet.buffers.forEach((buf) => {
+      for (let i = 0; i < undoSet.buffers.length; ++i) {
+        const buf = undoSet.buffers[i];
+        if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
+          return [buf.json.startSelector.measure, buf.json.endSelector.measure];
+        }
         if (min < 0) {
           min = buf.selector.measure;
         }
         max = Math.max(max, buf.selector.measure);
         min = Math.min(min, buf.selector.measure);
-      });
+      }
     }
     return [Math.max(0, min), max];
   }
@@ -318,6 +322,7 @@ export class UndoBuffer {
         }
       } else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER)  {
         const modifier: StaffModifierBase = StaffModifierBase.deserialize(buf.json);
+        modifier.attrs.id = buf.json.attrs.id;
         if (typeof(staffMap[modifier.startSelector.staff]) === 'number') {
           const staff: SmoSystemStaff = score.staves[staffMap[modifier.startSelector.staff]];
           const existing: StaffModifierBase | undefined = staff.getModifier(modifier);

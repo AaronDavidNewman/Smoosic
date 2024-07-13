@@ -66,7 +66,7 @@ export abstract class SuiScoreView {
     this.audioAnimation = config.audioAnimation;
     this.renderer = new SuiRenderState(renderParams);
     this.config = config;
-    const scoreJson = score.serialize({ skipStaves: false, useDictionary: false });
+    const scoreJson = score.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true });
     this.scroller = new SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
@@ -213,8 +213,11 @@ export abstract class SuiScoreView {
     const copy = StaffModifierBase.deserialize(staffModifier.serialize());
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
     copy.endSelector = this._getEquivalentSelector(copy.endSelector);
+    const copySer = copy.serialize();
+    // Copy ID so we can undo properly
+    copySer.attrs = JSON.parse(JSON.stringify(staffModifier.attrs));
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
-      copy.serialize(), subtype);
+      copySer, subtype);
   }
   /** 
    * Return the index of the page that is in the center of the client screen.
@@ -533,13 +536,14 @@ export abstract class SuiScoreView {
     if (!any) {
       return;
     }
-    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize({ skipStaves: true, useDictionary: false })));
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(
+      { skipStaves: true, useDictionary: false, preserveStaffIds: false })));
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
         const srcStave = this.storeScore.staves[i];
-        const jsonObj = srcStave.serialize({ skipMaps: false });
+        const jsonObj = srcStave.serialize({ skipMaps: false, preserveIds: true });
         jsonObj.staffId = staffMap.length;
         const nStave = SmoSystemStaff.deserialize(jsonObj);
         nStave.mapStaffFromTo(i, nscore.staves.length);
@@ -585,7 +589,7 @@ export abstract class SuiScoreView {
    */
   viewAll() {
     this.score = SmoScore.deserialize(JSON.stringify(
-      this.storeScore.serialize({ skipStaves: false, useDictionary: false })));
+      this.storeScore.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true })));
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this._setTransposing();
@@ -618,7 +622,7 @@ export abstract class SuiScoreView {
     this.renderer.score = score;
     this.renderer.setViewport();
     this.storeScore = SmoScore.deserialize(JSON.stringify(
-      score.serialize({ skipStaves: false, useDictionary: false })));
+      score.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true })));
     this.score = score;
     // If the score is non-transposing, hide the instrument xpose settings
     this._setTransposing();
@@ -678,10 +682,15 @@ export abstract class SuiScoreView {
       for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
         this.score.staves.forEach((staff) => {
           const staffId = staff.staffId;
+          const altStaff = this.storeScore.staves[this._getEquivalentStaff(staffId)];
+          if (altStaff) {
+            staff.syncStaffModifiers(i, altStaff);
+          }
           // Get a copy of the backing score, and map it to the score stave.  this.score may have fewer staves
           // than this.storeScore
           const svg = JSON.parse(JSON.stringify(staff.measures[i].svg));
           const serialized = UndoBuffer.serializeMeasure(this.storeScore.staves[this.staffMap[staffId]].measures[i]);
+          serialized.measureNumber.staffId = staffId;
           const xpose = serialized.transposeIndex ?? 0;
           const concertKey = SmoMusic.vexKeySigWithOffset(serialized.keySignature ?? 'c', -1 * xpose);
           serialized.keySignature = concertKey;

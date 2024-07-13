@@ -14,9 +14,11 @@ import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
   SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange, 
   SmoTabNote} from '../../smo/data/noteModifiers';
-import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, 
+  SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SmoOperation } from '../../smo/xform/operations';
+import { SmoOperation, createStaffModifierType
+ } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { FontInfo } from '../../common/vex';
@@ -26,7 +28,7 @@ import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { StaffModifierBase, SmoSlur,
+import { StaffModifierBase, 
    SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
@@ -34,6 +36,7 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 import { parseJsonText } from 'typescript';
 declare var $: any;
 declare var SmoConfig: SmoRenderConfiguration;
+
 
 /**
  * MVVM-like operations on the displayed score.
@@ -1310,6 +1313,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
   _removeStaffModifier(modifier: StaffModifierBase) {
     this.score.staves[modifier.associatedStaff].removeStaffModifier(modifier);
     const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.attrs.id = modifier.attrs.id;
     altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
     altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
     this.storeScore.staves[this._getEquivalentStaff(modifier.associatedStaff)].removeStaffModifier(altModifier);
@@ -1366,17 +1370,20 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
     return this.renderer.updatePromise();
   }
-  _lineOperation(op: string) {
+  lineOperation(op: createStaffModifierType<StaffModifierBase>) {
     // if (this.tracker.selections.length < 2) {
     //   return;
     // }
-    const measureSelections = this._undoTrackerMeasureSelections(op);
+    const measureSelections = this._undoTrackerMeasureSelections('create staff modifier');
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    const modifier = (SmoOperation as any)[op](ft, tt);
-    (SmoOperation as any)[op](ftAlt, ttAlt);
+    const modifier = op(ft, tt);
+    const altModifier = op(ftAlt!, ttAlt!);
+    altModifier.attrs.id = modifier.attrs.id;
+    ft.staff.addStaffModifier(modifier);
+    ftAlt?.staff.addStaffModifier(altModifier);
     this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
@@ -1384,43 +1391,43 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Add crescendo to selection
    */
   async crescendo(): Promise<void> {
-    this._lineOperation('crescendo');
+    this.lineOperation(SmoOperation.createCrescendo);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async crescendoBracket(): Promise<void> {
-    this._lineOperation('crescendoBracket');
+    this.lineOperation(SmoOperation.createCrescendoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async dimenuendo(): Promise<void> {
-    this._lineOperation('dimenuendo');
+    this.lineOperation(SmoOperation.createDimenuendoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async accelerando(): Promise<void> {
-    this._lineOperation('accelerando');
+    this.lineOperation(SmoOperation.createAccelerandoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async ritard(): Promise<void> {
-    this._lineOperation('ritard');
+    this.lineOperation(SmoOperation.createRitardBracket);
     return this.renderer.updatePromise();
   }
   /**
-   * diminuendo selections
+   * diminuendo hairpin
    * @returns 
    */
   async decrescendo(): Promise<void> {
-    this._lineOperation('decrescendo');
+    this.lineOperation(SmoOperation.createDecrescendo);
     return this.renderer.updatePromise();
   }
   async removeTextBracket(bracket: SmoStaffTextBracket): Promise<void> {
@@ -1448,15 +1455,19 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Slur selected notes
    * @returns
    */
-  async slur(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('slur');
+  async addSlur(): Promise<void> {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    const modifier = SmoOperation.slur(this.score, ft, tt);
-    const altModifier = SmoOperation.slur(this.storeScore, ftAlt!, ttAlt!);
-    this._undoStaffModifier('add ' + 'op', new SmoSlur(modifier), UndoBuffer.bufferSubtypes.ADD);
+    const modifier = SmoOperation.createSlur(this.score, ft, tt);
+    ft.staff.addStaffModifier(modifier);
+    // make sure score and backup have same ID for undo.
+    const altModifier = SmoOperation.createSlur(this.storeScore, ftAlt!, ttAlt!);
+    altModifier.attrs.id = modifier.attrs.id;
+    ftAlt?.staff.addStaffModifier(altModifier);
+    this._undoStaffModifier('add slur', modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }
@@ -1465,7 +1476,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async tie(): Promise<void> {
-    this._lineOperation('tie');
+    this.lineOperation(SmoOperation.createTie);
     return this.renderer.updatePromise();
   }
   async updateZoom(zoomFactor: number): Promise<void> {

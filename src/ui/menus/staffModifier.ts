@@ -63,7 +63,7 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
     if (op === 'ending') {
       this.view.addEnding();
     } else if (op === 'slur') {
-      this.view.slur();
+      this.view.addSlur();
     } else if (op === 'tie') {
       this.view.tie();
     } else if (op === 'accel') {
