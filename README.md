@@ -14,7 +14,7 @@ We are approaching Smoosic 1.0 status!  Many of the things I wanted to do with S
 * dynamic music library with links to scores, tags etc.  Inspired by iRealPro app 'ireal' format
 * library mode for custom applications
 
-Smoosic is highly dependent on the [Vexflow engraving library](https://github.com/0xfe/vexflow), and especially its authors/maintainers [@rvilari](https://github.com/0xfe/vexflow/commits?author=rvilarl), [@ronyeh](https://github.com/0xfe/vexflow/commits?author=ronyeh) and [@0xfe](https://github.com/0xfe).
+Smoosic is highly dependent on the [Vexflow engraving library](https://github.com/0xfe/vexflow), and especially its authors/maintainers [@rvilarl](https://github.com/0xfe/vexflow/commits?author=rvilarl), [@ronyeh](https://github.com/0xfe/vexflow/commits?author=ronyeh) and [@0xfe](https://github.com/0xfe).
 
 See [changes](https://aarondavidnewman.github.io/Smoosic/changes.html) for changes, updates, initiatives etc.
 

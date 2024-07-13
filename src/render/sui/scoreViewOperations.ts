@@ -58,18 +58,19 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const isPartExposed = this.isPartExposed();
     let selector = textGroup.selector ?? SmoSelector.default;
     const partInfo = this.score.staves[0].partInfo;
-    const bufType = isPartExposed && partInfo.preserveTextGroups 
+    const bufType = isPartExposed && partInfo.preserveTextGroups
       ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
     if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
       selector.staff = this.staffMap[0];
     }  
     this.storeUndo.addBuffer('remove text group', bufType,
       selector, textGroup, UndoBuffer.bufferSubtypes.ADD);
-    this.score.updateTextGroup(textGroup, true);
-    if (isPartExposed) {
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      this.score.staves[0].partInfo.updateTextGroup(textGroup, true);
       const partInfo = this.storeScore.staves[this._getEquivalentStaff(0)].partInfo;
-      partInfo.updateTextGroup(altNew, true);
+      partInfo.updateTextGroup(altNew, true);      
     } else {
+      this.score.updateTextGroup(textGroup, true);
       this.storeScore.updateTextGroup(altNew, true);
     }
     await this.renderer.rerenderTextGroups();
@@ -100,15 +101,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     this.storeUndo.addBuffer('remove text group', bufType,
       selector, ogText, UndoBuffer.bufferSubtypes.REMOVE);
-    this.score.updateTextGroup(textGroup, false);
     const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize());
     textGroup.elements.forEach((el) => el.remove());
     textGroup.elements = [];
-    if (!isPartExposed) {
-      this.storeScore.updateTextGroup(altGroup, false);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      partInfo.updateTextGroup(textGroup, false);
+      this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altGroup, false);
     } else {
-      const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
-      stave.partInfo.updateTextGroup(textGroup, false);
+      this.score.updateTextGroup(textGroup, false);
+      this.storeScore.updateTextGroup(altGroup, false);
     }
     await this.renderer.rerenderTextGroups();
   }

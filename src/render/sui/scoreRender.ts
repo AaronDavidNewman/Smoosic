@@ -213,9 +213,13 @@ export class SuiScoreRender {
   }
   async renderTextGroups(): Promise<void> {
     return new Promise((resolve) => {
+      let tgs = this.score!.textGroups;
+      if (this.score?.isPartExposed() && this.score.staves[0].partInfo.preserveTextGroups) {
+        tgs = this.score.staves[0].partInfo.textGroups;
+      }
       // group.classList.add('all-score-text');
-      for (var i = 0; i < this.score!.textGroups.length; ++i) {
-        const tg = this.score!.textGroups[i];
+      for (var i = 0; i < tgs.length; ++i) {
+        const tg = tgs[i];
         this.renderTextGroup(tg);
       }
       resolve();
