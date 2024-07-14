@@ -141,11 +141,16 @@ export class UndoBuffer {
     }
     return false;
   }
-  // ### addBuffer
-  // Description:
-  // Add the current state of the score required to undo the next operation we
-  // are about to perform.  For instance, if we are adding a crescendo, we back up the
-  // staff the crescendo will go on.
+  /**
+   * Add the current state of the score required to undo the next operation we
+   * are about to perform.  For instance, if we are adding a crescendo, we back up the
+   * staff the crescendo will go on.
+   * @param title 
+   * @param type 
+   * @param selector 
+   * @param obj 
+   * @param subtype 
+   */
   addBuffer(title: string, type: number, selector: SmoSelector, obj: any, subtype: number) {
     this.checkNull();
     let i = 0;
@@ -205,14 +210,18 @@ export class UndoBuffer {
     }
   }
 
+  /**
+   * Make sure we always have a buffer to record undoable operations
+   */
   checkNull() {
     if (this.buffer.length === 0) {
       this.buffer.push(new UndoSet());
     }
   }
-  // ### _pop
-  // ### Description:
-  // Internal method to pop the top buffer off the stack.
+  /**
+   * Internal method to pop the top buffer off the stack.
+   * @returns 
+   */
   popUndoSet(): UndoSet | null {
     this.checkNull();
     const lastBufIx = this.buffer.length - 1;
@@ -224,9 +233,10 @@ export class UndoBuffer {
     }
     return null;
   }
-
-  // ## Before undoing, peek at the top action in the q
-  // so it can be re-rendered
+  /**
+   * non-destructively get the top undo buffer.
+   * @returns 
+   */
   peekUndoSet(): UndoSet | null {
     this.checkNull();
     const lastBufIx = this.buffer.length - 1;
@@ -238,6 +248,12 @@ export class UndoBuffer {
     }
     return null;
   }
+  /**
+   * return the type of the undo operation, so the view can know which
+   * parts of the score are affected.
+   * @param func 
+   * @returns 
+   */
   undoTypePeek(func: (buf: UndoEntry) => boolean) {
     const undoSet = this.peekUndoSet();
     if (!undoSet || undoSet.length === 0) {
@@ -263,6 +279,11 @@ export class UndoBuffer {
        buf.json && buf.json.ctor === 'SmoTextGroup');
   }
 
+  /**
+   * Get the range of measures affected by the next undo operation.  Only
+   * makes sense to call this if the undo type is MEASURE or COLUMN
+   * @returns 
+   */
   getMeasureRange(): number[] {
     let min = -1;
     let max = 0;
@@ -273,6 +294,13 @@ export class UndoBuffer {
         if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
           return [buf.json.startSelector.measure, buf.json.endSelector.measure];
         }
+        if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+          min = buf.json.measureIndex;
+          buf.json.measures.forEach((mmjson: SmoMeasureParamsSer) => {
+            max = Math.max(max, mmjson.measureNumber.measureIndex);
+          });
+          return [min, max];
+        }
         if (min < 0) {
           min = buf.selector.measure;
         }
@@ -282,6 +310,13 @@ export class UndoBuffer {
     }
     return [Math.max(0, min), max];
   }
+  /**
+   * Undo for text is different since text is not associated with a specific part of the
+   * score (usually)
+   * @param score 
+   * @param staffMap 
+   * @param buf 
+   */
   undoTextGroup(score: SmoTextGroupContainer, staffMap: Record<number, number>, buf: UndoEntry) {
     const obj = SmoTextGroup.deserializePreserveId(buf.json);
     obj.attrs.id = buf.json.attrs.id;
@@ -292,10 +327,14 @@ export class UndoBuffer {
       score.addTextGroup(obj);
     }
   }
-  // ## undo
-  // ## Description:
-  // Undo the operation at the top of the undo stack.  This is done by replacing
-  // the music as it existed before the change was made.
+  /**
+   * Undo the operation at the top of the undo stack.  This is done by replacing
+   * the music as it existed before the change was made.
+   * @param score 
+   * @param staffMap 
+   * @param pop 
+   * @returns 
+   */
   undo(score: SmoScore, staffMap: Record<number, number>, pop: boolean): SmoScore {
     let i = 0;
     let j = 0;

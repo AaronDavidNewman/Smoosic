@@ -51,7 +51,6 @@ export abstract class SuiScoreView {
   tracker: SuiTracker; // UI selections
   renderer: SuiRenderState;
   scroller: SuiScroller;
-  pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
   config: SmoRenderConfiguration;
   audioAnimation: SuiAudioAnimationParams;
@@ -68,9 +67,8 @@ export abstract class SuiScoreView {
     this.config = config;
     const scoreJson = score.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true });
     this.scroller = new SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
-    this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
-    this.tracker = new SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
+    this.tracker = new SuiTracker(this.renderer, this.scroller);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
@@ -595,7 +593,6 @@ export abstract class SuiScoreView {
     this._setTransposing();
     this.score.synchronizeTextGroups(this.storeScore.textGroups);
     this.renderer.score = this.score;
-    this.pasteBuffer.setScore(this.score);
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
   }
@@ -636,7 +633,30 @@ export abstract class SuiScoreView {
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;
   }
-
+  replaceMeasureView(measureRange: number[]) {
+    for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
+      this.score.staves.forEach((staff) => {
+        const staffId = staff.staffId;
+        const altStaff = this.storeScore.staves[this._getEquivalentStaff(staffId)];
+        if (altStaff) {
+          staff.syncStaffModifiers(i, altStaff);
+        }
+        // Get a copy of the backing score, and map it to the score stave.  this.score may have fewer staves
+        // than this.storeScore
+        const svg = JSON.parse(JSON.stringify(staff.measures[i].svg));
+        const serialized = UndoBuffer.serializeMeasure(this.storeScore.staves[this.staffMap[staffId]].measures[i]);
+        serialized.measureNumber.staffId = staffId;
+        const xpose = serialized.transposeIndex ?? 0;
+        const concertKey = SmoMusic.vexKeySigWithOffset(serialized.keySignature ?? 'c', -1 * xpose);
+        serialized.keySignature = concertKey;
+        const rmeasure = SmoMeasure.deserialize(serialized);
+        rmeasure.svg = svg;
+        const selector: SmoSelector = { staff: staffId, measure: i, voice: 0, tick: 0, pitches: [] };
+        this.score.replaceMeasure(selector, rmeasure);
+      });
+      this.renderer.addColumnToReplaceQueue(i);
+    }
+  }
   /**
    * for the view score, the renderer decides what to render
    * depending on what is undone.
@@ -679,28 +699,7 @@ export abstract class SuiScoreView {
       this.score.synchronizeTextGroups(this.storeScore.textGroups);
       this.renderer.rerenderTextGroups();
     } else {
-      for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
-        this.score.staves.forEach((staff) => {
-          const staffId = staff.staffId;
-          const altStaff = this.storeScore.staves[this._getEquivalentStaff(staffId)];
-          if (altStaff) {
-            staff.syncStaffModifiers(i, altStaff);
-          }
-          // Get a copy of the backing score, and map it to the score stave.  this.score may have fewer staves
-          // than this.storeScore
-          const svg = JSON.parse(JSON.stringify(staff.measures[i].svg));
-          const serialized = UndoBuffer.serializeMeasure(this.storeScore.staves[this.staffMap[staffId]].measures[i]);
-          serialized.measureNumber.staffId = staffId;
-          const xpose = serialized.transposeIndex ?? 0;
-          const concertKey = SmoMusic.vexKeySigWithOffset(serialized.keySignature ?? 'c', -1 * xpose);
-          serialized.keySignature = concertKey;
-          const rmeasure = SmoMeasure.deserialize(serialized);
-          rmeasure.svg = svg;
-          const selector: SmoSelector = { staff: staffId, measure: i, voice: 0, tick: 0, pitches: [] };
-          this.score.replaceMeasure(selector, rmeasure);
-        });
-        this.renderer.addColumnToReplaceQueue(i);
-      }
+      this.replaceMeasureView(measureRange);
     }
     await this.renderer.updatePromise();
   }

@@ -60,13 +60,12 @@ export abstract class SuiMapper {
   // By default, defer highlights for performance.
   deferHighlightMode: boolean = true;
   suggestion: SmoSelection | null = null;
-  pasteBuffer: PasteBuffer;
   highlightQueue: HighlightQueue;
   mouseHintBox: OutlineInfo | null = null;
   selectionRects: Record<number, OutlineInfo[]> = {};
   outlines: Record<string, OutlineInfo> = {};
   mapping: boolean = false;
-  constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
+  constructor(renderer: SuiRendererBase, scroller: SuiScroller) {
     // renderer renders the music when it changes
     this.renderer = renderer;
     this.scroller = scroller;
@@ -75,7 +74,6 @@ export abstract class SuiMapper {
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
-    this.pasteBuffer = pasteBuffer;
     this.highlightQueue = { selectionCount: 0, deferred: false };
   }
 

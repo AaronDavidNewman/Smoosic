@@ -1168,7 +1168,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Generic clipboard copy action
    */
   async copy(): Promise<void> {
-    this.pasteBuffer.setSelections(this.score, this.tracker.selections);
     const altAr: SmoSelection[] = [];
     this.tracker.selections.forEach((sel) => {
       const noteSelection = this._getEquivalentSelection(sel);
@@ -1186,15 +1185,24 @@ export class SuiScoreViewOperations extends SuiScoreView {
   async paste(): Promise<void> {
     // We undo the whole score on a paste, since we don't yet know the
     // extent of the overlap
-    this._undoScore('paste');
     this.renderer.preserveScroll();
-    const firstSelection = this.tracker.selections[0];
-    const pasteTarget = firstSelection.selector;
+    const selections: SmoSelection[]  = SmoSelection.getMeasureList(this.tracker.selections);
+    const firstSelection = selections[0];
+    const measureEnd = this.storePaste.getDestinationMeasure(firstSelection);
+    const measureRange = [firstSelection.selector.measure, measureEnd];
+    this.storeUndo.grouping = true;
+    // Undo the paste by selecting all the affected measures
+    for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
+      this._undoColumn('paste', i);
+      this.renderer.unrenderColumn(this.score.staves[0].measures[i]);
+    }
+    this.storeUndo.grouping = false;
     const altSelection = this._getEquivalentSelection(firstSelection);
     const altTarget = altSelection!.selector;
-    this.pasteBuffer.pasteSelections(pasteTarget);
+    // paste the clipboard into the destination
     this.storePaste.pasteSelections(altTarget);
-    this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
+    // Refresh those measures.
+    this.replaceMeasureView(measureRange);
     await this.renderer.updatePromise();
   }
   /**
