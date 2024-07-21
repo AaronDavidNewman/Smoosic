@@ -144,12 +144,25 @@ export class SuiNoteHeadButtonComponent extends SuiButtonArrayComponent {
   }
 }
 export class SuiNoteHeadAdapter extends SuiComponentAdapter {
-  selections: SmoSelection[];
   code: string = '';
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.view.groupUndo(true);
-    this.selections = SmoSelection.getMeasureList(this.view.tracker.selections);
+    const ss: Record<string, number> = {};
+    const selections = this.view.tracker.selections.filter((nn) => nn.note);
+    // count all the notes in selection, if they all have the same note head, that is the
+    // selected note head so select it in the UI.
+    for (let i = 0; i < selections.length; ++i) {
+      const nn = selections[i].note;
+      if (typeof(ss[nn!.noteHead]) === 'undefined') {
+        ss[nn!.noteHead] = 0;
+      }
+      ss[nn!.noteHead]+= 1;
+    }
+    const keys = Object.keys(ss);
+    if (keys.length === 1) {
+      this.code = keys[0];
+    }
   }
   get noteHead() {
     return this.code;

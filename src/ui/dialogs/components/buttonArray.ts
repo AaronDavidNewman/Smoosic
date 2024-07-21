@@ -30,6 +30,7 @@ export class SuiButtonArrayButton extends SuiComponentBase {
   }
   constructor(dialog: SuiDialogNotifier, parameters: SuiButtonCompositeParams) {
     super(dialog, parameters);
+    this.id = `${dialog.getId()}-${parameters.id}`;
     this.dialog = dialog;
     this.icon = parameters.icon;
     this.classes = parameters.classes;
@@ -58,6 +59,12 @@ export class SuiButtonArrayButton extends SuiComponentBase {
     );
     return q;
   }
+  updateControls() {
+    const updateEl = $('#' + this.parameterId);
+    $(updateEl).html('');
+    $(updateEl).append(this.html.dom());
+    this.bind();
+  }
   bind() {
     $(`#${this.id}`).off('click').on('click', 
       (ev: any) => {
@@ -77,6 +84,7 @@ export abstract class SuiButtonArrayBase extends SuiComponentParent {
   view: SuiScoreViewOperations;
   buttonRows: SuiButtonComponentRow[] = [];
   pressed: string = '';
+  shellCreated: boolean = false;
 
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
     super(dialog, parameter);
@@ -99,24 +107,32 @@ export abstract class SuiButtonArrayBase extends SuiComponentParent {
 
     this.view = this.dialog.getView();
   }
+  updateControls() {
+    const updateEl = $('#' + this.parameterId);
+    $(updateEl).html('');
+    $(updateEl).append(this.html.dom());
+    this.bind();
+  }
   get html() {
     const b = buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
+    if (!this.shellCreated) {
+      const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
       .attr('id', this.parameterId);
-    const rows = this.buttonRows;
+      this.shellCreated = true;
+      return q;
+    }
+    const q = b('div');
     for (let i = 0; i < this.buttonRows.length; ++i) {
       const buttonRow = this.buttonRows[i];
-      const r = b('div').classes(`button-array-label`)
-       .append(b('span').classes(`${buttonRow.classes}`).text(buttonRow.label))
-       .append(b('div').classes('button-array-row'));
-       buttonRow.buttons.forEach((bb) => {
-        if (bb.smoName === this.pressed) {
-          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
-        } else {
-          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
-        }
-        r.append(bb.html);
+      const r = b('div').classes(`button-array-row`);
+      const s = b('div').classes('button-array-label')
+        .append(b('span').classes(`${buttonRow.classes}`).text(buttonRow.label));
+      const t = b('div').classes('button-array-buttons');
+      buttonRow.buttons.forEach((bb) => {
+        t.append(bb.html);
       });
+      r.append(s);
+      r.append(t);
       q.append(r);
     }
     return q;
@@ -128,44 +144,15 @@ export abstract class SuiButtonArrayBase extends SuiComponentParent {
 
 export class SuiButtonArrayComponent extends SuiButtonArrayBase {
   pressed: string = '';
+  shellCreated: boolean = false;
 
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
     super(dialog, parameter, buttonFactory);
   }
-  get html() {
-    const b = buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
-      .attr('id', this.parameterId);
-    const rows = this.buttonRows;
-    for (let i = 0; i < this.buttonRows.length; ++i) {
-      const buttonRow = this.buttonRows[i];
-      const r = b('div').classes(`button-array-row`);
-      const s = b('div').classes('button-array-label')
-        .append(b('span').classes(`${buttonRow.classes}`).text(buttonRow.label));
-      const t = b('div').classes('button-array-buttons');
-       buttonRow.buttons.forEach((bb) => {
-        if (bb.smoName === this.pressed) {
-          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
-        } else {
-          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
-        }
-        t.append(bb.html);
-      });
-      r.append(s);
-      r.append(t);
-      q.append(r);
-    }
-    return q;
-  }
-
   getValue(): string {   
     return this.pressed;
   }
-  setValue(val: string) {
-    this.pressed = val;
-  }
-  changed() {
-    this.changeFlag = true;
+  updateValues() {
     const rowKeys = Object.keys(this.buttonRows);
     for (let i = 0; i < rowKeys.length; ++i) {
       const buttonRow = this.buttonRows[i];
@@ -178,6 +165,16 @@ export class SuiButtonArrayComponent extends SuiButtonArrayBase {
         }
       });
     }
+  }
+  setValue(val: string) {
+    this.pressed = val;
+    this.updateValues();
+    this.updateControls();
+  }
+  changed() {
+    this.changeFlag = true;
+    this.updateValues();
+    this.updateControls();
     this.handleChanged();
     this.changeFlag = false;
   }
@@ -201,16 +198,16 @@ export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
   }
   setValue(val: string[]) {
     this.pressedArray = val;
+    this.updateValues();
+    this.updateControls();
   }
-  changed() {
-    this.changeFlag = true;
+  updateValues() {
     const rowKeys = Object.keys(this.buttonRows);
     const pressed: string[] = [];
     for (let i = 0; i < rowKeys.length; ++i) {
       const buttonRow = this.buttonRows[i];
       buttonRow.buttons.forEach((bb) => {
-        if (bb.changeFlag) {
-          pressed.push(bb.smoName);
+        if (this.pressedArray.indexOf(bb.smoName) >= 0) {
           bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
         } else {
           bb.buttonState = SuiButtonArrayButton.buttonState.initial;
@@ -218,6 +215,11 @@ export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
       });
     }
     this.pressedArray = pressed;
+  }
+  changed() {
+    this.changeFlag = true;
+    this.updateValues();
+    this.updateControls();
     this.handleChanged();
     this.changeFlag = false;
   }

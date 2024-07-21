@@ -416,6 +416,11 @@ export interface SmoOrnamentParams {
    */  
   offset?: string,
   /**
+   * accidental above/below
+   */
+  accidentalAbove?: string,
+  accidentalBelow?: string,
+  /**
    * code for the ornament
    */
   ornament: string,
@@ -461,7 +466,10 @@ export class SmoOrnament extends SmoNoteModifierBase {
     doit: 'doit',
     doitLong: 'doitLong',
     flip: 'flip',
-    smear: 'smear'
+    smear: 'smear',
+    bend: 'bend',
+    plungerClosed: 'plungerClosed',
+    plungerOpen: 'plungerOpen'
   }
 
   static readonly xmlOrnaments: Record<string, string> = {
@@ -490,7 +498,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
     drop: 'plop'
   }
   static get jazzOrnaments(): string[] {
-    return ['SCOOP', 'FALL_SHORT', 'FALL_LONG', 'DOIT', 'LIFT', 'FLIP', 'SMEAR'];
+    return ['scoop', 'fallLong', 'doit', 'lift', 'flip', 'smear', 'scoop', 'plungerOpen', 'plungerClosed'];
   }
   toVex() {
     return SmoOrnament.ornaments[this.ornament.toLowerCase()];
@@ -514,7 +522,8 @@ export class SmoOrnament extends SmoNoteModifierBase {
   static get positions() {
     return {
       above: 'above',
-      below: 'below'
+      below: 'below',
+      auto: 'auto'
     };
   }
   static get offsets() {
@@ -522,12 +531,12 @@ export class SmoOrnament extends SmoNoteModifierBase {
       on: 'on',
       after: 'after'
     };
-  }
+  }  
   static get defaults(): SmoOrnamentParams {
     return JSON.parse(JSON.stringify({
       ctor: 'SmoOrnament',
       ornament: SmoOrnament.ornaments.mordent,
-      position: SmoOrnament.positions.above,
+      position: SmoOrnament.positions.auto,
       offset: SmoOrnament.offsets.on
     }));
   }
@@ -583,7 +592,7 @@ function isSmoArticulationParametersSer(params: Partial<SmoArticulationParameter
  * @category SmoModifier
  */
 export class SmoArticulation extends SmoNoteModifierBase {
-  static get articulations() {
+  static get articulations(): Record<string, string> {
     return {
       accent: 'accent',
       staccato: 'staccato',
@@ -604,7 +613,8 @@ export class SmoArticulation extends SmoNoteModifierBase {
   static get positions() {
     return {
       above: 'above',
-      below: 'below'
+      below: 'below',
+      auto: 'auto'
     };
   }
   static get articulationToVex(): Record<string, string> {

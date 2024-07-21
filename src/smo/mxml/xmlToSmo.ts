@@ -657,7 +657,7 @@ export class XmlToSmo {
         xmlState.updateDynamics();
         ornaments.forEach((ornament) => {
           if (ornament.ctor === 'SmoOrnament') {
-            xmlState.previousNote.toggleOrnament(ornament as SmoOrnament);
+            xmlState.previousNote.setOrnament(ornament as SmoOrnament, true);
           } else if (ornament.ctor === 'SmoArticulation') {
             xmlState.previousNote.toggleArticulation(ornament as SmoArticulation);
           }

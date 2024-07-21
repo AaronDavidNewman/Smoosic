@@ -15,6 +15,8 @@ export class ArticulationButtons extends SuiButton {
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
+      turnButton: SmoOrnament.ornaments.turn,
+      turnInvertedButton: SmoOrnament.ornaments.turnInverted,
       breathButton: 'breath',
       caesuraButton: 'caesura',
       pedalOpenButton: 'pedalOpen',
@@ -25,7 +27,10 @@ export class ArticulationButtons extends SuiButton {
       doitButton: SmoOrnament.ornaments.doit,
       doitLongButton: SmoOrnament.ornaments.doitLong,
       flipButton: SmoOrnament.ornaments.flip,
-      smearButton: SmoOrnament.ornaments.smear
+      smearButton: SmoOrnament.ornaments.smear,
+      muteOpen: SmoOrnament.ornaments.plungerOpen,
+      muteClosed: SmoOrnament.ornaments.plungerClosed,
+      bend: SmoOrnament.ornaments.bend
     };
   }
   static get constructors(): Record<string, string> {
@@ -50,6 +55,9 @@ export class ArticulationButtons extends SuiButton {
       doitLongButton: 'SmoOrnament',
       flipButton: 'SmoOrnament',
       smearButton: 'SmoOrnament',
+      muteOpen: 'SmoOrnament',
+      muteClosed: 'SmoOrnament',
+      bend: 'SmoOrnament'
     };
   }
   articulation: string;

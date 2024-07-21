@@ -232,7 +232,11 @@ export class VxNote {
     smoNote.articulations.forEach((art) => {
       if (smoNote.noteType === 'n') {
         const vx = this.noteData.staveNote;
-        const position: number = SmoArticulation.positionToVex[art.position];
+        let smoPosition = art.position;
+        if (art.position === SmoArticulation.positions.auto) {
+          smoPosition = SmoMusic.positionFromStaffLine(smoNote);
+        }
+        const position = SmoArticulation.positionToVex[smoPosition];
         const vexArt = SmoArticulation.articulationToVex[art.articulation];
         const vxArt = new VF.Articulation(vexArt).setPosition(position);
         vx.addModifier(vxArt, this.noteData.voiceIndex);

@@ -293,7 +293,11 @@ function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number
     }
   }
   smoNote.articulations.forEach((aa) => {
-    const position: number = SmoArticulation.positionToVex[aa.position];
+    let smoPosition = aa.position;
+    if (smoPosition === 'auto') {
+      smoPosition = SmoMusic.positionFromStaffLine(smoNote);
+    }
+    const position: number = SmoArticulation.positionToVex[smoPosition];
     const vexArt = SmoArticulation.articulationToVex[aa.articulation];
     const sn = getId();
     strs.push(`const  ${sn} = new VF.Articulation('${vexArt}').setPosition(${position});`);

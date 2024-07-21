@@ -873,22 +873,59 @@ export class SuiScoreViewOperations extends SuiScoreView {
         const aa = new SmoArticulation({ articulation: modifier });
         const altAa = new SmoArticulation({ articulation: modifier });
         altAa.attrs.id = aa.attrs.id;
-        SmoOperation.toggleArticulation(sel, aa);
+        if (sel.note) {
+          sel.note.toggleArticulation(aa);
+        }
         const altSelection = this._getEquivalentSelection(sel);
-        SmoOperation.toggleArticulation(altSelection!, altAa);
+        if (altSelection && altSelection.note) {
+          altSelection.note.toggleArticulation(altAa);
+        }
       } else {
         const aa = new SmoOrnament({ ornament: modifier });
         const altAa = new SmoOrnament({ ornament: modifier });
         altAa.attrs.id = aa.attrs.id;
         const altSelection = this._getEquivalentSelection(sel!);
-        SmoOperation.toggleOrnament(sel, aa);
-        SmoOperation.toggleOrnament(altSelection!, altAa);
+        if (sel.note) {
+          sel.note.toggleOrnament(aa);
+        }
+        if (altSelection && altSelection.note) {
+          altSelection.note.toggleOrnament(altAa);
+        }
       }
     });
     this._renderChangedMeasures(measureSelections);
     await this.renderer.updatePromise();
   }
-
+  async setArticulation(modifier: SmoArticulation, set: boolean): Promise<void> {
+    const measureSelections = this._undoTrackerMeasureSelections('set articulation');
+    this.tracker.selections.forEach((sel) => {
+      const altAa = new SmoArticulation(modifier);
+      if (sel.note) {
+        sel.note.setArticulation(modifier, set);
+      }
+      const altSelection = this._getEquivalentSelection(sel);
+      if (altSelection && altSelection.note) {
+        altSelection.note.toggleArticulation(altAa);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();    
+  }
+  async setOrnament(modifier: SmoOrnament, set: boolean): Promise<void> {
+    const measureSelections = this._undoTrackerMeasureSelections('set articulation');
+    this.tracker.selections.forEach((sel) => {
+      const altAa = new SmoOrnament(modifier);
+      if (sel.note) {
+        sel.note.setOrnament(modifier, set);
+      }
+      const altSelection = this._getEquivalentSelection(sel);
+      if (altSelection && altSelection.note) {
+        altSelection.note.setOrnament(altAa, set);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();    
+  }
   /**
    * convert non-tuplet not to a tuplet
    * @param numNotes 3 means triplet, etc.

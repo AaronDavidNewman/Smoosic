@@ -673,14 +673,6 @@ export class SmoOperation {
     });
   }
 
-  static toggleOrnament(selection: SmoSelection, ornament: SmoOrnament) {
-    (selection.note as SmoNote).toggleOrnament(ornament);
-  }
-
-  static toggleArticulation(selection: SmoSelection, articulation: SmoArticulation) {
-    (selection.note as SmoNote).toggleArticulation(articulation);
-  }
-
   static addEnding(score: SmoScore, parameters: SmoVolta) {
     let m = 0;
     let s = 0;
