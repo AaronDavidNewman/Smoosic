@@ -27,7 +27,7 @@
   },
   "scripts": {
     "test": "exit 0",
-    "build": "node ./node_modules/webpack-cli/bin/cli.js",
+    "build": "node ./build/build.js",
     "typedoc": "node ./node_modules/typedoc/bin/typedoc"
   },
   "repository": {

@@ -3,6 +3,7 @@ import {SuiArpeggioDialog } from '../dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../dialogs/clefChange';
 import { SuiNoteHeadDialog } from '../dialogs/noteHead';
 import { SuiOrnamentDialog } from '../dialogs/ornament';
+import { SuiArticulationDialog } from '../dialogs/articulation';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition, SuiMenuHandler, SuiMenuShowOption, 
   SuiConfiguredMenuOption, SuiConfiguredMenu } from './menu';
 declare var $: any;
@@ -101,6 +102,26 @@ const ornamentNoteDialogMenuOption: SuiConfiguredMenuOption = {
     value: 'ornamentDialog'
   }
 }
+const articulationNoteDialogMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiArticulationDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiArticulationDialog',
+      id: 'ornament-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Articulations',
+    value: 'articulationDialog'
+  }
+}
 const SuiNoteMenuOptions: SuiConfiguredMenuOption[] = [
-  toggleCueMenuOption, arpeggioMenuOption, clefNoteDialogMenuOption, noteHeadMenuOption, ornamentNoteDialogMenuOption
+  toggleCueMenuOption, arpeggioMenuOption, clefNoteDialogMenuOption, noteHeadMenuOption, ornamentNoteDialogMenuOption,
+  articulationNoteDialogMenuOption
 ]

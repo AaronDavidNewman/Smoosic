@@ -402,6 +402,12 @@ export class SmoNote implements Transposable {
   getArticulations() {
     return this.articulations;
   }
+  getArticulation(stringCode: string) {
+    return this.articulations.find((aa) => aa.articulation === stringCode);
+  }
+  getOrnament(stringCode: string) {
+    return this.ornaments.find((aa) => aa.ornament === stringCode);
+  }
 
   /**
    * Add a new dynamic to thisnote

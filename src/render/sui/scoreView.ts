@@ -265,6 +265,15 @@ export abstract class SuiScoreView {
     return measureSelections;
   }
   /**
+   * Update undo buffer and add selections to the replacement queue
+   * @param label 
+   */
+  syncDialogSelections(label: string) {
+    this._undoTrackerMeasureSelections(label);
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    this._renderChangedMeasures(measureSelections);
+  }
+  /**
    * operation that only affects the first selection.  Setup undo for the measure
    */
   _undoFirstMeasureSelection(label: string): SmoSelection {

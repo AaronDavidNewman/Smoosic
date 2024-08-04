@@ -190,6 +190,7 @@ export class SuiButtonArrayComponent extends SuiButtonArrayBase {
 }
 export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
   pressedArray: string[] = [];
+  initialValue: boolean = true;
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
     super(dialog, parameter, buttonFactory);
   }
@@ -200,6 +201,7 @@ export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
     this.pressedArray = val;
     this.updateValues();
     this.updateControls();
+    this.initialValue = false;
   }
   updateValues() {
     const rowKeys = Object.keys(this.buttonRows);
@@ -207,10 +209,22 @@ export class SuiButtonArrayMSComponent extends SuiButtonArrayBase {
     for (let i = 0; i < rowKeys.length; ++i) {
       const buttonRow = this.buttonRows[i];
       buttonRow.buttons.forEach((bb) => {
-        if (this.pressedArray.indexOf(bb.smoName) >= 0) {
-          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
-        } else {
-          bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+        // If this button was just pressed
+        if (bb.changeFlag) {
+          if (this.pressedArray.indexOf(bb.smoName) >= 0) {
+            bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+          } else {
+            bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+            pressed.push(bb.smoName);
+          }
+        } else if (this.initialValue) {  // or if the initial value is being set
+          if (this.pressedArray.indexOf(bb.smoName) >= 0) {
+            bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+            pressed.push(bb.smoName);
+          }
+        } else if (bb.buttonState === SuiButtonArrayButton.buttonState.pushed) {
+          // if the button was not changed, but pressed already
+          pressed.push(bb.smoName);
         }
       });
     }

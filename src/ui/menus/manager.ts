@@ -167,7 +167,8 @@ export class SuiMenuManager {
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
     const b = buildDom;
-    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length.toString())
+    const r = b('ul').classes('menuElement dropdown-menu rounded-3 shadow w-220px show').attr('size', this.menu.menuItems.length.toString())
+       .attr('role', 'menu')
       .css('left', '' + this.menuPosition.x + 'px')
       .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
@@ -176,7 +177,8 @@ export class SuiMenuManager {
 
       r.append(
         b('li').classes('menuOption').append(
-          b('button').attr('data-value', item.value).append(
+          b('a').attr('data-value', item.value)
+            .attr('role', 'menuItem').classes('dropdown-item').append(
             b('span').classes('menuText').text(item.text))
             .append(b('span').classes('icon icon-' + item.icon))
             .append(b('span').classes('menu-key').text('' + vkey))));
@@ -296,7 +298,7 @@ export class SuiMenuManager {
       this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-    $(this.menuContainer).find('button').off('click').on('click', (ev: any) => {
+    $(this.menuContainer).find('a.dropdown-item').off('click').on('click', (ev: any) => {
       if ($(ev.currentTarget).attr('data-value') === 'cancel') {
         this.menu!.complete();
         return;

@@ -40,6 +40,8 @@ export class SuiDropdownComponent extends SuiComponentBase {
   disabledOption: string;
   dataType: string;
   value: string = '';
+  
+  optionIds: string[] = [];
   constructor(dialog: SuiDialogNotifier, parameter: SuiDropdownComponentParams) {
     super(dialog, parameter);
     this.options = parameter.options!;
@@ -55,18 +57,30 @@ export class SuiDropdownComponent extends SuiComponentBase {
   get html() {
     const b = buildDom;
     const id = this.id;
-    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
-    const s = b('select');
+    const label = this.value.length > 0 ? this.value : this.label;
+    this.optionIds = [];
+    const menuId = `${id}-menu`;
+    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName)
+      .append(b('button').classes('btn dropdown-toggle btn-primary').text(label));
+    const s = b('ul').attr('role', 'menu').classes('dropdown-menu rounded-3 shadow w-220px').attr('id', menuId);
     this.checkDefault(s, b);
-    this.options.forEach((option) => {
+    this.options.forEach((option, ix) => {
+      const optionId = `${this.parameterId}-${ix}`;
       s.append(
-        b('option').attr('value', option.value.toString()).text(option.label));
+        b('li').attr('id', optionId).attr('role','presentation').
+        append(b('a').attr('role', 'menuItem').attr('href', '#').attr('data-value', option.value.toString())
+          .classes('dropdown-item').text(option.label)));
     });
     r.append(s).append(
-      b('label').attr('for', id + '-input').text(this.label));
+      b('label').attr('for', menuId).text(this.label));
     return r;
   }
-
+  updateControls() {
+    const updateEl = this._getInputElement();
+    $(updateEl).html('');
+    $(updateEl).append(this.html.dom());
+    this.bind();
+  }
   unselect() {
     $(this._getInputElement())[0].selectedIndex = -1;
     $(this._getInputElement()).blur();
@@ -74,31 +88,39 @@ export class SuiDropdownComponent extends SuiComponentBase {
 
   _getInputElement() {
     var pid = this.id;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+    return $(this.dialog.dgDom.element).find('#' + pid);
   }
   getValue(): string | number {
-    const input = this._getInputElement();
-    const option = input.find('option:selected');
-    let val = $(option).val();
-    val = (this.dataType.toLowerCase() === 'int') ?  parseInt(val, 10) : val;
-    val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val) : val;
-    if (typeof(val) === 'undefined') {
-      val = $(input).find('option:first').val();
-      $(input).find('option:first').prop('selected', true);
+    let val: string | number = this.value;
+    if (['int', 'float'].indexOf(this.dataType) >= 0) {
+      val = (this.dataType.toLowerCase() === 'int') ?  parseInt(val, 10) : val;
+      val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val as string) : val;
+      if (isNaN(val as number)) {
+        val = -1;
+      }
     }
     return val;
   }
   setValue(value: string | number) {
-    const input = this._getInputElement();
-    $(input).val(value);
+    this.value = value.toString();
+    if (this.value.length) {
+      $(this._getInputElement()).find('button.dropdown-toggle').text(this.value);
+    }
   }
 
   bind() {
     const input = this._getInputElement();
-    const self = this;
-    $(input).off('change').on('change',
-      () => {
-        self.handleChanged();
+    $(input).find('button.dropdown-toggle').off('click').on('click', () => {
+      $(input).find('ul.dropdown-menu').toggleClass('show');
+    });
+    $(input).find('ul li a.dropdown-item').off('click').on('click',
+      (elem: any) => {
+        this.value = $(elem.target).attr('data-value');
+        $(input).find('ul.dropdown-menu').removeClass('show');
+        if (this.value.length) {
+          $(this._getInputElement()).find('button.dropdown-toggle').text(this.value);
+        }    
+        this.handleChanged();
       });
   }
 }

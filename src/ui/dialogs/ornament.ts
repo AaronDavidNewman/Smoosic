@@ -10,72 +10,12 @@ import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComp
 import { ArticulationButtons } from '../buttons/articulation';
 import { SuiButtonComponentParams } from './components/button';
 import { SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
+import { reverseStaticMap } from '../../smo/data/common';
 
 const ornamentButtonFactory: getButtonsFcn = () => {  
   const params: SuiButtonArrayParameters = {
-    label: 'Ornaments and Articulations',
-    rows: [{
-      label: 'Articulations',
-      classes: 'pad-span',
-      buttons: [
-        { classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text icon-fermataAbove',
-          id: 'fermataAboveButton',
-          label:'Fermata',
-          smoName: 'fermataAboveButton'
-        }, { classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-fermataBelow',
-          id: 'fermataBelowButton',
-          label:'Fermata',
-          smoName: 'fermataButton'
-        } , { classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text icon-breathMarkComma',
-          id: 'breathButton',
-          label:'Breath Mark',
-          smoName: 'breathButton'
-        }, { classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text icon-caesura',
-          id: 'caesuraButton',
-          label:'Caesura',
-          smoName: 'caesuraButton'
-        }, {
-        classes: 'icon collapseParent articulations-below button-array',
-        control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text icon-articAccentBelow',
-        id: 'accentButton',
-        label:'Accent',
-        smoName: 'accentBelowButton'
-      },  { classes: 'icon collapseParent button-array',
-        control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text articulations-below icon-articTenutoBelow',
-        id: 'tenutoButton',
-        label:'Tenuto',
-        smoName: 'tenutoButton'
-      },  { classes: 'icon collapseParent button-array',
-        control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text articulations-below icon-articStaccatoBelow',
-        id: 'staccatoButton',
-        label:'Staccato',
-        smoName: 'staccatoButton'
-      },  { classes: 'icon collapseParent button-array',
-        control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text articulations-below icon-articMarcatoBelow',
-        id: 'marcatoButton',
-        label:'Marcato',
-        smoName: 'marcatoButton'
-      }, { classes: 'icon collapseParent button-array',
-        control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text articulations-below icon-pluckedSnapPizzicatoBelow',
-        id: 'pizzicatoButton',
-        label:'Pizzicato',
-        smoName: 'pizzicatoButton'
-      }
-    ]
-  },
+    label: 'Ornaments',
+    rows: [
      {
         label: 'Ornaments',
         classes: 'pad-span',
@@ -110,6 +50,34 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             id: 'turnSlash',
             label:'Turn Inverted',
             smoName: 'turnSlash'
+          },{
+            classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-breathMarkComma',
+            id: 'breathButton',
+            label: 'Breath Mark',
+            smoName: 'breathButton'
+          }, {
+            classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text icon-caesura',
+            id: 'caesuraButton',
+            label: 'Caesura',
+            smoName: 'caesuraButton'
+          }, { 
+            classes: 'icon collapseParent articulations-above button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalPed',
+            id: 'pedalClosed',
+            label:'Pedal Down',
+            smoName: 'pedalClosed'
+          }, { 
+            classes: 'icon collapseParent articulations-above button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalUp',
+            id: 'pedalOpen',
+            label:'Pedal Up',
+            smoName: 'pedalOpen'
           }
         ]
       },  {
@@ -194,20 +162,12 @@ export class SuiOrnamentButtonComponent extends SuiButtonArrayMSComponent {
 }
 export class SuiOrnamentAdapter extends SuiComponentAdapter {
   static get ornamentIdMap(): Record<string, string> {
-    return {
-      accentButton: SmoArticulation.articulations.accent,
-      tenutoButton: SmoArticulation.articulations.tenuto,
-      staccatoButton: SmoArticulation.articulations.staccato,
-      marcatoButton: SmoArticulation.articulations.marcato,
-      pizzicatoButton: SmoArticulation.articulations.pizzicato,
-      fermataButton: SmoArticulation.articulations.fermata,
+    return {     
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
       turnButton: SmoOrnament.ornaments.turn,
       turnInvertedButton: SmoOrnament.ornaments.turnInverted,
-      breathButton: 'breath',
-      caesuraButton: 'caesura',
       pedalOpenButton: 'pedalOpen',
       pedalClosedButton: 'pedalClosed',
       scoopButton: SmoOrnament.ornaments.scoop,
@@ -232,14 +192,11 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
     }
     return null;
   }
+  static get ornamentIdMapRvs(): Record<string, string> {
+    return reverseStaticMap('SuiOrnamentAdapter.ornamentIdMap', SuiOrnamentAdapter.ornamentIdMap);
+  }
   static get constructors(): Record<string, string> {
-    return {
-      accentButton: 'SmoArticulation',
-      tenutoButton: 'SmoArticulation',
-      staccatoButton: 'SmoArticulation',
-      marcatoButton: 'SmoArticulation',
-      pizzicatoButton: 'SmoArticulation',
-      fermataButton: 'SmoArticulation',
+    return {      
       mordentButton: 'SmoOrnament',
       mordentInvertedButton: 'SmoOrnament',
       trillButton: 'SmoOrnament',
@@ -265,46 +222,58 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
     super(view);
     const selections = this.view.tracker.selections.filter((ss) => ss.note);
     this.view.groupUndo(true);
-    const ornamentConfig = ornamentButtonFactory();
     const setForAll: Record<string, number> = {};
     let notesCount = 0;
     selections.forEach((sel) => {
       const ornaments = sel.note!.getOrnaments();
-      const articulations = sel.note!.getArticulations();
       notesCount += 1;
-      ornaments.forEach((orn) => {
-        if (!setForAll[orn.ornament]) {
-          setForAll[orn.ornament] = 0;
+      ornaments.forEach((ornament) => {
+        if (!setForAll[ornament.ornament]) {
+          setForAll[ornament.ornament] = 0;
         }
-        setForAll[orn.ornament] = setForAll[orn.ornament] + 1;
-      });
-      articulations.forEach((art) => {
-        if (!setForAll[art.articulation]) {
-          setForAll[art.articulation] = 0;
-        }
-        setForAll[art.articulation] = setForAll[art.articulation] + 1;
+        setForAll[ornament.ornament] = setForAll[ornament.ornament] + 1;
       });
     });
     const keys = Object.keys(setForAll);
     keys.forEach((key) => {
       if (setForAll[key] === notesCount) {
-        for (let i = 0; i < ornamentConfig.rows.length; ++i) {
-          const btnId = SuiOrnamentAdapter.ornamentTypeToId(key);
-          if (btnId) {
-            this.setValues[btnId] = true;
-            this.codes.push(btnId);
-            break;
-          }
+        const btnId = SuiOrnamentAdapter.ornamentIdMapRvs[key];
+        if (btnId) {
+          this.setValues[btnId] = true;
+          this.codes.push(btnId);
         }
       }
-    })
+    });
   }
   get ornaments() {
     return this.codes;
   }
   set ornaments(value: string[]) {
     this.codes = value;
-  }
+    const selections = this.view.tracker.selections.filter((ss) => ss.note);
+    const oldCodes = Object.keys(this.setValues);
+    // for each selection
+    selections.forEach((selection) => {
+      const note = selection.note;
+      // make sure any existing codes are set
+      this.codes.forEach((code) => {
+        const smoCode = SuiOrnamentAdapter.ornamentIdMap[code];
+        this.setValues[code] = true;
+        // only turn off the code if this value was set initially for all selections
+        note!.setOrnament(new SmoOrnament({ ornament: smoCode }), true);
+      });
+      oldCodes.forEach((oldCode) => {
+        if (this.setValues[oldCode] && this.codes.indexOf(oldCode) < 0) {
+          const smoCode = SuiOrnamentAdapter.ornamentIdMap[oldCode];
+          const ornament = note!.getOrnament(smoCode);
+          if (ornament) {
+            note!.setOrnament(ornament, false);
+            this.setValues[oldCode] = false;
+          }
+        }
+      });
+    });
+    this.view.syncDialogSelections('articulation dialog');  }
   async commit() {
   }
   async cancel() {

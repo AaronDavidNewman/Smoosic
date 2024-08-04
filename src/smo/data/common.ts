@@ -245,3 +245,17 @@ export interface AccidentalDisplay {
   courtesy: boolean,
   forced: boolean
 }
+export const reverseStaticMaps: Record<string, Record<string, string>> = {};
+
+export function reverseStaticMap(name: string, o: Record<string, string>) {
+  if (!reverseStaticMaps[name]) {
+    const rmap: Record<string, string> = {};
+    const keys = Object.keys(o);    
+    keys.forEach((key) => {
+      const val = o[key];
+      rmap[val] = key;
+    });
+    reverseStaticMaps[name] = rmap;
+  }
+  return reverseStaticMaps[name];
+}
