@@ -59,6 +59,20 @@ const articulationButtonFactory: getButtonsFcn = () => {
           id: 'pizzicatoButton',
           label: 'Pizzicato',
           smoName: 'pizzicatoButton'
+        },  {
+          classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text articulations-below icon-stringsDownBow',
+          id: 'downBowButton',
+          label: 'Down Bow',
+          smoName: 'downBowButton'
+        },  {
+          classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text articulations-below icon-stringsUpBow',
+          id: 'upBowButton',
+          label: 'Up Bow',
+          smoName: 'upBowButton'
         }
       ]
     }
@@ -81,27 +95,22 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
       marcatoButton: SmoArticulation.articulations.marcato,
       pizzicatoButton: SmoArticulation.articulations.pizzicato,
       fermataButton: SmoArticulation.articulations.fermata,
-      mordentButton: SmoOrnament.ornaments.mordent,
-      mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
-      trillButton: SmoOrnament.ornaments.trill,
-      turnButton: SmoOrnament.ornaments.turn,
-      turnInvertedButton: SmoOrnament.ornaments.turnInverted,
-      breathButton: 'breath',
-      caesuraButton: 'caesura',
-      pedalOpenButton: 'pedalOpen',
-      pedalClosedButton: 'pedalClosed'
+      downBowButton: SmoArticulation.articulations.downStroke,
+      upBowButton: SmoArticulation.articulations.upStroke
     };
   }
   static get articulationIdMapRvs(): Record<string, string> {
     return reverseStaticMap('SuiArticulationAdapter.articulationIdMap', SuiArticulationAdapter.articulationIdMap);
   }
   codes: string[] = [];
+  positionCode: string = 'auto';
   setValues: Record<string, boolean> = {};
   constructor(view: SuiScoreViewOperations) {
     super(view);
     const selections = this.view.tracker.selections.filter((ss) => ss.note);
     this.view.groupUndo(true);
     const setForAll: Record<string, number> = {};
+    const positionForAll: Record<string, number> = {};
     let notesCount = 0;
     selections.forEach((sel) => {
       const articulations = sel.note!.getArticulations();
@@ -110,6 +119,10 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
         if (!setForAll[art.articulation]) {
           setForAll[art.articulation] = 0;
         }
+        if (!positionForAll[art.position]) {
+          positionForAll[art.position] = 0;
+        }
+        positionForAll[art.position] += 1;
         setForAll[art.articulation] = setForAll[art.articulation] + 1;
       });
     });
@@ -121,7 +134,30 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
           this.setValues[btnId] = true;
           this.codes.push(btnId);
         }
-      }
+      }      
+    });
+    if (typeof(positionForAll['above']) === 'number') {
+      this.position = 'above;'
+    }
+    if (typeof(positionForAll['below']) === 'number') {
+      this.position = 'below;'
+    }
+  }
+  get position() {
+    return this.positionCode;
+  }
+  set position(value: string) {
+    this.positionCode = value;
+    const selections = this.view.tracker.selections.filter((ss) => ss.note);
+    selections.forEach((selection) => {
+      const articulations = selection.note!.getArticulations();
+      articulations.forEach((art) => {
+        this.view.modifySelectionNoWait('articulation pos', selection, (score, sel) => {
+          const nart = new SmoArticulation({ articulation: art.articulation, position: this.positionCode});
+          sel.note!.setArticulation(art, false);
+          sel.note!.setArticulation(nart, true);
+        });
+      });
     });
   }
   get articulations() {
@@ -138,15 +174,19 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
       this.codes.forEach((code) => {
         const smoCode = SuiArticulationAdapter.articulationIdMap[code];
         this.setValues[code] = true;
+        this.view.modifySelectionNoWait('articulation dialog', selection, (score, sel) => {
+          sel.note!.setArticulation(new SmoArticulation({ articulation: smoCode }), true);
+        });
         // only turn off the code if this value was set initially for all selections
-        note!.setArticulation(new SmoArticulation({ articulation: smoCode }), true);
       });
       oldCodes.forEach((oldCode) => {
         if (this.setValues[oldCode] && this.codes.indexOf(oldCode) < 0) {
           const smoCode = SuiArticulationAdapter.articulationIdMap[oldCode];
           const articulation = note!.getArticulation(smoCode);
           if (articulation) {
-            note!.setArticulation(articulation, false);
+            this.view.modifySelectionNoWait('articulation dialog', selection, (score, sel) => {
+                sel.note!.setArticulation(articulation, false);
+            });
             this.setValues[oldCode] = false;
           }
         }
@@ -178,6 +218,22 @@ export class SuiArticulationDialog extends SuiDialogAdapterBase<SuiArticulationA
           smoName: 'articulations',
           control: 'SuiArticulationButtonComponent',
           label: 'Articulations'
+        }, {
+          smoName: 'position',
+          control: 'SuiDropdownComponent',
+          label: 'Position',
+          options: [
+            {
+              value: SmoArticulation.positions.above,
+              label: 'Above'
+            },             {
+              value: SmoArticulation.positions.below,
+              label: 'Below'
+            },             {
+              value: SmoArticulation.positions.auto,
+              label: 'Auto'
+            } 
+          ]
         }],
       staticText: []
     };

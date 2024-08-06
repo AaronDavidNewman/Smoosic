@@ -22,16 +22,16 @@ const ornamentButtonFactory: getButtonsFcn = () => {
         buttons: [
           { classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text articulations-above icon-ornamentTurnSlash',
-            id: 'mordentInvertedButton',
+            icon: 'icon-bravura ribbon-button-text articulations-above icon-ornamentShortTrill',
+            id: 'mordentButton',
             label:'Mordent Inverted',
-            smoName: 'mordentInvertedButton'
+            smoName: 'mordentButton'
           }, { classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text articulations-above icon-ornamentMordent',
-            id: 'mordentButton',
+            id: 'mordentInvertedButton',
             label:'Mordent',
-            smoName: 'mordentButton'
+            smoName: 'mordentInvertedButton'
           }, { classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-ornamentTrill',
@@ -43,13 +43,13 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             icon: 'icon-bravura ribbon-button-text icon-ornamentTurn',
             id: 'turnButton',
             label:'Turn',
-            smoName: 'turn'
+            smoName: 'turnButton'
           }, { classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-ornamentTurnSlash',
             id: 'turnSlash',
             label:'Turn Inverted',
-            smoName: 'turnSlash'
+            smoName: 'turnInvertedButton'
           },{
             classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
@@ -67,17 +67,17 @@ const ornamentButtonFactory: getButtonsFcn = () => {
           }, { 
             classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalPed',
+            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalUp',
             id: 'pedalClosed',
             label:'Pedal Down',
-            smoName: 'pedalClosed'
+            smoName: 'pedalClosedButton'
           }, { 
             classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalUp',
+            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalPed',
             id: 'pedalOpen',
             label:'Pedal Up',
-            smoName: 'pedalOpen'
+            smoName: 'pedalOpenButton'
           }
         ]
       },  {
@@ -99,7 +99,7 @@ const ornamentButtonFactory: getButtonsFcn = () => {
           }, { classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-brassFallRoughMedium',
-            id: 'dropLongArrayButton',
+            id: 'dropLongButton',
             label:'Long Drop',
             smoName: 'dropLongButton'
           },  { classes: 'icon collapseParent button-array',
@@ -107,7 +107,7 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             icon: 'icon-bravura ribbon-button-text icon-brassDoitMedium',
             id: 'doitArrayButton',
             label:'Doit',
-            smoName: 'doit'
+            smoName: 'doitButton'
           }, { classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-brassLiftMedium',
@@ -132,18 +132,18 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             icon: 'icon-bravura ribbon-button-text icon-brassMuteClosed',
             id: 'muteClosed',
             label: 'Brass Mute Closed',
-            smoName: 'plungerClosed'
+            smoName: 'muteClosed'
           },  {
             classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text icon-brassMuteClosed',
+            icon: 'icon-bravura ribbon-button-text icon-brassMuteOpen',
             id: 'muteOpen',
             label: 'Brass Mute Open',
-            smoName: 'plungerOpen'
+            smoName: 'muteOpen'
           },  {
             classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text icon-brassMuteClosed',
+            icon: 'icon-bravura ribbon-button-text icon-brassBend',
             id: 'brassBend',
             label: 'Brass Bend',
             smoName: 'bend'
@@ -164,15 +164,17 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
   static get ornamentIdMap(): Record<string, string> {
     return {     
       mordentButton: SmoOrnament.ornaments.mordent,
-      mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
+      mordentInvertedButton: SmoOrnament.ornaments.mordent_inverted,
       trillButton: SmoOrnament.ornaments.trill,
       turnButton: SmoOrnament.ornaments.turn,
-      turnInvertedButton: SmoOrnament.ornaments.turnInverted,
-      pedalOpenButton: 'pedalOpen',
-      pedalClosedButton: 'pedalClosed',
+      turnInvertedButton: SmoOrnament.ornaments.turn_inverted,
+      pedalOpenButton: SmoOrnament.ornaments.pedalOpen,
+      pedalClosedButton: SmoOrnament.ornaments.pedalClosed,
+      caesuraButton: SmoOrnament.ornaments.caesura,
+      breathButton: SmoOrnament.ornaments.breath,
       scoopButton: SmoOrnament.ornaments.scoop,
-      dropButton: SmoOrnament.ornaments.fall_short,
-      dropLongButton: SmoOrnament.ornaments.dropLong,
+      dropButton: SmoOrnament.ornaments.fall,
+      dropLongButton: SmoOrnament.ornaments.fallLong,
       doitButton: SmoOrnament.ornaments.doit,
       doitLongButton: SmoOrnament.ornaments.doitLong,
       flipButton: SmoOrnament.ornaments.flip,
@@ -194,27 +196,6 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
   }
   static get ornamentIdMapRvs(): Record<string, string> {
     return reverseStaticMap('SuiOrnamentAdapter.ornamentIdMap', SuiOrnamentAdapter.ornamentIdMap);
-  }
-  static get constructors(): Record<string, string> {
-    return {      
-      mordentButton: 'SmoOrnament',
-      mordentInvertedButton: 'SmoOrnament',
-      trillButton: 'SmoOrnament',
-      breathButton: 'SmoOrnament',
-      pedalOpenButton: 'SmoOrnament',
-      pedalClosedButton: 'SmoOrnament',
-      caesuraButton: 'SmoOrnament',
-      scoopButton: 'SmoOrnament',
-      dropButton: 'SmoOrnament',
-      dropLongButton: 'SmoOrnament',
-      doitButton: 'SmoOrnament',
-      doitLongButton: 'SmoOrnament',
-      flipButton: 'SmoOrnament',
-      smearButton: 'SmoOrnament',
-      muteOpen: 'SmoOrnament',
-      muteClosed: 'SmoOrnament',
-      bend: 'SmoOrnament'
-    };
   }  
   codes: string[] = [];
   setValues: Record<string, boolean> = {};
@@ -260,14 +241,18 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
         const smoCode = SuiOrnamentAdapter.ornamentIdMap[code];
         this.setValues[code] = true;
         // only turn off the code if this value was set initially for all selections
-        note!.setOrnament(new SmoOrnament({ ornament: smoCode }), true);
+        this.view.modifySelectionNoWait('ornament dialog', selection, (score, selection) => {
+          selection.note!.setOrnament(new SmoOrnament({ ornament: smoCode }), true);
+        });        
       });
       oldCodes.forEach((oldCode) => {
         if (this.setValues[oldCode] && this.codes.indexOf(oldCode) < 0) {
           const smoCode = SuiOrnamentAdapter.ornamentIdMap[oldCode];
           const ornament = note!.getOrnament(smoCode);
           if (ornament) {
-            note!.setOrnament(ornament, false);
+            this.view.modifySelectionNoWait('ornament dialog', selection, (score, selection) => {
+              selection.note!.setOrnament(ornament, false);
+            });
             this.setValues[oldCode] = false;
           }
         }
@@ -291,7 +276,7 @@ export class SuiOrnamentDialog extends SuiDialogAdapterBase<SuiOrnamentAdapter> 
     //| 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
   static dialogElements: DialogDefinition = 
       {
-        label: 'Articulations and Ornaments',
+        label: 'Ornaments',
         elements:
           [{
             smoName: 'ornaments',

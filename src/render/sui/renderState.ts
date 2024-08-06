@@ -108,13 +108,23 @@ export class SuiRenderState {
     setFontStack(this.score!.engravingFont);
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
+    let selections = [];
+    if (!Array.isArray(selection)) {
+      selections = [selection];
+    } else {
+      selections = selection;
+    }
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {        
-      if (Array.isArray(selection)) {
-        this.replaceQ = this.replaceQ.concat(selection);
-      } else {
-        this.replaceQ.push(selection);
-      }
+        selections.forEach((selection) => {
+          const existing = this.replaceQ.find((sel) => 
+            sel.selector.staff === selection.selector.staff && sel.selector.measure === selection.selector.measure);
+          if (existing) {
+            existing._measure = selection._measure;
+          } else {
+            this.replaceQ.push(selection);
+          }
+        })
       this.setDirty();
     }
   }

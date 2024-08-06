@@ -35,6 +35,7 @@ export interface ViewMapEntry {
 }
 
 export type updateSelectionFunc = (score: SmoScore, selections: SmoSelection[]) => void;
+export type updateSingleSelectionFunc = (score: SmoScore, selections: SmoSelection) => void;
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -161,6 +162,21 @@ export abstract class SuiScoreView {
     this._renderChangedMeasures(SmoSelection.getMeasureList([selection]));
     await this.updatePromise();
   }
+    /**
+   * Any method that modifies a set of selections can call this to update 
+   * the score view and the backing score.
+   * @param actor 
+   * @param selections 
+   */
+    async modifySelectionNoWait(label: string, selection: SmoSelection, actor: updateSingleSelectionFunc) {
+      const altSelection = this._getEquivalentSelection(selection);
+      this._undoTrackerMeasureSelections(label);
+      actor(this.score, selection);
+      if (altSelection) {
+        actor(this.storeScore, altSelection);
+      }
+      this._renderChangedMeasures(SmoSelection.getMeasureList([selection]));
+    }
   /**
    * This is used in some Smoosic demos and pens.
    * @param action any action, but most usefully a SuiScoreView method

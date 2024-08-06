@@ -493,7 +493,7 @@ button.button-array.initial {
   font-weight: bold;
 }
 .smoControl button.button-array .icon-bravura {
-  font-size: 38px;
+  font-size: 30px;
 }
 .smoControl.cbTextInPlace,.smoControl.cbDragTextDialog ,.smoControl.cbResizeTextBox  {
     position:relative;

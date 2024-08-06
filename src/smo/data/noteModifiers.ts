@@ -446,23 +446,27 @@ function isSmoOrnamentParamsSer(params: Partial<SmoOrnamentParamsSer>): params i
  * is kind of arbitrary
  * @category SmoModifier
  */
-export class SmoOrnament extends SmoNoteModifierBase {
+export class SmoOrnament extends SmoNoteModifierBase {  
   static readonly ornaments: Record<string, string> = {
     mordent: 'mordent',
-    mordentInverted: 'mordent_inverted',
+    mordent_inverted: 'mordent_inverted',
     turn: 'turn',
-    turnInverted: 'turn_inverted',
+    turn_inverted: 'turn_inverted',
     trill: 'tr',
     upprall: 'upprall',
     prallup: 'prallup',
     pralldown: 'pralldown',
     upmordent: 'upmordent',
     downmordent: 'downmordent',
+    caesura: 'caesura',
     lineprall: 'lineprall',
     prallprall: 'prallprall',
     scoop: 'scoop',
-    fall_short: 'fall',
-    dropLong: 'fallLong',
+    fall: 'fall',
+    fallLong: 'fallLong',
+    breath: 'breath',
+    pedalOpen: 'pedalOpen',
+    pedalClosed: 'pedalClosed',
     doit: 'doit',
     doitLong: 'doitLong',
     flip: 'flip',
@@ -498,10 +502,10 @@ export class SmoOrnament extends SmoNoteModifierBase {
     drop: 'plop'
   }
   static get jazzOrnaments(): string[] {
-    return ['scoop', 'fallLong', 'doit', 'lift', 'flip', 'smear', 'scoop', 'plungerOpen', 'plungerClosed'];
+    return ['scoop', 'fallLong', 'doit', 'doitLong', 'flip', 'smear', 'scoop', 'plungerOpen', 'plungerClosed', 'bend'];
   }
   toVex() {
-    return SmoOrnament.ornaments[this.ornament.toLowerCase()];
+    return SmoOrnament.ornaments[this.ornament];
   }
   isJazz() {
     return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
@@ -601,6 +605,8 @@ export class SmoArticulation extends SmoNoteModifierBase {
       upStroke: 'upStroke',
       downStroke: 'downStroke',
       pizzicato: 'pizzicato',
+      bowUp: 'bowUp',
+      bowDown: 'bowDown',
       fermata: 'fermata'
     };
   }
