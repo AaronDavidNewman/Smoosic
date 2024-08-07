@@ -276,14 +276,12 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         checkComplete();
       });
     }
-    changed() {
-      super.changed();
+    async changed() {
+      await super.changed();
       if (this.adapter.updating) {
-        const self = this;
         this.disableClose();
-        this.modalPromise().then(() => {
-          self.enableClose();
-        });
+        await this.modalPromise();
+        this.enableClose();
       }
     }
   constructor(parameters: SuiDialogParams) {

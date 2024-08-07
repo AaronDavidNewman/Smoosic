@@ -504,6 +504,16 @@ export class SmoOrnament extends SmoNoteModifierBase {
   static get jazzOrnaments(): string[] {
     return ['scoop', 'fallLong', 'doit', 'doitLong', 'flip', 'smear', 'scoop', 'plungerOpen', 'plungerClosed', 'bend'];
   }
+  static get legacyJazz(): Record<string, string> {
+    return {'SCOOP': SmoOrnament.ornaments.scoop ,
+      'FALL_SHORT': SmoOrnament.ornaments.fall,
+      'FALL_LONG': SmoOrnament.ornaments.fallLong,
+      'DOIT': SmoOrnament.ornaments.doit,
+      'LIFT': SmoOrnament.ornaments.lift,
+      'FLIP': SmoOrnament.ornaments.flip,
+      'SMEAR': SmoOrnament.ornaments.smear
+    };
+  }
   toVex() {
     return SmoOrnament.ornaments[this.ornament];
   }
@@ -557,7 +567,10 @@ export class SmoOrnament extends SmoNoteModifierBase {
     super('SmoOrnament');
     smoSerialize.serializedMerge(SmoOrnament.parameterArray, SmoOrnament.defaults, this);
     smoSerialize.serializedMerge(SmoOrnament.parameterArray, parameters, this);
-    // this.selector = parameters.selector;
+    // handle some legacy changes
+    if (typeof(SmoOrnament.legacyJazz[this.ornament]) === 'string') {
+      this.ornament = SmoOrnament.legacyJazz[this.ornament];
+    }
   }
 }
 

@@ -192,9 +192,8 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
         }
       });
     });
-    this.view.syncDialogSelections('articulation dialog');
   }
-  async commit() {
+  async commit() {    
   }
   async cancel() {
     await this.view.undo();
@@ -242,4 +241,9 @@ export class SuiArticulationDialog extends SuiDialogAdapterBase<SuiArticulationA
     super(SuiArticulationDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS', 'HIDEREMOVE'];
   }
+  async changed() {
+    this.view.undoTrackerMeasureSelections('articulation dialog');
+    await super.changed();
+  }
+
 }

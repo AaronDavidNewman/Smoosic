@@ -284,8 +284,8 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
     const adapter = new SuiPartInfoAdapter(params.view);
     super(SuiPartInfoDialog.dialogElements, { adapter, ...params });
   }
-  changed() {
-    super.changed();
+  async changed() {
+    await super.changed();
     if (this.dimensionControls.find((x) => x.changeFlag)) {
       this.initialValue();
     }

@@ -242,8 +242,8 @@ export class SuiTempoDialog extends SuiDialogAdapterBase<SuiTempoAdapter> {
       this.cmap.customTextCtrl.hide();
     }
   }
-  changed() {
-    super.changed();
+  async changed() {
+    await super.changed();
     this.showHideCustom();
   }
   initialValue() {

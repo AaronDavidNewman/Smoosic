@@ -334,7 +334,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Operates on current selections
    * */
   async deleteNote(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('delete note');
+    const measureSelections = this.undoTrackerMeasureSelections('delete note');
     this.tracker.selections.forEach((sel) => {
       if (sel.note) {
 
@@ -413,7 +413,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async depopulateVoice(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
+    const measureSelections = this.undoTrackerMeasureSelections('depopulate voice');
     measureSelections.forEach((selection) => {
       const ix = selection.measure.getActiveVoice();
       if (ix !== 0) {
@@ -670,7 +670,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async addGraceNote(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('add grace note');
+    const measureSelections = this.undoTrackerMeasureSelections('add grace note');
     selections.forEach((selection) => {
       const index = selection.note!.getGraceNotes().length;
       const pitches = JSON.parse(JSON.stringify(selection.note!.pitches));
@@ -699,7 +699,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async removeGraceNote(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
+    const measureSelections = this.undoTrackerMeasureSelections('remove grace note');
     selections.forEach((selection) => {
       // TODO: get the correct offset
       SmoOperation.removeGraceNote(selection, 0);
@@ -714,7 +714,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async slashGraceNotes(): Promise<void> {
     const grace = this.tracker.getSelectedGraceNotes();
-    const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
+    const measureSelections = this.undoTrackerMeasureSelections('slash grace note toggle');
     grace.forEach((gn) => {
       SmoOperation.slashGraceNotes(gn);
       if (gn.selection !== null) {
@@ -743,7 +743,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async transposeSelections(offset: number): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('transpose');
+    const measureSelections = this.undoTrackerMeasureSelections('transpose');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -778,7 +778,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleEnharmonic(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle enharmonic');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -807,7 +807,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleCourtesyAccidentals(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle courtesy accidental');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -838,7 +838,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async batchDurationOperation(operation: BatchSelectionOperation): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('change duration');
+    const measureSelections = this.undoTrackerMeasureSelections('change duration');
     const grace = this.tracker.getSelectedGraceNotes();
     const graceMap: Record<string, BatchSelectionOperation> = {
       doubleDuration: 'doubleGraceNoteDuration',
@@ -867,7 +867,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async toggleArticulation(modifier: string, ctor: string): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle articulation');
     this.tracker.selections.forEach((sel) => {
       if (ctor === 'SmoArticulation') {
         const aa = new SmoArticulation({ articulation: modifier });
@@ -897,7 +897,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     await this.renderer.updatePromise();
   }
   async setArticulation(modifier: SmoArticulation, set: boolean): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('set articulation');
+    const measureSelections = this.undoTrackerMeasureSelections('set articulation');
     this.tracker.selections.forEach((sel) => {
       const altAa = new SmoArticulation(modifier);
       if (sel.note) {
@@ -912,7 +912,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     await this.renderer.updatePromise();    
   }
   async setOrnament(modifier: SmoOrnament, set: boolean): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('set articulation');
+    const measureSelections = this.undoTrackerMeasureSelections('set articulation');
     this.tracker.selections.forEach((sel) => {
       const altAa = new SmoOrnament(modifier);
       if (sel.note) {
@@ -932,7 +932,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async makeTuplet(numNotes: number): Promise<void> {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
+    const measureSelections = this.undoTrackerMeasureSelections('make tuplet');
     SmoOperation.makeTuplet(selection, numNotes);
     const altSelection = this._getEquivalentSelection(selection!);
     SmoOperation.makeTuplet(altSelection!, numNotes);
@@ -944,7 +944,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async unmakeTuplet(): Promise<void> {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
+    const measureSelections = this.undoTrackerMeasureSelections('unmake tuplet');
     SmoOperation.unmakeTuplet(selection);
     const altSelection = this._getEquivalentSelection(selection);
     SmoOperation.unmakeTuplet(altSelection!);
@@ -959,7 +959,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async setInterval(interval: number): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set interval');
+    const measureSelections = this.undoTrackerMeasureSelections('set interval');
     selections.forEach((selected) => {
       SmoOperation.interval(selected, interval);
       const altSelection = this._getEquivalentSelection(selected);
@@ -975,7 +975,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async collapseChord(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
+    const measureSelections = this.undoTrackerMeasureSelections('collapse chord');
     selections.forEach((selected) => {
       const note: SmoNote | null = selected.note;
       if (note) {
@@ -995,7 +995,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleSlash(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('make slash');
+    const measureSelections = this.undoTrackerMeasureSelections('make slash');
     selections.forEach((selection) => {
       SmoOperation.toggleSlash(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -1010,7 +1010,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async makeRest(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('make rest');
+    const measureSelections = this.undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
       SmoOperation.toggleRest(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -1040,7 +1040,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleBeamGroup(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle beam group');
     selections.forEach((selection) => {
       SmoOperation.toggleBeamGroup(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -1050,7 +1050,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     await this.renderer.updatePromise();
   }
   async toggleCue() {
-    const measureSelections = this._undoTrackerMeasureSelections('toggle note cue');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle note cue');
     this.tracker.selections.forEach((selection) => {
       const altSelection = this._getEquivalentSelection(selection);
       if (selection.note && selection.note.isRest() === false) {
@@ -1072,7 +1072,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     if (selections.length < 1) {
       return PromiseHelpers.emptyPromise();
     }
-    const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
@@ -1083,7 +1083,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async beamSelections(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('beam selections');
+    const measureSelections = this.undoTrackerMeasureSelections('beam selections');
     SmoOperation.beamSelections(this.score, selections);
     SmoOperation.beamSelections(this.storeScore, this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
@@ -1094,7 +1094,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param keySignature vex key signature
    */
   async addKeySignature(keySignature: string): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
+    const measureSelections = this.undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
       SmoOperation.addKeySignature(this.score, sel, keySignature);
       const altSel = this._getEquivalentSelection(sel);
@@ -1109,7 +1109,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param chordPedal {boolean} - indicates we are adding to a chord
    */
   async setPitchPiano(pitch: Pitch, chordPedal: boolean): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections(
+    const measureSelections = this.undoTrackerMeasureSelections(
       'setAbsolutePitch ' + pitch.letter + '/' + pitch.accidental);
     this.tracker.selections.forEach((selected) => {
       const npitch: Pitch = {
@@ -1173,7 +1173,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async setPitch(letter: PitchLetter): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
+    const measureSelections = this.undoTrackerMeasureSelections('set pitch ' + letter);
     selections.forEach((selected) => {
       const selector = selected.selector;
       let hintSel = SmoSelection.lastNoteSelectionNonRest(this.score,
@@ -1419,7 +1419,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // if (this.tracker.selections.length < 2) {
     //   return;
     // }
-    const measureSelections = this._undoTrackerMeasureSelections('create staff modifier');
+    const measureSelections = this.undoTrackerMeasureSelections('create staff modifier');
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
@@ -1820,7 +1820,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
   updateRepeatCount(count: number) {
-    const measureSelections = this._undoTrackerMeasureSelections('repeat bar');
+    const measureSelections = this.undoTrackerMeasureSelections('repeat bar');
     const symbol = count > 0 ? true : false;    
     measureSelections.forEach((ms) => {
       const store = this._getEquivalentSelection(ms);

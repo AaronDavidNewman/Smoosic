@@ -53,8 +53,8 @@ export class SuiTransposeScoreDialog extends SuiDialogAdapterBase<SuiTransposeSc
     const adapter = new SuiTransposeScoreAdapter(params.view);
     super(SuiTransposeScoreDialog.dialogElements, { adapter, ...params });
   }
-  changed() {
-    super.changed();
+  async changed() {
+    await super.changed();
     if (this.dimensionControls.find((x) => x.changeFlag)) {
       this.initialValue();
     }

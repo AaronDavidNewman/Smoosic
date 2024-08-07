@@ -140,7 +140,7 @@ export abstract class SuiScoreView {
    */
   async modifyCurrentSelections(label: string, actor: updateSelectionFunc) {
     const altSelections = this._getEquivalentSelections(this.tracker.selections);
-    this._undoTrackerMeasureSelections(label);
+    this.undoTrackerMeasureSelections(label);
     actor(this.score, this.tracker.selections);
     actor(this.storeScore, altSelections);
     this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
@@ -154,7 +154,7 @@ export abstract class SuiScoreView {
    */
   async modifySelection(label: string, selection: SmoSelection, actor: updateSelectionFunc) {
     const altSelection = this._getEquivalentSelection(selection);
-    this._undoTrackerMeasureSelections(label);
+    this.undoTrackerMeasureSelections(label);
     actor(this.score, [selection]);
     if (altSelection) {
       actor(this.storeScore, [altSelection]);
@@ -170,7 +170,7 @@ export abstract class SuiScoreView {
    */
     async modifySelectionNoWait(label: string, selection: SmoSelection, actor: updateSingleSelectionFunc) {
       const altSelection = this._getEquivalentSelection(selection);
-      this._undoTrackerMeasureSelections(label);
+      this.undoTrackerMeasureSelections(label);
       actor(this.score, selection);
       if (altSelection) {
         actor(this.storeScore, altSelection);
@@ -269,7 +269,7 @@ export abstract class SuiScoreView {
    * @param label 
    * @returns 
    */
-  _undoTrackerMeasureSelections(label: string): SmoSelection[] {
+  undoTrackerMeasureSelections(label: string): SmoSelection[] {
     const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
@@ -279,15 +279,6 @@ export abstract class SuiScoreView {
       }
     });
     return measureSelections;
-  }
-  /**
-   * Update undo buffer and add selections to the replacement queue
-   * @param label 
-   */
-  syncDialogSelections(label: string) {
-    this._undoTrackerMeasureSelections(label);
-    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
-    this._renderChangedMeasures(measureSelections);
   }
   /**
    * operation that only affects the first selection.  Setup undo for the measure

@@ -32,6 +32,18 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             id: 'mordentInvertedButton',
             label:'Mordent',
             smoName: 'mordentInvertedButton'
+          }, { classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text articulations-above icon-ornamentPrecompTrillSuffixDandrieu',
+            id: 'prallUpButton',
+            label:'Prall Up Trill',
+            smoName: 'prallUpButton'
+          },{ classes: 'icon collapseParent button-array',
+            control: 'SuiButtonArrayButton',
+            icon: 'icon-bravura ribbon-button-text articulations-above icon-ornamentPrecompTrillLowerSuffix',
+            id: 'prallDownButton',
+            label:'Prall Down Trill',
+            smoName: 'prallDownButton'
           }, { classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-ornamentTrill',
@@ -165,6 +177,8 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
     return {     
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton: SmoOrnament.ornaments.mordent_inverted,
+      prallUpButton: SmoOrnament.ornaments.prallup,
+      prallDownButton: SmoOrnament.ornaments.pralldown,
       trillButton: SmoOrnament.ornaments.trill,
       turnButton: SmoOrnament.ornaments.turn,
       turnInvertedButton: SmoOrnament.ornaments.turn_inverted,
@@ -199,6 +213,7 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
   }  
   codes: string[] = [];
   setValues: Record<string, boolean> = {};
+  positionCode: string = 'auto';
   constructor(view: SuiScoreViewOperations) {
     super(view);
     const selections = this.view.tracker.selections.filter((ss) => ss.note);
@@ -224,6 +239,23 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
           this.codes.push(btnId);
         }
       }
+    });
+  }
+  get position() {
+    return this.positionCode;
+  }
+  set position(value: string) {
+    this.positionCode = value;
+    const selections = this.view.tracker.selections.filter((ss) => ss.note);
+    selections.forEach((selection) => {
+      const articulations = selection.note!.getArticulations();
+      articulations.forEach((art) => {
+        this.view.modifySelectionNoWait('articulation pos', selection, (score, sel) => {
+          const nart = new SmoArticulation({ articulation: art.articulation, position: this.positionCode});
+          sel.note!.setArticulation(art, false);
+          sel.note!.setArticulation(nart, true);
+        });
+      });
     });
   }
   get ornaments() {
@@ -258,10 +290,11 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
         }
       });
     });
-    this.view.syncDialogSelections('articulation dialog');  }
+  }
   async commit() {
   }
   async cancel() {
+    this.view.undo();
   }
   async remove() { 
   }
@@ -282,6 +315,22 @@ export class SuiOrnamentDialog extends SuiDialogAdapterBase<SuiOrnamentAdapter> 
             smoName: 'ornaments',
             control: 'SuiOrnamentButtonComponent',
             label: 'Ornaments'
+          }, {
+            smoName: 'position',
+            control: 'SuiDropdownComponent',
+            label: 'Position',
+            options: [
+              {
+                value: SmoOrnament.positions.above,
+                label: 'Above'
+              },             {
+                value: SmoOrnament.positions.below,
+                label: 'Below'
+              },             {
+                value: SmoOrnament.positions.auto,
+                label: 'Auto'
+              } 
+            ]
           }],
           staticText: []
       };
@@ -289,5 +338,9 @@ export class SuiOrnamentDialog extends SuiDialogAdapterBase<SuiOrnamentAdapter> 
     const adapter = new SuiOrnamentAdapter(parameters.view);
     super(SuiOrnamentDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS', 'HIDEREMOVE'];
+  }
+  async changed() {
+    this.view.undoTrackerMeasureSelections('ornament dialog');
+    await super.changed();
   }
 }

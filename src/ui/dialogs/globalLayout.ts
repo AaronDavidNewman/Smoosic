@@ -164,8 +164,8 @@ export class SuiGlobalLayoutDialog extends SuiDialogAdapterBase<SuiGlobalLayoutA
     const adapter = new SuiGlobalLayoutAdapter(params.view);
     super(SuiGlobalLayoutDialog.dialogElements, { adapter, ...params });
   }
-  changed() {
-    super.changed();
+  async changed() {
+    await super.changed();
     if (this.dimensionControls.find((x) => x.changeFlag)) {
       this.initialValue();
     }
