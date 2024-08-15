@@ -20,56 +20,56 @@ const articulationButtonFactory: getButtonsFcn = () => {
         {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-fermataBelow',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-fermataBelow',
           id: 'fermataBelowButton',
           label: 'Fermata',
           smoName: 'fermataButton'
         },  {
-          classes: 'icon collapseParent articulations-below button-array',
+          classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text icon-articAccentBelow',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-articAccentBelow',
           id: 'accentButton',
           label: 'Accent',
           smoName: 'accentButton'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-articTenutoBelow',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-articTenutoBelow',
           id: 'tenutoButton',
           label: 'Tenuto',
           smoName: 'tenutoButton'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-articStaccatoBelow',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-articStaccatoBelow',
           id: 'staccatoButton',
           label: 'Staccato',
           smoName: 'staccatoButton'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-articMarcatoBelow',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-articMarcatoBelow',
           id: 'marcatoButton',
           label: 'Marcato',
           smoName: 'marcatoButton'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-pluckedSnapPizzicatoBelow',
+          icon: 'icon-bravura ribbon-button-text icon-top icon-pluckedSnapPizzicatoBelow',
           id: 'pizzicatoButton',
           label: 'Pizzicato',
           smoName: 'pizzicatoButton'
         },  {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-stringsDownBow',
+          icon: 'icon-bravura ribbon-button-text icon-top icon-stringsDownBow',
           id: 'downBowButton',
           label: 'Down Bow',
           smoName: 'downBowButton'
         },  {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text articulations-below icon-stringsUpBow',
+          icon: 'icon-bravura ribbon-button-text icon-top icon-stringsUpBow',
           id: 'upBowButton',
           label: 'Up Bow',
           smoName: 'upBowButton'

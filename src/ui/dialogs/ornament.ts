@@ -86,7 +86,7 @@ const ornamentButtonFactory: getButtonsFcn = () => {
           }, { 
             classes: 'icon collapseParent articulations-above button-array',
             control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalPed',
+            icon: 'icon-bravura ribbon-button-text icon-lg icon-keyboardPedalPed',
             id: 'pedalOpen',
             label:'Pedal Up',
             smoName: 'pedalOpenButton'
@@ -241,23 +241,6 @@ export class SuiOrnamentAdapter extends SuiComponentAdapter {
       }
     });
   }
-  get position() {
-    return this.positionCode;
-  }
-  set position(value: string) {
-    this.positionCode = value;
-    const selections = this.view.tracker.selections.filter((ss) => ss.note);
-    selections.forEach((selection) => {
-      const articulations = selection.note!.getArticulations();
-      articulations.forEach((art) => {
-        this.view.modifySelectionNoWait('articulation pos', selection, (score, sel) => {
-          const nart = new SmoArticulation({ articulation: art.articulation, position: this.positionCode});
-          sel.note!.setArticulation(art, false);
-          sel.note!.setArticulation(nart, true);
-        });
-      });
-    });
-  }
   get ornaments() {
     return this.codes;
   }
@@ -315,22 +298,6 @@ export class SuiOrnamentDialog extends SuiDialogAdapterBase<SuiOrnamentAdapter> 
             smoName: 'ornaments',
             control: 'SuiOrnamentButtonComponent',
             label: 'Ornaments'
-          }, {
-            smoName: 'position',
-            control: 'SuiDropdownComponent',
-            label: 'Position',
-            options: [
-              {
-                value: SmoOrnament.positions.above,
-                label: 'Above'
-              },             {
-                value: SmoOrnament.positions.below,
-                label: 'Below'
-              },             {
-                value: SmoOrnament.positions.auto,
-                label: 'Auto'
-              } 
-            ]
           }],
           staticText: []
       };

@@ -430,15 +430,19 @@ button.nav-link {
   border-bottom: 1px solid #eee;
 }
 .attributeModal .smoControl.buttonArray .icon-bravura {
-  top:-5px;
   left:8px;
 }
-.attributeModal .smoControl.buttonArray .icon-bravura.articulations-above {
-  top:-5px;
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-mid {
+  top: 0;
+  left:8px;
 }
-.attributeModal .smoControl.buttonArray .icon-bravura.articulations-below {
-  bottom:-5px;
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-lg {
+  font-size: 24px;
 }
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-top {
+  left:8px;
+}
+
 .attributeModal .smoControl.buttonArray .icon-bravura.icon-brassFallRoughMedium,
 .attributeModal .smoControl.buttonArray .icon-bravura.icon-brassLiftMedium {
   font-size:20px;
@@ -485,8 +489,8 @@ button.button-array.initial {
 	border: 1px solid #52ba73;
 }
 .smoControl button.button-array {
-  width: 30px;
-	height: 30px;
+  width: 35px;
+	height: 35px;
   position:relative;
 }
 .smoControl button.button-array.pushed {
