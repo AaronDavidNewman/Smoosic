@@ -36,6 +36,7 @@ export interface ViewMapEntry {
 
 export type updateSelectionFunc = (score: SmoScore, selections: SmoSelection[]) => void;
 export type updateSingleSelectionFunc = (score: SmoScore, selections: SmoSelection) => void;
+export type updateStaffModifierFunc = (score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) => void;
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -223,7 +224,7 @@ export abstract class SuiScoreView {
    * @param staffModifier 
    * @param subtype 
    */
-  _undoStaffModifier(label: string, staffModifier: StaffModifierBase, subtype: number) {
+  undoStaffModifier(label: string, staffModifier: StaffModifierBase, subtype: number) {
     const copy = StaffModifierBase.deserialize(staffModifier.serialize());
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
     copy.endSelector = this._getEquivalentSelector(copy.endSelector);
@@ -264,13 +265,7 @@ export abstract class SuiScoreView {
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.storeScore, UndoBuffer.bufferSubtypes.NONE);
   }
   
-  /**
-   * Add to the undo buffer the current set of measures selected.
-   * @param label 
-   * @returns 
-   */
-  undoTrackerMeasureSelections(label: string): SmoSelection[] {
-    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+  undoMeasureRange(label: string, measureSelections: SmoSelection[]) {
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
       if (equiv !== null) {
@@ -279,6 +274,15 @@ export abstract class SuiScoreView {
       }
     });
     return measureSelections;
+  }
+  /**
+   * Add to the undo buffer the current set of measures selected.
+   * @param label 
+   * @returns 
+   */
+  undoTrackerMeasureSelections(label: string): SmoSelection[] {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    return this.undoMeasureRange(label, measureSelections);
   }
   /**
    * operation that only affects the first selection.  Setup undo for the measure

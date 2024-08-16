@@ -7,9 +7,7 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { getButtonsFcn, SuiButtonArrayMSComponent, SuiButtonArrayParameters } from './components/buttonArray';
 import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComponent';
-import { ArticulationButtons } from '../buttons/articulation';
-import { SuiButtonComponentParams } from './components/button';
-import { SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
+import { SmoOrnament } from '../../smo/data/noteModifiers';
 import { reverseStaticMap } from '../../smo/data/common';
 
 const ornamentButtonFactory: getButtonsFcn = () => {  
@@ -76,20 +74,6 @@ const ornamentButtonFactory: getButtonsFcn = () => {
             id: 'caesuraButton',
             label: 'Caesura',
             smoName: 'caesuraButton'
-          }, { 
-            classes: 'icon collapseParent articulations-above button-array',
-            control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text  icon-keyboardPedalUp',
-            id: 'pedalClosed',
-            label:'Pedal Down',
-            smoName: 'pedalClosedButton'
-          }, { 
-            classes: 'icon collapseParent articulations-above button-array',
-            control: 'SuiButtonArrayButton',
-            icon: 'icon-bravura ribbon-button-text icon-lg icon-keyboardPedalPed',
-            id: 'pedalOpen',
-            label:'Pedal Up',
-            smoName: 'pedalOpenButton'
           }
         ]
       },  {

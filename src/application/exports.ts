@@ -61,6 +61,7 @@ import { SuiLyricDialog } from '../ui/dialogs/lyric';
 import { SuiTextBlockDialog, helpModal } from '../ui/dialogs/textBlock';
 import { SuiDynamicModifierDialog } from '../ui/dialogs/dynamics';
 import { SuiSlurAttributesDialog } from '../ui/dialogs/slur';
+import { SuiPedalMarkingDialog } from '../ui/dialogs/pedalMarking';
 import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
@@ -138,7 +139,7 @@ import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
 import { createLoadTests } from '../../tests/file-load';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket,
-  SmoTabStave
+  SmoTabStave, SmoPedalMarking
  } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
@@ -190,7 +191,7 @@ export const Smo = {
     SuiTransposeScoreDialog,
     SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextBlockDialog, SuiLyricDialog, SuiChordChangeDialog,
-    SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
+    SuiSlurAttributesDialog, SuiPedalMarkingDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
     SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent, 
@@ -237,7 +238,7 @@ export const Smo = {
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
     SmoStaffTextBracket,
-    SmoInstrument, SmoSlur, SmoTie, SmoTabStave,
+    SmoInstrument, SmoSlur, SmoPedalMarking, SmoTie, SmoTabStave,
     // score modifiers
     SmoSystemGroup, SmoAudioPlayerSettings, SmoTextGroup,
     // measure modifiers

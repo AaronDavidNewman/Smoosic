@@ -4,7 +4,7 @@ import { VxMeasure } from './vxMeasure';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket, SmoPedalMarking } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
 import { leftConnectorVx, rightConnectorVx } from './smoAdapter';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
@@ -16,7 +16,7 @@ import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SmoScoreText } from '../../smo/data/scoreText'
 import { SvgPage } from '../sui/svgPageMap';
 import { SuiScroller } from '../sui/scroller';
-import { VexFlow, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
+import { VexFlow, Voice, Note, createHairpin, createSlur, createTie, PedalMarking, StaveNote } from '../../common/vex';
 import { toVexVolta, vexOptions } from './smoAdapter';
 const VF = VexFlow;
 
@@ -348,7 +348,19 @@ export class VxSystem {
       };
       const curve = createSlur(smoVexSlurParams);
       curve.setContext(this.context.getContext()).draw();
-    } else if (modifier.ctor === 'SmoTie') {
+    } else if (modifier.ctor === 'SmoPedalMarking') {
+      const pedalMarking = modifier as SmoPedalMarking;
+      const vexPedal = new VF.PedalMarking([vxStart as StaveNote, vxEnd as StaveNote]);
+      if (pedalMarking.customText.length) {
+        vexPedal.setCustomText(pedalMarking.customText);
+      }
+      if (pedalMarking.bracket) {
+        vexPedal.setType(VF.PedalMarking.type.MIXED);
+      }
+      vexPedal.setContext(this.context.getContext());
+      vexPedal.draw();
+    }
+    else if (modifier.ctor === 'SmoTie') {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const endNote: SmoNote = smoEnd!.note as SmoNote;

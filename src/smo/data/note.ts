@@ -547,7 +547,6 @@ export class SmoNote implements Transposable {
   getJazzOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz());
   }
-
   getTextOrnaments() {
     return this.ornaments.filter((oo) => typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) === 'string');
   }

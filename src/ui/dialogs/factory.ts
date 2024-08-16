@@ -3,6 +3,7 @@ import { SmoModifier } from '../../smo/data/score';
 import { SuiDialogBase, SuiDialogParams, createAndDisplayDialog } from './dialog';
 import { SuiHairpinAttributesDialog } from './hairpin';
 import { SuiSlurAttributesDialog } from './slur';
+import { SuiPedalMarkingDialog } from './pedalMarking';
 import { SuiVoltaAttributeDialog } from './volta';
 import { SuiLyricDialog } from './lyric';
 import { SuiTieAttributesDialog } from './tie';
@@ -10,9 +11,10 @@ import { SuiDynamicModifierDialog } from './dynamics';
 import { SuiTextBlockDialog } from './textBlock';
 import { SuiTextBracketDialog } from './textBracket';
 
-export type ModifiersWithDialogs = 'SmoStaffHairpin' | 'SmoTie' | 'SmoSlur' | 'SmoDynamicText' | 'SmoVolta' | 'SmoScoreText' | 'SmoLoadScore' | 'SmoLyric';
+export type ModifiersWithDialogs = 'SmoStaffHairpin' | 'SmoTie' | 'SmoSlur' | 
+'SmoDynamicText' | 'SmoVolta' | 'SmoScoreText' | 'SmoLoadScore' | 'SmoLyric' | 'SmoPedalMarking';
 export var ModifiersWithDialogNames = ['SmoStaffHairpin', 'SmoTie', 'SmoSlur', 'SmoDynamicText', 'SmoVolta',
-  'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup', 'SmoStaffTextBracket'];
+  'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup', 'SmoStaffTextBracket', 'SmoPedalMarking'];
 
 export function isModifierWithDialog(modifier: SmoModifier) {
   return ModifiersWithDialogNames.indexOf(modifier.attrs.type) >= 0;
@@ -31,6 +33,8 @@ export function isModifierWithDialog(modifier: SmoModifier) {
     parameters.modifier = modifier;
     if (ctor === 'SmoStaffHairpin') {
       return createAndDisplayDialog(SuiHairpinAttributesDialog, parameters);
+    } else if (ctor === 'SmoPedalMarking') {
+      return createAndDisplayDialog(SuiPedalMarkingDialog, parameters);
     } else if (ctor === 'SmoTie') {
       return createAndDisplayDialog(SuiTieAttributesDialog, parameters);
     } else if (ctor === 'SmoSlur') {

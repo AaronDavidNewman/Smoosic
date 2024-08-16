@@ -1,4 +1,5 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
+import { SmoPedalMarking } from '../../smo/data/staffModifiers';
 
 declare var $: any;
 
@@ -24,6 +25,10 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       icon: 'slur',
       text: 'Tie',
       value: 'tie'
+    }, {
+      icon: 'pedal',
+      text: 'Pedal Marking',
+      value: 'pedalMarking'
     }, {
       icon: 'ending',
       text: 'nth ending',
@@ -74,6 +79,19 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.ritard();
     } else if (op === 'crescendoBracket') {
       this.view.crescendoBracket();
+    } else if (op === 'pedalMarking') {
+      const ft = this.tracker.getExtremeSelection(-1);
+      const tt = this.tracker.getExtremeSelection(1);
+      const defaults = SmoPedalMarking.defaults;
+      defaults.startSelector = ft.selector;
+      defaults.endSelector = tt.selector;
+      const pedalMarking = new SmoPedalMarking(defaults);
+      this.view.addOrReplaceStaffModifier((score, fromSelection, toSelection) => {
+        const modifier = new SmoPedalMarking(pedalMarking.serialize());
+        modifier.startSelector = fromSelection.selector;
+        modifier.endSelector = toSelection.selector;
+        score.staves[modifier.startSelector.staff].addStaffModifier(modifier);
+      }, pedalMarking);
     } else if (op === 'crescendo') {
       this.view.crescendo();
     } else if (op === 'decrescendo') {

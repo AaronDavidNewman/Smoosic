@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiScoreView } from './scoreView';
+import { SuiScoreView, updateStaffModifierFunc } from './scoreView';
 import { SmoScore, engravingFontType } from '../../smo/data/score';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
@@ -1369,7 +1369,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async removeStaffModifier(modifier: StaffModifierBase): Promise<void> {
-    this._undoStaffModifier('Set measure proportion', modifier,
+    this.undoStaffModifier('Set measure proportion', modifier,
       UndoBuffer.bufferSubtypes.REMOVE);
     this._removeStaffModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
@@ -1395,7 +1395,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       .getModifier(modifier);
     const subtype = existing === null ? UndoBuffer.bufferSubtypes.ADD :
       UndoBuffer.bufferSubtypes.UPDATE;
-    this._undoStaffModifier('Set measure proportion', original,
+    this.undoStaffModifier('Set measure proportion', original,
       subtype);
     this._removeStaffModifier(modifier);
     const copy = StaffModifierBase.deserialize(modifier.serialize());
@@ -1429,7 +1429,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     altModifier.attrs.id = modifier.attrs.id;
     ft.staff.addStaffModifier(modifier);
     ftAlt?.staff.addStaffModifier(altModifier);
-    this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
+    this.undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
   /**
@@ -1478,6 +1478,24 @@ export class SuiScoreViewOperations extends SuiScoreView {
   async removeTextBracket(bracket: SmoStaffTextBracket): Promise<void> {
     return this.removeStaffModifier(bracket);
   }
+  async addOrReplaceStaffModifier(callback: updateStaffModifierFunc, modifier: StaffModifierBase): Promise<void> {
+    const from1 = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const to1 = SmoSelection.noteFromSelector(this.score, modifier.endSelector);
+    if (from1 === null || to1 === null) {
+      return;
+    }
+    const altFrom = this._getEquivalentSelection(from1);
+    const altTo = this._getEquivalentSelection(to1);
+    if (altFrom === null || altTo === null) {
+      return;
+    }
+    callback(this.score, from1, to1);
+    callback(this.storeScore, altFrom, altTo);
+    const redraw = SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
+    this.undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this._renderChangedMeasures(redraw);
+    return this.renderer.updatePromise();
+  }
   async addOrReplaceTextBracket(modifier: SmoStaffTextBracket) {
     const from1 = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
     const to1 = SmoSelection.noteFromSelector(this.score, modifier.endSelector);
@@ -1492,7 +1510,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addOrReplaceBracket(modifier, from1, to1);
     SmoOperation.addOrReplaceBracket(modifier, altFrom, altTo);
     const redraw = SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
-    this._undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this.undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(redraw);
     return this.renderer.updatePromise();
   }
@@ -1512,7 +1530,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altModifier = SmoOperation.createSlur(this.storeScore, ftAlt!, ttAlt!);
     altModifier.attrs.id = modifier.attrs.id;
     ftAlt?.staff.addStaffModifier(altModifier);
-    this._undoStaffModifier('add slur', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this.undoStaffModifier('add slur', modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }

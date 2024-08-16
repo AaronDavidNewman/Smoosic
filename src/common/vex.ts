@@ -9,7 +9,7 @@ TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
 ClefNote as VexClefNote,
  Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock,
 TabStave as VexTabStave, TabNote as VexTabNote, TabSlide as VexTabSlide, TabNotePosition as VexTabNotePosition, 
-TabNoteStruct as VexTabNoteStruct
+TabNoteStruct as VexTabNoteStruct, PedalMarking as VexPedalMarking
   } from "vexflow_smoosic";
 
  /**
@@ -29,6 +29,7 @@ export type StemmableNote = VexStemmableNote;
 export type Beam = VexBeam;
 export type Tuplet = VexTuplet;
 export type TupletOptions = VexTupletOptions;
+export type PedalMarking = VexPedalMarking;
 export type Voice = VexVoice;
 export type Accidental = VexAccidental;
 export type Font = VexFont;

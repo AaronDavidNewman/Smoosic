@@ -12,6 +12,7 @@ import { SmoNote } from './note';
 import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, Pitch } from './common';
 import { SmoTabNote, SmoFretPosition } from './noteModifiers';
 import { SmoMusic } from './music';
+import { SuiTimeSignatureMenu } from '../../../typedoc';
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
  * @param ctor constructor for derived class
@@ -1152,13 +1153,67 @@ export class SmoTabTie extends StaffModifierBase {
   };
   constructor(params: SmoTabTieParams) {
     super('SmoTabTie');
-    smoSerialize.serializedMerge(SmoTabTie.parameterArray, SmoTabStave.defaults, this);
+    smoSerialize.serializedMerge(SmoTabTie.parameterArray, SmoTabTie.defaults, this);
     smoSerialize.serializedMerge(SmoTabTie.parameterArray, params, this);
   }
   serialize() {
-    const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabTie' };
-    smoSerialize.serializedMergeNonDefault(SmoTabStave.defaults,
+    const params: Partial<SmoTabTieParamsSer> = { ctor: 'SmoTabTie' };
+    smoSerialize.serializedMergeNonDefault(SmoTabTie.defaults,
       SmoTabTie.parameterArray, this, params);
+    return params;
+  }
+}
+
+export interface SmoPedalMarkingParams {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
+  startMark: boolean,
+  releaseMark: boolean,
+  bracket: boolean,
+  customText: string
+}
+export interface SmoPedalMarkingParamsSer extends SmoPedalMarkingParams {
+  ctor: string
+}
+export function isSmoPedalMarkingParamsSer(params: Partial<SmoPedalMarkingParamsSer>):params is SmoPedalMarkingParamsSer {
+  if (params.ctor !== 'SmoPedalMarking') {
+    return false;
+  }
+  return true;
+}
+export class SmoPedalMarking extends StaffModifierBase {
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  startMark: boolean = true;
+  releaseMark: boolean = true;
+  bracket: boolean = true;
+  customText: string='';
+  static get defaults(): SmoPedalMarkingParams {
+    const rv = {
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default,
+      startMark: true,
+      releaseMark: true,
+      bracket: true,
+      customText: ''
+    };
+    return JSON.parse(JSON.stringify(rv));
+  }
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'customText'] 
+  };
+  constructor(params: SmoPedalMarkingParams) {
+    super('SmoPedalMarking');
+    smoSerialize.serializedMerge(SmoPedalMarking.parameterArray, SmoPedalMarking.defaults, this);
+    smoSerialize.serializedMerge(SmoPedalMarking.parameterArray, params, this);
+  }
+  serialize(): SmoPedalMarkingParamsSer {
+    const params: Partial<SmoPedalMarkingParamsSer> = { ctor: 'SmoPedalMarking' };
+    smoSerialize.serializedMergeNonDefault(SmoPedalMarking.defaults,
+      SmoPedalMarking.parameterArray, this, params);
+    if (!isSmoPedalMarkingParamsSer(params)) {
+      throw('bad serialization for SmoPedalMarking');
+    }
     return params;
   }
 }

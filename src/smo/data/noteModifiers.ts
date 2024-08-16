@@ -465,8 +465,6 @@ export class SmoOrnament extends SmoNoteModifierBase {
     fall: 'fall',
     fallLong: 'fallLong',
     breath: 'breath',
-    pedalOpen: 'pedalOpen',
-    pedalClosed: 'pedalClosed',
     doit: 'doit',
     doitLong: 'doitLong',
     flip: 'flip',
@@ -490,9 +488,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
   }
   static readonly textNoteOrnaments: Record<string, string>  = {
     breath: 'breath',
-    caesura: 'caesura_straight',
-    pedalOpen: 'pedal_open',
-    pedalClosed: 'pedal_close'
+    caesura: 'caesura_straight'
   }
   // jazz ornaments in vex are articulations in music xml
   static readonly xmlJazz: Record<string, string> = {
