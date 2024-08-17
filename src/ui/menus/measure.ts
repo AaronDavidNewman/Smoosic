@@ -42,7 +42,7 @@ export class SuiMeasureMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'formatMeasureDialog') {
       createAndDisplayDialog(SuiMeasureDialog, {

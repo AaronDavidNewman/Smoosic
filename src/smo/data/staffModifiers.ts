@@ -1072,14 +1072,8 @@ export class SmoTabStave extends StaffModifierBase {
     }
     return true;
   }
-  static overlaps(st1: SmoTabStave, st2: SmoTabStave): boolean {
-     if (SmoSelector.contains(st1.startSelector, st2.startSelector, st2.endSelector)) {
-      return true;
-     }
-     if (SmoSelector.contains(st1.endSelector, st2.startSelector, st2.endSelector)) {
-      return true;
-     }
-     return false;
+  static overlaps(st1: StaffModifierBase, st2: StaffModifierBase): boolean {
+    return SmoSelector.overlaps(st1.startSelector, st1.endSelector, st2.startSelector, st2.endSelector);
   }
   getTabNoteFromNote(note: SmoNote, transposeIndex: number) {
     if (note.tabNote) {
@@ -1170,7 +1164,8 @@ export interface SmoPedalMarkingParams {
   startMark: boolean,
   releaseMark: boolean,
   bracket: boolean,
-  customText: string
+  customText: string,
+  releases: SmoSelector[]
 }
 export interface SmoPedalMarkingParamsSer extends SmoPedalMarkingParams {
   ctor: string
@@ -1188,6 +1183,7 @@ export class SmoPedalMarking extends StaffModifierBase {
   releaseMark: boolean = true;
   bracket: boolean = true;
   customText: string='';
+  releases: SmoSelector[] = [];
   static get defaults(): SmoPedalMarkingParams {
     const rv = {
       startSelector: SmoSelector.default,
@@ -1195,12 +1191,13 @@ export class SmoPedalMarking extends StaffModifierBase {
       startMark: true,
       releaseMark: true,
       bracket: true,
-      customText: ''
+      customText: '',
+      releases: []
     };
     return JSON.parse(JSON.stringify(rv));
   }
   static get parameterArray() {
-    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'customText'] 
+    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'customText', 'releases'] 
   };
   constructor(params: SmoPedalMarkingParams) {
     super('SmoPedalMarking');

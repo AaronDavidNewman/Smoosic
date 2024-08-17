@@ -85,7 +85,7 @@ export abstract class SuiMenuBase {
     this.tracker = params.tracker;
     SmoTranslator.registerMenu(this.ctor);
   }
-  abstract selection(ev: any): void;
+  abstract selection(ev: any): Promise<void>;
   abstract getDefinition(): MenuDefinition;
   /**
    * Base class can override this, called before display and event binding to 

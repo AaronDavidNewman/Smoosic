@@ -483,6 +483,12 @@ export class SmoSystemStaff implements SmoObjectParams {
   isRehearsal(index: number) {
     return !(typeof(this.measures[index].getRehearsalMark()) === 'undefined');
   }
+  findSimlarOverlap(modifier: StaffModifierBase) {
+    const overlap = this.modifiers.filter((ff) => 
+      SmoSelector.overlaps(ff.startSelector, ff.endSelector, modifier.startSelector, modifier.endSelector) &&
+        ff.ctor === modifier.ctor);
+    return overlap;
+  }
   removeTabStaves(delList: SmoTabStave[]) {
     if (delList.length < 1) {
       return;
@@ -757,6 +763,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
   }
 
+  /**
+   * Sync the staff modifier indices between the full score and the score view, which may
+   * have fewer staves
+   * @param measureIndex 
+   * @param ostaff 
+   */
   syncStaffModifiers(measureIndex: number, ostaff: SmoSystemStaff) {
     const mods: StaffModifierBase[] = [];
     this.modifiers.forEach((modifier) => {

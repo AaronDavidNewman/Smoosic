@@ -1,8 +1,18 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SmoPedalMarking } from '../../smo/data/staffModifiers';
+import { SmoSelector } from '../../smo/xform/selections';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 
 declare var $: any;
 
+export async function addOrReplacePedalMarking(view: SuiScoreViewOperations, obj: SmoPedalMarking) {
+  await view.addOrReplaceStaffModifier((score, fromSelection, toSelection) => {
+    const modifier = new SmoPedalMarking(obj.serialize());
+    modifier.startSelector = fromSelection.selector;
+    modifier.endSelector = toSelection.selector;
+    score.staves[modifier.startSelector.staff].addStaffModifier(modifier);
+  }, obj);
+}
 export class SuiStaffModifierMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
@@ -63,7 +73,7 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
   getDefinition() {
     return SuiStaffModifierMenu.defaults;
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     var op = $(ev.currentTarget).attr('data-value');
     if (op === 'ending') {
       this.view.addEnding();
@@ -86,12 +96,15 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       defaults.startSelector = ft.selector;
       defaults.endSelector = tt.selector;
       const pedalMarking = new SmoPedalMarking(defaults);
-      this.view.addOrReplaceStaffModifier((score, fromSelection, toSelection) => {
-        const modifier = new SmoPedalMarking(pedalMarking.serialize());
-        modifier.startSelector = fromSelection.selector;
-        modifier.endSelector = toSelection.selector;
-        score.staves[modifier.startSelector.staff].addStaffModifier(modifier);
-      }, pedalMarking);
+      const overlaps = this.score.staves[pedalMarking.startSelector.staff].findSimlarOverlap(pedalMarking);
+      if (overlaps.length) {
+        const minSelector = SmoSelector.order(overlaps[0].startSelector, pedalMarking.startSelector)[0];
+        const maxSelector = SmoSelector.order(overlaps[0].endSelector, pedalMarking.endSelector)[1];
+        pedalMarking.startSelector = minSelector;
+        pedalMarking.endSelector = maxSelector;
+        await this.view.removeStaffModifier(overlaps[0]);
+      }
+      await addOrReplacePedalMarking(this.view, pedalMarking);
     } else if (op === 'crescendo') {
       this.view.crescendo();
     } else if (op === 'decrescendo') {

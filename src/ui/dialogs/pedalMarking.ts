@@ -4,18 +4,12 @@ import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SmoPedalMarking } from '../../smo/data/staffModifiers';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { addOrReplacePedalMarking } from '../menus/staffModifier';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { SmoSelection } from '../../smo/xform/selections';
 
 declare var $: any;
-export async function addOrReplacePedalMarking(view: SuiScoreViewOperations, obj: SmoPedalMarking) {
-  await view.addOrReplaceStaffModifier((score, fromSelection, toSelection) => {
-    const modifier = new SmoPedalMarking(obj.serialize());
-    modifier.startSelector = fromSelection.selector;
-    modifier.endSelector = toSelection.selector;
-    score.staves[modifier.startSelector.staff].addStaffModifier(modifier);
-  }, obj);
-}
+
 
 export class SuiPedalMarkingAdapter extends SuiComponentAdapter {
   backup: SmoPedalMarking;

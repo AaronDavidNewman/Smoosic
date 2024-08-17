@@ -298,12 +298,12 @@ export class SuiMenuManager {
       this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-    $(this.menuContainer).find('a.dropdown-item').off('click').on('click', (ev: any) => {
+    $(this.menuContainer).find('a.dropdown-item').off('click').on('click', async (ev: any) => {
       if ($(ev.currentTarget).attr('data-value') === 'cancel') {
         this.menu!.complete();
         return;
       }
-      this.menu!.selection(ev);
+      await this.menu!.selection(ev);
     });
   }
 }

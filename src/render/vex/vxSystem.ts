@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { VxMeasure } from './vxMeasure';
-import { SmoSelection } from '../../smo/xform/selections';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket, SmoPedalMarking } from '../../smo/data/staffModifiers';
@@ -350,7 +350,12 @@ export class VxSystem {
       curve.setContext(this.context.getContext()).draw();
     } else if (modifier.ctor === 'SmoPedalMarking') {
       const pedalMarking = modifier as SmoPedalMarking;
-      const vexPedal = new VF.PedalMarking([vxStart as StaveNote, vxEnd as StaveNote]);
+      const pedalAr: StaveNote[] = [];
+      pedalAr.push(vxStart as StaveNote);
+      if (SmoSelector.gt(smoEnd.selector, smoStart.selector)) {
+        pedalAr.push(vxEnd as StaveNote);
+      }
+      const vexPedal = new VF.PedalMarking(pedalAr);
       if (pedalMarking.customText.length) {
         vexPedal.setCustomText(pedalMarking.customText);
       }
