@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "parentObj"
+  ],
+  "properties": {
+    "parentObj": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/type1"
+          },
+          {
+            "$ref": "#/definitions/type2"
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "type1": {
+      "type": "object",
+      "properties": {
+        "dog": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dog"
+      ]
+    },
+    "type2": {
+      "type": "object",
+      "properties": {
+        "cat": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cat"
+      ]
+    }
+  }
+}

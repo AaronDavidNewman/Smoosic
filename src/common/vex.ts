@@ -2,11 +2,15 @@ import { Vex as SmoVex, Note as VexNote, StaveNote as VexStaveNote, StemmableNot
   Voice as VexVoice, Formatter as VexFormatter, Accidental as VexAccidental, 
   Annotation as VexAnnotation, StaveNoteStruct as VexStaveNoteStruct, 
   StaveText as VexStaveText, StaveModifier as VexStaveModifier,
+  TextNote as VexTextNote,
 Stave as VexStave, StaveModifierPosition as VexStaveModifierPosition,
 Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight as VexFontWeight,
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
 ClefNote as VexClefNote,
- Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock  } from "vexflow_smoosic";
+ Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock,
+TabStave as VexTabStave, TabNote as VexTabNote, TabSlide as VexTabSlide, TabNotePosition as VexTabNotePosition, 
+TabNoteStruct as VexTabNoteStruct
+  } from "vexflow_smoosic";
 
  /**
   * Module vex.ts.  This handles vexflow calls and structures that have changed 
@@ -14,6 +18,7 @@ ClefNote as VexClefNote,
   * Most of the differences are trivial - e.g. different naming conventions for variables.
   */
 import { smoSerialize } from "./serializationHelpers";
+import { SvgBox } from "../smo/data/common";
 // export type Vex = SmoVex;
 export const VexFlow = SmoVex.Flow;
 const VF = VexFlow;
@@ -32,7 +37,8 @@ export type FontStyle = VexFontStyle;
 export type FontWeight = VexFontWeight;
 export type Formatter = VexFormatter;
 export type Annotation = VexAnnotation;
-export type  StaveNoteStruct = VexStaveNoteStruct;
+export type TextNote = VexTextNote;
+export type StaveNoteStruct = VexStaveNoteStruct;
 export type StaveModifier = VexStaveModifier;
 export type StaveText = VexStaveText;
 export type Stave = VexStave;
@@ -40,7 +46,11 @@ export type Curve = VexCurve;
 export type StaveTie = VexStaveTie;
 export type ClefNote = VexClefNote;
 export type StaveModifierPosition = VexStaveModifierPosition;
-
+export type TabStave = VexTabStave;
+export type TabNote = VexTabNote;
+export type TabSlide = VexTabSlide;
+export type TabNotePosition = VexTabNotePosition;
+export type TabNoteStruct = VexTabNoteStruct;
 
 export interface GlyphInfo {
   width: number,
@@ -100,6 +110,12 @@ export interface SmoVexStaveParams {
   startX: number,
   adjX: number,
   context: any
+}
+export function createTabStave(box: SvgBox, spacing: number, numLines: number): TabStave {
+  return new VF.TabStave(box.x, box.y, box.width, {
+    spacing_between_lines_px: spacing,
+    num_lines: numLines
+  });
 }
 /**
  * Vex4 and Vex5 handle width differently.  Vex5, width comes directly from the 
@@ -183,7 +199,7 @@ export function getVexTuplets(params: SmoVexTupletParams) {
   });
   return vexTuplet;
 }
-export function getVexNoteParameters(params: CreateVexNoteParams) {
+export function getVexNoteParameters(params: CreateVexNoteParams): { noteParams: StaveNoteStruct, duration: string } {
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
@@ -366,6 +382,9 @@ export function getVexGlyphFromChordCode(code: string) {
   }
   return ChordSymbolGlyphs[code].code;
 }
+export function createTextNote(code: string) {
+  return new VexTextNote({ glyph: code, duration: '8' }).setLine(2);
+}
 /**
  * Get the chord symbol glyph from the vex glyph
  * @export
@@ -418,13 +437,13 @@ export const ChordSymbolGlyphs: Record<string, { code: string }> = {
     code: 'csymMajorSeventh',
   },
   csymMinor: {
-    code: 'csymMinor',
+    code: 'minor',
   },
   minor: {
-    code: 'csymMinor',
+    code: 'minor',
   },
   '-': {
-    code: 'csymMinor',
+    code: 'minor',
   },
   '(': {
     code: 'csymParensLeftTall',

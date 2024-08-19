@@ -66,19 +66,6 @@ export class SuiDropdownComponent extends SuiComponentBase {
       b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
-  replaceOptions(options: DialogDefinitionOption[]) {
-    const b = buildDom;
-    const s = b('select');
-    const sel = this._getInputElement();
-    const parent = $(sel).parent();
-    $(sel).remove();
-    this.checkDefault(s, b);
-    options.forEach((option) => {
-      s.append(b('option').attr('value', option.value.toString()).text(option.label));
-    });
-    $(parent).append(s.dom());
-    this.bind();
-  }
 
   unselect() {
     $(this._getInputElement())[0].selectedIndex = -1;

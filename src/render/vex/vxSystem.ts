@@ -71,7 +71,7 @@ export class VxSystem {
     let i = 0;
     for (i = 0; i < this.vxMeasures.length; ++i) {
       const vm = this.vxMeasures[i];
-      if (vm.smoMeasure.attrs.id === smoMeasure.attrs.id) {
+      if (vm.smoMeasure.id === smoMeasure.id) {
         return vm;
       }
     }
@@ -522,6 +522,9 @@ export class VxSystem {
           }
           smoGroupMap[justifyGroup].voices =
             smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
+          if (vv.tabVoice) {
+            smoGroupMap[justifyGroup].voices.concat(vv.tabVoice);
+          }
         }
       });
     }

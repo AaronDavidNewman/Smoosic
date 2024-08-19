@@ -1752,4 +1752,18 @@ export class SmoMusic {
     }
     return dar.sort((a, b) => a > b ? -1 : 1);
   }
+
+  static notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: number, letters: string): SmoNote[] {
+    const rv: SmoNote[] = [];
+    let curPitch = startPitch;
+    letters.split('').forEach((letter) => {
+      curPitch = SmoMusic.getLetterNotePitch(curPitch, letter as PitchLetter, keySignature);
+      const defs = SmoNote.defaults;
+      defs.ticks = { numerator: duration, denominator: 1, remainder: 0 };
+      defs.pitches = [curPitch];
+      defs.clef = clef;
+      rv.push(new SmoNote(defs));
+    });
+    return rv;
+  }
 }

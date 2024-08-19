@@ -64,7 +64,7 @@ export abstract class SuiScoreView {
     this.audioAnimation = config.audioAnimation;
     this.renderer = new SuiRenderState(renderParams);
     this.config = config;
-    const scoreJson = score.serialize();
+    const scoreJson = score.serialize({ skipStaves: false, useDictionary: false });
     this.scroller = new SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
@@ -109,11 +109,11 @@ export abstract class SuiScoreView {
    * await on the full update of the score, also resetting the viewport (to reflect layout changes)
    * @returns 
    */
-  refreshViewport(): Promise<any> {
+  async refreshViewport(): Promise<any> {
     this.renderer.preserveScroll();
     this.renderer.setViewport();
     this.renderer.setRefresh();
-    return this.renderer.renderPromise();
+    await this.renderer.renderPromise();
   }
   handleScrollEvent(scrollLeft: number, scrollTop: number) {
     this.tracker.scroller.handleScroll(scrollLeft, scrollTop);
@@ -509,13 +509,13 @@ export abstract class SuiScoreView {
     if (!any) {
       return;
     }
-    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(true)));
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize({ skipStaves: true, useDictionary: false })));
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
         const srcStave = this.storeScore.staves[i];
-        const jsonObj = srcStave.serialize();
+        const jsonObj = srcStave.serialize({ skipMaps: false });
         jsonObj.staffId = staffMap.length;
         const nStave = SmoSystemStaff.deserialize(jsonObj);
         nStave.mapStaffFromTo(i, nscore.staves.length);
@@ -560,7 +560,8 @@ export abstract class SuiScoreView {
    * view all the staffs in score mode.
    */
   viewAll() {
-    this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.score = SmoScore.deserialize(JSON.stringify(
+      this.storeScore.serialize({ skipStaves: false, useDictionary: false })));
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this._setTransposing();
@@ -587,12 +588,13 @@ export abstract class SuiScoreView {
    * @param score 
    * @returns 
    */
-  changeScore(score: SmoScore) {
+  async changeScore(score: SmoScore) {
     this.storeUndo.reset();
     SuiAudioPlayer.stopPlayer();
     this.renderer.score = score;
     this.renderer.setViewport();
-    this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
+    this.storeScore = SmoScore.deserialize(JSON.stringify(
+      score.serialize({ skipStaves: false, useDictionary: false })));
     this.score = score;
     // If the score is non-transposing, hide the instrument xpose settings
     this._setTransposing();
@@ -602,7 +604,7 @@ export abstract class SuiScoreView {
     if (this.storeScore.isPartExposed()) {
       this.exposePart(this.score.staves[0]);
     }
-    const rv = this.renderPromise();
+    const rv = await this.awaitRender();
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;
   }

@@ -107,6 +107,7 @@ export class SuiTracker extends SuiMapper {
     if (this.modifierIndex >= this.localModifiers.length || this.modifierIndex < 0) {
       this.modifierIndex = -1;
       this.modifierSelections = [];
+      $('.vf-staffModifier').remove();
       return;
     }
     const local: ModifierTab = this.localModifiers[this.modifierIndex];

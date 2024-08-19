@@ -384,6 +384,20 @@ body.showAttributeDialog .attributeDialog {
     display:flex;
     flex-flow: row wrap;
 }
+.attributeModal .smoControlContainer .smoControl.multiControl.pitch-array-parent {
+  display: flex;
+  flex-flow: column;
+}
+.pitch-array-item {
+  border: 2px #ddd inset;
+}
+.pitch-array-parent .pitch-array-container .multiControl.smoControl.pitchContainer {
+  border: none;
+}
+.pitch-array-container {
+  display: flex;
+  flex-flow: column;
+}
 .attributeModal .smoControl.multiControl {
   flex: 1 1 100%;
   flex-flow: row wrap;
@@ -392,6 +406,12 @@ body.showAttributeDialog .attributeDialog {
 }
 .attributeModal .smoControl.multiControl.textCheckContainer .smoControl {
   margin: 5px;
+}
+.pitchContainer .smoControl input {
+  width: 30px;
+}
+.pitch-array-item {
+  display: flex;
 }
 .attributeModal .smoControl.multiControl.textCheckContainer .text-input.smoControl {
   flex-flow: column-reverse;

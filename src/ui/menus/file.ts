@@ -4,7 +4,8 @@ import {
   SuiSaveFileDialog, SuiPrintFileDialog, 
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
   SuiLoadFileDialog, SuiLoadMidiDialog,
-  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog
+  SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog, SuiSaveVexDialog,
+  SuiSaveJsonValidationDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
 
@@ -46,6 +47,10 @@ export class SuiFileMenu extends SuiMenuBase {
       value: 'exportXml'
     }, {
       icon: '',
+      text: 'Export SMO For Validation',
+      value: 'SMOJSON'
+    }, {
+      icon: '',
       text: 'Export Midi',
       value: 'exportMidi'
     }, {
@@ -79,7 +84,7 @@ export class SuiFileMenu extends SuiMenuBase {
       tracker: this.tracker
     });
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     const self = this;
     if (text === 'saveFile') {
@@ -106,7 +111,7 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'newFile') {
       const score = SmoScore.getDefaultScore(SmoScore.defaults, null);
-      this.view.changeScore(score);
+      await this.view.changeScore(score);
     } else if (text === 'quickSave') {
       this.view.quickSave();
     } else if (text === 'printScore') {
@@ -118,6 +123,17 @@ export class SuiFileMenu extends SuiMenuBase {
       createAndDisplayDialog(SuiSaveXmlDialog, {
         ctor: 'SuiSaveXmlDialog',
         id: 'save',
+        modifier: null,
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        eventSource: this.eventSource,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+    } else if (text === 'SMOJSON') {
+      createAndDisplayDialog(SuiSaveJsonValidationDialog, {
+        ctor: 'SuiSaveSmoosicXmlDialog',
+        id: 'saveSmoJson',
         modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,

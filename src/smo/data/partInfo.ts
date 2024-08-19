@@ -6,7 +6,7 @@
  * @module /smo/data/partInfo
  */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoObjectParams } from './common';
+import { createXmlAttribute } from './common';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoLayoutManager, SmoLayoutManagerParamsSer, SmoLayoutManagerParams, SmoPageLayout } from './scoreModifiers';
 import { SmoTextGroup, SmoTextGroupParamsSer } from './scoreText';

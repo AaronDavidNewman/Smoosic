@@ -9,8 +9,9 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
-
+import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, Pitch } from './common';
+import { SmoTabNote, SmoFretPosition } from './noteModifiers';
+import { SmoMusic } from './music';
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
  * @param ctor constructor for derived class
@@ -46,7 +47,6 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
-
 export interface StaffModifierBaseSer {
   attrs: SmoAttrs;
   ctor: string;
@@ -910,6 +910,9 @@ export class SmoTie extends StaffModifierBase {
   // ### checkLines
   // If the note chords have changed, the lines may no longer be valid so update them
   checkLines(fromNote: SmoNote, toNote: SmoNote) {
+    if (this.lines.length < 1) {
+      return;
+    }
     const maxTo = this.lines.map((ll) => ll.to).reduce((a, b) => a > b ? a : b);
     const maxFrom = this.lines.map((ll) => ll.from).reduce((a, b) => a > b ? a : b);
     if (maxTo < toNote.pitches.length && maxFrom < fromNote.pitches.length) {
@@ -927,5 +930,225 @@ export class SmoTie extends StaffModifierBase {
         type: 'SmoTie'
       };
     }
+  }
+}
+
+/**
+ * Parameters for SmoTabStave
+ */
+export interface SmoTabStaveParams {
+  /**
+   * start selector, by measure
+   */
+  startSelector: SmoSelector,
+  /**
+   * end selector, by measure
+   */
+  endSelector: SmoSelector,
+  /**
+   * space between staves, in pixels
+   */
+  spacing: number,
+  /**
+   * number of lines
+   */
+  numLines: number,
+  /**
+   * Default setting of showing stems
+   */
+  showStems: boolean,
+  /**
+   * If true, the score should keep a single tab stave for all measures
+   */
+  allMeasures: boolean,
+  /**
+   * The strings for each line
+   */
+  stringPitches?: Pitch[]
+}
+
+export interface SmoTabStaveParamsSer extends SmoTabStaveParams {
+  ctor: string
+}
+
+/**
+ * A stave for guitar tablature sits below the music stave.
+ */
+export class SmoTabStave extends StaffModifierBase {
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  spacing: number = 13;
+  numLines: number = 6;
+  showStems: boolean = true;
+  allMeasures: boolean = true;
+  stringPitches: Pitch[];
+  /** The default guitar tuning.  Different instruments could have different tuning */
+  static get defaultStringPitches(): Pitch[] {
+    return JSON.parse(JSON.stringify([
+      { letter: 'e', accidental: 'n', octave: 2 },
+      { letter: 'a', accidental: 'n', octave: 2 },
+      { letter: 'd', accidental: 'n', octave: 3 },
+      { letter: 'g', accidental: 'n', octave: 3 },
+      { letter: 'b', accidental: 'n', octave: 3 },
+      { letter: 'e', accidental: 'n', octave: 4 }
+    ]));
+  }
+  /**
+   * Get default tab note position for a pitch on a music staff
+   * @param pitch 
+   * @param stringPitches 
+   * @returns 
+   */
+  static getDefaultPositionForStaff(pitch: Pitch, stringPitches: Pitch[], transposeIndex: number, stringIndex?: number): SmoFretPosition {
+    const pitchAr = stringPitches.map((pp) => SmoMusic.smoPitchToInt(pp));
+    const pitchInt = SmoMusic.smoPitchToInt(pitch) + (-1 * transposeIndex);
+    stringIndex = stringIndex ?? -1;
+    // if the note is higher than the highest string, count the frets.
+    const lastIndex = pitchAr.length - 1;
+    // If the user wants to preserve a certain string, find the fret for that if we can.
+    if (stringIndex > 0 && stringIndex < pitchAr.length && pitchAr[stringIndex] <= pitchInt ) {
+      return { string: stringIndex + 1, fret: pitchInt - pitchAr[stringIndex] };
+    }
+    // If the note is between this and the next string, count the frets
+    for (var i = 0; i < lastIndex; i++) {
+      if (pitchInt >= pitchAr[i]) {
+        return { string: i + 1, fret: pitchInt - pitchAr[i] };
+      }
+    }
+    // if lower that the lowest string, there is no fret so just return 0
+    return { string: lastIndex + 1, fret: 0 };
+  }
+  /**
+   * Find default fret positions for a set of pitches from a note
+   * @param pitches 
+   * @param stringPitches 
+   * @returns 
+   */
+  static getDefaultPositionsForStaff(pitches: Pitch[], stringPitches: Pitch[], transposeIndex: number): SmoFretPosition[] {
+    const rv: SmoFretPosition[] = [];
+    pitches.forEach((pp) => rv.push(SmoTabStave.getDefaultPositionForStaff(pp, stringPitches, transposeIndex)));
+    return rv;
+  }
+
+  static get defaults(): SmoTabStaveParams {
+    return {
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default,
+      spacing: 13,
+      numLines: 6,
+      showStems: true,
+      allMeasures: true,
+      stringPitches: SmoTabStave.defaultStringPitches
+    }
+  }
+  static parameterArray: string[] = ['startSelector', 'endSelector', 'spacing', 'numLines', 'showStems', 'allMeasures'];
+  static featuresEqual(st1: SmoTabStave, st2: SmoTabStave): boolean {
+    if (st1.numLines !== st2.numLines) {
+      return false;
+    }
+    if (st1.stringPitches.length !== st2.stringPitches.length) {
+      return false;
+    }
+    if (st1.showStems !== st2.showStems) {
+      return false;
+    }
+    for (var i = 0; i < st1.stringPitches.length; ++i) {
+      const p1 = st1.stringPitches[i];
+      const p2 = st2.stringPitches[i];
+      if (SmoMusic.smoPitchToInt(p1) !== SmoMusic.smoPitchToInt(p2)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  static overlaps(st1: SmoTabStave, st2: SmoTabStave): boolean {
+     if (SmoSelector.contains(st1.startSelector, st2.startSelector, st2.endSelector)) {
+      return true;
+     }
+     if (SmoSelector.contains(st1.endSelector, st2.startSelector, st2.endSelector)) {
+      return true;
+     }
+     return false;
+  }
+  getTabNoteFromNote(note: SmoNote, transposeIndex: number) {
+    if (note.tabNote) {
+      return note.tabNote;
+    }
+    const positions = SmoTabStave.getDefaultPositionsForStaff(note.pitches, this.stringPitches, transposeIndex);
+    return new SmoTabNote({
+      positions, noteId: note.attrs.id, isAssigned: false, flagState: SmoTabNote.flagStates.None,
+        noteHead: SmoTabNote.noteHeads.number, flagThrough: false
+    });
+  }
+  constructor(params: SmoTabStaveParams) {
+    super('SmoTabStave');
+    smoSerialize.serializedMerge(SmoTabStave.parameterArray, SmoTabStave.defaults, this);
+    smoSerialize.serializedMerge(SmoTabStave.parameterArray, params, this);
+    if (!params.stringPitches) {
+      this.stringPitches = SmoTabStave.defaultStringPitches;
+    } else {
+      this.stringPitches = params.stringPitches;
+    }
+    this.stringPitches.sort((pa, pb) => SmoMusic.smoPitchToInt(pa) > SmoMusic.smoPitchToInt(pb) ? -1 : 1);
+  }
+  serialize():any {
+    const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabStave' };
+    smoSerialize.serializedMergeNonDefault(SmoTabStave.defaults,
+      SmoTabStave.parameterArray, this, params);
+    params.stringPitches = JSON.parse(JSON.stringify(this.stringPitches));
+    return params;
+  }
+}
+
+export interface SmoTabTieParams {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
+  hammerType: number,
+  slideType: number,
+  isTap: boolean,
+  text: string
+}
+
+export interface SmoTabTieParamsSer extends SmoTabTieParams {
+  ctor: string
+}
+
+export class SmoTabTie extends StaffModifierBase {
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  hammerType: number = SmoTabTie.hammerType.None;
+  slideType: number = SmoTabTie.slideType.None;
+  isTap: boolean = false;
+  text: string = '';
+  static get hammerType() {
+    return { None: 0, Hammeron: 1, Pulloff: 2 }
+  }
+  static get slideType() {
+    return { None: 0, SlideUp: 1, SlideDown: 2 }
+  }
+
+  static get defaults(): SmoTabTieParams {
+    return JSON.parse(JSON.stringify({
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default,
+      hammerType: SmoTabTie.hammerType.None,
+      slideType: SmoTabTie.slideType.None,
+      isTap: false,
+      text: ''
+    }));
+  }
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'hammerType', 'slideType', 'isTap', 'text'] 
+  };
+  constructor(params: SmoTabTieParams) {
+    super('SmoTabTie');
+    smoSerialize.serializedMerge(SmoTabTie.parameterArray, SmoTabStave.defaults, this);
+    smoSerialize.serializedMerge(SmoTabTie.parameterArray, params, this);
+  }
+  serialize() {
+    const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabTie' };
+    smoSerialize.serializedMergeNonDefault(SmoTabStave.defaults,
+      SmoTabTie.parameterArray, this, params);
+    return params;
   }
 }

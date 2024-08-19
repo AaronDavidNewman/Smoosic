@@ -8,15 +8,15 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, 
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
-  SmoClefChangeParamsSer, SmoClefChange } from './noteModifiers';
+  SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer, SmoTabNote,
+  SmoTabNoteParamsSer, 
+  SmoTabNoteParams,
+  SmoFretPosition} from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId } from './common';
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,  
+  createXmlAttribute,  serializeXmlModifierArray} from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
-import { SmoTupletParamsSer } from './tuplet';
 
-export interface TupletInfo {
-  id: string;
-}
 // @internal
 export type NoteType = 'n' | 'r' | '/';
 // @internal
@@ -91,7 +91,11 @@ export interface SmoNoteParams {
   /**
    * if this note is part of a tuplet
    */
-  tuplet: TupletInfo | undefined,
+  tupletId: string | null,
+  /*
+  * If a custom tab note is assigned to this note
+  */
+  tabNote?: SmoTabNote,
   /**
    * does this note force the end of a beam group
    */
@@ -130,6 +134,7 @@ export interface SmoNoteParams {
   clefNote: SmoClefChangeParamsSer
 }
 
+export type SmoNoteTextModifierSer = SmoLyricParamsSer | SmoDynamicTextSer;
 /**
  * The serializable bits of a Note.  Notes will always 
  * have a type, and if a sounded note, can contain pitches.  It will always
@@ -154,7 +159,7 @@ export interface SmoNoteParamsSer  {
   /**
     * lyrics, annotations
     */
-  textModifiers: SmoNoteModifierBase[],
+  textModifiers: SmoNoteTextModifierSer[],
   /**
     * articulations attached to the note
     */
@@ -178,7 +183,11 @@ export interface SmoNoteParamsSer  {
   /**
     * if this note is part of a tuplet
     */
-  tuplet: SmoTupletParamsSer | undefined,
+  tupletId?: string,
+  /**
+   * If a custom tab note is here, keep track of it
+   */
+  tabNote?: SmoTabNoteParamsSer,
   /**
     * does this note force the end of a beam group
     */
@@ -216,12 +225,25 @@ export interface SmoNoteParamsSer  {
     */
   clefNote? : SmoClefChangeParamsSer
 }
+
+export interface SmoTupletNote {
+  ticks: Ticks,
+  noteId: string,
+  tupletId: string
+}
 function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
   if (params.ctor && params.ctor === 'SmoNote') {
    return true;
   }
   return false;
 }
+export function isSmoNote(transposable: Transposable): transposable is SmoNote {
+  if (Array.isArray((transposable as any).graceNotes)) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
@@ -234,6 +256,7 @@ export class SmoNote implements Transposable {
     NoteStringParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
+    this.tupletId = params.tupletId;
     this.noteType = params.noteType ? params.noteType : defs.noteType;
     NoteNumberParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
@@ -244,14 +267,18 @@ export class SmoNote implements Transposable {
     if (params.clefNote) {
       this.clefNote = new SmoClefChange(params.clefNote);
     }
+    if (params.tabNote) {
+      this.tabNote = new SmoTabNote(params.tabNote);
+    }
     const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
     this.ticks = JSON.parse(JSON.stringify(ticks));
     this.pitches = JSON.parse(JSON.stringify(pitches));
     this.clef = params.clef ? params.clef : defs.clef;
     this.fillStyle = params.fillStyle ? params.fillStyle : '';
-    if (params.tuplet) {
-      this.tuplet = params.tuplet;
+    // legacy tuplet, now we just need the tuplet id
+    if ((params as any).tuplet) {
+      this.tupletId = (params as any).tuplet.id;
     }
     this.attrs = {
       id: getId().toString(),
@@ -270,13 +297,14 @@ export class SmoNote implements Transposable {
   pitches: Pitch[] = [];
   noteHead: string = '';
   arpeggio?: SmoArpeggio;
+  tabNote?: SmoTabNote;
   clef: string = 'treble';
   clefNote: SmoClefChange | null = null;
   graceNotes: SmoGraceNote[] = [];
   noteType: NoteType = 'n';
   fillStyle: string = '';
   hidden: boolean = false;
-  tuplet: TupletInfo | null = null;
+  tupletId: string | null = null;
   tones: SmoMicrotone[] = [];
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
@@ -286,6 +314,7 @@ export class SmoNote implements Transposable {
   keySignature: string = 'c';
   logicalBox: SvgBox | null = null;
   isCue: boolean = false;
+  hasTabNote: boolean = true;
   accidentalsRendered: string[] = [];// set by renderer if accidental is to display
   /**
    * used in serialization
@@ -293,7 +322,8 @@ export class SmoNote implements Transposable {
    */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'
+    , 'tupletId'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it
@@ -501,11 +531,16 @@ export class SmoNote implements Transposable {
   }
 
   getOrnaments() {
-    return this.ornaments.filter((oo) => oo.isJazz() === false);
+    return this.ornaments.filter((oo) => oo.isJazz() === false
+      && typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) !== 'string');
   }
 
   getJazzOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  getTextOrnaments() {
+    return this.ornaments.filter((oo) => typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) === 'string');
   }
 
   /**
@@ -522,7 +557,13 @@ export class SmoNote implements Transposable {
       this.ornaments = [];
     }
   }
-
+  setTabNote(params: SmoTabNoteParams) {
+    this.tabNote = new SmoTabNote(params);
+    this.tabNote.isAssigned = true;
+  }
+  clearTabNote() {
+    this.tabNote = undefined;
+  }
   /**
    * Toggle the ornament up/down/off
    * @param articulation
@@ -652,7 +693,7 @@ export class SmoNote implements Transposable {
    * Return true if this note is part of a tuplet
    */
   get isTuplet(): boolean {
-    return this.tuplet !== null && typeof(this.tuplet.id) !== 'undefined';
+    return typeof(this.tupletId) !== 'undefined' && this.tupletId !== null &&  this.tupletId.length > 0;
   }
 
   addMicrotone(tone: SmoMicrotone) {
@@ -751,6 +792,24 @@ export class SmoNote implements Transposable {
         note.pitches[index] = pitch;
       }
     }
+    // If the fret position can be adjusted on the current string, keep the tab note.  Else
+    // delete the tab note, and auto-generate it to display default
+    if (isSmoNote(note)) {
+      const sn: SmoNote = note;
+      if (sn.tabNote && sn.tabNote.positions.length > 0) {
+        const frets: SmoFretPosition[] = [];
+        sn.tabNote.positions.forEach((pos) => {
+          if (pos.fret + offset > 0) {
+            frets.push({ string: pos.string, fret: pos.fret + offset});
+          }
+        });
+        if (frets.length) {
+          sn.tabNote.positions = frets;
+        } else {
+          sn.tabNote = undefined;
+        }
+      }
+    }
     SmoNote.sortPitches(note);
     return note;
   }
@@ -811,11 +870,17 @@ export class SmoNote implements Transposable {
   serialize(): SmoNoteParamsSer {
     var params: Partial<SmoNoteParamsSer> = { ctor: 'SmoNote' };
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
+    if (this.tabNote) {
+      params.tabNote = this.tabNote.serialize();
+    }
     if (this.clefNote) {
       params.clefNote = this.clefNote.serialize();
     }
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
+    }
+    if (this.tupletId) {
+      params.tupletId = this.tupletId;
     }
     this._serializeModifiers(params);
     if (!isSmoNoteParamsSer(params)) {

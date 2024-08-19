@@ -136,7 +136,7 @@ export interface DialogDom {
           component.options = [];
 
           element.options.forEach((option) => {
-            component.options!.push({ value: option.value, label: option.label });
+            component.options!.push({ value: option.value, label: option.label, css: option.css });
           });
         }
         output.push(component as DialogTranslationElement);
@@ -342,7 +342,7 @@ export interface DialogDom {
   }
   // ### positionModifier()
   positionFromModifier() {
-    if (this.modifier === null || this.modifier.logicalBox === null) {
+    if (!this.modifier || this.modifier.logicalBox === null) {
       this.positionGlobally();
       return;
     }

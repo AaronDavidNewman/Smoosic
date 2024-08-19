@@ -15,6 +15,10 @@ export class ArticulationButtons extends SuiButton {
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
+      breathButton: 'breath',
+      caesuraButton: 'caesura',
+      pedalOpenButton: 'pedalOpen',
+      pedalClosedButton: 'pedalClosed',
       scoopButton: SmoOrnament.ornaments.scoop,
       dropButton: SmoOrnament.ornaments.fall_short,
       dropLongButton: SmoOrnament.ornaments.dropLong,
@@ -35,13 +39,17 @@ export class ArticulationButtons extends SuiButton {
       mordentButton: 'SmoOrnament',
       mordentInvertedButton: 'SmoOrnament',
       trillButton: 'SmoOrnament',
+      breathButton: 'SmoOrnament',
+      pedalOpenButton: 'SmoOrnament',
+      pedalClosedButton: 'SmoOrnament',
+      caesuraButton: 'SmoOrnament',
       scoopButton: 'SmoOrnament',
       dropButton: 'SmoOrnament',
       dropLongButton: 'SmoOrnament',
       doitButton: 'SmoOrnament',
       doitLongButton: 'SmoOrnament',
       flipButton: 'SmoOrnament',
-      smearButton: 'SmoOrnament'
+      smearButton: 'SmoOrnament',
     };
   }
   articulation: string;

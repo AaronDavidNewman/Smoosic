@@ -384,14 +384,61 @@ body.showAttributeDialog .attributeDialog {
     display:flex;
     flex-flow: row wrap;
 }
+.attributeModal .smoControlContainer .smoControl.multiControl.pitch-array-parent {
+  display: flex;
+  flex-flow: column;
+}
+.pitch-array-item {
+  border: 2px #ddd inset;
+}
+.pitch-array-parent .pitch-array-container .multiControl.smoControl.pitchContainer {
+  border: none;
+}
+.pitch-array-container {
+  display: flex;
+  flex-flow: column;
+}
 .attributeModal .smoControl.multiControl {
   flex: 1 1 100%;
   flex-flow: row wrap;
   justify-content: space-around;
+  margin: 5px 0;
   border: 2px #ddd outset;
+}
+.attributeModal .smoControl.buttonArray {
+  flex: 1 1 100%;
+  flex-flow: row wrap;
+  justify-content: center;
+  bottom:8px;
+  left:8px;
+  border: 2px #ddd outset;
+}
+
+.attributeModal .smoControl.buttonArray .icon-bravura {
+  top:-5px;
+  left:8px;
+}
+.smoControl.buttonArray button:hover {
+  background:#334488;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+button.button-array.pushed {
+  background-color: #dee;
+  border: 2px #222 inset;
+}
+button.button-array.initial {
+  background-color: #999;
 }
 .attributeModal .smoControl.multiControl.textCheckContainer .smoControl {
   margin: 5px;
+}
+.pitchContainer .smoControl input {
+  width: 30px;
+}
+.pitch-array-item {
+  display: flex;
 }
 .attributeModal .smoControl.multiControl.textCheckContainer .text-input.smoControl {
   flex-flow: column-reverse;
@@ -414,7 +461,17 @@ body.showAttributeDialog .attributeDialog {
 	border-radius: 5%;
 	border: 1px solid #52ba73;
 }
-
+.smoControl button.button-array {
+  width: 30px;
+	height: 30px;
+  position:relative;
+}
+.smoControl button.button-array.pushed {
+  font-weight: bold;
+}
+.smoControl button.button-array .icon-bravura {
+  font-size: 38px;
+}
 .smoControl.cbTextInPlace,.smoControl.cbDragTextDialog ,.smoControl.cbResizeTextBox  {
     position:relative;
     min-width:110px;

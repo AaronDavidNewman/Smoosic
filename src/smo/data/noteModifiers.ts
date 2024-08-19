@@ -8,7 +8,6 @@
 import { SmoAttrs, Ticks, Pitch, getId, SmoObjectParams, Transposable, SvgBox, SmoModifierBase, 
   Clef, IsClef } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoSelector } from '../xform/selections';
 import { SmoMusic } from './music';
 import { defaultNoteScale, FontInfo, getChordSymbolGlyphFromCode } from '../../common/vex';
 // const Smo = eval('globalThis.Smo');
@@ -50,6 +49,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
+
 
 export function isClefChangeParamsSer(params: Partial<SmoClefChangeParamsSer>): params is SmoClefChangeParamsSer {
   if (typeof(params.clef) === 'string' && params.ctor === 'SmoClefChange') {
@@ -208,6 +208,7 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   clef: string = 'treble';
   noteType: string = 'n';
   renderId: string | null = null;
+  hasTabNote: boolean = false;
 
   tickCount() {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -228,7 +229,6 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     }
     return params;
   }
-
   constructor(parameters: Partial<GraceNoteParams>) {
     super('SmoGraceNote');
     smoSerialize.serializedMerge(SmoGraceNote.parameterArray, SmoGraceNote.defaults, this);
@@ -476,6 +476,12 @@ export class SmoOrnament extends SmoNoteModifierBase {
     prallup: 'schleifer',
     tr: 'trill-mark'
   }
+  static readonly textNoteOrnaments: Record<string, string>  = {
+    breath: 'breath',
+    caesura: 'caesura_straight',
+    pedalOpen: 'pedal_open',
+    pedalClosed: 'pedal_close'
+  }
   // jazz ornaments in vex are articulations in music xml
   static readonly xmlJazz: Record<string, string> = {
     doit: 'doit',
@@ -489,7 +495,6 @@ export class SmoOrnament extends SmoNoteModifierBase {
   toVex() {
     return SmoOrnament.ornaments[this.ornament.toLowerCase()];
   }
-
   isJazz() {
     return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
   }
@@ -682,7 +687,7 @@ export interface VexAnnotationParams {
  * since that can change based on the position of the parent note
  * @category serialization
  */
-export interface SmoLyricPersist extends SmoObjectParams {
+export interface SmoLyricParamsSer extends SmoObjectParams {
   /**
    * constructor
    */
@@ -733,7 +738,7 @@ export interface SmoLyricPersist extends SmoObjectParams {
   text: string | null
 }
 
-function isSmoLyricPersist(params: Partial<SmoLyricPersist>): params is SmoLyricPersist {
+function isSmoLyricPersist(params: Partial<SmoLyricParamsSer>): params is SmoLyricParamsSer {
   if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoLyric') {
     return false;
   }
@@ -863,8 +868,8 @@ export class SmoLyric extends SmoNoteModifierBase {
   hyphenX: number = 0;
   deleted: boolean = false;
 
-  serialize(): SmoLyricPersist {
-    var params: Partial<SmoLyricPersist> = { ctor: 'SmoLyric' };
+  serialize(): SmoLyricParamsSer {
+    var params: Partial<SmoLyricParamsSer> = { ctor: 'SmoLyric' };
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
       SmoLyric.persistArray, this, params);
     if (!isSmoLyricPersist(params)) {
@@ -872,7 +877,6 @@ export class SmoLyric extends SmoNoteModifierBase {
     }
     return params;
   }
-
   // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
   // you want, so it is off by default.
   get adjustNoteWidth() {
@@ -955,6 +959,9 @@ export class SmoLyric extends SmoNoteModifierBase {
     super('SmoLyric');
     smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults, this);
     smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+    if (typeof(this.fontInfo.size) !== 'number') {
+      this.fontInfo.size = SmoLyric.defaults.fontInfo.size;
+    }
     // backwards-compatibility for lyric text
     if (parameters.text) {
       this.text = parameters.text;
@@ -978,7 +985,7 @@ export class SmoLyric extends SmoNoteModifierBase {
  * The persisted bits of {@link SmoDynamicTextParams}
  * @category SmoParams
  */
-export interface SmoDynamicTextPersist extends SmoObjectParams {
+export interface SmoDynamicTextSer extends SmoObjectParams {
   ctor: string,
   xOffset: number,
   fontSize: number,
@@ -990,14 +997,13 @@ export interface SmoDynamicTextPersist extends SmoObjectParams {
  * Constructor parameters for {@link SmoDynamicText}
  * @category SmoParams
  */
-export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
+export interface SmoDynamicTextParams extends SmoDynamicTextSer {
   ctor: string,
   xOffset: number,
   fontSize: number,
   yOffsetLine: number,
   yOffsetPixels: number,
-  text: string,
-  selector: SmoSelector
+  text: string
 }
 
 /**
@@ -1040,7 +1046,6 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     rv.push('selector');
     return rv;
   }
-  selector: SmoSelector;
   text: string = '';
   yOffsetLine: number = 11;
   yOffsetPixels: number = 0;
@@ -1056,7 +1061,6 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     super('SmoDynamicText');
     smoSerialize.vexMerge(this, SmoDynamicText.defaults);
     smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
-    this.selector = parameters.selector;
 
     if (!this.attrs) {
       this.attrs = {
@@ -1064,5 +1068,76 @@ export class SmoDynamicText extends SmoNoteModifierBase {
         type: 'SmoDynamicText'
       };
     }
+  }
+}
+
+export interface SmoTabBend {
+  bendType: number,
+  release: boolean,
+  text: string
+}
+export interface SmoFretPosition {
+  string: number,
+  fret: number
+}
+export interface SmoTabNoteParams {
+  positions: SmoFretPosition[]
+  noteId: string,
+  flagState: number,
+  flagThrough: boolean,
+  noteHead: number,
+  isAssigned: boolean
+}
+
+export interface SmoTabNoteParamsSer extends SmoTabNoteParams {
+  ctor: string
+}
+
+function isSmoTabNoteParamsSer(params: Partial<SmoTabNoteParamsSer>): params is SmoTabNoteParamsSer {
+  if (typeof(params.ctor) !== 'string' || params.ctor !== 'SmoTabNote') {
+    return false;
+  }
+  return true;
+}
+export class SmoTabNote extends SmoNoteModifierBase {
+  static get defaults(): SmoTabNoteParams  {
+    return JSON.parse(JSON.stringify({
+      positions: [],
+      noteId: '',
+      isAssigned: false,
+      flagState: SmoTabNote.flagStates.None,
+      flagThrough: false,
+      noteHead: SmoTabNote.noteHeads.number
+    }));
+  }
+  positions: SmoFretPosition[];
+  noteId: string;
+  isAssigned: boolean;
+  noteHead: number;
+  flagState: number;
+  flagThrough: boolean;
+  static get flagStates() {
+    return { None: 0, Up: 1, Down: -1 };
+  }
+  static get noteHeads() {
+    return { number: 0, x: 1 };
+  }
+  constructor(params: SmoTabNoteParams) {
+    super('SmoTabNote');
+    this.positions = params.positions
+    this.noteId =  params.noteId;
+    this.isAssigned = params.isAssigned;
+    this.noteHead = params.noteHead;
+    this.flagState = params.flagState;
+    this.flagThrough = params.flagThrough;
+  }
+  serialize(): SmoTabNoteParamsSer {
+    var params = { ctor: 'SmoTabNote' };
+    smoSerialize.serializedMergeNonDefault(SmoTabNote.defaults,
+      ['positions', 'noteId', 'isAssigned', 'noteHead', 'flagState', 'flagThrough'], this, params);
+    if (!isSmoTabNoteParamsSer(params)) {
+      throw 'bad params in SmoTabNote';
+    }
+    return params;
   }
 }

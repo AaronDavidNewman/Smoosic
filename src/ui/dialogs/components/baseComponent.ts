@@ -12,6 +12,7 @@ declare var $: any;
  * @category SuiDialogParams
  */
 export interface DialogDefinitionOption {
+  css?: string,
   label: string,
   value: number | string
 }

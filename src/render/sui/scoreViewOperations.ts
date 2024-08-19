@@ -12,7 +12,8 @@ import { SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager, SmoAu
   SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scoreModifiers';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
-  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange } from '../../smo/data/noteModifiers';
+  SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange, 
+  SmoTabNote} from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
@@ -26,7 +27,7 @@ import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoSlur,
-   SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+   SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
@@ -129,7 +130,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const xml = parser.parseFromString(req.value, 'text/xml');
     const score = XmlToSmo.convert(xml);
     score.layoutManager!.zoomToWidth($('body').width());
-    self.changeScore(score);
+    await self.changeScore(score);
   }
   /**
    * load a remote score in SMO format
@@ -492,9 +493,53 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.setDirty();
     await this.renderer.updatePromise();
   }
-
+  async updateTabStave(tabStave: SmoTabStave) {
+    const selections = SmoSelection.getMeasuresBetween(this.score, tabStave.startSelector, tabStave.endSelector);
+    const altSelections = this._getEquivalentSelections(selections);
+    if (selections.length === 0) {
+      return;
+    }
+    this._undoSelections('updateTabStave', selections);
+    const staff: number = selections[0].selector.staff;
+    const altStaff = altSelections[0].selector.staff;
+    const altTabStave = new SmoTabStave(tabStave.serialize());
+    altTabStave.startSelector.staff = altStaff;
+    altTabStave.endSelector.staff = altStaff;
+    altTabStave.attrs.id = tabStave.attrs.id;
+    this.score.staves[staff].updateTabStave(tabStave);
+    this.storeScore.staves[altStaff].updateTabStave(altTabStave);
+    this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
+    await this.renderer.updatePromise();
+  }
+  async removeTabStave() {
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    if (selections.length === 0) {
+      return;
+    }
+    this._undoSelections('updateTabStave', selections);
+    const stavesToRemove: SmoTabStave[] = [];
+    const altStavesToRemove: SmoTabStave[] = [];
+    const added: Record<string, SmoTabStave> = {};
+    selections.forEach((sel, ix) => {
+      const altSel = altSelections[ix];
+      const tabStave = sel.staff.getTabStaveForMeasure(sel.selector);
+      const altTabStave = altSel.staff.getTabStaveForMeasure(altSel.selector);
+      if (tabStave && altTabStave) {
+        if (!added[tabStave.attrs.id]) {
+          added[tabStave.attrs.id] = tabStave;
+          stavesToRemove.push(tabStave);
+          altStavesToRemove.push(altTabStave);
+        }
+      }
+    });
+    selections[0].staff.removeTabStaves(stavesToRemove);
+    altSelections[0].staff.removeTabStaves(altStavesToRemove);
+    this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
+    await this.renderer.updatePromise();
+  }
   /**
-   * UPdate tempo for all or part of the score
+   * Update tempo for all or part of the score
    * @param measure the measure with the tempo.  Tempo is measure-wide parameter
    * @param scoreMode if true, update whole score.  Else selections
    * @returns 
@@ -551,6 +596,26 @@ export class SuiScoreViewOperations extends SuiScoreView {
         }
       }
     }
+    await this.renderer.updatePromise();
+  }
+  async updateTabNote(tabNote: SmoTabNote) {
+    const selections = SmoSelection.getMeasuresBetween(this.score, 
+      this.tracker.getExtremeSelection(-1).selector, this.tracker.getExtremeSelection(1).selector);
+    const altSelections = this._getEquivalentSelections(selections);
+    this._undoSelections('updateTabNote', selections);
+    SmoOperation.updateTabNote(selections, tabNote);
+    SmoOperation.updateTabNote(altSelections, tabNote);
+    this.renderer.addToReplaceQueue(selections);
+    await this.renderer.updatePromise();
+  }
+  async removeTabNote() {
+    const selections = SmoSelection.getMeasuresBetween(this.score, 
+      this.tracker.getExtremeSelection(-1).selector, this.tracker.getExtremeSelection(1).selector);
+    const altSelections = this._getEquivalentSelections(selections);
+    this._undoSelections('updateTabNote', selections);
+    SmoOperation.removeTabNote(selections);
+    SmoOperation.removeTabNote(altSelections);
+    this.renderer.addToReplaceQueue(selections);
     await this.renderer.updatePromise();
   }
   /**
@@ -887,6 +952,21 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.toggleRest(altSel!);
     });
     this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();
+  }
+  async clearAllBeams(): Promise<void> {
+    this._undoScore('clearAllBeams');
+    SmoOperation.clearAllBeamGroups(this.score);
+    SmoOperation.clearAllBeamGroups(this.storeScore);
+    await this.awaitRender();
+  }
+  async clearSelectedBeams() {
+    const selections = this.tracker.selections;
+    const measures = SmoSelection.getMeasureList(selections);
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.clearBeamGroups(this.score, selections);
+    SmoOperation.clearBeamGroups(this.storeScore, altSelections);
+    this._renderChangedMeasures(measures);
     await this.renderer.updatePromise();
   }
   /**
@@ -1586,10 +1666,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const selections = SmoSelection.innerSelections(this.storeScore, inst.startSelector, inst.endSelector);
       SmoOperation.changeInstrument(inst, selections);
     })
-    if (instrument.alignWithPrevious && instrument.staffId > 0) {
+    if (instrument.staffId > 0) {
+      const selection = SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
       const sel = SmoSelector.default;
       sel.staff = instrument.staffId - 1;
-      const selection = SmoSelection.measureSelection(this.storeScore, instrument.staffId - 1, 0);
       if (selection) {
         let grp = this.storeScore.getSystemGroupForStaff(selection);
         if (grp) {
@@ -1602,7 +1682,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
         }
       }
     }
-
     this.viewAll();
     return this.renderer.updatePromise();
   }

@@ -64,6 +64,7 @@ export class SuiScoreRender {
   viewportChanged: boolean = false;
   renderTime: number = 0;
   backgroundRender: boolean = false;
+  static debugMask: number = 0;
   renderedPages: Record<number, RenderedPage | null> = {};
   _autoAdjustRenderTime: boolean = true;
   lyricsToOffset: Map<number, VxSystem> = new Map();
@@ -191,7 +192,9 @@ export class SuiScoreRender {
       this.measureMapper.scroller.updateViewport();
     }
     // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    console.log('layout setViewport: pstate initial');
+    if (SuiScoreRender.debugMask) {
+      console.log('layout setViewport: pstate initial');
+    }
   }
 
   async renderScoreModifiers(): Promise<void> {
@@ -263,7 +266,9 @@ export class SuiScoreRender {
     const pageIndex = columns[0][0].svg.pageIndex;
     
     if (this.renderingPage !== pageIndex && this.renderedPages[pageIndex] && !printing) {
-      console.log(`skipping render on page ${pageIndex}`);
+      if (SuiScoreRender.debugMask) {
+        console.log(`skipping render on page ${pageIndex}`);
+      }
       return;
     }
     const context = this.vexContainers.getRendererForPage(pageIndex);
@@ -398,6 +403,10 @@ export class SuiScoreRender {
     if (measure.svg.element) {
       measure.svg.element.remove();
       measure.svg.element = null;
+      if (measure.svg.tabElement) {
+        measure.svg.tabElement.remove();
+        measure.svg.tabElement = undefined;
+      }
     }
     const renderPage = this.renderedPages[measure.svg.pageIndex];
     if (renderPage) {
