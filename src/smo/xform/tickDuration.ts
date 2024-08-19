@@ -1,9 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoNote, TupletInfo } from '../data/note';
-import { SmoTuplet } from '../data/tuplet';
+import { SmoTuplet, SmoTupletTree } from '../data/tuplet';
 import { SmoMusic } from '../data/music';
-import { SmoSelector, SmoSelection } from './selections';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { Ticks } from '../data/common';
 import { TickMap } from './tickMap';
@@ -22,240 +21,240 @@ export abstract class TickIteratorBase {
   }
 }
 
-export class SmoMakeTupletActor {
-  private note: SmoNote;
-  private measure: SmoMeasure; 
-  private selector: SmoSelector;
-  private voices: SmoVoice[];
-  private voice: SmoVoice;
-
-  private totalTicks: number;
-  private parentTuplet: SmoTuplet | null;
-  private numNotes: number;
-  private notesOccupied: number;
-  private tupletNotes: SmoNote[] = [];
-  private stemTicks: number;
-  private tuplet: SmoTuplet;
-
-  constructor(selection: SmoSelection, numNotes: number) {
-    this.note = selection.note!;
-    this.measure = selection.measure;
-    
-    this.selector = selection.selector;
-    this.voices = this.measure.voices;
-    this.voice = this.voices[this.selector.voice];
-    this.numNotes = numNotes;  
-
-    this.totalTicks = this.note.tickCount;
-    this.parentTuplet = this.measure.getTupletForNoteIndex(this.selector.voice, this.selector.tick);
-
-    this.stemTicks = SmoTuplet.calculateStemTicks(this.note.stemTicks, this.numNotes);
-    this.notesOccupied = this.note.stemTicks / this.stemTicks;
-    
-    this.tuplet = new SmoTuplet({
-      stemTicks: this.stemTicks,
-      totalTicks: this.totalTicks,
-      ratioed: false,
-      bracketed: true, 
-      voice: this.selector.voice,
-      numNotes: this.numNotes,
-      notesOccupied: this.notesOccupied,
-      startIndex: this.selector.tick,
-      endIndex: this.selector.tick
-    });
-    
+/**
+ * SmoTickIterator
+ * this is a local helper class that follows a pattern of iterating of the notes.  Most of the
+ * duration changers iterate over a selection, and return:
+ * - A note, if the duration changes
+ * - An array of notes, if the notes split
+ * - null if the note stays the same
+ * - empty array, remove the note from the group
+ * @category SmoTransform
+ */
+export class SmoTickIterator {
+  notes: SmoNote[] = [];
+  newNotes: SmoNote[] = [];
+  actor: TickIteratorBase;
+  measure: SmoMeasure;
+  voice: number = 0;
+  keySignature: string;
+  constructor(measure: SmoMeasure, actor: TickIteratorBase, voiceIndex: number) {
+    this.notes = measure.voices[voiceIndex].notes;
+    this.measure = measure;
+    this.voice = typeof (voiceIndex) === 'number' ? voiceIndex : 0;
+    this.newNotes = [];
+    // eslint-disable-next-line
+    this.actor = actor;
+    this.keySignature = 'C';
+  }
+  static nullActor(note: SmoNote) {
+    return note;
+  }
+  /**
+   *
+   * @param measure {SmoMeasure}
+   * @param actor {}
+   * @param voiceIndex
+   */
+  static iterateOverTicks(measure: SmoMeasure, actor: TickIteratorBase, voiceIndex: number) {
+    measure.clearBeamGroups();
+    const transformer = new SmoTickIterator(measure, actor, voiceIndex);
+    transformer.run();
+    measure.voices[voiceIndex].notes = transformer.notes;
+  }
+  // ### transformNote
+  // call the actors for each note, and put the result in the note array.
+  // The note from the original array is copied and sent to each actor.
+  //
+  // Because the resulting array can have a different number of notes than the existing
+  // array, the actors communicate with the transformer in the following, jquery-ish
+  // but somewhat unintuitive way:
+  //
+  // 1. if the actor returns null, the next actor is called and the results of that actor are used
+  // 2. if all the actors return null, the copy is used.
+  // 3. if a note object is returned, that is used for the current tick and no more actors are called.
+  // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
+  //     Note that *return note;* and *return [note];* produce the same result.
+  // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
+  iterateOverTick(tickmap: TickMap, index: number, note: SmoNote) {
+    const actor: TickIteratorBase = this.actor;
+    const newNote: SmoNote[] | SmoNote | null = actor.iterateOverTick(note, tickmap, index);
+    if (newNote === null) {
+      this.newNotes.push(note); // no change
+      return note;
+    }
+    if (Array.isArray(newNote)) {
+      if (newNote.length === 0) {
+        return null;
+      }
+      this.newNotes = this.newNotes.concat(newNote);
+      return null;
+    }
+    this.newNotes.push(newNote as SmoNote);
+    return null;
   }
 
-  static apply(selection: SmoSelection, numNotes: number) {
-    if (!selection?.note) {
-      return;
+  run() {
+    let i = 0;
+    const tickmap = this.measure.tickmapForVoice(this.voice);
+    for (i = 0; i < tickmap.durationMap.length; ++i) {
+      this.iterateOverTick(tickmap, i, this.measure.voices[this.voice].notes[i]);
     }
-    const actor = new SmoMakeTupletActor(selection, numNotes);
-    actor.initialize();
-  }
-
-  public initialize() {
-    this.measure.clearBeamGroups();
-    this.tupletNotes = this._generateTupletNotes();
-    this.tuplet.endIndex += this.tupletNotes.length - 1;
-    this.measure.adjustTupletIndexes(this.selector.tick, this.tupletNotes.length - 1);
-
-    if (this.parentTuplet !== null) {
-      this.parentTuplet.childrenTuplets.push(this.tuplet);
-      this.tuplet.parentTuplet = { id: this.parentTuplet.attrs.id };
-      // const index = this.parentTuplet.getIndexOfNote(this.note);
-      // this.parentTuplet.tickables.splice(index, 1, this.tuplet);
-    } else {
-      this.measure.tupletTrees.push(this.tuplet);
-    }
-
-    this.voice.notes.splice(this.selector.tick, 1, ...this.tupletNotes);
-    console.log(this.voice);
-  }
-
-  private _generateTupletNotes(): SmoNote[] {
-    const tupletNotes: SmoNote[] = [];
-    for (let i = 0; i < this.numNotes; ++i) {
-      const numerator = this.totalTicks / this.numNotes;
-      const note: SmoNote = SmoNote.cloneWithDuration(this.note, { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 }, this.stemTicks);
-      // Don't clone modifiers, except for first one.
-      note.textModifiers = i === 0 ? note.textModifiers : [];
-      note.tuplet = this.tuplet.attrs;
-      tupletNotes.push(note);
-    }
-
-    return tupletNotes;
+    this.notes = this.newNotes;
+    return this.newNotes;
   }
 }
 
-
-export class SmoChangeDurationActor {
-  private newStemTicks: number;
-  private note: SmoNote;
-  private measure: SmoMeasure; 
-  private selector: SmoSelector;
-  private voices: SmoVoice[];
-  private voice: SmoVoice;
-  private notes: SmoNote[];
-
-  constructor(selection: SmoSelection, newStemTicks: number) {
-    this.newStemTicks = newStemTicks;
-    this.note = selection.note!;
-    this.measure = selection.measure;
-    this.selector = selection.selector;
-    this.voices = this.measure.voices;
-    this.voice = this.voices[this.selector.voice];
-    this.notes = this.voice.notes;
+/**
+ * used to create a contract/dilate operation on a note via {@link SmoContractNoteActor}
+ * @category SmoTransform
+ */
+export interface SmoContractNoteParams {
+  startIndex: number,
+  measure: SmoMeasure,
+  voice: number,
+  newStemTicks: number
+}
+/**
+ * Contract the duration of a note, filling in the space with another note
+ * or rest.
+ * @category SmoTransform
+ * */
+export class SmoContractNoteActor extends TickIteratorBase {
+  startIndex: number;
+  newStemTicks: number;
+  measure: SmoMeasure;
+  voice: number;
+  constructor(params: SmoContractNoteParams) {
+    super();
+    this.startIndex = params.startIndex;
+    this.measure = params.measure;
+    this.voice = params.voice;
+    this.newStemTicks = params.newStemTicks;
   }
+  static apply(params: SmoContractNoteParams) {
+    const actor = new SmoContractNoteActor(params);
+    SmoTickIterator.iterateOverTicks(actor.measure,
+      actor, actor.voice);
+  }
+  iterateOverTick(note: SmoNote, tickmap: TickMap, index: number): SmoNote | SmoNote[] | null {
+    if (index === this.startIndex) {
+      let newTicks: Ticks = { numerator: this.newStemTicks, denominator: 1, remainder: 0 };
+      const multiplier = note.tickCount / note.stemTicks;
 
-  static apply(selection: SmoSelection, newDuration: number) {
-    if (!selection?.note) {
-      return;
+      if (note.isTuplet) {
+        const numerator = this.newStemTicks * multiplier;
+        newTicks = { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 };
+      } 
+
+      const replacingNote = SmoNote.cloneWithDuration(note, newTicks, this.newStemTicks);
+      const oldStemTicks = note.stemTicks;
+      const notes = [];
+      const remainderStemTicks = oldStemTicks - this.newStemTicks;
+
+      notes.push(replacingNote);
+  
+      if (remainderStemTicks > 0) {
+        if (remainderStemTicks < 128) {
+          return null;
+        }
+        const lmap = SmoMusic.gcdMap(remainderStemTicks);
+        lmap.forEach((stemTick) => {
+          const nnote = SmoNote.cloneWithDuration(note, stemTick * multiplier, stemTick);
+          notes.push(nnote);
+        });
+      }
+
+      SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, index, notes.length - 1);
+      return notes;
     }
-    const actor = new SmoChangeDurationActor(selection, newDuration);
-    actor.initialize();
+    return null;
   }
+}
 
-  public initialize() {
-    this.measure.clearBeamGroups();
-    if (this.newStemTicks > this.note.stemTicks) {
-      //if new stemTicks is crossing tuplet boundary, 
-      //clear tuplets that are in the way and only then proceed to actually stretch the note
-      //todo: clearTuplets();
-      this.stretchNote();
-    } else if (this.newStemTicks < this.note.stemTicks) {
-      this.contractNote();
-    } else {
-      return;
-    }
-  }
+/**
+ * Constructor when we want to double or dot the duration of a note (stretch)
+ * for {@link SmoStretchNoteActor}
+ * @param startIndex tick index into the measure
+ * @param measure the container measure
+ * @param voice the voice index
+ * @param newTicks the ticks the new note will take up
+ * @category SmoTransform
+ */
+export interface SmoStretchNoteParams {
+  startIndex: number,
+  measure: SmoMeasure,
+  voice: number,
+  newStemTicks: number
+}
+/**
+ * increase the length of a note, removing future notes in the measure as required
+ * @category SmoTransform
+ */
+export class SmoStretchNoteActor extends TickIteratorBase {
+  startIndex: number;
+  newStemTicks: number;
+  measure: SmoMeasure;
+  voice: number;
+  notes: SmoNote[];
+  notesToInsert: SmoNote[] = [];
+  numberOfNotesToDelete: number = 0;
+  constructor(params: SmoStretchNoteParams) {
+    super();
+    this.startIndex = params.startIndex;
+    this.measure = params.measure;
+    this.voice = params.voice;
+    this.newStemTicks = params.newStemTicks;
+    this.notes = this.measure.voices[this.voice].notes;
 
-  /**
-   * todo: handle ticks reminder
-   * Expand the note and absorb all notes to the right that fall within the new duration. 
-   * If the duration of the last note does not completely fit within the new duration, fill in the remainder with new notes.
-   */
-  private stretchNote() {
-    let i = 0;
-
+    const originalNote: SmoNote = this.notes[this.startIndex];
     let newTicks: Ticks = { numerator: this.newStemTicks, denominator: 1, remainder: 0 };
-
-    const multiplier = this.note.tickCount / this.note.stemTicks;
-
-    if (this.note.isTuplet) {
+    const multiplier = originalNote.tickCount / originalNote.stemTicks;
+    if (originalNote.isTuplet) {
       const numerator = this.newStemTicks * multiplier;
       newTicks = { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 };
     } 
 
-    const replacingNote = SmoNote.cloneWithDuration(this.note, newTicks, this.newStemTicks);
+    const replacingNote = SmoNote.cloneWithDuration(originalNote, newTicks, this.newStemTicks);
 
-    let stemTicksUsed = this.note.stemTicks;
-    const allNotes = [];
-    // const newNotes = [];
-    for (i = 0; i < this.selector.tick; ++i) {
-      allNotes.push(this.notes[i]);
-    }
-    for (i = this.selector.tick + 1; i < this.notes.length; ++i) {
+    let stemTicksUsed = originalNote.stemTicks;
+    for (let i = this.startIndex + 1; i < this.notes.length; ++i) {
       const nnote = this.notes[i];
       //in case notes are part of the tuplet they need to belong to the same tuplet
       //this check is only temporarely here, it should never come to this
-      if (nnote.isTuplet && !this.areNotesInSameTuplet(this.note, nnote)) {
+      if (nnote.isTuplet && !this.areNotesInSameTuplet(originalNote, nnote)) {
         break;
       }
       stemTicksUsed += nnote.stemTicks;
+      ++this.numberOfNotesToDelete;
       if (stemTicksUsed >= this.newStemTicks) {
         break;
       }
     }
     const remainder = stemTicksUsed - this.newStemTicks;
-    if (remainder < 0) {
-      return;
-    }
-    
-    allNotes.push(replacingNote);
-    // newNotes.push(replacingNote);
-
-    if (remainder > 0) {
+    if (remainder >= 0) {
+      this.notesToInsert.push(replacingNote);
       const lmap = SmoMusic.gcdMap(remainder);
       lmap.forEach((stemTick) => {
-        const nnote = SmoNote.cloneWithDuration(this.note, stemTick * multiplier, stemTick)
-        allNotes.push(nnote);
-        // newNotes.push(nnote);
+        const nnote = SmoNote.cloneWithDuration(originalNote, stemTick * multiplier, stemTick)
+        this.notesToInsert.push(nnote);
       });
+      const noteCountDiff = (this.notesToInsert.length - this.numberOfNotesToDelete) - 1;
+      SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, this.startIndex, noteCountDiff);
     }
-    
-    for (i = i + 1 ; i < this.notes.length; ++i) {
-      allNotes.push(this.notes[i]);
-    }
-
-    const noteCountDiff = allNotes.length - this.voice.notes.length;
-    this.measure.adjustTupletIndexes(this.selector.tick, noteCountDiff);
-    this.voice.notes = allNotes;
-    
   }
-
-  /**
-   * todo: handle ticks reminder
-   * replace duration of current note and fill in the rest with new notes
-   */
-  private contractNote() {
-    let i = 0;
-
-    let newTicks: Ticks = { numerator: this.newStemTicks, denominator: 1, remainder: 0 };
-
-    const multiplier = this.note.tickCount / this.note.stemTicks;
-
-    if (this.note.isTuplet) {
-      const numerator = this.newStemTicks * multiplier;
-      newTicks = { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 };
+  static apply(params: SmoStretchNoteParams) {
+    const actor = new SmoStretchNoteActor(params);
+    SmoTickIterator.iterateOverTicks(actor.measure, actor, actor.voice);
+  }
+  iterateOverTick(note: SmoNote, tickmap: TickMap, index: number) {
+    if (this.startIndex === index && this.notesToInsert.length) {
+      return this.notesToInsert;
+    } else if (index > this.startIndex && this.numberOfNotesToDelete > 0) {
+      --this.numberOfNotesToDelete;
+      return [];
     } 
-
-    const replacingNote = SmoNote.cloneWithDuration(this.note, newTicks, this.newStemTicks);
-    const stemTicksUsed = this.note.stemTicks;
-    const allNotes = [];
-    // const newNotes = [];
-    for (i = 0; i < this.selector.tick; ++i) {
-      allNotes.push(this.notes[i]);
-    }
-    const remainder = stemTicksUsed - this.newStemTicks;
-    allNotes.push(replacingNote);
-    // newNotes.push(replacingNote);
-
-    if (remainder > 0) {
-      const lmap = SmoMusic.gcdMap(remainder);
-      lmap.forEach((stemTick) => {
-        const nnote = SmoNote.cloneWithDuration(this.note, stemTick * multiplier, stemTick);
-        allNotes.push(nnote);
-        // newNotes.push(nnote);
-      });
-    }
-    for (i = this.selector.tick + 1; i < this.notes.length; ++i) {
-      allNotes.push(this.notes[i]);
-    }
-
-    const noteCountDiff = allNotes.length - this.voice.notes.length;
-    this.measure.adjustTupletIndexes(this.selector.tick, noteCountDiff);
-    this.voice.notes = allNotes;
+    return null;
   }
 
   private areNotesInSameTuplet(noteOne: SmoNote, noteTwo: SmoNote): boolean {
@@ -265,3 +264,145 @@ export class SmoChangeDurationActor {
     return false;
   }
 }
+
+
+/**
+ * constructor parameters for {@link SmoMakeTupletActor}
+ * @category SmoTransform
+ */
+export interface SmoMakeTupletParams {
+  measure: SmoMeasure,
+  numNotes: number,
+  voice: number,
+  index: number
+}
+/**
+ * Turn a tuplet into a non-tuplet of the same length
+ * @category SmoTransform
+ * 
+ * */
+export class SmoMakeTupletActor extends TickIteratorBase {
+  measure: SmoMeasure;
+  numNotes: number;
+  voice: number;
+  index: number;
+  
+  constructor(params: SmoMakeTupletParams) {
+    super();
+    this.measure = params.measure;
+    this.index = params.index;
+    this.voice = params.voice;
+    this.numNotes = params.numNotes;
+  }
+  static apply(params: SmoMakeTupletParams) {
+    const actor = new SmoMakeTupletActor(params);
+    SmoTickIterator.iterateOverTicks(actor.measure, actor, actor.voice);
+  }
+  
+  iterateOverTick(note: SmoNote, tickmap: TickMap, index: number) {
+    if (this.measure === null) {
+      return [];
+    }
+    if (index !== this.index) {
+      return null;
+    }
+
+    this.measure.clearBeamGroups();
+    const stemTicks = SmoTuplet.calculateStemTicks(note.stemTicks, this.numNotes);
+    const notesOccupied = note.stemTicks / stemTicks;
+
+    const tuplet = new SmoTuplet({
+      numNotes: this.numNotes,
+      notesOccupied: notesOccupied,
+      stemTicks: stemTicks,
+      totalTicks: note.tickCount,
+      ratioed: false,
+      bracketed: true,
+      voice: this.voice,
+      startIndex: this.index,
+      endIndex: this.index,
+    });
+
+    const tupletNotes = this._generateNotesForTuplet(tuplet, note, stemTicks);
+    tuplet.endIndex += tupletNotes.length - 1;
+
+    SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, index, tupletNotes.length - 1);
+    const parentTuplet: SmoTuplet | null = SmoTupletTree.getTupletForNoteIndex(this.measure.tupletTrees, this.voice, this.index);
+    if (parentTuplet === null) {
+      const tupletTree = new SmoTupletTree({tuplet: tuplet});
+      this.measure.tupletTrees.push(tupletTree);
+    } else {
+      parentTuplet.childrenTuplets.push(tuplet);
+    }
+
+    return tupletNotes;
+  }
+
+  private _generateNotesForTuplet(tuplet: SmoTuplet, originalNote: SmoNote, stemTicks: number): SmoNote[] {
+    const totalTicks = originalNote.tickCount;
+    const tupletNotes: SmoNote[] = [];
+    for (let i = 0; i < this.numNotes; ++i) {
+      const numerator = totalTicks / this.numNotes;
+      const note: SmoNote = SmoNote.cloneWithDuration(originalNote, { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 }, stemTicks);
+      // Don't clone modifiers, except for first one.
+      note.textModifiers = i === 0 ? note.textModifiers : [];
+      note.tuplet = tuplet.attrs;
+      tupletNotes.push(note);
+    }
+    return tupletNotes;
+  }
+}
+
+
+/**
+ * Constructor params for {@link SmoUnmakeTupletActor}
+ * @category SmoTransform
+ */
+export interface SmoUnmakeTupletParams {
+  startIndex: number,
+  endIndex: number,
+  measure: SmoMeasure,
+  voice: number
+}
+/**
+ * Convert a tuplet into a single note that takes up the whole duration
+ * @category SmoTransform
+ */
+export class SmoUnmakeTupletActor extends TickIteratorBase {
+  startIndex: number = 0;
+  endIndex: number = 0;
+  measure: SmoMeasure;
+  voice: number;
+  constructor(parameters: SmoUnmakeTupletParams) {
+    super();
+    this.startIndex = parameters.startIndex;
+    this.endIndex = parameters.endIndex;
+    this.measure = parameters.measure;
+    this.voice = parameters.voice;
+  }
+  static apply(params: SmoUnmakeTupletParams) {
+    const actor = new SmoUnmakeTupletActor(params);
+    SmoTickIterator.iterateOverTicks(actor.measure, actor, actor.voice);
+  }
+  iterateOverTick(note: SmoNote, tickmap: TickMap, index: number) {
+    if (index < this.startIndex || index > this.endIndex) {
+      return null;
+    }
+    if (index === this.startIndex) {
+      const tuplet = SmoTupletTree.getTupletForNoteIndex(this.measure.tupletTrees, this.voice, index);
+      if (tuplet === null) {
+        return [];
+      }
+
+      const ticks = tuplet.totalTicks;
+      const nn: SmoNote = SmoNote.cloneWithDuration(note, { numerator: ticks, denominator: 1, remainder: 0 });
+      nn.tuplet = null;
+      SmoTupletTree.removeTupletForNoteIndex(this.measure, this.voice, index);
+      SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, this.startIndex, this.startIndex - this.endIndex);
+      
+      return [nn];
+    }
+    return [];
+  }
+}
+

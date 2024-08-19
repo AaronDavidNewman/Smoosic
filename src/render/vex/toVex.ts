@@ -427,30 +427,31 @@ function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
+//todo nenad: implement this
 function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
-  smoMeasure.voices.forEach((voice, voiceIx) => {
-    const tps = smoMeasure.tupletTrees.filter((tp) => tp.voice === voiceIx);
-    for (var i = 0; i < tps.length; ++i) {
-      const tp = tps[i];
-      const nar: string[] = [];
-      for ( let note of smoMeasure.tupletNotes(tp)) {
-        const vexNote = `${note.attrs.id}`;
-        nar.push(vexNote);
-      }
-      const direction = smoMeasure.getStemDirectionForTuplet(tp) === SmoNote.flagStates.up ?
-          VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
-      const tpParams: TupletOptions = {
-          num_notes: tp.numNotes,
-          notes_occupied: tp.notesOccupied,
-          ratioed: false,
-          bracketed: true,
-          location: direction
-      };
-      const tpParamString = JSON.stringify(tpParams);
-      const narString = '[' + nar.join(',') + ']';
-      strs.push(`const ${tp.attrs.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
-    }
-  });
+  // smoMeasure.voices.forEach((voice, voiceIx) => {
+  //   const tps = smoMeasure.tupletTrees.filter((tp) => tp.voice === voiceIx);
+  //   for (var i = 0; i < tps.length; ++i) {
+  //     const tp = tps[i];
+  //     const nar: string[] = [];
+  //     for ( let note of smoMeasure.tupletNotes(tp)) {
+  //       const vexNote = `${note.attrs.id}`;
+  //       nar.push(vexNote);
+  //     }
+  //     const direction = smoMeasure.getStemDirectionForTuplet(tp) === SmoNote.flagStates.up ?
+  //         VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+  //     const tpParams: TupletOptions = {
+  //         num_notes: tp.numNotes,
+  //         notes_occupied: tp.notesOccupied,
+  //         ratioed: false,
+  //         bracketed: true,
+  //         location: direction
+  //     };
+  //     const tpParamString = JSON.stringify(tpParams);
+  //     const narString = '[' + nar.join(',') + ']';
+  //     strs.push(`const ${tp.attrs.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
+  //   }
+  // });
 }
 function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
   const ssid = 'stave' + smoMeasure.attrs.id;
@@ -494,8 +495,9 @@ function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: strin
     strs.push(`${bg.attrs.id}.setContext(context);`);
     strs.push(`${bg.attrs.id}.draw();`)
   });
+  //todo nenad: implement this
   smoMeasure.tupletTrees.forEach((tp) => {
-    strs.push(`${tp.attrs.id}.setContext(context).draw();`)
+    // strs.push(`${tp.attrs.id}.setContext(context).draw();`)
   });
 }
 // ## SmoToVex

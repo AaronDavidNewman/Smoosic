@@ -10,7 +10,7 @@ import { SmoBarline, TimeSignature, SmoRehearsalMark, SmoMeasureModifierBase } f
 import { SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
-import { SmoTuplet } from '../data/tuplet';
+import { SmoTuplet, SmoTupletTree } from '../data/tuplet';
 
 import { XmlHelpers } from './xmlHelpers';
 import { SmoTempoText } from '../data/measureModifiers';
@@ -784,7 +784,7 @@ export class SmoToXml {
       }
       const duration = note.tickCount;
       smoState.measureTicks += duration;
-      const tuplet = measure.getTupletForNoteIndex(smoState.voiceIndex, smoState.voiceTickIndex);
+      const tuplet = SmoTupletTree.getTupletForNoteIndex(measure.tupletTrees, smoState.voiceIndex, smoState.voiceTickIndex);
       nn(noteElement, 'duration', { duration }, 'duration');
       SmoToXml.tie(noteElement, smoState);
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');

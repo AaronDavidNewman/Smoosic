@@ -9,6 +9,149 @@ import { SmoNote, SmoNoteParamsSer, TupletInfo } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
+import { SmoMeasure } from './measure';
+import {tuplets} from "vexflow_smoosic/build/esm/types/tests/formatter/tests";
+
+
+export interface SmoTupletTreeParams {
+  tuplet: SmoTuplet
+}
+
+export interface SmoTupletTreeParamsSer {
+  /**
+   * constructor
+   */
+  ctor: string,
+  /**
+   * root tuplet
+   */
+  tuplet: SmoTupletParamsSer
+}
+
+export class SmoTupletTree {
+
+  /**
+   * root tuplet
+   */
+  tuplet: SmoTuplet;
+
+  constructor(params: SmoTupletTreeParams) {
+    this.tuplet = params.tuplet;
+  }
+
+  static adjustTupletIndexes(tupletTrees: SmoTupletTree[], voice: number, startTick: number, diff: number) {
+    const traverseTupletTree = (parentTuplet: SmoTuplet): void => {
+      if (parentTuplet.endIndex >= startTick) {
+        parentTuplet.endIndex += diff;
+        if(parentTuplet.startIndex > startTick) {
+          parentTuplet.startIndex += diff;
+        }
+      }
+      for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+        const tuplet = parentTuplet.childrenTuplets[i];
+        traverseTupletTree(tuplet);
+      } 
+    }
+
+    //traverse tuplet tree
+    for (let i = 0; i < tupletTrees.length; i++) {
+      const tupletTree: SmoTupletTree = tupletTrees[i];
+      if (tupletTree.endIndex >= startTick && tupletTree.voice == voice) {
+        traverseTupletTree(tupletTree.tuplet);
+      }
+    }
+  }
+
+  static getTupletForNoteIndex(tupletTrees: SmoTupletTree[], voiceIx: number, noteIx: number): SmoTuplet | null {
+    const tuplets = SmoTupletTree.getTupletHierarchyForNoteIndex(tupletTrees, voiceIx, noteIx);
+    if(tuplets.length) {
+      return tuplets[tuplets.length - 1];
+    }
+    return null;
+  }
+
+  static getTupletTreeForNoteIndex(tupletTrees: SmoTupletTree[], voiceIx: number, noteIx: number): SmoTupletTree | null {
+    for (let i = 0; i < tupletTrees.length; i++) {
+      const tupletTree: SmoTupletTree = tupletTrees[i];
+      if (tupletTree.startIndex <= noteIx && tupletTree.endIndex >= noteIx && tupletTree.voice == voiceIx) {
+        return tupletTree;
+      }
+    }
+    return null;
+  }
+
+  // Finds the tuplet hierarchy for a given note index.
+  static getTupletHierarchyForNoteIndex(tupletTrees: SmoTupletTree[], voiceIx: number, noteIx: number): SmoTuplet[] {
+    let tupletHierarchy: SmoTuplet[] = [];
+    const traverseTupletTree = ( parentTuplet: SmoTuplet): void => {      
+      tupletHierarchy.push(parentTuplet);
+      for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+        const tuplet = parentTuplet.childrenTuplets[i];
+        if (tuplet.startIndex <= noteIx && tuplet.endIndex >= noteIx) {
+          traverseTupletTree(tuplet);
+          break;
+        }
+      } 
+    }
+
+    //find tuplet tree
+    for (let i = 0; i < tupletTrees.length; i++) {
+      const tupletTree: SmoTupletTree = tupletTrees[i];
+      if (tupletTree.startIndex <= noteIx && tupletTree.endIndex >= noteIx && tupletTree.voice == voiceIx) {
+        traverseTupletTree(tupletTree.tuplet);
+        break;
+      }
+    }
+
+    return tupletHierarchy;
+  }
+
+  static removeTupletForNoteIndex(measure: SmoMeasure, voiceIx: number, noteIx: number) {
+    for (let i = 0; i < measure.tupletTrees.length; i++) {
+      const tupletTree: SmoTupletTree = measure.tupletTrees[i];
+      if (tupletTree.startIndex <= noteIx && tupletTree.endIndex >= noteIx && tupletTree.voice == voiceIx) {
+        measure.tupletTrees.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  serialize(): SmoTupletTreeParamsSer {
+    const params = {
+      ctor: 'SmoTupletTree',
+      tuplet: this.tuplet.serialize()
+    };
+    return params;
+  }
+
+  static deserialize(jsonObj: SmoTupletTreeParamsSer): SmoTupletTree {
+    const tuplet = SmoTuplet.deserialize(jsonObj.tuplet);
+    
+    return new SmoTupletTree({tuplet: tuplet});
+  }
+
+  static clone(tupletTree: SmoTupletTree): SmoTupletTree {
+    return SmoTupletTree.deserialize(tupletTree.serialize());
+  }
+
+  get startIndex() {
+    return this.tuplet.startIndex;
+  }
+
+  get endIndex() {
+    return this.tuplet.endIndex;
+  }
+
+  get voice() {
+    return this.tuplet.voice;
+  }
+
+  get totalTicks() {
+    return this.tuplet.totalTicks;
+  }
+
+
+}
 
 /**
  * Parameters for tuplet construction
@@ -43,7 +186,7 @@ export interface SmoTupletParamsSer {
    */
   attrs: SmoAttrs,
   /**
-   * numNotes in the duplet (not necessarily same as notes array size)
+   * numNotes in the tuplet (not necessarily same as notes array size)
    */
   numNotes: number,
   /**
@@ -135,20 +278,46 @@ export class SmoTuplet {
   }
 
   static get parameterArray() {
-    return ['stemTicks', 'ticks', 'totalTicks', 'startIndex', 'endIndex',
-      'attrs', 'ratioed', 'bracketed', 'voice', 'numNotes', 'childrenTuplets', 'parentTuplet'];
+    return ['stemTicks', 'totalTicks', 'startIndex', 'endIndex',
+      'attrs', 'ratioed', 'bracketed', 'voice', 'numNotes'];
   }
 
   serialize(): SmoTupletParamsSer {
-    const params = {
-      ctor: 'SmoTuplet'
-    };
-    smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
-      SmoTuplet.parameterArray, this, params);
+    const params: Partial<SmoTupletParamsSer> = {};
+    params.ctor = 'SmoTuplet';
+    params.childrenTuplets = [];
+
+    smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults, SmoTuplet.parameterArray, this, params);
+
+    this.childrenTuplets.forEach((tuplet) => {
+      params.childrenTuplets!.push(tuplet.serialize());
+    });
+    
     if (!isSmoTupletParamsSer(params)) {
       throw 'bad tuplet ' + JSON.stringify(params);
     }
     return params;
+  }
+
+  static deserialize(jsonObj: SmoTupletParamsSer): SmoTuplet {
+    const tupJson = SmoTuplet.defaults;
+    // We need to calculate the endIndex based on length of notes array
+    // Legacy schema had notes array, but we now demarcate tuplet with startIndex and endIndex
+    // Legacy schema did not have notesOccupied, we need to calculate it.
+    if ((jsonObj as any).notes !== undefined) {
+      const numberOfNotes = (jsonObj as any).notes.length;
+      tupJson.endIndex = jsonObj.startIndex + numberOfNotes;
+      tupJson.notesOccupied = jsonObj.totalTicks / jsonObj.stemTicks;
+    }
+
+    smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj, tupJson);
+    const tuplet = new SmoTuplet(tupJson);
+    tuplet.parentTuplet = jsonObj.parentTuplet ? jsonObj.parentTuplet : null;
+    for (let i = 0; i < jsonObj.childrenTuplets.length; i++) {
+      const childTuplet = SmoTuplet.deserialize(jsonObj.childrenTuplets[i]);
+      tuplet.childrenTuplets.push(childTuplet);
+    }
+    return tuplet;
   }
 
   static calculateStemTicks(totalTicks: number, numNotes: number) {
@@ -162,184 +331,28 @@ export class SmoTuplet {
     }
     return stemTicks * 2;
   }
+
   constructor(params: SmoTupletParams) {
-    smoSerialize.vexMerge(this, SmoTuplet.defaults);
-    smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
+    const defs = SmoTuplet.defaults;
+    this.numNotes = params.numNotes ? params.numNotes : defs.numNotes;
+    this.notesOccupied = params.notesOccupied ? params.notesOccupied : defs.notesOccupied;
+    this.stemTicks = params.stemTicks ? params.stemTicks : defs.stemTicks;
+    this.totalTicks = params.totalTicks ? params.totalTicks : defs.totalTicks;
+    this.bracketed = params.bracketed ? params.bracketed : defs.bracketed;
+    this.voice = params.voice ? params.voice : defs.voice;
+    this.ratioed = params.ratioed ? params.ratioed : defs.ratioed;
+    this.startIndex = params.startIndex ? params.startIndex : defs.startIndex;
+    this.endIndex = params.endIndex ? params.endIndex : defs.endIndex;
     this.attrs = {
       id: getId().toString(),
       type: 'SmoTuplet'
     };
   }
+
   static get longestTuplet() {
     return 8192;
   }
 
-  //todo: implement this
-  static cloneTuplet(tuplet: SmoTuplet): SmoTuplet {
-    return new SmoTuplet({
-      stemTicks: 0,
-      totalTicks: 0,
-      ratioed: false,
-      bracketed: true,
-      startIndex: 0,
-      endIndex: 0,
-      voice: 0,
-      numNotes: 3,
-      notesOccupied: 2,
-    }); 
-  }
-
-  // static cloneTuplet(tuplet: SmoTuplet): SmoTuplet {
-  //   let i = 0;
-  //   const noteAr = tuplet.notes;
-  //   const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
-
-  //   // Add any remainders for oddlets
-  //   const totalTicks = noteAr.map((nn) => nn.ticks.numerator + nn.ticks.remainder)
-  //     .reduce((acc, nn) => acc + nn);
-
-  //   const numNotes: number = tuplet.numNotes;
-  //   const stemTicks = SmoTuplet.calculateStemTicks(totalTicks, numNotes);
-
-  //   const tupletNotes: SmoNote[] = [];
-
-  //   noteAr.forEach((note) => {
-  //     const textModifiers = note.textModifiers;
-  //     // Note preserver remainder
-  //     note = SmoNote.cloneWithDuration(note, {
-  //       numerator: stemTicks * tuplet.durationMap[i],
-  //       denominator: 1,
-  //       remainder: note.ticks.remainder
-  //     });
-
-  //     // Don't clone modifiers, except for first one.
-  //     if (i === 0) {
-  //       const ntmAr: any = [];
-  //       textModifiers.forEach((tm) => {
-  //         const ntm = SmoNoteModifierBase.deserialize(tm);
-  //         ntmAr.push(ntm);
-  //       });
-  //       note.textModifiers = ntmAr;
-  //     }
-  //     i += 1;
-  //     tupletNotes.push(note);
-  //   });
-  //   const rv = new SmoTuplet({
-  //     numNotes: tuplet.numNotes,
-  //     voice: tuplet.voice,
-  //     notes: tupletNotes,
-  //     stemTicks,
-  //     totalTicks,
-  //     ratioed: false,
-  //     bracketed: true,
-  //     startIndex: tuplet.startIndex,
-  //     durationMap
-  //   });
-  //   return rv;
-  // }
-
-  // _adjustTicks() {
-  //   let i = 0;
-  //   const sum = this.durationSum;
-  //   for (i = 0; i < this.notes.length; ++i) {
-  //     const note = this.notes[i];
-  //     // TODO:  notes_occupied needs to consider vex duration
-  //     note.ticks.denominator = 1;
-  //     note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-  //     note.tuplet = this.attrs;
-  //   }
-
-  //   // put all the remainder in the first note of the tuplet
-  //   const noteTicks = this.notes.map((nn) => nn.tickCount)
-  //     .reduce((acc, dd) => acc + dd);
-  //   // bug fix:  if this is a clones tuplet, remainder is already set
-  //   this.notes[0].ticks.remainder =
-  //     this.notes[0].ticks.remainder + this.totalTicks - noteTicks;
-  // }
-  // getIndexOfNote(note: SmoNote | null): number {
-  //   let rv = -1;
-  //   let i = 0;
-  //   if (!note) {
-  //     return -1;
-  //   }
-  //   for (i = 0; i < this.notes.length; ++i) {
-  //     const tn = this.notes[i];
-  //     if (note.attrs.id === tn.attrs.id) {
-  //       rv = i;
-  //     }
-  //   }
-  //   return rv;
-  // }
-
-  // split(combineIndex: number) {
-  //   let i = 0;
-  //   const multiplier = 0.5;
-  //   const nnotes: SmoNote[] = [];
-  //   const nmap: number[] = [];
-  //   for (i = 0; i < this.notes.length; ++i) {
-  //     const note = this.notes[i];
-  //     if (i === combineIndex) {
-  //       nmap.push(this.durationMap[i] * multiplier);
-  //       nmap.push(this.durationMap[i] * multiplier);
-  //       note.ticks.numerator *= multiplier;
-
-  //       const onote = SmoNote.clone(note);
-  //       // remainder is for the whole tuplet, so don't duplicate that.
-  //       onote.ticks.remainder = 0;
-  //       nnotes.push(note);
-  //       nnotes.push(onote);
-  //     } else {
-  //       nmap.push(this.durationMap[i]);
-  //       nnotes.push(note);
-  //     }
-  //   }
-  //   this.notes = nnotes;
-  //   this.durationMap = nmap;
-  // }
-  // combine(startIndex: number, endIndex: number) {
-  //   let i = 0;
-  //   let base = 0.0;
-  //   let acc = 0.0;
-  //   // can't combine in this way, too many notes
-  //   if (this.notes.length <= endIndex || startIndex >= endIndex) {
-  //     return this;
-  //   }
-  //   for (i = startIndex; i <= endIndex; ++i) {
-  //     acc += this.durationMap[i];
-  //     if (i === startIndex) {
-  //       base = this.durationMap[i];
-  //     } else if (this.durationMap[i] !== base) {
-  //       // Can't combine non-equal tuplet notes
-  //       return this;
-  //     }
-  //   }
-  //   // how much each combined value will be multiplied by
-  //   const multiplier = acc / base;
-
-  //   const nmap = [];
-  //   const nnotes = [];
-  //   // adjust the duration map
-  //   for (i = 0; i < this.notes.length; ++i) {
-  //     const note = this.notes[i];
-  //     // notes that don't change are unchanged
-  //     if (i < startIndex || i > endIndex) {
-  //       nmap.push(this.durationMap[i]);
-  //       nnotes.push(note);
-  //     }
-  //     // changed note with combined duration
-  //     if (i === startIndex) {
-  //       note.ticks.numerator = note.ticks.numerator * multiplier;
-  //       nmap.push(acc);
-  //       nnotes.push(note);
-  //     }
-  //     // other notes after startIndex are removed from the map.
-  //   }
-  //   this.notes = nnotes;
-  //   this.durationMap = nmap;
-  //   return this;
-  // }
-
-  
   //todo: adjust naming
   get num_notes() {
     return this.numNotes;

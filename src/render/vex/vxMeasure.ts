@@ -328,8 +328,8 @@ export class VxMeasure implements VxMeasureIf {
     this.vexTuplets = [];
     this.tupletToVexMap = {};
     for (let i = 0; i < this.smoMeasure.tupletTrees.length; ++i) {
-      const tp = this.smoMeasure.tupletTrees[i];
-      if (tp.voice !== vix) {
+      const tupletTree = this.smoMeasure.tupletTrees[i];
+      if (tupletTree.voice !== vix) {
         continue;
       }
       const traverseTupletTree = ( parentTuplet: SmoTuplet): void => {      
@@ -354,7 +354,7 @@ export class VxMeasure implements VxMeasureIf {
           traverseTupletTree(tuplet);
         }
       }
-      traverseTupletTree(tp);      
+      traverseTupletTree(tupletTree.tuplet);      
     }
   }
 

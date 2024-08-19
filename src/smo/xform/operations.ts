@@ -17,12 +17,9 @@ import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoI
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
-import {
-  /*SmoDuration,*/ /*SmoContractNoteActor, SmoStretchNoteActor,*/ SmoMakeTupletActor,
-  /*SmoUnmakeTupletActor,*/
-  SmoChangeDurationActor, /*SmoContractTupletActor*/
-} from './tickDuration';
+import { SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor, SmoUnmakeTupletActor, SmoStretchNoteParams, SmoContractNoteParams, SmoMakeTupletParams} from './tickDuration';
 import { SmoBeamer } from './beamers';
+import { SmoTupletTree } from '../data/tuplet';
 /**
  * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration
  */
@@ -169,8 +166,15 @@ export class SmoOperation {
   // note, if possible.  Works on tuplets also.
   static doubleDuration(selection: SmoSelection) {
     const note = selection.note;
-    const newDuration = note!.stemTicks * 2
-    SmoChangeDurationActor.apply(selection, newDuration);
+    const newStemTicks = note!.stemTicks * 2;
+
+    SmoStretchNoteActor.apply({
+      startIndex: selection.selector.tick,
+      measure: selection.measure,
+      voice: selection.selector.voice,
+      newStemTicks: newStemTicks
+    });
+
     return true;
   }
 
@@ -182,8 +186,14 @@ export class SmoOperation {
     const note = selection.note as SmoNote;
     let divisor = 2;
     const measure = selection.measure;
-    const nticks = note.stemTicks / divisor;
-    SmoChangeDurationActor.apply(selection, nticks);
+    const newStemTicks = note.stemTicks / divisor;
+
+    SmoContractNoteActor.apply({
+      startIndex: selection.selector.tick,
+      measure: measure,
+      voice: selection.selector.voice,
+      newStemTicks: newStemTicks
+    });
     SmoBeamer.applyBeams(measure);
     return true;
   }
@@ -192,7 +202,12 @@ export class SmoOperation {
   // ## Description
   // Makes a non-tuplet into a tuplet of equal value.
   static makeTuplet(selection: SmoSelection, numNotes: number) {
-    SmoMakeTupletActor.apply(selection, numNotes);
+    SmoMakeTupletActor.apply({
+      measure: selection.measure,
+      numNotes: numNotes,
+      voice: selection.selector.voice,
+      index: selection.selector.tick
+    });
   }
   static addStaffModifier(selection: SmoSelection, modifier: StaffModifierBase) {
     selection.staff.addStaffModifier(modifier);
@@ -296,7 +311,21 @@ export class SmoOperation {
   // ## Description
   // Makes a tuplet into a single with the duration of the whole tuplet
   static unmakeTuplet(selection: SmoSelection) {
-    //todo Nenad: implement this
+    const selector = selection.selector;
+    const measure = selection.measure;
+
+    const tuplets = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, selector.voice, selector.tick);
+    if (!tuplets.length) {
+      return;
+    }
+    const tuplet = tuplets[0];
+
+    SmoUnmakeTupletActor.apply({
+      startIndex: tuplet.startIndex,
+      endIndex: tuplet.endIndex,
+      measure: measure,
+      voice: selector.voice
+    });
   }
 
   // ## dotDuration
@@ -306,14 +335,14 @@ export class SmoOperation {
   static dotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = SmoMusic.getNextDottedLevel(note.stemTicks);
-    if (nticks === note.stemTicks) {
+    const newStemTicks = SmoMusic.getNextDottedLevel(note.stemTicks);
+    if (newStemTicks === note.stemTicks) {
       return;
     }
     // Don't dot if the thing on the right of the . is too small
-    const dotCount = SmoMusic.smoTicksToVexDots(nticks);
+    const dotCount = SmoMusic.smoTicksToVexDots(newStemTicks);
     const multiplier = Math.pow(2, dotCount);
-    const baseDot = SmoMusic.closestDurationTickLtEq(nticks) / (multiplier * 2);
+    const baseDot = SmoMusic.closestDurationTickLtEq(newStemTicks) / (multiplier * 2);
     if (baseDot <= 128) {
       return;
     }
@@ -329,7 +358,13 @@ export class SmoOperation {
     if (!SmoMusic.validDurations[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
       return;
     }
-    SmoChangeDurationActor.apply(selection, nticks);
+
+    SmoStretchNoteActor.apply({
+      startIndex: selection.selector.tick,
+      measure: measure,
+      voice: selection.selector.voice,
+      newStemTicks: newStemTicks
+    });
   }
 
   // ## undotDuration
@@ -339,11 +374,17 @@ export class SmoOperation {
   static undotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = SmoMusic.getPreviousDottedLevel(note.stemTicks);
-    if (nticks === note.stemTicks) {
+    const newStemTicks = SmoMusic.getPreviousDottedLevel(note.stemTicks);
+    if (newStemTicks === note.stemTicks) {
       return;
     }
-    SmoChangeDurationActor.apply(selection, nticks);
+
+    SmoContractNoteActor.apply({
+      startIndex: selection.selector.tick,
+      measure: measure,
+      voice: selection.selector.voice,
+      newStemTicks: newStemTicks
+    });
   }
 
   static transposeScore(score: SmoScore, offset: number) {
