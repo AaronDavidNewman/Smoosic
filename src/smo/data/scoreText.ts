@@ -77,7 +77,10 @@ function isSmoScoreTextSer(params: Partial<SmoScoreTextSer>): params is SmoScore
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size: string | number | undefined) {
-    let rv = 12;
+    let rv: number = 12;
+    if (typeof(size) !== 'number' && typeof(size) !== 'string') {
+      return rv;
+    }
     const szz: string | number = size ?? 14;
     if (typeof (szz) === 'number') {
       return szz;
@@ -88,6 +91,9 @@ export class SmoScoreText extends SmoScoreModifierBase {
       rv *= 14;
     } else if (szz.indexOf('px') > 0) {
       rv *= (96.0 / 72.0);
+    }
+    if (isNaN(rv)) {
+      rv = 12;
     }
     return rv;
   }
@@ -161,16 +167,9 @@ export class SmoScoreText extends SmoScoreModifierBase {
     weight: 'normal'
   };
   fill: string = 'black';
-  rotate: number = 0;
   classes: string = 'score-text';
-  boxModel: string = 'none';
   scaleX: number = 1.0;
   scaleY: number = 1.0;
-  translateX: number = 0;
-  translateY: number = 0;
-  pagination: string = 'once';
-  position: string = 'custom';
-  autoLayout: boolean = false; // set to true if one of the pre-canned positions are used.
 
   getText() {
     return this.text;
@@ -211,9 +210,12 @@ export class SmoScoreText extends SmoScoreModifierBase {
     return params;
   }
   static get attributes(): string[] {
-    return ['x', 'y', 'text', 'pagination', 'position', 'fontInfo', 'classes',
-      'boxModel', 'justification', 'fill', 'width', 'height', 'scaleX', 'scaleY',
-      'translateX', 'translateY', 'autoLayout'];
+    return ['x', 'y', 'text', 'fontInfo', 'classes',
+      'fill', 'width', 'height', 'scaleX', 'scaleY'];
+  }
+  static get simpleAttributes(): string[] {
+    return ['x', 'y', 'text', 'classes',
+      'fill', 'width', 'height', 'scaleX', 'scaleY'];
   }
   constructor(parameters: SmoScoreTextParams) {
     super('SmoScoreText');
@@ -400,8 +402,11 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   static get nonTextAttributes() {
     return ['justification', 'relativePosition', 'spacing', 'pagination', 
     'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
-
   }
+  static get simpleAttributes() {
+    return ['justification', 'relativePosition', 'spacing', 'pagination', 
+    'attachToSelector', 'musicXOffset', 'musicYOffset'];
+  } 
   static isTextGroup(modifier: SmoTextGroup | SmoModifierBase): modifier is SmoTextGroup {
     return modifier.ctor === 'SmoTextGroup';
   }
@@ -579,9 +584,6 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     }
     return params;
   }
-  /* _isScoreText(st: ) {
-    return st.ctor && st.ctor === 'SmoScoreText';
-  } */
   constructor(params: SmoTextGroupParams) {
     super('SmoTextGroup');
     if (typeof (params) === 'undefined') {

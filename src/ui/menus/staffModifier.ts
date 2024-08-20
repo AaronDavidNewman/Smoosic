@@ -1,6 +1,4 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
-import { SuiScoreView } from '../../render/sui/scoreView';
-import { SmoOperation } from '../../smo/xform/operations';
 
 declare var $: any;
 

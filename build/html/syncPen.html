@@ -38,7 +38,7 @@
       let measure = new Smo.SmoMeasure(Smo.SmoMeasure.defaults);
       let voice = { notes: [] };
       // create the first 8 16th notes
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'ccdefdec').forEach((note) => {
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', 1024, 'ccdefdec').forEach((note) => {
         note.pitches[0].octave -= 1; // adjust octave
         voice.notes.push(note);
       });
@@ -46,7 +46,7 @@
       voice.notes[0].noteType = 'r';
 
       // create next 4 1/8 notes
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gcbc').forEach((note) => {
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', 2048, 'gcbc').forEach((note) => {
         note.beamBeats = 4096 * 2; // beam 4 1/8 notes, default is 2
         voice.notes.push(note);
       });
@@ -77,9 +77,9 @@
 
       // now fill in those notes
       voice = { notes: [] };
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 'h', 'd').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 4096*2, 'd').forEach((note) => voice.notes.push(note));
       voice.notes[0].noteType = 'r';
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '16', 'ccdefdec').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 1024, 'ccdefdec').forEach((note) => voice.notes.push(note));
       voice.notes[1].noteType = 'r';
       voice.notes[4].endBeam = true;
 
@@ -100,11 +100,11 @@
       // measure 2:
       score.addMeasure(1);
       voice = { notes: [] };
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'dgabcabg').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', 1024, 'dgabcabg').forEach((note) => voice.notes.push(note));
       for (var i = 1; i <= 7; ++i) {
         voice.notes[i].pitches[0].octave -= 1;
       }
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'dgfg')
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', 2048, 'dgfg')
         .forEach((note) => {
           note.beamBeats = 4096 * 2;
           voice.notes.push(note);
@@ -113,9 +113,9 @@
       score.staves[0].measures[1].voices = [voice];
 
       voice = { notes: [] };
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gg').forEach((note) => voice.notes.push(note));
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '4', 'd').forEach((note) => voice.notes.push(note));
-      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '16', 'ggabcabg').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', 2048, 'gg').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 4096, 'd').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 1024, 'ggabcabg').forEach((note) => voice.notes.push(note));
       voice.notes[0].pitches[0].octave += 1;
       voice.notes[2].noteType = 'r';
       voice.notes[3].noteType = 'r';

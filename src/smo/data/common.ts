@@ -11,6 +11,27 @@ export interface SmoAttrs {
     id: string,
     type: string
 }
+export const smoXmlNs = 'https://aarondavidnewman.github.io/Smoosic';
+
+// export abstract class SmoXmlSerializable {
+//   abstract serializeXml(namespace: string, parentElement: Element, tagName: string): Element
+// }
+export interface SmoXmlSerializable {
+  serializeXml: (namespace: string, parentElement: Element, tag: string) => Element;
+  ctor: string
+}
+export function createXmlAttributes(element: Element, obj: any) {
+  Object.keys(obj).forEach((key) => {
+    const attr = element.ownerDocument.createAttribute(key);
+    attr.value = obj[key];
+    element.setAttributeNode(attr);
+  });
+}
+export function createXmlAttribute(element: Element, name: string, value: any) {
+  const obj: any = {};
+  obj[name] = value;
+  createXmlAttributes(element, obj);
+}
 
 var nextId = 32768;
 export const getId = () => `smo` + (nextId++).toString();
@@ -141,6 +162,7 @@ export interface Transposable {
     logicalBox: SvgBox | null
 }
 
+
 /**
  * All note, measure etc. modifiers have these attributes.  The SVG info
  * is for the tracker to track the artifacts in the UI (mouse events, etc)
@@ -151,7 +173,24 @@ export interface Transposable {
 export interface SmoModifierBase {
     ctor: string,
     logicalBox: SvgBox | null,
-    attrs: SmoAttrs
+    attrs: SmoAttrs,
+    serialize: () => any;
+}
+
+export function serializeXmlModifierArray(object: SmoXmlSerializable[], namespace: string, parentElement: Element, tag: string) {
+  if (object.length === 0) {
+    return parentElement;
+  }
+  const arEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-array`);
+  parentElement.appendChild(arEl);
+  createXmlAttribute(arEl, 'container', 'array');
+  createXmlAttribute(arEl, 'name', `${tag}`);
+  for (var j = 0; j < object.length; ++j) {
+    const instEl = parentElement.ownerDocument.createElementNS(namespace, `${tag}-instance`);
+    arEl.appendChild(instEl);
+    object[j].serializeXml(namespace, instEl, object[j].ctor);
+  }
+  return arEl;
 }
 
 /**

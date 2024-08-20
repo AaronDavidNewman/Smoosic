@@ -10,8 +10,6 @@ import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SuiSampleMedia } from '../../render/audio/samples';
 
-declare var $: any;
-
 export class SuiInstrumentAdapter extends SuiComponentAdapter {
   instrument: SmoInstrument;
   backup: SmoInstrument;

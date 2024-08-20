@@ -81,7 +81,7 @@ export interface XmlPartGroup {
 export class XmlState {
   static get defaults() {
     return {
-      divisions: 4096, tempo: new SmoTempoText(SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'C',
+      divisions: 4096, tempo: new SmoTempoText(SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'c',
       clefInfo: [], staffGroups: [], smoStaves: []
     };
   }

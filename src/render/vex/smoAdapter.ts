@@ -1,16 +1,21 @@
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { SmoBarline, SmoMeasureText, SmoRepeatSymbol, SmoVolta } from '../../smo/data/measureModifiers';
-import { SmoTie } from '../../smo/data/staffModifiers';
-import { SmoLyric, VexAnnotationParams } from '../../smo/data/noteModifiers';
+import { SmoTabStave, SmoTie } from '../../smo/data/staffModifiers';
+import { SmoLyric, VexAnnotationParams, SmoTabNote, SmoFretPosition } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
-import { VexFlow } from '../../common/vex';
+import { TabNotePosition, VexFlow } from '../../common/vex';
 const VF = VexFlow;
 /**
  * convert from Smo library values to Vex values
  * @module
  * 
  **/
-
+export function VexTabNotePositions(stave: SmoTabStave, tabNote: SmoTabNote, smoNote: SmoNote): TabNotePosition[] {
+  const rv = tabNote.positions.map((pp) => { 
+    return { str: pp.string, fret: pp.fret }
+  });
+  return rv;
+}
 /**
  *
  *
@@ -107,6 +112,11 @@ export function vexAnnotationPosition(chordPos: number) {
   return VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
 }
 
+/**
+ * Parse the SmoLyric text and convert it to a VEX chord symbol
+ * @param athis 
+ * @returns 
+ */
 export function  getVexChordBlocks(athis: SmoLyric) {
   let mod = VF.ChordSymbol.symbolModifiers.NONE;
   let isGlyph = false;

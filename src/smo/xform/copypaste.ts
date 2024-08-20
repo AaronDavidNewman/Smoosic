@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoSelection, SmoSelector } from './selections';
-import { SmoNote, TupletInfo } from '../data/note';
+import { SmoNote } from '../data/note';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { StaffModifierBase } from '../data/staffModifiers';
 import {SmoTuplet, SmoTupletTree, SmoTupletTreeParams} from '../data/tuplet';
@@ -374,7 +374,6 @@ export class PasteBuffer {
     let currentDuration = tickmap.durationMap[startSelector.tick];
     let i = 0;
     let j = 0;
-    let tupletsPushed = 0;
     const totalDuration = tickmap.totalDuration;
     while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
       if (!this.score) {
@@ -559,6 +558,7 @@ export class PasteBuffer {
         nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
         nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
         nmeasure.svg.element = measure.svg.element;
+        nmeasure.svg.tabElement = measure.svg.tabElement;
       }
       ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
         (nmeasure as any)[flag] = (measure.svg as any)[flag];

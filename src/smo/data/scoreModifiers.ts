@@ -7,7 +7,8 @@
  */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat, SmoMeasureFormatParamsSer } from './measureModifiers';
-import { SmoAttrs, getId, SmoModifierBase, SvgBox } from './common';
+import { SmoAttrs, getId, SmoModifierBase, SvgBox, 
+  createXmlAttribute } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
 

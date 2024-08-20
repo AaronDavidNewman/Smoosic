@@ -10,8 +10,9 @@ import { vexGlyph } from '../vex/glyphDimensions';
 import { SmoDynamicText, SmoLyric, SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
 import { SmoBeamer } from '../../smo/xform/beamers';
+import { SmoSelector } from '../../smo/xform/selections';
 import { SmoScore } from '../../smo/data/score';
-import { SmoStaffHairpin, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { SmoStaffHairpin, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { layoutDebug } from './layoutDebug';
 import { ScaledPageLayout, SmoLayoutManager, SmoPageLayout } from '../../smo/data/scoreModifiers';
 import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
@@ -117,7 +118,7 @@ export class SuiLayoutFormatter {
     let pageAdj = 0;
     const lm: SmoLayoutManager = this.score!.layoutManager!;
     // See if this measure breaks a page.
-    const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
+    const maxY = bottomMeasure.lowestY;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
       this.currentPage += 1;
       // If this is a new page, make sure there is a layout for it.
@@ -135,8 +136,7 @@ export class SuiLayoutFormatter {
 
       // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
-        measure.setBox(SvgHelpers.boxPoints(
-          measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
+        measure.adjustY(pageAdj);
         measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
         measure.svg.pageIndex = this.currentPage;
       });
@@ -146,7 +146,12 @@ export class SuiLayoutFormatter {
   measureToLeft(measure: SmoMeasure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
-    return (i > 0 ? this.score!.staves[j].measures[i - 1] : null);
+    return (i > 0 ? this.score!.staves[j].measures[i - 1] : measure);
+  }
+  measureAbove(measure: SmoMeasure) {
+    const j = measure.measureNumber.staffId;
+    const i = measure.measureNumber.measureIndex;
+    return (j > 0 ? this.score!.staves[j - 1].measures[i] : measure);
   }
    // {measures,y,x}  the x and y at the left/bottom of the render
   /**
@@ -176,13 +181,14 @@ export class SuiLayoutFormatter {
     measures.forEach((measure) => {
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.
-      let measureToLeft = this.measureToLeft(measure);
-      if (!measureToLeft) {
-        measureToLeft = measure;
-      }
+      const measureToLeft = this.measureToLeft(measure);
+      const measureAbove = this.measureAbove(measure);
       s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
       s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
       s.tempoLast = measureToLeft.getTempo();
+      if (measure.measureNumber.staffId > 0) {
+        s.tempoLast = measureAbove.getTempo();
+      }
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.getLastClef();
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
@@ -191,6 +197,7 @@ export class SuiLayoutFormatter {
       maxColumnStartX = Math.max(maxColumnStartX, startX);
     });
     measures.forEach((measure) => {
+      let tabHeight = 0;
       measure.svg.maxColumnStartX = maxColumnStartX;
       SmoBeamer.applyBeams(measure);
       voiceCount += measure.voices.length;
@@ -206,7 +213,11 @@ export class SuiLayoutFormatter {
       measure.svg.pageIndex = this.currentPage;
 
       // calculate vertical offsets from the baseline
+      const stave = this.score.staves[measure.measureNumber.staffId];
+      const tabStave = stave.getTabStaveForMeasure({ staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex, 
+        voice: 0, tick: 0, pitches: [] });
       const offsets = this.estimateMeasureHeight(measure);
+
       measure.setYTop(offsets.aboveBaseline, 'render:estimateColumn');
       measure.setY(y - measure.yTop, 'estimateColumns height');
       measure.setX(x, 'render:estimateColumn');
@@ -214,7 +225,15 @@ export class SuiLayoutFormatter {
       // Add custom width to measure:
       measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
       this.estimateMeasureWidth(measure, scoreLayout, contextMap);
-      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
+      // account for the extra stave for tablature in the height, also set the dimensions of the stave tab
+      if (tabStave) {
+        const stemHeight = tabStave.showStems ? vexGlyph.dimensions['stem'].height : 0;
+        tabHeight = stemHeight + tabStave.numLines * tabStave.spacing;
+        measure.svg.tabStaveBox = { x, y: measure.svg.logicalBox.y + measure.svg.logicalBox.height,
+          width: measure.svg.logicalBox.width, height: tabHeight };
+        offsets.belowBaseline += measure.svg.tabStaveBox.height;
+      }
+      y = y + measure.svg.logicalBox.height + scoreLayout.intraGap + tabHeight;
       maxCfgWidth = Math.max(maxCfgWidth, measure.staffWidth);
       rowInSystem += 1;
     });
@@ -338,7 +357,7 @@ export class SuiLayoutFormatter {
         // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
         // start of staff.
         const bottomMeasure: SmoMeasure = currentLine.reduce((a, b) =>
-          a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b
+          a.lowestY > b.lowestY ? a : b
         );
         this.checkPageBreak(scoreLayout, currentLine, bottomMeasure);
         const renderedPage: RenderedPage | null = this.renderedPages[pageCheck];
@@ -371,7 +390,7 @@ export class SuiLayoutFormatter {
         }
 
         // Now start rendering on the next system.
-        y = bottomMeasure.svg.logicalBox.height + bottomMeasure.svg.logicalBox.y + scoreLayout.interGap;
+        y = bottomMeasure.lowestY + scoreLayout.interGap;
   
         currentLine = [];
         systemIndex = 0;
@@ -435,6 +454,9 @@ export class SuiLayoutFormatter {
         // TODO: Consider engraving font and adjust grace note size?
         noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
+        if (!note.isRest() && note.endBeam) {
+          noteWidth += vexGlyph.dimensions.flag.width;
+        }
         note.pitches.forEach((pitch) => {
           const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
           const accidentals = tmObj.accidentalArray.filter((ar) =>
@@ -576,6 +598,12 @@ export class SuiLayoutFormatter {
     for (i = 0; i < rowCount; ++i) {
       // lowest staff has greatest staffY value.
       const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === i);
+      
+      let lowestTabStaff = rowAdj.reduce((a, b) => 
+        a.svg.tabStaveBox && b.svg.tabStaveBox && 
+          a.svg.tabStaveBox.y + a.svg.tabStaveBox.height > b.svg.tabStaveBox.y + b.svg.tabStaveBox.height ?
+          a : b
+      );
       const lowestStaff = rowAdj.reduce((a, b) =>
         a.staffY > b.staffY ? a : b
       );
@@ -591,6 +619,9 @@ export class SuiLayoutFormatter {
         const adj = lowestStaff.staffY - measure.staffY;
         measure.setY(measure.staffY + adj, 'justifyY');
         measure.setBox(sh.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + adj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), 'justifyY');
+        if (lowestTabStaff.svg.tabStaveBox && measure.svg.tabStaveBox) {
+          measure.svg.tabStaveBox.y = measure.svg.tabStaveBox.y + lowestTabStaff.svg.tabStaveBox.y - measure.svg.tabStaveBox.y;
+        }
       });
       const rightStaff = rowAdj.reduce((a, b) =>
         a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
@@ -691,9 +722,11 @@ export class SuiLayoutFormatter {
     }
     measure.svg.forceTempo = false;
     const tempo = measure.getTempo();
-    if (tempo && measure.measureNumber.measureIndex === 0) {
+    // always print tempo for the first measure, if indicated
+    if (tempo && measure.measureNumber.measureIndex === 0 && measure.measureNumber.staffId === 0) {
       measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     } else if (tempo && tempoLast) {
+      // otherwise get tempo from the measure prior.  But only one tempo per system.
       if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
         measure.svg.forceTempo = tempo.display;
       }
@@ -843,6 +876,7 @@ export class SuiLayoutFormatter {
         lyric.musicYOffset = yBottomOffset;
       });
     }
+    const mmsel = SmoSelector.measureSelector(stave.staffId, measure.measureNumber.measureIndex);
     return { belowBaseline: yBottom, aboveBaseline: yTop };
   }
 }

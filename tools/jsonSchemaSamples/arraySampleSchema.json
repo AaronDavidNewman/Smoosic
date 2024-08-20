@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "livingThings": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "species": {
+            "type": "string"
+          },
+          "population": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "species"
+        ]
+      }
+    }
+  },
+  "required": [
+    "livingThings"
+  ]
+}

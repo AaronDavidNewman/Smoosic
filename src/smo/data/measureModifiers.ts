@@ -38,7 +38,6 @@ export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
   ['customStretch', 'proportionality', 'padLeft', 'measureIndex'];
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'skipMeasureCount' | 'pageBreak' | 'padAllInSystem' | 'restBreak' | 'forceRest';
 export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify','skipMeasureCount', 'systemBreak', 'pageBreak', 'padAllInSystem', 'restBreak', 'forceRest'];
-
 /**
  * Constructor parameter for measure formatting object
  */
@@ -265,7 +264,6 @@ export class SmoBarline extends SmoMeasureModifierBase {
     params.ctor = 'SmoBarline';
     return params;
   }
-
   constructor(parameters: SmoBarlineParams | null) {
     super('SmoBarline');
     let ops = parameters as any;
@@ -455,7 +453,6 @@ export class SmoVolta extends SmoMeasureModifierBase {
     params.ctor = 'SmoVolta';
     return params;
   }
-
   static get defaults(): SmoVoltaParams {
     return JSON.parse(JSON.stringify({
       startBar: 1,
@@ -538,7 +535,6 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
     params.ctor = 'SmoMeasureText';
     return params as SmoMeasureTextParamsSer;  // trivial class, no 'is'
   }
-
   constructor(parameters: SmoMeasureTextParams | null) {
     super('SmoMeasureText');
     let pobj = parameters as any;
@@ -942,3 +938,4 @@ export class TimeSignature extends SmoMeasureModifierBase {
     this.displayString = params.displayString;
   }
 }
+

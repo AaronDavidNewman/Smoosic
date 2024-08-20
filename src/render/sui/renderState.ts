@@ -29,6 +29,7 @@ export var scoreChangeEvent = 'smoScoreChangeEvent';
  * @category SuiRender
  * */
 export class SuiRenderState {
+  static debugMask: number = 0;
   dirty: boolean;
   replaceQ: SmoSelection[];
   stateRepCount: 0;
@@ -244,8 +245,8 @@ export class SuiRenderState {
     this.handlingRedraw = false;
   }
   pollRedraw() {
-    setTimeout(() => {
-      this.handleRedrawTimer();
+    setTimeout(async () => {
+      await this.handleRedrawTimer();
       this.pollRedraw();
     }, this.demonPollTime);
   }
@@ -329,7 +330,9 @@ export class SuiRenderState {
     if (this.stateRepCount > 0) {
       msg += ' (' + this.stateRepCount + ')';
     }
-    console.log(msg);
+    if (SuiRenderState.debugMask) {
+      console.log(msg);
+    }
     this.passState = st;
   }
 

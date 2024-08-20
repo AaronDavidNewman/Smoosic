@@ -22,6 +22,7 @@ export class SmoTranslator {
   static dialogs: any[] = [];
 
   static menus: any[] = [];
+  static debugMask: number = 0;
 
   static registerMenu(_class: any) {
     if (!SmoTranslator.menus[_class]) {
@@ -48,8 +49,9 @@ export class SmoTranslator {
       menus.push(translatable.printTranslate(key));
     });
     const buttonText: any[] = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
-
-    console.log(JSON.stringify({ dialogs, menus, buttonText }, null, ' '));
+    if (SmoTranslator.debugMask) {
+      console.log(JSON.stringify({ dialogs, menus, buttonText }, null, ' '));
+    }
   }
 
   static _updateDialog(dialogStrings: DialogTranslation, _dialogClass: any, dialogClass: string) {
@@ -74,14 +76,18 @@ export class SmoTranslator {
           component.options.forEach((option: any) => {
             const optionString = componentStrings!.options!.find((cs: any) => cs.value === option.value);
             if (!optionString) {
-              console.log('no string for option ' + option.value + ' in component ' + component.smoName + ' in dialog ' + dialogClass);
+              if (SmoTranslator.debugMask) {
+                console.log('no string for option ' + option.value + ' in component ' + component.smoName + ' in dialog ' + dialogClass);
+              }
             } else {
               option.label = optionString.label;
             }
           });
         }
       } else {
-        console.log('Untranslated component in  ' + dialogClass);
+        if (SmoTranslator.debugMask) {
+          console.log('Untranslated component in  ' + dialogClass);
+        }
       }
     });
   }
@@ -96,10 +102,14 @@ export class SmoTranslator {
       const val = menuItem.value;
       const nvPair = menuStrings.menuItems.find((ff: any) => ff.value === val);
       if (!nvPair) {
-        console.log('no xlate for ' + val + ' in menu ' + menuClass);
+        if (SmoTranslator.debugMask) {
+          console.log('no xlate for ' + val + ' in menu ' + menuClass);
+        }
       } else {
         menuItem.text = nvPair.text;
-        console.log('setting menu item value ' + val + ' to ' + nvPair.text);
+        if (SmoTranslator.debugMask) {
+          console.log('setting menu item value ' + val + ' to ' + nvPair.text);
+        }
       }
     });
   }

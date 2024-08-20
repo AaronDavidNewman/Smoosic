@@ -391,6 +391,46 @@ export class SuiSaveFileDialog extends SuiDialogAdapterBase<SuiSmoSaveAdapter>{
     await this.adapter.commit();
   }
 }
+export class SuiSaveJsonValidationAdapter extends SuiComponentAdapter {
+  fileName: string = '';
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+  _saveScore() {
+    const json = this.view.storeScore.serialize({ useDictionary: false, skipStaves: false });
+    const jsonText = JSON.stringify(json);
+    if (!this.fileName.endsWith('.json')) {
+      this.fileName = this.fileName + '.json';
+    }
+    addFileLink(this.fileName, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();    
+  }
+  async commit() {
+    let filename = this.fileName;
+    const rawFile = filename.split('.')[0];
+    if (!filename) {
+      filename = 'myScore.json';
+    }
+    if (filename.indexOf('.json') < 0) {
+      filename = filename + '.json';
+    }
+    const scoreInfo = this.view.score.scoreInfo;
+    scoreInfo.name = rawFile;
+    scoreInfo.version = scoreInfo.version + 1;
+    await this.view.updateScoreInfo(scoreInfo);
+    this._saveScore();
+  }
+  // noop
+  async cancel() {
+    return PromiseHelpers.emptyPromise();
+  }
+}
 
 export class SuiXmlSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
@@ -445,6 +485,26 @@ export class SuiSaveXmlDialog extends SuiDialogAdapterBase<SuiXmlSaveAdapter> {
     parameters.ctor = 'SuiSaveXmlDialog';
     const adapter = new SuiXmlSaveAdapter(parameters.view);
     super(SuiSaveXmlDialog.dialogElements, { adapter, ...parameters });
+  }
+  async commit() {
+    await this.adapter.commit();
+  }
+}
+export class SuiSaveJsonValidationDialog extends SuiDialogAdapterBase<SuiSaveJsonValidationAdapter> {
+  static dialogElements: DialogDefinition =
+    {
+      label: 'Export SMO XML',
+      elements: [{
+        smoName: 'saveFileName',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      }],
+      staticText: []
+    };
+  constructor(parameters: SuiDialogParams) {
+    parameters.ctor = 'SuiSaveJsonValidationDialog';
+    const adapter = new SuiSaveJsonValidationAdapter(parameters.view);
+    super(SuiSaveJsonValidationDialog.dialogElements, { adapter, ...parameters });
   }
   async commit() {
     await this.adapter.commit();
@@ -508,52 +568,3 @@ export class SuiSaveMidiDialog extends SuiDialogAdapterBase<SuiMidiSaveAdapter> 
     await this.adapter.commit();
   }
 }
-/* 
-export class SuiSaveActionsDialog extends SuiDialogBase {
-  static dialogElements = 
-      {
-        label: 'Save Score', elements:
-          [{
-            smoName: 'saveFileName',
-            defaultValue: '',
-            control: 'SuiTextInputComponent',
-            label: 'File Name'
-          }],
-          staticText: []
-      };
-      value: string;
-  constructor(parameters: SuiDialogParams) {
-    super(SuiSaveActionsDialog.dialogElements, parameters);
-    this.value = SuiSaveActionsDialog.createName(this.view.score);
-  }
-  changed() {
-    this.value = this.saveFileNameCtrl.getValue();
-  }
-  get saveFileNameCtrl() {
-    return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
-  }
-  commit() {
-    let filename = this.value;
-    if (!filename) {
-      filename = 'myScore.json';
-    }
-    if (filename.indexOf('.json') < 0) {
-      filename = filename + '.json';
-    }
-    this.view.score.scoreInfo.version += 1;
-    this.view.saveActions(filename);
-    this.complete();
-  }
-  display() {
-    this.applyDisplayOptions();
-    this.saveFileNameCtrl.setValue(this.value);
-    this.bindElements();
-  }
-  static createName(score: SmoScore) {
-    return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';
-  }
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiSaveActionsDialog(params);
-    dg.display();
-  }
-}  */

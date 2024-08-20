@@ -7,13 +7,15 @@ import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoOrnament,
-  SmoDynamicText } from '../data/noteModifiers';
+  SmoDynamicText, 
+  SmoTabNote} from '../data/noteModifiers';
 import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
-  SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams } from '../data/staffModifiers';
+  SmoSlurParams, SmoInstrumentMeasure, SmoStaffTextBracket, SmoStaffTextBracketParams,
+  SmoTabStave } from '../data/staffModifiers';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { SmoTextGroup } from '../data/scoreText';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
@@ -121,6 +123,14 @@ export class SmoOperation {
     selection.measure.populateVoice(voiceIx);
   }
 
+  static setTabStave(score: SmoScore, tabStave: SmoTabStave) {
+    score.staves[tabStave.startSelector.staff].updateTabStave(tabStave);
+  }
+  static removeTabStave(score: SmoScore, tabStaves: SmoTabStave[]) {
+    if (tabStaves.length > 0) {
+      score.staves[tabStaves[0].startSelector.staff].removeTabStaves(tabStaves);
+    }
+  }
   static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
     const selectors: SmoSelector[] = [];
     let i = 0;
@@ -402,6 +412,20 @@ export class SmoOperation {
       });
     });
   }
+  static updateTabNote(selections: SmoSelection[], tabNote: SmoTabNote) {
+    selections.forEach((sel) => {
+      if (sel.note) {
+        sel.note.setTabNote(tabNote);
+      }
+    });
+  }
+  static removeTabNote(selections: SmoSelection[]) {
+    selections.forEach((sel) => {
+      if (sel.note) {
+        sel.note.clearTabNote();
+      }
+    });
+  }
   // ## transpose
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value
@@ -416,6 +440,7 @@ export class SmoOperation {
     const note = selection.note;
     if (measure && note) {
       const pitchar: Pitch[] = [];
+      const tabStave: SmoTabStave | undefined = selection.staff.getTabStaveForMeasure(selection.selector);
       note.pitches.forEach((opitch, pitchIx) => {
         // Only translate selected pitches
         const shouldXpose = selection.selector.pitches.length === 0 ||
@@ -450,6 +475,21 @@ export class SmoOperation {
         pitchar.push(trans as Pitch);
       });
       note.pitches = pitchar;
+      // If this note has a tab stave, try to preserve the assigned string.
+      // If not possible, find the default string/fret for the note
+      if (note.tabNote) {
+        note.tabNote.positions.forEach((pp, ix) => {
+          if (pp.fret + offset > 0) {
+            pp.fret = pp.fret + offset;
+          } else if (tabStave && note.pitches.length > ix) {
+            const position = SmoTabStave.getDefaultPositionForStaff(note.pitches[ix], tabStave.stringPitches, offset);
+            pp.fret = position.fret;
+            pp.string = position.string;
+          } else {
+            pp.fret = 0;          
+          }
+        });
+      }
       return true;
     }
     return false;
@@ -575,6 +615,29 @@ export class SmoOperation {
         }
       }
     }
+  }
+  static clearAllBeamGroups(score: SmoScore) {    
+    score.staves.forEach((ss) => {
+      ss.measures.forEach((mm) => {
+        mm.voices.forEach((vv) => {
+          const triple = mm.timeSignature.actualBeats % 3 === 0;
+          vv.notes.forEach((note) => {
+            note.beamBeats = triple ? score.preferences.defaultTripleDuration : score.preferences.defaultDupleDuration;
+            note.endBeam = false;
+          });
+        });
+      });
+    });
+  }
+  static clearBeamGroups(score: SmoScore, selections: SmoSelection[])  {
+    selections.forEach((ss) => {
+      if (ss.note) {
+        const triple = ss.measure.timeSignature.actualBeats % 3 === 0;
+        const note = ss.note;
+        note.beamBeats = triple ? score.preferences.defaultTripleDuration : score.preferences.defaultDupleDuration;
+        note.endBeam = false;
+      }
+    });
   }
 
   static toggleBeamDirection(selections: SmoSelection[]) {
