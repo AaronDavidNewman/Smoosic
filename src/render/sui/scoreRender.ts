@@ -444,9 +444,9 @@ export class SuiScoreRender {
     }
     const renderedId: Record<string, boolean> = {};
     staff.renderableModifiers.forEach((modifier) => {
-      const startNote = SmoSelection.noteSelection(this.score!,
+      let startNote = SmoSelection.noteSelection(this.score!,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-      const endNote = SmoSelection.noteSelection(this.score!,
+      let endNote = SmoSelection.noteSelection(this.score!,
         modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
       if (!startNote || !endNote) {
         // If the modifier doesn't have score endpoints, delete it from the score
@@ -472,6 +472,7 @@ export class SuiScoreRender {
           }
           while (testNote) {
             vxEnd = testNote;
+            endNote = nextNote;
             nextNote = SmoSelection.nextNoteSelection(this.score!,
               nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
             if (!nextNote) {
@@ -492,6 +493,7 @@ export class SuiScoreRender {
           testNote = system.getVxNote(lastNote.note);
           while (testNote !== null) {
             vxStart = testNote;
+            startNote = lastNote;
             lastNote = SmoSelection.lastNoteSelection(this.score!,
               lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
             if (!lastNote) {
@@ -544,15 +546,16 @@ export class SuiScoreRender {
       this.renderedPages[change.measure.svg.pageIndex] = null;
     }
     SmoBeamer.applyBeams(change.measure);
+    const lineIndex = change.measure.svg.lineIndex;
     // Defer modifier update until all selected measures are drawn.
-    if (!staffMap[change.staff.staffId]) {
+    if (!staffMap[lineIndex]) {
       const context = this.vexContainers.getRenderer(change.measure.svg.logicalBox);
       if (context) {
-        system = new VxSystem(context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
-        staffMap[change.staff.staffId] = { system, staff: change.staff };  
+        system = new VxSystem(context, change.measure.staffY, lineIndex, this.score!);
+        staffMap[lineIndex] = { system, staff: change.staff };  
       }
     } else {
-      system = staffMap[change.staff.staffId].system;
+      system = staffMap[lineIndex].system;
     }
     const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
     const measuresToMeasure: SmoMeasure[] = [];

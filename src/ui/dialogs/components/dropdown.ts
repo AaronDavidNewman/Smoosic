@@ -101,10 +101,18 @@ export class SuiDropdownComponent extends SuiComponentBase {
     }
     return val;
   }
+  getValueLabel() {
+    let label = this.value;
+    const selection = this.options.find((ff) => ff.value.toString() === this.value.toString());
+    if (selection) {
+      label = selection.label;
+    }
+    return label;
+  }
   setValue(value: string | number) {
     this.value = value.toString();
     if (this.value.length) {
-      $(this._getInputElement()).find('button.dropdown-toggle').text(this.value);
+      $(this._getInputElement()).find('button.dropdown-toggle').text(this.getValueLabel());
     }
   }
 
@@ -118,7 +126,7 @@ export class SuiDropdownComponent extends SuiComponentBase {
         this.value = $(elem.target).attr('data-value');
         $(input).find('ul.dropdown-menu').removeClass('show');
         if (this.value.length) {
-          $(this._getInputElement()).find('button.dropdown-toggle').text(this.value);
+          $(this._getInputElement()).find('button.dropdown-toggle').text(this.getValueLabel());
         }    
         this.handleChanged();
       });

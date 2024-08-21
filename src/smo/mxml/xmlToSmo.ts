@@ -174,10 +174,10 @@ export class XmlToSmo {
         if (slur.position === slur.position_end) {
           slurPosition = slur.position;
         }
-        const slurParams = SmoOperation.getDefaultSlurDirection(score, ss.startSelector, ss.endSelector, slurPosition, slur.orientation);
-        slur.position = slurParams.position;
-        slur.position_end = slurParams.position_end;
-        slur.invert = slurParams.invert;
+        const slurParams = SmoOperation.getDefaultSlurDirection(score, ss.startSelector, ss.endSelector);
+        slur.position = SmoSlur.positions.AUTO;
+        slur.position_end = SmoSlur.positions.AUTO;
+        slur.orientation = SmoSlur.orientations.AUTO;
         slur.yOffset = slurParams.yOffset;
         slur.cp1y = slurParams.cp1y;
         slur.cp2y = slurParams.cp2y;

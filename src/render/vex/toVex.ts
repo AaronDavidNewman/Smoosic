@@ -194,7 +194,7 @@ function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, 
         xShift: slurX,
         yShift: slur.yOffset,
         cps: svgPoint,
-        invert: slur.invert,
+        orientation: slur.orientation,
         position: slur.position,
         positionEnd: slur.position_end
       };

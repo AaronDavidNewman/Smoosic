@@ -11,8 +11,7 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;
 
 export type SlurNumber = 'spacing' | 'thickness' | 'xOffset' | 'yOffset' | 'position' | 'position_end' | 'cp1x'
-| 'cp1y' | 'cp2x' | 'cp2y';
-export type SlurBool = 'invert';
+| 'cp1y' | 'cp2x' | 'cp2y' | 'orientation';
 export class SuiSlurAdapter extends SuiComponentAdapter {
 slur: SmoSlur;
 backup: SmoSlur;
@@ -28,12 +27,6 @@ constructor(view: SuiScoreViewOperations, slur: SmoSlur) {
   this.backup.associatedStaff = this.slur.associatedStaff;
 }
 writeSlurNumber(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurNumber, value: number) {
-  const current = new SmoSlur(slur);
-  slur[key] = value;
-  view.addOrUpdateStaffModifier(current, slur);
-  this.changed = true;
-}
-writeSlurBool(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurBool, value: boolean) {
   const current = new SmoSlur(slur);
   slur[key] = value;
   view.addOrUpdateStaffModifier(current, slur);
@@ -57,7 +50,7 @@ set resetAll(value: boolean) {
   const self = this;
   this.updating = true;
   const updateSlur = async (score: SmoScore, slur: SmoSlur) => {
-    const params = SmoOperation.getDefaultSlurDirection(score, slur.startSelector, slur.endSelector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+    const params = SmoOperation.getDefaultSlurDirection(score, slur.startSelector, slur.endSelector);
     const original = new SmoSlur(slur);
     SlurNumberParams.forEach((key) => {
       slur[key] = params[key];    
@@ -92,7 +85,7 @@ get resetDefaults(): boolean {
   return false;
 }
 set resetDefaults(value: boolean) {
-  const params = SmoOperation.getDefaultSlurDirection(this.view.score, this.slur.startSelector, this.slur.endSelector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+  const params = SmoOperation.getDefaultSlurDirection(this.view.score, this.slur.startSelector, this.slur.endSelector);
   SlurNumberParams.forEach((key) => {
     this.slur[key] = params[key];    
   });
@@ -123,11 +116,11 @@ get cp1x(): number {
 set cp1x(value: number) {
   this.writeSlurNumber(this.view, this.slur, 'cp1x', value);
 }  
-get invert(): boolean {
-  return this.slur.invert;
+get orientation(): number {
+  return this.slur.orientation;
 }
-set invert(value: boolean) {
-  this.writeSlurBool(this.view, this.slur, 'invert', value);
+set orientation(value: number) {
+  this.writeSlurNumber(this.view, this.slur, 'orientation', value);
 }
 get position_end(): number {
   return this.slur.position_end;
@@ -193,12 +186,15 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         label: 'Y Offset'
       }, {
         smoName: 'position',
-        defaultValue: SmoSlur.positions.HEAD,
+        defaultValue: SmoSlur.positions.AUTO,
         dataType: 'int',
         options: [{
+          value: SmoSlur.positions.AUTO,
+          label: 'Auto'
+        }, {
           value: SmoSlur.positions.HEAD,
           label: 'Head'
-        }, {
+        },{
           value: SmoSlur.positions.TOP,
           label: 'Top'
         }],
@@ -209,6 +205,9 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         defaultValue: SmoSlur.positions.HEAD,
         dataType: 'int',
         options: [{
+          value: SmoSlur.positions.AUTO,
+          label: 'Auto'
+        }, {
           value: SmoSlur.positions.HEAD,
           label: 'Head'
         }, {
@@ -217,11 +216,23 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
         }],
         control: 'SuiDropdownComponent',
         label: 'End Position'
-      }, {
-        smoName: 'invert',
-        control: 'SuiToggleComponent',
-        label: 'Invert'
-      }, {
+      },  {
+        smoName: 'orientation',
+        defaultValue: SmoSlur.orientations.AUTO,
+        dataType: 'int',
+        options: [{
+          value: SmoSlur.orientations.AUTO,
+          label: 'Auto'
+        }, {
+          value: SmoSlur.orientations.UP,
+          label: 'Up'
+        }, {
+          value: SmoSlur.orientations.DOWN,
+          label: 'Down'
+        }],
+        control: 'SuiDropdownComponent',
+        label: 'Orientation'
+      },{
         smoName: 'resetDefaults',
         control: 'SuiToggleComponent',
         label: 'Defaults'

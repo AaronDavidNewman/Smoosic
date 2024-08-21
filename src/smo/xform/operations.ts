@@ -887,8 +887,7 @@ export class SmoOperation {
    * @param toSelection 
    * @returns 
    */
-  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector, 
-    forcePosition: number, forceOrientation: number):SmoSlurParams {
+  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
     const sels = SmoSelector.order(fromSelector, toSelector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));
@@ -940,53 +939,30 @@ export class SmoOperation {
         endDir = fstate;
       }
     });
-    params.invert = false;
+    params.orientation = SmoSlur.orientations.AUTO;
+    params.position = SmoSlur.positions.AUTO;
+    params.position_end = SmoSlur.positions.AUTO;
     mixed = Object.keys(dirs).length > 1;
     // If the notes are beamed together, we assume the beams point in the same direction
-    if (Object.keys(beamGroups).length < 2) {
-      mixed = false;
-    }
-    if (forcePosition === SmoSlur.positions.ABOVE) {
-      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-      if (startDir === SmoNote.flagStates.up && forceOrientation !== SmoSlur.orientations.DOWN) {
-        params.invert = true;
-      }
-    } else if (forcePosition === SmoSlur.positions.BELOW) {
-      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
-      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
-      if (startDir === SmoNote.flagStates.down && forceOrientation !== SmoSlur.orientations.UP) {
-        params.invert = true;
-      }
-    } else {
-      if (mixed) {
-        // special case: slur 2 notes, note heads close, connect the note heads
-        // to keep a flat arc
-        if (selections.length === 2 && firstGap < 3) {
-          params.position = SmoSlur.positions.HEAD;
-          params.position_end = SmoSlur.positions.HEAD;
-          params.xOffset = 5;
-        } else {
-          params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-          params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-          if (firstGap >= 3 || lastGap >= 3) {
-            params.cp1y = 45;
-            params.cp2y = 45;
-          }
-        }
-        params.invert = endDir === SmoNote.flagStates.up;
-      }     
-      if (!mixed) {
-        params.position = SmoSlur.positions.HEAD;
-        params.position_end = SmoSlur.positions.HEAD;
-        if (firstGap >= 2 || lastGap >= 2) {
+    if (mixed) {
+      // special case: slur 2 notes, note heads close, connect the note heads
+      // to keep a flat arc
+      if (selections.length === 2 && firstGap < 3) {
+        params.xOffset = 5;
+      } else {
+        if (firstGap >= 3 || lastGap >= 3) {
           params.cp1y = 45;
           params.cp2y = 45;
-          params.yOffset += 10;
-        } else {
-          params.yOffset += 10;
         }
       }
+    } else {
+      if (firstGap >= 2 || lastGap >= 2) {
+        params.cp1y = 45;
+        params.cp2y = 45;
+        params.yOffset += 10;
+      } else {
+        params.yOffset += 10;
+      }      
     }
     if (selections.length === 2) {
       params.xOffset = 0;
@@ -994,7 +970,7 @@ export class SmoOperation {
     return params;
   }
   static createSlur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlur {
-    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector);
     const modifier: SmoSlur = new SmoSlur(params);
     return modifier;
   }

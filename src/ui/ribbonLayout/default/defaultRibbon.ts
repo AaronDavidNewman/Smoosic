@@ -8,7 +8,7 @@ export class defaultRibbonLayout {
   static get ribbons(): RibbonLayout {
     var left = defaultRibbonLayout.leftRibbonIds;
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
-      .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
+      .concat(defaultRibbonLayout.microtoneIds)
       .concat(defaultRibbonLayout.durationIds)
       .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
       .concat(defaultRibbonLayout.staveIds)
@@ -25,7 +25,6 @@ export class defaultRibbonLayout {
     return defaultRibbonLayout.leftRibbonButtons.concat(
       defaultRibbonLayout.navigationButtons).concat(
         defaultRibbonLayout.noteRibbonButtons).concat(
-          defaultRibbonLayout.articulationButtons).concat(
             defaultRibbonLayout.microtoneButtons).concat(
               defaultRibbonLayout.chordButtons).concat(
                 defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
@@ -42,8 +41,7 @@ export class defaultRibbonLayout {
   }
   static get noteButtonIds() {
     return ['NoteButtons',
-      'UpNoteButton', 'DownNoteButton', 'AddGraceNote', 'RemoveGraceNote', 'SlashGraceNote',
-      'XNoteHead', 'TriUpNoteHead', 'CircleXNoteHead', 'DiamondNoteHead',
+      'UpNoteButton', 'DownNoteButton', 'AddGraceNote', 'RemoveGraceNote', 'SlashGraceNote',      
       'UpOctaveButton', 'DownOctaveButton', 'ToggleRestButton', 'ToggleSlashButton', 'ToggleAccidental', 'ToggleCourtesy'];
   }
   static get voiceButtonIds() {
@@ -106,7 +104,7 @@ export class defaultRibbonLayout {
         leftText: '',
         rightText: '',
         classes: 'icon  collapseParent measure',
-        icon: 'icon-text',
+        icon: 'icon-smo icon-text',
         action: 'collapseParent',
         ctor: 'CollapseRibbonControl',
         group: 'textEdit',
@@ -115,7 +113,7 @@ export class defaultRibbonLayout {
         leftText: '',
         rightText: '/t',
         classes: 'icon collapsed textButton',
-        icon: 'icon-textBasic',
+        icon: 'icon-smo icon-textBasic',
         action: 'collapseChild',
         ctor: 'TextButtons',
         group: 'textEdit',
@@ -123,8 +121,8 @@ export class defaultRibbonLayout {
       }, {
         leftText: '',
         rightText: '',
-        classes: 'icon collapsed textButton',
-        icon: 'icon-rehearsemark',
+        classes: 'icon  collapsed textButton',
+        icon: 'icon-smo icon-rehearsemark',
         action: 'collapseChild',
         ctor: 'TextButtons',
         group: 'textEdit',
@@ -132,8 +130,8 @@ export class defaultRibbonLayout {
       }, {
         leftText: '',
         rightText: '',
-        classes: 'icon collapsed textButton',
-        icon: 'icon-lyric',
+        classes: 'icon  collapsed textButton',
+        icon: 'icon-smo icon-lyric',
         action: 'collapseChild',
         ctor: 'TextButtons',
         group: 'textEdit',
@@ -141,8 +139,8 @@ export class defaultRibbonLayout {
       }, {
         leftText: '',
         rightText: '',
-        classes: 'icon collapsed textButton',
-        icon: 'icon-chordSymbol',
+        classes: 'icon  collapsed textButton',
+        icon: 'icon-smo icon-chordSymbol',
         action: 'collapseChild',
         ctor: 'TextButtons',
         group: 'textEdit',
@@ -150,8 +148,8 @@ export class defaultRibbonLayout {
       }, {
         leftText: '',
         rightText: '/d',
-        classes: 'icon collapsed textButton',
-        icon: 'icon-mezzopiano',
+        classes: 'icon  collapsed textButton',
+        icon: 'icon-smo icon-mezzopiano',
         action: 'collapseChild',
         ctor: 'TextButtons',
         group: 'textEdit',
@@ -163,8 +161,8 @@ export class defaultRibbonLayout {
     return [{
       leftText: '',
       rightText: '',
-      classes: 'icon  hide',
-      icon: 'icon-zoomplus',
+      classes: 'icon   hide',
+      icon: 'icon-smo icon-zoomplus',
       action: 'collapseParent',
       ctor: 'CollapseRibbonControl',
       group: 'quickButtons',
@@ -172,8 +170,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'Select Part',
-      classes: 'icon select-part-button',
-      icon: 'icon-circle-down',
+      classes: 'icon  select-part-button',
+      icon: 'icon-smo icon-circle-down',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -181,8 +179,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon   refresh',
-      icon: 'icon-refresh',
+      classes: 'icon    refresh',
+      icon: 'icon-smo icon-refresh',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -191,7 +189,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon   refresh',
-      icon: 'icon-zoomplus',
+      icon: 'icon-smo icon-zoomplus',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -200,7 +198,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon   refresh',
-      icon: 'icon-zoomminus',
+      icon: 'icon-smo icon-zoomminus',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -208,8 +206,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon   play',
-      icon: 'icon-play3',
+      classes: 'icon    play',
+      icon: 'icon-smo icon-play3',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -217,8 +215,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon   stop2',
-      icon: 'icon-stop2',
+      classes: 'icon    stop2',
+      icon: 'icon-smo icon-stop2',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
@@ -231,8 +229,8 @@ export class defaultRibbonLayout {
     return [{
       leftText: '',
       rightText: '',
-      classes: 'icon  collapseParent microtones',
-      icon: 'icon-microtone',
+      classes: 'icon   collapseParent microtones',
+      icon: 'icon-smo icon-microtone',
       action: 'collapseParent',
       ctor: 'CollapseRibbonControl',
       group: 'microtone',
@@ -240,8 +238,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon  collapsed microtones',
-      icon: 'icon-flat25sz',
+      classes: 'icon   collapsed microtones',
+      icon: 'icon-bravura icon-accidentalThreeQuarterTonesFlatZimmermann',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -249,8 +247,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon  collapsed microtones',
-      icon: 'icon-flat75sz',
+      classes: 'icon   collapsed microtones',
+      icon: 'icon-bravura icon-accidentalQuarterToneFlatStein',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -258,8 +256,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon  collapsed microtones',
-      icon: 'icon-flat25ar',
+      classes: 'icon   collapsed microtones',
+      icon: 'icon-bravura icon-accidentalBakiyeFlat',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -267,8 +265,8 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      classes: 'icon  collapsed microtones',
-      icon: 'icon-sharp75',
+      classes: 'icon   collapsed microtones',
+      icon: 'icon-smo icon-sharp75',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -277,7 +275,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed microtones',
-      icon: 'icon-sharp125',
+      icon: 'icon-bravura icon-accidentalThreeQuarterTonesSharpStein',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -286,7 +284,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed microtones',
-      icon: 'icon-sharp25',
+      icon: 'icon-bravura icon-accidentalQuarterToneSharpStein',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -295,7 +293,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed microtones',
-      icon: 'icon-sori',
+      icon: 'icon-bravura icon-accidentalSori',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -304,7 +302,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed microtones',
-      icon: 'icon-koron',
+      icon: 'icon-bravura icon-accidentalKoron',
       action: 'collapseChild',
       ctor: 'MicrotoneButtons',
       group: 'microtone',
@@ -317,7 +315,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapseParent staves',
-      icon: 'icon-treble',
+      icon: 'icon-bravura icon-gClef',
       action: 'collapseParent',
       ctor: 'CollapseRibbonControl',
       group: 'staves',
@@ -326,7 +324,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-treble',
+      icon: 'icon-bravura icon-gClef',
       action: 'collapseChild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -335,7 +333,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-bass',
+      icon: 'icon-bravura icon-fClef',
       action: 'collapseChild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -345,7 +343,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-arrow-up',
+      icon: 'icon-smo icon-arrow-up',
       action: 'collapseChild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -354,7 +352,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-arrow-down',
+      icon: 'icon-smo icon-arrow-down',
       action: 'collapseChild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -363,7 +361,7 @@ export class defaultRibbonLayout {
     {
       leftText: '...',
       rightText: '',
-      icon: 'icon-circle-left',
+      icon: 'icon-smo icon-circle-left',
       classes: 'collapsed expander',
       action: 'collapseMore',
       ctor: 'ExtendedCollapseParent',
@@ -373,7 +371,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-tenor',
+      icon: 'icon-bravura icon-cClef',
       action: 'collapseGrandchild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -382,7 +380,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-alto',
+      icon: 'icon-smo icon-alto',
       action: 'collapseGrandchild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -391,7 +389,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-percussion',
+      icon: 'icon-bravura icon-unpitchedPercussionClef1',
       action: 'collapseGrandchild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -400,7 +398,7 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-brace',
+      icon: 'icon-smo icon-brace',
       action: 'collapseGrandchild',
       ctor: 'StaveButtons',
       group: 'staves',
@@ -409,13 +407,12 @@ export class defaultRibbonLayout {
       leftText: '',
       rightText: '',
       classes: 'icon  collapsed staves',
-      icon: 'icon-bracket',
+      icon: 'icon-smo icon-bracket',
       action: 'collapseGrandchild',
       ctor: 'StaveButtons',
       group: 'staves',
       id: 'staffBracketLower'
     }
-
     ];
   }
 
@@ -586,7 +583,7 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-coda',
+      icon: 'icon-bravura icon-coda',
       classes: 'collapsed duration',
       action: 'collapseChild',
       ctor: 'MeasureButtons',
@@ -596,7 +593,7 @@ export class defaultRibbonLayout {
     {
       leftText: 'to ',
       rightText: '',
-      icon: 'icon-coda',
+      icon: 'icon-bravura icon-coda',
       classes: 'collapsed duration',
       action: 'collapseChild',
       ctor: 'MeasureButtons',
@@ -606,7 +603,7 @@ export class defaultRibbonLayout {
     {
       leftText: '',
       rightText: '',
-      icon: 'icon-segno',
+      icon: 'icon-bravura icon-segno',
       classes: 'collapsed duration',
       action: 'collapseChild',
       ctor: 'MeasureButtons',
@@ -895,7 +892,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'r',
-      icon: 'icon-slash',
+      icon: 'icon-bravura icon-repeatBarSlash',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -904,7 +901,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '...',
       rightText: '',
-      icon: 'icon-circle-left',
+      icon: 'icon-smo icon-circle-left',
       classes: 'collapsed expander',
       action: 'collapseMore',
       ctor: 'ExtendedCollapseParent',
@@ -913,7 +910,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'G',
-      icon: 'icon-grace_note',
+      icon: 'icon-smo icon-grace_note',
       classes: 'collapsed graceIcon',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -922,7 +919,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: '',
-      icon: 'icon-grace_slash',
+      icon: 'icon-smo icon-grace_slash',
       classes: 'collapsed graceIcon',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -931,48 +928,12 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'alt-g',
-      icon: 'icon-grace_remove',
+      icon: 'icon-smo icon-grace_remove',
       classes: 'collapsed graceIcon',
       action: 'collapseChild',
       ctor: 'NoteButtons',
       group: 'notes',
       id: 'RemoveGraceNote'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-notex',
-      classes: 'collapsed graceIcon',
-      action: 'collapseChild',
-      ctor: 'NoteButtons',
-      group: 'notes',
-      id: 'XNoteHead'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-notehead-triangleup',
-      classes: 'collapsed graceIcon',
-      action: 'collapseChild',
-      ctor: 'NoteButtons',
-      group: 'notes',
-      id: 'TriUpNoteHead'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-notehead-circlex',
-      classes: 'collapsed graceIcon',
-      action: 'collapseChild',
-      ctor: 'NoteButtons',
-      group: 'notes',
-      id: 'CircleXNoteHead'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-notehead-diamondblack',
-      classes: 'collapsed graceIcon',
-      action: 'collapseChild',
-      ctor: 'NoteButtons',
-      group: 'notes',
-      id: 'DiamondNoteHead'
     }, {
       leftText: '8va',
       rightText: 'Shift=',
@@ -994,7 +955,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'ShiftE',
-      icon: 'icon-accident',
+      icon: 'icon-smo icon-accident',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -1003,7 +964,7 @@ export class defaultRibbonLayout {
     }, {
       leftText: '',
       rightText: 'ShiftF',
-      icon: 'icon-courtesy',
+      icon: 'icon-smo icon-courtesy',
       classes: 'collapsed',
       action: 'collapseChild',
       ctor: 'NoteButtons',
@@ -1055,205 +1016,8 @@ export class defaultRibbonLayout {
       id: 'pauseButton'
     }];
   }
-  static get articulationButtons(): ButtonDefinition[] {
-    return [{
-      leftText: '',
-      rightText: '',
-      icon: 'icon-articulation',
-      classes: 'icon collapseParent articulation',
-      action: 'collapseParent',
-      ctor: 'CollapseRibbonControl',
-      group: 'articulations',
-      id: 'articulationButtons'
-    }, {
-      leftText: '',
-      rightText: 'h',
-      icon: 'icon-accent_above',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'accentButton'
-    }, {
-      leftText: '',
-      rightText: 'i',
-      icon: 'icon-tenuto_above',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'tenutoButton'
-    }, {
-      leftText: '',
-      rightText: 'j',
-      icon: 'icon-staccato_above',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'staccatoButton'
-    }, {
-      leftText: '',
-      rightText: 'k',
-      icon: 'icon-marcato_above',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'marcatoButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-fermata',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'fermataButton'
-    }, {
-      leftText: '',
-      rightText: 'l',
-      icon: 'icon-pitz_above',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'pizzicatoButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-mordent-inv',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'mordentInvertedButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-mordent',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'mordentButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-breathMarkComma',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'breathButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-caesura',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'caesuraButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-keyboardPedalPed',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'pedalOpenButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-keyboardPedalUp',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'pedalClosedButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-ornamentTrill',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'trillButton'
-    }, {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassScoop',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'scoopButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassFallLipShort',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'dropButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassFallRoughMedium',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'dropLongButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassDoitMedium',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'doitButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassLiftMedium',
-      classes: 'icon collapsed articulation oversize',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'doitLongButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassFlip',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'flipButton'
-    },
-    {
-      leftText: '',
-      rightText: '',
-      icon: 'icon-bravura icon-brassSmear',
-      classes: 'icon collapsed articulation',
-      action: 'collapseChild',
-      ctor: 'ArticulationButtons',
-      group: 'articulations',
-      id: 'smearButton'
-    }
-    ];
-  }
+  // no longer used
+ 
   static get navigationButtons(): ButtonDefinition[] {
     return [{
       leftText: '',

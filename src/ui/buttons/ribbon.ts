@@ -64,8 +64,8 @@ export class RibbonButtons {
     const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
       b('span').classes('left-text').append(
         b('span').classes('text-span').text(buttonText).append(
-        b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
-          b('span').classes('ribbon-button-hotkey').text(buttonKey))));
+        b('span').classes('ribbon-button-text icon ' + buttonIcon)))).append(
+          b('span').classes('ribbon-button-hotkey').text(buttonKey)));
     return r.dom();
   }
   static _buttonSidebarHtml(buttonId: string, buttonClass: string, buttonText: string, buttonIcon: string, buttonKey: string) {

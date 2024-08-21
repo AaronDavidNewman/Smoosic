@@ -642,10 +642,6 @@ export interface SmoSlurParams {
    */
   orientation: number,
   /**
-   * reverse the slur from the usual rules in VF
-   */
-  invert: boolean,
-  /**
    * control point for bz curve
    */
   cp1x: number,
@@ -702,10 +698,9 @@ export class SmoSlur extends StaffModifierBase {
       thickness: 2,
       xOffset: 5,
       yOffset: 0,
-      position: SmoSlur.positions.TOP,
-      position_end: SmoSlur.positions.TOP,
+      position: SmoSlur.positions.AUTO,
+      position_end: SmoSlur.positions.AUTO,
       orientation: SmoSlur.orientations.AUTO,
-      invert: false,
       cp1x: 0,
       cp1y: 15,
       cp2x: 0,
@@ -743,7 +738,6 @@ export class SmoSlur extends StaffModifierBase {
   position: number = SmoSlur.positions.TOP;
   position_end: number = SmoSlur.positions.TOP;
   orientation: number = SmoSlur.orientations.AUTO;
-  invert: boolean = false;
   cp1x: number = 0;
   cp1y: number = 15;
   cp2x: number = 0;
@@ -1164,7 +1158,8 @@ export interface SmoPedalMarkingParams {
   startMark: boolean,
   releaseMark: boolean,
   bracket: boolean,
-  customText: string,
+  depressText: string,
+  releaseText: string,
   releases: SmoSelector[]
 }
 export interface SmoPedalMarkingParamsSer extends SmoPedalMarkingParams {
@@ -1182,7 +1177,8 @@ export class SmoPedalMarking extends StaffModifierBase {
   startMark: boolean = true;
   releaseMark: boolean = true;
   bracket: boolean = true;
-  customText: string='';
+  depressText: string='';
+  releaseText: string = '';
   releases: SmoSelector[] = [];
   static get defaults(): SmoPedalMarkingParams {
     const rv = {
@@ -1191,13 +1187,14 @@ export class SmoPedalMarking extends StaffModifierBase {
       startMark: true,
       releaseMark: true,
       bracket: true,
-      customText: '',
+      depressText: '',
+      releaseText: '',
       releases: []
     };
     return JSON.parse(JSON.stringify(rv));
   }
   static get parameterArray() {
-    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'customText', 'releases'] 
+    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'depressText', 'releaseText', 'releases'];
   };
   constructor(params: SmoPedalMarkingParams) {
     super('SmoPedalMarking');

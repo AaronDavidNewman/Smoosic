@@ -173,7 +173,7 @@ export class SuiRenderState {
    */
   replaceMeasures() {
     const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
-    if (this.score === null || this.measureMapper === null) {
+    if (this.score === null || this.measureMapper === null || this.replaceQ.length === 0) {
       return;
     }
     this.replaceQ.forEach((change) => {

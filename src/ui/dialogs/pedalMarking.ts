@@ -33,11 +33,17 @@ export class SuiPedalMarkingAdapter extends SuiComponentAdapter {
   async commit() {
     return;
   }
-  get customText() {
-    return this.pedalMarking.customText;
+  get depressText() {
+    return this.pedalMarking.depressText;
   }
-  set customText(val: string) {
-    this.pedalMarking.customText = val.trim();
+  set depressText(val: string) {
+    this.pedalMarking.depressText = val.trim();
+  }
+  get releaseText() {
+    return this.pedalMarking.releaseText;
+  }
+  set releaseText(val: string) {
+    this.pedalMarking.releaseText = val.trim();
   }
   get bracket() {
     return this.pedalMarking.bracket;
@@ -78,9 +84,13 @@ export class SuiPedalMarkingDialog extends SuiDialogAdapterBase<SuiPedalMarkingA
             control: 'SuiToggleComponent',
             label: 'ReleaseMark'
           },  {
-            smoName: 'customText',
+            smoName: 'depressText',
             control: 'SuiTextInputComponent',
-            label: 'Text'
+            label: 'Depress Text'
+          }, {
+            smoName: 'releaseText',
+            control: 'SuiTextInputComponent',
+            label: 'Release Text'
           }],
           staticText: []
       };

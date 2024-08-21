@@ -273,7 +273,7 @@ export class SuiMenuManager {
       } else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
+        $('a[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown();
       }
