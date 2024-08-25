@@ -35,7 +35,7 @@ export interface ViewMapEntry {
 }
 
 export type updateSelectionFunc = (score: SmoScore, selections: SmoSelection[]) => void;
-export type updateSingleSelectionFunc = (score: SmoScore, selections: SmoSelection) => void;
+export type updateSingleSelectionFunc = (score: SmoScore, selection: SmoSelection) => void;
 export type updateStaffModifierFunc = (score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) => void;
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:

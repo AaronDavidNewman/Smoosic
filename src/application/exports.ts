@@ -68,6 +68,7 @@ import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
 import { SuiOrnamentDialog, SuiOrnamentButtonComponent } from '../ui/dialogs/ornament';
 import { SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter } from '../ui/dialogs/articulation';
+import { SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog } from '../ui/dialogs/microtones';
 import { SuiArpeggioDialog } from '../ui/dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../ui/dialogs/clefChange';
 import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
@@ -196,6 +197,7 @@ export const Smo = {
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
     SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent, 
     SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter,
+    SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog,
     SuiNoteHeadAdapter, SuiNoteHeadDialog,
     SuiNoteHeadButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */

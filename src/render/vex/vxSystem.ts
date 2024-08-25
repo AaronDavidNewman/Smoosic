@@ -288,9 +288,9 @@ export class VxSystem {
     } if (smoEnd && smoEnd.note && smoEnd.note.noteType === '/') {
       return;
     }
-    if (modifier.ctor === 'SmoPedalMarking' && (vxStart === null || vxEnd === null)) {
-      return;
-    }
+    // if (modifier.ctor === 'SmoPedalMarking' && (vxStart === null || vxEnd === null)) {
+    //   return;
+    // }
     let slurOffset = 0;
 
     // if it is split between lines, render one artifact for each line, with a common class for
@@ -416,9 +416,29 @@ export class VxSystem {
     } else if (modifier.ctor === 'SmoPedalMarking') {
       const pedalMarking = modifier as SmoPedalMarking;
       const pedalAr: StaveNote[] = [];
-      pedalAr.push(vxStart as StaveNote);
-      if (SmoSelector.gt(smoEnd.selector, smoStart.selector)) {
+      if (vxStart !== null) {
+        pedalAr.push(vxStart as StaveNote);
+      }
+      if (SmoSelector.gt(smoEnd.selector, smoStart.selector) && vxEnd !== null) {
+        // Add releases for the pedal marking
+        pedalMarking.releases.forEach((selector: SmoSelector) => {
+          if (SmoSelector.gt(selector, smoStart.selector) && SmoSelector.lt(selector, smoEnd.selector)
+            && vxStart !== null) {
+            const note = SmoSelection.noteSelection(this.score, selector.staff, selector.measure, selector.voice, selector.tick);
+            if (note !== null && note.note !== null) {
+              const vexNote = this.getVxNote(note.note);
+              if (vexNote) {
+                // incidate release and depress
+                pedalAr.push(vexNote as StaveNote);
+                pedalAr.push(vexNote as StaveNote);
+              }
+            }
+          }
+        });
         pedalAr.push(vxEnd as StaveNote);
+        if (vxStart === null) {
+          pedalAr.push(vxEnd as StaveNote);
+        }
       }
       const vexPedal = new VF.PedalMarking(pedalAr);
       if (pedalMarking.releaseText.length > 0 || pedalMarking.depressText.length > 0) {

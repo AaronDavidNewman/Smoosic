@@ -662,7 +662,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   // like it says.
   getSlursEndingAt(selector: SmoSelector) {
     return this.modifiers.filter((mod) =>
-      SmoSelector.sameNote(mod.endSelector, selector)
+      SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
 
@@ -675,6 +675,11 @@ export class SmoSystemStaff implements SmoObjectParams {
   getTiesEndingAt(selector: SmoSelector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
+    );
+  }
+  getPedalMarkingsContaining(selector: SmoSelector) {
+    return this.modifiers.filter((mod) => 
+      mod.ctor === 'SmoPedalMarking' && SmoSelector.contains(selector, mod.startSelector, mod.endSelector)
     );
   }
 

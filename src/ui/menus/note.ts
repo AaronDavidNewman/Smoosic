@@ -4,8 +4,12 @@ import { SuiClefChangeDialog } from '../dialogs/clefChange';
 import { SuiNoteHeadDialog } from '../dialogs/noteHead';
 import { SuiOrnamentDialog } from '../dialogs/ornament';
 import { SuiArticulationDialog } from '../dialogs/articulation';
+import { SuiMicrotoneDialog } from '../dialogs/microtones';
+import { SmoPedalMarking } from '../../smo/data/staffModifiers';
+import { SmoSelector } from '../../smo/xform/selections';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition, SuiMenuHandler, SuiMenuShowOption, 
   SuiConfiguredMenuOption, SuiConfiguredMenu } from './menu';
+  import { addOrReplacePedalMarking } from './staffModifier';
 declare var $: any;
 export class SuiNoteMenu extends SuiConfiguredMenu {
   constructor(params: SuiMenuParams) {
@@ -82,7 +86,46 @@ const clefNoteDialogMenuOption: SuiConfiguredMenuOption = {
     value: 'clefNoteDialog'
   }
 }
-
+const togglePedalRelease: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    menu.tracker.selections.forEach(async (selection) => {
+      const pms = selection.staff.getPedalMarkingsContaining(selection.selector);
+      const selectorToAdd = selection.selector;
+      let shouldAdd = true;
+      
+      pms.forEach(async (mod) => {
+        const pm = mod as SmoPedalMarking;
+        const releaseAr = [];
+        pm.releases.forEach((rr) => {
+          if (SmoSelector.eq(rr, selectorToAdd)) {
+            shouldAdd = false;
+          } else if (SmoSelector.gt(mod.startSelector, selectorToAdd) && SmoSelector.lt(mod.endSelector, selectorToAdd)) {
+            releaseAr.push(rr);
+          }
+        });
+        if (shouldAdd) {
+          releaseAr.push(selectorToAdd);
+        }
+        pm.releases = releaseAr.sort((a, b) => SmoSelector.gt(a, b) ? 1 : -1);
+        await addOrReplacePedalMarking(menu.view, pm);
+      });
+    });
+  }, display: ((menu: SuiMenuBase) =>  {
+    let show = false;
+    menu.tracker.selections.forEach((selection) => {
+      const pms = selection.staff.getPedalMarkingsContaining(selection.selector);
+      if (pms.length) {
+        show = true;
+      }
+    });
+    return show;
+  }),
+  menuChoice: {
+    icon: '',
+    text: 'Toggle Pedal Release',
+    value: 'togglePedalRelease'
+  }
+}
 const ornamentNoteDialogMenuOption: SuiConfiguredMenuOption = {
   handler: async (menu: SuiMenuBase) => {
     createAndDisplayDialog(SuiOrnamentDialog, {
@@ -121,7 +164,26 @@ const articulationNoteDialogMenuOption: SuiConfiguredMenuOption = {
     value: 'articulationDialog'
   }
 }
+const microtoneNoteDialogMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiMicrotoneDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiMicrotoneDialog',
+      id: 'microtone-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Microtones',
+    value: 'microtoneDialog'
+  }
+}
 const SuiNoteMenuOptions: SuiConfiguredMenuOption[] = [
   toggleCueMenuOption, arpeggioMenuOption, clefNoteDialogMenuOption, noteHeadMenuOption, ornamentNoteDialogMenuOption,
-  articulationNoteDialogMenuOption
-]
+  articulationNoteDialogMenuOption, microtoneNoteDialogMenuOption, togglePedalRelease
+];
