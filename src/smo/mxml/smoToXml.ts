@@ -497,7 +497,7 @@ export class SmoToXml {
    * /score-partwise/measure/note/tuplet
    */
   static tupletTime(noteElement: Element, note: SmoNote, measure: SmoMeasure, smoState: SmoState) {
-    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex, smoState.voiceTickIndex);
+    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
     let actualNotes: number = 1;
     let normalNotes: number = 1;
     for (let i = 0; i < tuplets.length; i++) {
@@ -514,7 +514,7 @@ export class SmoToXml {
     nn(timeModification, 'normal-notes', obj, 'normalNotes');
   }
   static tupletNotation(notationsElement: Element, note: SmoNote, measure: SmoMeasure, smoState: SmoState) {
-    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex, smoState.voiceTickIndex);
+    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
     for (let i = 0; i < tuplets.length; i++) {
       const tuplet: SmoTuplet = tuplets[i];
       const nn = XmlHelpers.createTextElementChild;
@@ -525,6 +525,16 @@ export class SmoToXml {
         XmlHelpers.createAttributes(tupletElement, {
           number: smoState.currentTupletLevel, type: 'start'
         });
+
+        const tupletType = XmlHelpers.ticksToNoteTypeMap[tuplet.stemTicks];
+
+        const tupletActual = nn(tupletElement, 'tuplet-actual', null, '');
+        nn(tupletActual, 'tuplet-number', tuplet, 'numNotes');
+        nn(tupletActual, 'tuplet-type', tupletType, '');
+
+        const tupletNormal = nn(tupletElement, 'tuplet-normal', null, '');
+        nn(tupletNormal, 'tuplet-number', tuplet, 'notesOccupied');
+        nn(tupletNormal, 'tuplet-type', tupletType, '');
       } else if (tuplet.endIndex === smoState.voiceTickIndex) {//STOP
         const tupletElement = nn(notationsElement, 'tuplet', null, '');
         XmlHelpers.createAttributes(tupletElement, {
@@ -772,7 +782,7 @@ export class SmoToXml {
       }
       const duration = note.tickCount;
       smoState.measureTicks += duration;
-      const tuplet = SmoTupletTree.getTupletForNoteIndex(measure.tupletTrees, smoState.voiceIndex, smoState.voiceTickIndex);
+      const tuplet = SmoTupletTree.getTupletForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
       nn(noteElement, 'duration', { duration }, 'duration');
       SmoToXml.tie(noteElement, smoState);
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
