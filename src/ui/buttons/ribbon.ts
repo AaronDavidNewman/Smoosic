@@ -10,9 +10,7 @@ import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
 import { SuiLibraryDialog } from '../dialogs/library';
 import { SuiTempoDialog } from '../dialogs/tempo';
-import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { ButtonLabel } from './button';
-import { SuiPiano } from '../../render/sui/piano';
 import { CollapseRibbonControl } from './collapsable';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiHelp } from '../help';
@@ -20,8 +18,8 @@ import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
 
-export type SuiModalButtonTypes = 'SuiLibraryDialog' | 'SuiTempoDialog' | 'SuiInstrumentDialog';
-export var SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
+export type SuiModalButtonTypes = 'SuiLibraryDialog' | 'SuiTempoDialog';
+export var SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog'];
 export function isModalButtonType(but: string | SuiModalButtonTypes): but is SuiModalButtonTypes {
   return SuiModalButtonStrings.indexOf(but) >= 0;
 }
@@ -110,9 +108,7 @@ export class RibbonButtons {
         startPromise: null,
         tracker: this.view.tracker
       };
-      if (buttonData.ctor === 'SuiInstrumentDialog') {
-        createAndDisplayDialog(SuiInstrumentDialog, params);
-      } else if (buttonData.ctor === 'SuiLibraryDialog') {
+      if (buttonData.ctor === 'SuiLibraryDialog') {
         await SuiLibraryDialog.createAndDisplay(params, this.config);
       } else {
         createAndDisplayDialog(SuiTempoDialog, params);

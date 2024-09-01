@@ -63,7 +63,12 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       icon: 'slur',
       text: 'Reset slurs',
       value: 'resetSlurs'
-    }, {
+    },{
+      icon: 'icon-ending',
+      text: 'Repeate Endings',
+      value: 'endings'
+    },
+     {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
@@ -89,6 +94,8 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.ritard();
     } else if (op === 'crescendoBracket') {
       this.view.crescendoBracket();
+    } else if (op === 'endings') {
+      this.view.addEnding();
     } else if (op === 'pedalMarking') {
       const ft = this.tracker.getExtremeSelection(-1);
       const tt = this.tracker.getExtremeSelection(1);

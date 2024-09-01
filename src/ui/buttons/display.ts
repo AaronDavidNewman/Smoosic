@@ -1,5 +1,6 @@
 import { SuiButton, SuiButtonParams } from './button';
-import { BrowserEventSource } from '../eventSource';
+import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SuiKeySignatureDialog } from '../dialogs/keySignature';
 declare var $: any;
 
 /**
@@ -47,6 +48,21 @@ export class DisplaySettings extends SuiButton {
   }
   stopButton2() {
     this.view.stopPlayer();
+  }
+  keySignature() {
+    if (!this.completeNotifier) {
+      return;
+    }
+    createAndDisplayDialog(SuiKeySignatureDialog, {
+      view: this.view,
+      completeNotifier: this.completeNotifier,
+      startPromise: null,
+      eventSource: this.eventSource,
+      tracker: this.view.tracker,
+      ctor: 'SuiKeySignatureDialog',
+      id: 'key-signature-dialog',
+      modifier: null
+    });
   }
   async selectPart() {
     if (!this.completeNotifier) {

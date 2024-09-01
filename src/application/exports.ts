@@ -100,6 +100,7 @@ import { CheckboxDropdownComponent } from '../ui/dialogs/components/checkdrop';
 import { TieMappingComponent } from '../ui/dialogs/components/tie';
 import { StaffAddRemoveComponent,
     StaffCheckComponent} from '../ui/dialogs/components/staffComponents';
+import { SuiKeySignatureDialog, SuiKeySignatureAdapter } from '../ui/dialogs/keySignature';
 import { TextCheckComponent } from '../ui/dialogs/components/textCheck';
 // menus
 import { SuiMenuManager} from '../ui/menus/manager';
@@ -187,7 +188,7 @@ export const Smo = {
     SuiPartSelectionMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
-    SuiTextBracketDialog,
+    SuiTextBracketDialog, SuiKeySignatureDialog, SuiKeySignatureAdapter,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, SuiTransposeScoreAdapter,
     SuiTransposeScoreDialog,
     SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,

@@ -8,7 +8,6 @@ export class defaultRibbonLayout {
   static get ribbons(): RibbonLayout {
     var left = defaultRibbonLayout.leftRibbonIds;
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
-      .concat(defaultRibbonLayout.microtoneIds)
       .concat(defaultRibbonLayout.durationIds)
       .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
       .concat(defaultRibbonLayout.staveIds)
@@ -25,7 +24,6 @@ export class defaultRibbonLayout {
     return defaultRibbonLayout.leftRibbonButtons.concat(
       defaultRibbonLayout.navigationButtons).concat(
         defaultRibbonLayout.noteRibbonButtons).concat(
-            defaultRibbonLayout.microtoneButtons).concat(
               defaultRibbonLayout.chordButtons).concat(
                 defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
       .concat(defaultRibbonLayout.staveRibbonButtons)
@@ -89,12 +87,8 @@ export class defaultRibbonLayout {
     return ['playerButtons', 'playButton', 'pauseButton', 'stopButton'];
   }
 
-  static get microtoneIds() {
-    return ['MicrotoneButtons', 'flat75sz', 'flat25sz', 'flat25ar', 'flat125ar', 'sharp75', 'sharp125', 'sharp25', 'sori', 'koron'];
-  }
-
   static get displayIds() {
-    return ['quickButtons', 'selectPart', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
+    return ['quickButtons', 'selectPart', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2', 'keySignature'];
   }
 
 
@@ -111,7 +105,7 @@ export class defaultRibbonLayout {
         id: 'TextButtons'
       }, {
         leftText: '',
-        rightText: '/t',
+        rightText: '',
         classes: 'icon collapsed textButton',
         icon: 'icon-smo icon-textBasic',
         action: 'collapseChild',
@@ -147,7 +141,7 @@ export class defaultRibbonLayout {
         id: 'chordChanges'
       }, {
         leftText: '',
-        rightText: '/d',
+        rightText: '',
         classes: 'icon  collapsed textButton',
         icon: 'icon-smo icon-mezzopiano',
         action: 'collapseChild',
@@ -221,6 +215,15 @@ export class defaultRibbonLayout {
       ctor: 'DisplaySettings',
       group: 'quickButtons',
       id: 'stopButton2'
+    }, {
+      leftText: 'Key',
+      rightText: '',
+      classes: 'icon    keysignature',
+      icon: 'icon-smo',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'quickButtons',
+      id: 'keySignature'
     }
     ];
   }
@@ -1329,7 +1332,7 @@ export class defaultRibbonLayout {
       id: 'helpDialog'
     }, {
       leftText: 'Language',
-      rightText: '/n',
+      rightText: '',
       icon: '',
       classes: 'language-select menu-select  nav-link link-body-emphasis',
       action: 'menu',
@@ -1338,7 +1341,7 @@ export class defaultRibbonLayout {
       id: 'languageMenu'
     }, {
       leftText: 'File',
-      rightText: '/f',
+      rightText: '',
       icon: '',
       classes: 'file-modify menu-select  nav-link link-body-emphasis',
       action: 'menu',
@@ -1347,7 +1350,7 @@ export class defaultRibbonLayout {
       id: 'fileMenu'
     }, {
       leftText: 'Library',
-      rightText: '/L',
+      rightText: '',
       icon: '',
       classes: 'file-modify menu-select  nav-link link-body-emphasis',
       action: 'modal',
@@ -1366,7 +1369,7 @@ export class defaultRibbonLayout {
     },
     {
       leftText: 'Parts',
-      rightText: '/p',
+      rightText: '',
       icon: '',
       classes: 'icon nav-link link-body-emphasis',
       action: 'menu',
@@ -1384,7 +1387,7 @@ export class defaultRibbonLayout {
       id: 'noteMenu'
     }, {
       leftText: 'Measure',
-      rightText: '/a',
+      rightText: '',
       icon: '',
       classes: 'icon menu-select nav-link link-body-emphasis',
       action: 'menu',
@@ -1393,7 +1396,7 @@ export class defaultRibbonLayout {
       id: 'measureModal'
     }, {
       leftText: 'Tempo',
-      rightText: 't',
+      rightText: '',
       icon: '',
       classes: 'icon nav-link link-body-emphasis',
       action: 'modal',
@@ -1402,7 +1405,7 @@ export class defaultRibbonLayout {
       id: 'tempoModal'
     }, {
       leftText: 'Time Signature',
-      rightText: '/m',
+      rightText: '',
       icon: '',
       classes: 'staff-modify menu-select nav-link link-body-emphasis',
       action: 'menu',
@@ -1411,17 +1414,8 @@ export class defaultRibbonLayout {
       id: 'timeSignatureMenu'
     },
     {
-      leftText: 'Key',
-      rightText: '/k',
-      icon: '',
-      classes: 'note-modify menu-select nav-link link-body-emphasis',
-      action: 'menu',
-      ctor: 'SuiKeySignatureMenu',
-      group: 'scoreEdit',
-      id: 'keyMenu'
-    }, {
       leftText: 'Lines',
-      rightText: '/l',
+      rightText: '',
       icon: '',
       classes: 'icon note-modify menu-select nav-link link-body-emphasis',
       action: 'menu',

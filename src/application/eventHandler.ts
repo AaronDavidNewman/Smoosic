@@ -241,12 +241,6 @@ export class SuiEventHandler implements ModalEventHandler {
       if (dataCopy.key == '?') {
         SuiHelp.displayHelp();
       }
-
-      if (dataCopy.key == '/') {
-        // set up menu DOM.
-        this.menus.slashMenuMode(this.completeNotifier);
-      }
-
       if (dataCopy.key == 'Enter') {
         this.trackerModifierSelect(dataCopy);
       }

@@ -6,9 +6,11 @@ import { UndoBuffer } from '../../smo/xform/undo';
 
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { SuiKeySignatureDialog } from '../dialogs/keySignature';
 import { SuiTracker } from '../../render/sui/tracker';
 import { CompleteNotifier, ModalComponent } from '../common';
 import { BrowserEventSource, EventHandler } from '../eventSource';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 import { KeyBinding } from '../../application/common';
 import { Qwerty } from '../qwerty';
 import { SuiMenuBase, SuiMenuParams, SuiConfiguredMenu, SuiConfiguredMenuOption } from './menu';
@@ -71,20 +73,6 @@ export class SuiMenuManager {
   static get menuKeyBindingDefaults(): KeyBinding[] {
     return [
       {
-        event: 'keydown',
-        key: 'n',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiLanguageMenu'
-      }, {
-        event: 'keydown',
-        key: 'k',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiKeySignatureMenu'
-      }, {
         event: 'keydown',
         key: 'p',
         ctrlKey: false,
@@ -239,6 +227,19 @@ export class SuiMenuManager {
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
+    if (action === 'SuiKeySignatureMenu') {
+      // TODO: find a better way of handling slash menus from ribbon buttons
+      createAndDisplayDialog(SuiKeySignatureDialog, {
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        startPromise: null,
+        eventSource: this.eventSource,
+        tracker: this.view.tracker,
+        ctor: 'SuiKeySignatureDialog',
+        id: 'key-signature-dialog',
+        modifier: null
+      });
+    }
     const ctor = eval('globalThis.Smo.' + action);
     const params: SuiMenuParams = 
     {
@@ -283,6 +284,19 @@ export class SuiMenuManager {
       ev.key === event.key
     );
     if (!binding) {
+      // TODO: find a better place for the slash menus
+      if (event.key === 'k') {
+        createAndDisplayDialog(SuiKeySignatureDialog, {
+          view: this.view,
+          completeNotifier: this.completeNotifier,
+          startPromise: null,
+          eventSource: this.eventSource,
+          tracker: this.view.tracker,
+          ctor: 'SuiKeySignatureDialog',
+          id: 'key-signature-dialog',
+          modifier: null
+        });
+      }
       this.dismiss();
       return;
     }

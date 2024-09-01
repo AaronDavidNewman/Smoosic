@@ -432,7 +432,9 @@ button.addChord .left-text .icon {
 	width: 50px;
 	left: 0;
 }
-
+li.nav-item:hover {
+  background: var(--bs-gray-200);
+}
 .expanded .ribbonButtonContainer button.graceIcon   {
     width:60px;
 	font-size:1.6em;
