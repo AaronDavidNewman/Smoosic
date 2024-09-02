@@ -341,13 +341,16 @@ export class SmoMakeTupletActor extends TickIteratorBase {
   private _generateNotesForTuplet(tuplet: SmoTuplet, originalNote: SmoNote, stemTicks: number): SmoNote[] {
     const totalTicks = originalNote.tickCount;
     const tupletNotes: SmoNote[] = [];
+    const numerator = totalTicks / this.numNotes;
     for (let i = 0; i < this.numNotes; ++i) {
-      const numerator = totalTicks / this.numNotes;
-      const note: SmoNote = SmoNote.cloneWithDuration(originalNote, { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 }, stemTicks);
+      const note: SmoNote = SmoNote.cloneWithDuration(originalNote, { numerator: Math.floor(numerator), denominator: 1, remainder: 0 }, stemTicks);
       // Don't clone modifiers, except for first one.
       note.textModifiers = i === 0 ? note.textModifiers : [];
       note.tuplet = tuplet.attrs;
       tupletNotes.push(note);
+    }
+    if (numerator % 1) {
+      tupletNotes[0].ticks.numerator += 1;
     }
     return tupletNotes;
   }
