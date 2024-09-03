@@ -381,6 +381,10 @@ button.addChord .left-text .icon {
 	left:10px;
 }
 
+.controls-top .ribbonButtonContainer .ribbon-button-text.icon-smo.icon {
+  position: absolute;
+  left: 12px;
+}
 .controls-top button.articulation {
 	width:50px;
 }

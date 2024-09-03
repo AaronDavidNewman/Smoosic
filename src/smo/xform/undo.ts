@@ -153,8 +153,6 @@ export class UndoBuffer {
    */
   addBuffer(title: string, type: number, selector: SmoSelector, obj: any, subtype: number) {
     this.checkNull();
-    let i = 0;
-    let j = 0;
     if (typeof(type) !== 'number' || type < UndoBuffer.bufferTypes.FIRST || type > UndoBuffer.bufferTypes.LAST) {
       throw 'Undo failure: illegal buffer type ' + type;
     }
@@ -169,8 +167,8 @@ export class UndoBuffer {
       // RECTANGLE obj is {score, topLeft, bottomRight}
       // where the last 2 are selectors
       const measures = [];
-      for (i = obj.topLeft.staff; i <= obj.bottomRight.staff; ++i) {
-        for (j = obj.topLeft.measure; j <= obj.bottomRight.measure; ++j) {
+      for (let i = obj.topLeft.staff; i <= obj.bottomRight.staff; ++i) {
+        for (let j = obj.topLeft.measure; j <= obj.bottomRight.measure; ++j) {
           measures.push(UndoBuffer.serializeMeasure(obj.score.staves[i].measures[j]));
         }
       }
@@ -295,17 +293,21 @@ export class UndoBuffer {
           return [buf.json.startSelector.measure, buf.json.endSelector.measure];
         }
         if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
-          min = buf.json.measureIndex;
+          if (min < 0) {
+            min = buf.json.measureIndex;
+          } else {
+            min = Math.min(min, buf.json.measureIndex);
+          }          
           buf.json.measures.forEach((mmjson: SmoMeasureParamsSer) => {
             max = Math.max(max, mmjson.measureNumber.measureIndex);
           });
-          return [min, max];
+        } else {
+          if (min < 0) {
+            min = buf.selector.measure;
+          }
+          max = Math.max(max, buf.selector.measure);
+          min = Math.min(min, buf.selector.measure);
         }
-        if (min < 0) {
-          min = buf.selector.measure;
-        }
-        max = Math.max(max, buf.selector.measure);
-        min = Math.min(min, buf.selector.measure);
       }
     }
     return [Math.max(0, min), max];
@@ -336,8 +338,6 @@ export class UndoBuffer {
    * @returns 
    */
   undo(score: SmoScore, staffMap: Record<number, number>, pop: boolean): SmoScore {
-    let i = 0;
-    let j = 0;
     let mix = 0;
     let bufset: UndoSet | null = this.popUndoSet();
     if (!bufset) {
@@ -346,15 +346,15 @@ export class UndoBuffer {
     for (let i = 0; i < bufset.buffers.length; ++i) {
       const buf = bufset.buffers[bufset.buffers.length - (i + 1)];
       if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
-        for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
-          for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
+        for (let j = buf.json.topLeft.staff; j <= buf.json.bottomRight.staff; ++j) {
+          for (let k = buf.json.topLeft.measure; k <= buf.json.bottomRight.measure; ++k) {
             const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
             mix += 1;
             const selector = SmoSelector.default;
-            if (typeof(staffMap[i]) === 'number') {
-              selector.staff = staffMap[i];
-              measure.measureNumber.staffId = staffMap[i];
-              selector.measure = j;
+            if (typeof(staffMap[j]) === 'number') {
+              selector.staff = staffMap[j];
+              measure.measureNumber.staffId = staffMap[j];
+              selector.measure = k;
               score.replaceMeasure(selector, measure);
             }
           }
@@ -380,12 +380,12 @@ export class UndoBuffer {
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
         smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
       } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
-        for (i = 0; i < score.staves.length; ++i) {
-          const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+        for (let j = 0; j < score.staves.length; ++j) {
+          const measure = SmoMeasure.deserialize(buf.json.measures[j]);
           const selector = SmoSelector.default;
-          if (typeof(staffMap[i]) === 'number') {
-            selector.staff = staffMap[i];
-            measure.measureNumber.staffId = staffMap[i];
+          if (typeof(staffMap[j]) === 'number') {
+            selector.staff = staffMap[j];
+            measure.measureNumber.staffId = staffMap[j];
             selector.measure = buf.json.measureIndex;
             score.replaceMeasure(selector, measure);
           }

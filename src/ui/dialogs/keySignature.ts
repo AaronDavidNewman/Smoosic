@@ -22,22 +22,20 @@ export class SuiKeySignatureAdapter extends SuiComponentAdapter {
   measure: SmoMeasure;
   constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
     super(view);
-    this.view.groupUndo(true);
     this.measure = measure;
     this.keySignature = measure.keySignature;
   }
 
   async cancel() {
-    await this.view.undo();
   }
   applySelections(selections: SmoSelection[]) {
-    selections.forEach((sel) => {
-      this.view.modifySelectionNoWait('keySignature', sel, (score, selection) => {
-        SmoOperation.addKeySignature(score, selection, this.keySignature);
-      });
+    this.view.groupUndo(true);
+    this.view.modifyColumnsSelectionsNoWait('keySignature', selections, (score, selection) => {
+      SmoOperation.addKeySignature(score, selection, this.keySignature);
     });
+    this.view.groupUndo(false);
   }
-  apply() {
+  async apply() {
     let minSel = this.view.tracker.getExtremeSelection(-1).selector.measure;
     let maxSel = minSel;
     const maxMeasure = this.view.score.staves[0].measures.length - 1;
@@ -50,6 +48,7 @@ export class SuiKeySignatureAdapter extends SuiComponentAdapter {
     const selections = SmoSelection.getMeasuresBetween(this.view.score, 
       SmoSelector.measureSelector(0, minSel), SmoSelector.measureSelector(0, maxSel));
     this.applySelections(selections);
+    await this.view.updatePromise();
   }
   get applyTo() {
     if (this.applyToAll) {
@@ -77,8 +76,7 @@ export class SuiKeySignatureAdapter extends SuiComponentAdapter {
     }
   }
   async commit(){
-    this.apply();
-    await this.view.updatePromise();
+    await this.apply();
   }
   get key() {
     return this.keySignature;
@@ -102,46 +100,46 @@ export class SuiKeySignatureDialog extends SuiDialogAdapterBase<SuiKeySignatureA
             label: 'Tempo Mode',
             options: [{
               label: 'C Major',
-              value: 'C',
+              value: 'c',
             }, {
               label: 'F Major',
-              value: 'F',
+              value: 'f',
             }, {
               label: 'G Major',
-              value: 'G',
+              value: 'g',
             }, {
               label: 'Bb Major',
-              value: 'Bb'
+              value: 'bb'
             }, {
               label: 'D Major',
-              value: 'D'
+              value: 'd'
             }, {
               label: 'Eb Major',
-              value: 'Eb'
+              value: 'eb'
             }, {
               label: 'A Major',
-              value: 'A'
+              value: 'a'
             }, {
               label: 'Ab Major',
-              value: 'Ab'
+              value: 'ab'
             }, {
               label: 'E Major',
-              value: 'E'
+              value: 'e'
             }, {
               label: 'Db Major',
-              value: 'Db'
+              value: 'db'
             }, {
               label: 'B Major',
-              value: 'B'
+              value: 'b'
             }, {
               label: 'F# Major',
-              value: 'F#'
+              value: 'f#'
             }, {
               label: 'C# Major',
-              value: 'C#'
+              value: 'c#'
             }, {
               label: 'Gb Major',
-              value: 'Gb'
+              value: 'gb'
             }
             ]
           },          {

@@ -178,6 +178,24 @@ export abstract class SuiScoreView {
       }
       this._renderChangedMeasures(SmoSelection.getMeasureList([selection]));
     }
+    /**
+     * Modifiy a set of columns, e.g. tempo, time, key.  This has different undo behavior, don't 
+     * pend on the result because there may be a combination of operations.
+     * @param label 
+     * @param selections 
+     * @param actor 
+     */
+    modifyColumnsSelectionsNoWait(label: string, selections: SmoSelection[], actor: updateSingleSelectionFunc) {
+      this.undoColumnRange(label, selections);
+      selections.forEach((selection) => {
+        const altSelection = this._getEquivalentSelection(selection);
+        actor(this.score, selection);
+        if (altSelection) {
+          actor(this.storeScore, altSelection);
+        }  
+      });
+      this._renderChangedMeasures(selections);
+    }
   /**
    * This is used in some Smoosic demos and pens.
    * @param action any action, but most usefully a SuiScoreView method
@@ -264,7 +282,15 @@ export abstract class SuiScoreView {
   _undoScorePreferences(label: string) {
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.storeScore, UndoBuffer.bufferSubtypes.NONE);
   }
-  
+  undoColumnRange(label: string, measureSelections: SmoSelection[]) {
+    const checked: Record<number, boolean> = {};
+    measureSelections.forEach((measureSelection) => {
+      if (!checked[measureSelection.selector.measure]) {
+        checked[measureSelection.selector.measure] = true;
+        this._undoColumn(label, measureSelection.selector.measure);
+      }
+    });
+  }
   undoMeasureRange(label: string, measureSelections: SmoSelection[]) {
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);

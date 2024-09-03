@@ -9,7 +9,7 @@ export class defaultRibbonLayout {
     var left = defaultRibbonLayout.leftRibbonIds;
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
       .concat(defaultRibbonLayout.durationIds)
-      .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
+      .concat(defaultRibbonLayout.beamIds)
       .concat(defaultRibbonLayout.staveIds)
       .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
       .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
@@ -25,17 +25,17 @@ export class defaultRibbonLayout {
       defaultRibbonLayout.navigationButtons).concat(
         defaultRibbonLayout.noteRibbonButtons).concat(
               defaultRibbonLayout.chordButtons).concat(
-                defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+                defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons)
       .concat(defaultRibbonLayout.staveRibbonButtons)
       .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
       .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.displayButtons).concat(defaultRibbonLayout.debugRibbonButtons);
   }
 
   static get leftRibbonIds() {
-    return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-    'scoreMenu', 'partMenu', 'noteMenu', 'addStaffMenu', 'measureModal', 
-    'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
-       'pianoModal'];
+    return ['helpDialog', 'languageMenu', 'fileMenu', 
+    'scoreMenu', 'partMenu', 'staffModifierMenu', 'measureModal', 'noteMenu',
+    'tempoModal', 'timeSignatureMenu', 'libraryMenu',
+       ];
   }
   static get noteButtonIds() {
     return ['NoteButtons',
@@ -67,9 +67,6 @@ export class defaultRibbonLayout {
   }
   static get durationIds() {
     return ['DurationButtons', 'GrowDuration', 'LessDuration', 'GrowDurationDot', 'LessDurationDot', 'TripletButton', 'QuintupletButton', 'SeptupletButton', 'NoTupletButton'];
-  }
-  static get measureIds() {
-    return ['MeasureButtons', 'endRepeat', 'startRepeat', 'endBar', 'doubleBar', 'singleBarEnd', 'singleBarStart', 'nthEnding', 'dcAlCoda', 'dsAlCoda', 'dcAlFine', 'dsAlFine', 'coda', 'toCoda', 'segno', 'toSegno', 'fine'];
   }
   static get staveIds() {
     return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
@@ -1348,16 +1345,7 @@ export class defaultRibbonLayout {
       ctor: 'SuiFileMenu',
       group: 'scoreEdit',
       id: 'fileMenu'
-    }, {
-      leftText: 'Library',
-      rightText: '',
-      icon: '',
-      classes: 'file-modify menu-select  nav-link link-body-emphasis',
-      action: 'modal',
-      ctor: 'SuiLibraryDialog',
-      group: 'scoreEdit',
-      id: 'libraryMenu'
-    }, {
+    },  {
       leftText: 'Score',
       rightText: '',
       icon: '',
@@ -1377,14 +1365,14 @@ export class defaultRibbonLayout {
       group: 'scoreEdit',
       id: 'partMenu'
     }, {
-      leftText: 'Notes',
+      leftText: 'Lines',
       rightText: '',
       icon: '',
-      classes: 'icon nav-link link-body-emphasis',
+      classes: 'icon note-modify menu-select nav-link link-body-emphasis',
       action: 'menu',
-      ctor: 'SuiNoteMenu',
+      ctor: 'SuiStaffModifierMenu',
       group: 'scoreEdit',
-      id: 'noteMenu'
+      id: 'staffModifierMenu'
     }, {
       leftText: 'Measure',
       rightText: '',
@@ -1394,6 +1382,15 @@ export class defaultRibbonLayout {
       ctor: 'SuiMeasureMenu',
       group: 'scoreEdit',
       id: 'measureModal'
+    }, {
+      leftText: 'Notes',
+      rightText: '',
+      icon: '',
+      classes: 'icon nav-link link-body-emphasis',
+      action: 'menu',
+      ctor: 'SuiNoteMenu',
+      group: 'scoreEdit',
+      id: 'noteMenu'
     }, {
       leftText: 'Tempo',
       rightText: '',
@@ -1414,14 +1411,14 @@ export class defaultRibbonLayout {
       id: 'timeSignatureMenu'
     },
     {
-      leftText: 'Lines',
+      leftText: 'Library',
       rightText: '',
       icon: '',
-      classes: 'icon note-modify menu-select nav-link link-body-emphasis',
-      action: 'menu',
-      ctor: 'SuiStaffModifierMenu',
+      classes: 'file-modify menu-select  nav-link link-body-emphasis',
+      action: 'modal',
+      ctor: 'SuiLibraryDialog',
       group: 'scoreEdit',
-      id: 'staffModifierMenu'
+      id: 'libraryMenu'
     },
     ];
   }

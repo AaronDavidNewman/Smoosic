@@ -50,13 +50,26 @@ export class SuiButtonArrayButton extends SuiComponentBase {
   clearState() {
     SuiButtonArrayButton.buttonStateString.forEach((ss) => $(`#${this.id}`).removeClass(ss));
   }
-  get html() {
+  get iconHtml() {
     const b = buildDom;
     const state: string = SuiButtonArrayButton.buttonStateString[this.iButtonState];
     const classes = `${this.classes} ${state}`;
     const q = b('button').attr('id', this.id).classes(classes).append(
       b('span').classes(this.icon).attr('aria-label',this.label)
     );
+    return q;
+  }
+  get textHtml() {
+    const b = buildDom;
+    const state: string = SuiButtonArrayButton.buttonStateString[this.iButtonState];
+    const classes = `${this.classes} ${state}`;
+    const q = b('button').attr('id', this.id).classes(classes).append(
+      b('span').classes(this.icon).attr('aria-label',this.label).text(this.label)
+    );
+    return q;
+  }
+  get html() {
+    const q = this.icon.length ? this.iconHtml : this.textHtml;
     return q;
   }
   updateControls() {

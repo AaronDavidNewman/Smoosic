@@ -114,7 +114,6 @@ export const viewFullScoreMenuOption: SuiConfiguredMenuOption = {
   }, display: (menu: SuiMenuBase) => menu.view.score.staves.length < menu.view.storeScore.staves.length,
   handler: async (menu: SuiMenuBase) => {
     await menu.view.viewAll();
-    menu.complete();
   }
 }
 

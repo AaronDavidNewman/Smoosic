@@ -395,9 +395,9 @@ export interface DialogDom {
     r.append(ctrl);
     r.append(
       b('div').classes('buttonContainer').append(
-        b('button').classes('ok-button button-left').text('OK')).append(
-        b('button').classes('cancel-button button-center').text('Cancel')).append(
-        b('button').classes('remove-button button-right').text('Remove').append(
+        b('button').classes('ok-button button-left btn btn-primary').text('OK')).append(
+        b('button').classes('cancel-button button-center btn btn-secondary').text('Cancel')).append(
+        b('button').classes('remove-button button-right btn btn-secondary').text('Remove').append(
           b('span').classes('icon icon-cancel-circle'))));
     $('.attributeDialog').html('');
 
