@@ -145,7 +145,7 @@ export class SmoContractNoteActor extends TickIteratorBase {
       if (note.isTuplet) {
         const numerator = this.newStemTicks * multiplier;
         newTicks = { numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1 };
-      } 
+      }
 
       const replacingNote = SmoNote.cloneWithDuration(note, newTicks, this.newStemTicks);
       const oldStemTicks = note.stemTicks;
@@ -159,11 +159,22 @@ export class SmoContractNoteActor extends TickIteratorBase {
           return null;
         }
         const lmap = SmoMusic.gcdMap(remainderStemTicks);
+
         lmap.forEach((stemTick) => {
-          const nnote = SmoNote.cloneWithDuration(note, stemTick * multiplier, stemTick);
+          const numerator = stemTick * multiplier;
+          const nnote = SmoNote.cloneWithDuration(note, {numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1}, stemTick);
           notes.push(nnote);
         });
       }
+      //accumulate all remainders in the first note
+      let remainder: number = 0;
+      notes.forEach((note: SmoNote) => {
+        if (note.ticks.remainder > 0) {
+          remainder += note.ticks.remainder;
+          note.ticks.remainder = 0;
+        }
+      });
+      notes[0].ticks.numerator += Math.round(remainder);
 
       SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, index, notes.length - 1);
       return notes;
@@ -231,16 +242,28 @@ export class SmoStretchNoteActor extends TickIteratorBase {
         break;
       }
     }
-    const remainder = stemTicksUsed - this.newStemTicks;
-    if (remainder >= 0) {
+    const remainingAmount = stemTicksUsed - this.newStemTicks;
+    if (remainingAmount >= 0) {
       this.notesToInsert.push(replacingNote);
-      const lmap = SmoMusic.gcdMap(remainder);
+      const lmap = SmoMusic.gcdMap(remainingAmount);
       lmap.forEach((stemTick) => {
-        const nnote = SmoNote.cloneWithDuration(originalNote, stemTick * multiplier, stemTick)
+        const numerator = stemTick * multiplier;
+        const nnote = SmoNote.cloneWithDuration(originalNote, {numerator: Math.floor(numerator), denominator: 1, remainder: numerator % 1}, stemTick)
         this.notesToInsert.push(nnote);
       });
       const noteCountDiff = (this.notesToInsert.length - this.numberOfNotesToDelete) - 1;
       SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, this.startIndex, noteCountDiff);
+
+      //accumulate all remainders in the first note
+      let remainder: number = 0;
+      this.notesToInsert.forEach((note: SmoNote) => {
+        if (note.ticks.remainder > 0) {
+          remainder += note.ticks.remainder;
+          note.ticks.remainder = 0;
+        }
+      });
+      this.notesToInsert[0].ticks.numerator += Math.round(remainder);
+
     }
   }
   static apply(params: SmoStretchNoteParams) {
