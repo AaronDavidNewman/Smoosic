@@ -902,80 +902,81 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.svg.staffX = Math.round(x);
   }
   /**
-   * todo nenad: adjust implementation
    * A time signature has possibly changed.  add/remove notes to
    * match the new length
    */
   alignNotesWithTimeSignature() {
-    // const tsTicks = SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
-    // if (tsTicks === this.getMaxTicksVoice()) {
-    //   return;
-    // }
-    // const replaceNoteWithDuration = (target: number, ar: SmoNote[], note: SmoNote) => {
-    //   const fitNote = new SmoNote(SmoNote.defaults);
-    //   const duration = SmoMusic.closestDurationTickLtEq(target);
-    //   if (duration > 128) {
-    //     fitNote.ticks = { numerator: duration, denominator: 1, remainder: 0 };
-    //     fitNote.pitches = note.pitches;
-    //     fitNote.noteType = note.noteType;
-    //     fitNote.clef = note.clef;
-    //     ar.push(fitNote);
-    //   }
-    // }
-    // const voices: SmoVoice[] = [];
-    // const tuplets: SmoTuplet[] = [];
-    // for (var i = 0; i < this.voices.length; ++i) {
-    //   const voice = this.voices[i];
-    //   const newNotes: SmoNote[] = [];
-    //   let voiceTicks = 0;
-    //   for (var j = 0; j < voice.notes.length; ++j) {
-    //     const note = voice.notes[j];
-    //     // if a tuplet, make sure the whole tuplet fits.
-    //     if (note.isTuplet) {
-    //       const tuplet = this.getTupletForNote(note);
-    //       if (tuplet) {
-    //         // remaining notes of an approved tuplet, just add them
-    //         if (tuplet.startIndex !== j) {
-    //           newNotes.push(note);
-    //           continue;
-    //         }
-    //         else if (tuplet.tickCount + voiceTicks <= tsTicks) {
-    //           // first note of the tuplet, it fits, add it
-    //           voiceTicks += tuplet.tickCount;
-    //           newNotes.push(note);
-    //           tuplets.push(tuplet);
-    //         } else {
-    //           // tuplet will not fit.  Make a note as close to remainder as possible and add it
-    //           replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
-    //           voiceTicks = tsTicks;
-    //           break;
-    //         }
-    //       } else { // missing tuplet, now what?
-    //         console.warn('missing tuplet info');
-    //         replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
-    //         voiceTicks = tsTicks;
-    //       }
-    //     } else {
-    //       if (note.tickCount + voiceTicks <= tsTicks) {
-    //         newNotes.push(note);
-    //         voiceTicks += note.tickCount;
-    //       } else {
-    //         replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
-    //         voiceTicks = tsTicks;
-    //         break;
-    //       }
-    //     }
-    //   }
-    //   if (tsTicks - voiceTicks > 128) {
-    //     const np = SmoNote.defaults;
-    //     np.clef = this.clef;
-    //     const nnote = new SmoNote(np);
-    //     replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, nnote);
-    //   }
-    //   voices.push({ notes: newNotes });
-    // }
-    // this.voices = voices;
-    // this.tuplets = tuplets;
+    const tsTicks = SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
+    if (tsTicks === this.getMaxTicksVoice()) {
+      return;
+    }
+    const replaceNoteWithDuration = (target: number, ar: SmoNote[], note: SmoNote) => {
+      const fitNote = new SmoNote(SmoNote.defaults);
+      const duration = SmoMusic.closestDurationTickLtEq(target);
+      if (duration > 128) {
+        fitNote.ticks = { numerator: duration, denominator: 1, remainder: 0 };
+        fitNote.stemTicks = duration;
+        fitNote.pitches = note.pitches;
+        fitNote.noteType = note.noteType;
+        fitNote.clef = note.clef;
+        ar.push(fitNote);
+      }
+    }
+    const voices: SmoVoice[] = [];
+    const tuplets: SmoTuplet[] = [];
+    for (var i = 0; i < this.voices.length; ++i) {
+      const voice = this.voices[i];
+      const newNotes: SmoNote[] = [];
+      let voiceTicks = 0;
+      for (var j = 0; j < voice.notes.length; ++j) {
+        const note = voice.notes[j];
+        // if a tuplet, make sure the whole tuplet fits.
+        if (note.isTuplet) {
+          const tupletTree = SmoTupletTree.getTupletTreeForNoteIndex(this.tupletTrees, i, j);
+          if (tupletTree) {
+            // remaining notes of an approved tuplet, just add them
+            if (tupletTree.startIndex !== j) {
+              newNotes.push(note);
+              continue;
+            }
+            else if (tupletTree.totalTicks + voiceTicks <= tsTicks) {
+              // first note of the tuplet, it fits, add it
+              voiceTicks += tupletTree.totalTicks;
+              newNotes.push(note);
+            } else {
+              // tuplet will not fit.  Replace tuplet with a note as close to remainder as possible and add it
+              // remove tuplet
+              note.tuplet = null
+              replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+              voiceTicks = tsTicks;
+              SmoTupletTree.removeTupletForNoteIndex(this, i, j);
+              break;
+            }
+          } else { // missing tuplet, now what?
+            console.warn('missing tuplet info');
+            replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+            voiceTicks = tsTicks;
+          }
+        } else {
+          if (note.tickCount + voiceTicks <= tsTicks) {
+            newNotes.push(note);
+            voiceTicks += note.tickCount;
+          } else {
+            replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
+            voiceTicks = tsTicks;
+            break;
+          }
+        }
+      }
+      if (tsTicks - voiceTicks > 128) {
+        const np = SmoNote.defaults;
+        np.clef = this.clef;
+        const nnote = new SmoNote(np);
+        replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, nnote);
+      }
+      voices.push({ notes: newNotes });
+    }
+    this.voices = voices;
   }
   get measureNumberDbg(): string {
     return `${this.measureNumber.measureIndex}/${this.measureNumber.systemIndex}/${this.measureNumber.staffId}`;
