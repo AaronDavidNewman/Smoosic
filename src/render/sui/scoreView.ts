@@ -236,6 +236,32 @@ export abstract class SuiScoreView {
     });
     return rv;
   }
+  // Get a long enough list of measures to paste into
+  getPasteMeasureList() {
+    // The length of the paste buffer, in ticks
+    const ticksToPaste = this.storePaste.getCopyBufferTickCount();
+    const selections: SmoSelection[]  = SmoSelection.getMeasureList(this.tracker.selections);
+    const tm = selections[0].measure.tickmapForVoice(selections[0].selector.voice);
+    // The last measure selected
+    const lastSelection = this.tracker.selections[this.tracker.selections.length - 1];
+    // length of first selected measure, in ticks
+    const measureTicks = this.tracker.selections[0].measure.getTicksFromVoice(this.tracker.selections[0].selector.voice);
+    // remaining ticks after first selection.  This is our starting point.
+    let startTick = measureTicks - tm.durationMap[this.tracker.selections[0].selector.tick];
+    // Add ticks for all remaining measures
+    for (let i = 1; i < selections.length; ++i) {
+      const sel = selections[i];
+      startTick += sel.measure.getTicksFromVoice(0);
+    }
+    // if we are short, and there are measures left, add them to the selection list
+    if (startTick < ticksToPaste && lastSelection.selector.measure < (this.score.staves[0].measures.length + 1)) {
+      const newSel = SmoSelection.measureSelection(this.score, selections[0].selector.staff, lastSelection.selector.measure + 1);
+      if (newSel) {
+        selections.push(newSel);
+      }
+    }
+    return selections;
+  }
   /**
    * A staff modifier has changed, create undo operations for the measures affected
    * @param label 

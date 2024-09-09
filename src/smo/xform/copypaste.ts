@@ -59,32 +59,12 @@ export class PasteBuffer {
   setScore(score: SmoScore) {
     this.score = score;
   }
-  getDestinationMeasure(startSelection: SmoSelection) {
-    const voiceIx = startSelection.selector.voice;
-    const tickmap = startSelection.measure.tickmapForVoice(voiceIx);
-    let duration = 0;
-    let destMeasure = startSelection.selector.measure;
-    if (!this.score) {
-      return destMeasure;
-    }
-    this.notes.forEach((nn) => {
-      duration += nn.note.tickCount
+  getCopyBufferTickCount() {
+    let rv = 0;
+    this.notes.forEach((note) => {
+      rv += note.note.tickCount;
     });
-    let remaining = duration;
-    for (let i = startSelection.selector.tick; i < tickmap.deltaMap.length; ++i) {
-      remaining = remaining - tickmap.deltaMap[i];
-    }
-    if (remaining <= 0) {
-      return destMeasure;
-    }
-    destMeasure += 1;
-    while (this.score.staves[0].measures.length > destMeasure && remaining > 0) {
-      remaining = remaining - this.score.staves[0].measures[destMeasure].getMaxTicksVoice();
-      if (remaining > 0) {
-        destMeasure += 1;
-      }
-    }
-    return destMeasure;
+    return rv;
   }
   setSelections(score: SmoScore, selections: SmoSelection[]) {
     this.notes = [];

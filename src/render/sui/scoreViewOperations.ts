@@ -1223,9 +1223,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // We undo the whole score on a paste, since we don't yet know the
     // extent of the overlap
     this.renderer.preserveScroll();
-    const selections: SmoSelection[]  = SmoSelection.getMeasureList(this.tracker.selections);
+    const selections: SmoSelection[]  = this.getPasteMeasureList();
     const firstSelection = selections[0];
-    const measureEnd = this.storePaste.getDestinationMeasure(firstSelection);
+    const measureEnd = selections[selections.length - 1].selector.measure;
     const measureRange = [firstSelection.selector.measure, measureEnd];
     this.storeUndo.grouping = true;
     // Undo the paste by selecting all the affected measures
@@ -1236,6 +1236,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeUndo.grouping = false;
     const altSelection = this._getEquivalentSelection(firstSelection);
     const altTarget = altSelection!.selector;
+    altTarget.tick = this.tracker.selections[0].selector.tick;
     // paste the clipboard into the destination
     this.storePaste.pasteSelections(altTarget);
     // Refresh those measures.
