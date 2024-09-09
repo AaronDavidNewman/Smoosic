@@ -80,10 +80,6 @@ export interface SmoTupletParamsSer {
    */
   startIndex: number
 }
-export interface SmoClonedTupletIf {
-  tuplet: SmoTuplet,
-  notes: SmoNote[]
-}
 /**
  * tuplets must be serialized with their id attribute, enforce this
  * @param params a possible-valid SmoTupletParamsSer
