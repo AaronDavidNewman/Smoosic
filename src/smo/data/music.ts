@@ -1437,7 +1437,8 @@ export class SmoMusic {
     SmoMusic.highestDuration / 16, // 8th
     SmoMusic.highestDuration / 32, // 16th
     SmoMusic.highestDuration / 64, // 32nd
-    SmoMusic.highestDuration / 128 // 64th    
+    SmoMusic.highestDuration / 128, // 64th
+    SmoMusic.highestDuration / 256 // 128th
   ];
   static durationsAscending = [
     SmoMusic.highestDuration / 256,  // 128th
@@ -1525,7 +1526,7 @@ export class SmoMusic {
     let i = 0;
     const durations = ['1/2', '1', '2', '4', '8', '16', '32', '64', '128', '256'];
     const _ticksToDurationsF = () => {
-      for (i = 0; i < SmoMusic.durationsDescending.length - 1; ++i) {
+      for (i = 0; i <= SmoMusic.durationsDescending.length - 1; ++i) {
         let j = 0;
         let dots = '';
         let ticks = 0;
@@ -1707,7 +1708,10 @@ export class SmoMusic {
   static getNextDottedLevel(ticks: number): number {
     const ticksOrNull = SmoMusic.closestSmoDurationFromTicks(ticks);
     if (ticksOrNull && ticksOrNull.index > 0) {
-      return SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index - 1]].ticks;
+      const newDuration = SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index - 1]];
+      if (newDuration.baseTicks === ticksOrNull.baseTicks) {
+        return newDuration.ticks;
+      }
     }
     return ticks;
   }
@@ -1718,7 +1722,10 @@ export class SmoMusic {
   static getPreviousDottedLevel(ticks: number): number {
     const ticksOrNull = SmoMusic.closestSmoDurationFromTicks(ticks);
     if (ticksOrNull && ticksOrNull.index < SmoMusic._validDurationKeys.length + 1) {
-      return SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index + 1]].ticks;
+      const newDuration = SmoMusic.validDurations[SmoMusic._validDurationKeys[ticksOrNull.index + 1]];
+      if (newDuration.baseTicks === ticksOrNull.baseTicks) {
+        return newDuration.ticks;
+      }
     }
     return ticks;
   }

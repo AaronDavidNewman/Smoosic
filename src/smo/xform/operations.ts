@@ -360,12 +360,12 @@ export class SmoOperation {
     if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
       return;
     }
-    if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > note.tickCount) {
+    if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].stemTicks > note.stemTicks) {
       console.log('too long');
       return;
     }
     // is dot too short?
-    if (!SmoMusic.validDurations[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+    if (!SmoMusic.validDurations[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].stemTicks / 2]) {
       return;
     }
 
