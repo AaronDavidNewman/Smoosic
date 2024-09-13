@@ -231,10 +231,13 @@ export class SmoBeamer {
   }
 
   public static areTupletElementsTheSame(noteOne: SmoNote, noteTwo: SmoNote): boolean {
-    if (noteOne.tuplet === null && noteTwo.tuplet === null) {
+    if (typeof(noteOne.tupletId) === 'undefined' && typeof(noteTwo.tupletId) === 'undefined') {
       return true;
     }
-    if (noteOne.isTuplet && noteTwo.isTuplet && noteOne.tuplet!.id == noteTwo.tuplet!.id) {
+    if (noteOne.tupletId === null && noteTwo.tupletId === null) {
+      return true;
+    }
+    if (noteOne.isTuplet && noteTwo.isTuplet && noteOne.tupletId == noteTwo.tupletId) {
       return true;
     }
 

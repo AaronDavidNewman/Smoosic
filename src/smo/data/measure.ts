@@ -635,7 +635,24 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     params.keySignature = jsonObj.keySignature ?? 'C';
     params.voices = voices;
-    // params.tupletTrees = tuplets;
+
+    if ((jsonObj as any).tupletTrees !== undefined) {
+      for (j = 0; j < jsonObj.tupletTrees.length; ++j) {
+        const tupletTreeJson = jsonObj.tupletTrees[j];
+        const tupletTree = SmoTupletTree.deserialize(tupletTreeJson);
+        params.tupletTrees.push(tupletTree);
+      }
+    }
+    //deserialization of a legacy tuplets
+    //legacy schema had measure.tuplets, it is measure.tupletTrees now
+    if ((jsonObj as any).tuplets !== undefined) {
+      for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
+        const tupJson = (jsonObj as any).tuplets[j];
+        const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
+        const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
+        params.tupletTrees.push(tupletTree);
+      }
+    }
     params.modifiers = modifiers;
     const measure = new SmoMeasure(params);
     // Handle migration for measure-mapped parameters
@@ -648,22 +665,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       measure.tempo = new SmoTempoText(SmoTempoText.defaults);
     }
 
-    for (j = 0; j < jsonObj.tupletTrees.length; ++j) {
-      const tupletTreeJson = jsonObj.tupletTrees[j];
-      const tupletTree = SmoTupletTree.deserialize(tupletTreeJson);
-      measure.tupletTrees.push(tupletTree);
-    }
 
-    //deserialization of a legacy tuplets
-    //legacy schema had measure.tuplets, it is measure.tupletTrees now
-    if ((jsonObj as any).tuplets !== undefined) {
-      for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
-        const tupJson = (jsonObj as any).tuplets[j];
-        const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
-        const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
-        measure.tupletTrees.push(tupletTree);
-      }
-    }
 
     return measure;
   }
@@ -946,7 +948,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
             } else {
               // tuplet will not fit.  Replace tuplet with a note as close to remainder as possible and add it
               // remove tuplet
-              note.tuplet = null
+              note.tupletId = null
               replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
               voiceTicks = tsTicks;
               SmoTupletTree.removeTupletForNoteIndex(this, i, j);

@@ -1666,6 +1666,24 @@ export class SmoMusic {
     stemTicks = stemTicks * 2;
     return SmoMusic.ticksToDuration[stemTicks];
   }
+  //todo: figure out a better name
+  // ## closestSmoDuration
+  // ## Description:
+  // return the closest smo duration >= to the actual number of ticks. Used in beaming
+  // triplets which have fewer ticks then their stem would normally indicate.
+  static closestSmoDuration(ticks: number): SimpleDuration {
+    let stemTicks = SmoMusic.highestDuration;
+
+    // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+    // for a triplet.
+    while (ticks <= stemTicks) {
+      stemTicks = stemTicks / 2;
+    }
+    stemTicks = stemTicks * 2;
+    return SmoMusic.validDurations[stemTicks];
+  }
+
+
 
   // ### closestDurationTickLtEq
   // Price is right style, closest tick value without going over.  Used to pad

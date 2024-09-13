@@ -306,16 +306,18 @@ export class SmoTuplet {
     // Legacy schema did not have notesOccupied, we need to calculate it.
     if ((jsonObj as any).notes !== undefined) {
       const numberOfNotes = (jsonObj as any).notes.length;
-      tupJson.endIndex = jsonObj.startIndex + numberOfNotes;
+      tupJson.endIndex = jsonObj.startIndex + numberOfNotes - 1;
       tupJson.notesOccupied = jsonObj.totalTicks / jsonObj.stemTicks;
     }
 
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj, tupJson);
     const tuplet = new SmoTuplet(tupJson);
     tuplet.parentTuplet = jsonObj.parentTuplet ? jsonObj.parentTuplet : null;
-    for (let i = 0; i < jsonObj.childrenTuplets.length; i++) {
-      const childTuplet = SmoTuplet.deserialize(jsonObj.childrenTuplets[i]);
-      tuplet.childrenTuplets.push(childTuplet);
+    if (jsonObj.childrenTuplets !== undefined) {
+      for (let i = 0; i < jsonObj.childrenTuplets.length; i++) {
+        const childTuplet = SmoTuplet.deserialize(jsonObj.childrenTuplets[i]);
+        tuplet.childrenTuplets.push(childTuplet);
+      }
     }
     return tuplet;
   }

@@ -28,9 +28,9 @@ export type NoteStringParam = 'noteHead' | 'clef';
 // @internal
 export const NoteStringParams: NoteStringParam[] = ['noteHead', 'clef'];
 // @internal
-export type NoteNumberParam = 'beamBeats' | 'flagState' | 'stemTicks';
+export type NoteNumberParam = 'beamBeats' | 'flagState';
 // @internal
-export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState', 'stemTicks'];
+export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState'];
 // @internal
 export type NoteBooleanParam = 'hidden' | 'endBeam' | 'isCue';
 // @internal
@@ -96,7 +96,7 @@ export interface SmoNoteParams {
   /**
    * if this note is part of a tuplet
    */
-  tuplet: TupletInfo | undefined,
+  tupletId: string | null,
   /*
   * If a custom tab note is assigned to this note
   */
@@ -192,7 +192,7 @@ export interface SmoNoteParamsSer  {
   /**
     * if this note is part of a tuplet
     */
-  tuplet: SmoTupletParamsSer | undefined,
+  tupletId?: string,
   /**
    * If a custom tab note is here, keep track of it
    */
@@ -263,6 +263,7 @@ export class SmoNote implements Transposable {
     NoteStringParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
+    this.tupletId = params.tupletId;
     this.noteType = params.noteType ? params.noteType : defs.noteType;
     NoteNumberParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
@@ -276,15 +277,18 @@ export class SmoNote implements Transposable {
     if (params.tabNote) {
       this.tabNote = new SmoTabNote(params.tabNote);
     }
-    const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
+    const ticks = params.ticks ? params.ticks : defs.ticks;
     this.ticks = JSON.parse(JSON.stringify(ticks));
+    this.stemTicks = params.stemTicks ? params.stemTicks : defs.stemTicks;
     this.pitches = JSON.parse(JSON.stringify(pitches));
     this.clef = params.clef ? params.clef : defs.clef;
     this.fillStyle = params.fillStyle ? params.fillStyle : '';
-    if (params.tuplet) {
-      this.tuplet = params.tuplet;
+    // legacy tuplet, now we just need the tuplet id
+    if ((params as any).tuplet) {
+      this.tupletId = (params as any).tuplet.id;
     }
+
     this.attrs = {
       id: getId().toString(),
       type: 'SmoNote'
@@ -309,7 +313,7 @@ export class SmoNote implements Transposable {
   noteType: NoteType = 'n';
   fillStyle: string = '';
   hidden: boolean = false;
-  tuplet: TupletInfo | null = null;
+  tupletId: string | null = null;
   tones: SmoMicrotone[] = [];
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
@@ -328,7 +332,8 @@ export class SmoNote implements Transposable {
    */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue', 'stemTicks',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote',
+    'tupletId'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it
@@ -697,7 +702,7 @@ export class SmoNote implements Transposable {
    * Return true if this note is part of a tuplet
    */
   get isTuplet(): boolean {
-    return this.tuplet !== null && typeof(this.tuplet.id) !== 'undefined';
+    return typeof(this.tupletId) !== 'undefined' && this.tupletId !== null &&  this.tupletId.length > 0;
   }
 
   addMicrotone(tone: SmoMicrotone) {
@@ -902,6 +907,14 @@ export class SmoNote implements Transposable {
    * @returns 
    */
   static deserialize(jsonObj: any) {
+    //legacy note
+    if (jsonObj.ticks && jsonObj.stemTicks === undefined) {
+      if (jsonObj.tupletId || jsonObj.tuplet) {
+        jsonObj['stemTicks'] = SmoMusic.closestSmoDuration(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
+      } else {
+        jsonObj['stemTicks'] = SmoMusic.closestSmoDurationFromTicks(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
+      }
+    }
     var note = new SmoNote(jsonObj);
     if (jsonObj.textModifiers) {
       jsonObj.textModifiers.forEach((mod: any) => {

@@ -281,7 +281,7 @@ export class SmoStretchNoteActor extends TickIteratorBase {
   }
 
   private areNotesInSameTuplet(noteOne: SmoNote, noteTwo: SmoNote): boolean {
-    if (noteOne.isTuplet && noteTwo.isTuplet && noteOne.tuplet!.id == noteTwo.tuplet!.id) {
+    if (noteOne.isTuplet && noteTwo.isTuplet && noteOne.tupletId == noteTwo.tupletId) {
       return true;
     }
     return false;
@@ -369,7 +369,7 @@ export class SmoMakeTupletActor extends TickIteratorBase {
       const note: SmoNote = SmoNote.cloneWithDuration(originalNote, { numerator: Math.floor(numerator), denominator: 1, remainder: 0 }, stemTicks);
       // Don't clone modifiers, except for first one.
       note.textModifiers = i === 0 ? note.textModifiers : [];
-      note.tuplet = tuplet.attrs;
+      note.tupletId = tuplet.attrs.id;
       tupletNotes.push(note);
     }
     if (numerator % 1) {
@@ -422,7 +422,7 @@ export class SmoUnmakeTupletActor extends TickIteratorBase {
 
       const ticks = tuplet.totalTicks;
       const nn: SmoNote = SmoNote.cloneWithDuration(note, { numerator: ticks, denominator: 1, remainder: 0 });
-      nn.tuplet = null;
+      nn.tupletId = null;
       SmoTupletTree.removeTupletForNoteIndex(this.measure, this.voice, index);
       SmoTupletTree.adjustTupletIndexes(this.measure.tupletTrees, this.voice, this.startIndex, this.startIndex - this.endIndex);
       
