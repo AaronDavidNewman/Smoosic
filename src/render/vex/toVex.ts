@@ -5,7 +5,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure, SmoVoice, MeasureTickmaps } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../../smo/data/noteModifiers';
-import { VexFlow, StaveNoteStruct, TupletOptions, vexOrnaments } from '../../common/vex';
+import {VexFlow, StaveNoteStruct, TupletOptions, vexOrnaments, getVexTuplets} from '../../common/vex';
 import { SmoBarline, SmoRehearsalMark } from '../../smo/data/measureModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
@@ -14,6 +14,7 @@ import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { StaffModifierBase, SmoStaffHairpin, SmoSlur, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
 import { toVexBarlineType, vexBarlineType, vexBarlinePosition, toVexBarlinePosition, leftConnectorVx, rightConnectorVx,
   toVexVolta, getVexChordBlocks } from '../../render/vex/smoAdapter';
+import {SmoTuplet} from "../../smo/data/tuplet";
 
 
 
@@ -78,11 +79,6 @@ function smoNoteToGraceNotes(smoNote: SmoNote, strs: string[]) {
   }
 }
 function smoNoteToStaveNote(smoNote: SmoNote) {
-  // const duration =
-  //   smoNote.isTuplet ?
-  //     SmoMusic.closestVexDuration(smoNote.tickCount) :
-  //     SmoMusic.ticksToDuration[smoNote.tickCount];
-
   const duration = SmoMusic.ticksToDuration[smoNote.stemTicks];
   const sn: StaveNoteStruct = {
     clef: smoNote.clef,
@@ -427,31 +423,40 @@ function createBeamGroups(smoMeasure: SmoMeasure, strs: string[]) {
     }
   });
 }
-//todo nenad: implement this
 function createTuplets(smoMeasure: SmoMeasure, strs: string[]) {
-  // smoMeasure.voices.forEach((voice, voiceIx) => {
-  //   const tps = smoMeasure.tupletTrees.filter((tp) => tp.voice === voiceIx);
-  //   for (var i = 0; i < tps.length; ++i) {
-  //     const tp = tps[i];
-  //     const nar: string[] = [];
-  //     for ( let note of smoMeasure.tupletNotes(tp)) {
-  //       const vexNote = `${note.attrs.id}`;
-  //       nar.push(vexNote);
-  //     }
-  //     const direction = smoMeasure.getStemDirectionForTuplet(tp) === SmoNote.flagStates.up ?
-  //         VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
-  //     const tpParams: TupletOptions = {
-  //         num_notes: tp.numNotes,
-  //         notes_occupied: tp.notesOccupied,
-  //         ratioed: false,
-  //         bracketed: true,
-  //         location: direction
-  //     };
-  //     const tpParamString = JSON.stringify(tpParams);
-  //     const narString = '[' + nar.join(',') + ']';
-  //     strs.push(`const ${tp.attrs.id} = new VF.Tuplet(${narString}, JSON.parse('${tpParamString}'));`);
-  //   }
-  // });
+  smoMeasure.voices.forEach((voice, voiceIx) => {
+    for (let i = 0; i < smoMeasure.tupletTrees.length; ++i) {
+      const tupletTree = smoMeasure.tupletTrees[i];
+      if (tupletTree.voice !== voiceIx) {
+        continue;
+      }
+      const traverseTupletTree = ( parentTuplet: SmoTuplet): void => {
+        const vexNotes = [];
+        for (let smoNote of smoMeasure.tupletNotes(parentTuplet)) {
+          const vexNote = `${smoNote.attrs.id}`;
+          vexNotes.push(vexNote);
+        }
+        const direction = smoMeasure.getStemDirectionForTuplet(parentTuplet) === SmoNote.flagStates.up ?
+            VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+        const tpParams: TupletOptions = {
+          num_notes: parentTuplet.numNotes,
+          notes_occupied: parentTuplet.notesOccupied,
+          ratioed: false,
+          bracketed: true,
+          location: direction
+        };
+        const tpParamString = JSON.stringify(tpParams);
+        const vexNotesString = '[' + vexNotes.join(',') + ']';
+        strs.push(`const ${parentTuplet.attrs.id} = new VF.Tuplet(${vexNotesString}, JSON.parse('${tpParamString}'));`);
+
+        for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+          const tuplet = parentTuplet.childrenTuplets[i];
+          traverseTupletTree(tuplet);
+        }
+      }
+      traverseTupletTree(tupletTree.tuplet);
+    }
+  });
 }
 function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: string[]) {
   const ssid = 'stave' + smoMeasure.id;
@@ -495,9 +500,15 @@ function createMeasure(smoMeasure: SmoMeasure, heightOffset: number, strs: strin
     strs.push(`${bg.attrs.id}.setContext(context);`);
     strs.push(`${bg.attrs.id}.draw();`)
   });
-  //todo nenad: implement this
   smoMeasure.tupletTrees.forEach((tp) => {
-    // strs.push(`${tp.attrs.id}.setContext(context).draw();`)
+    const traverseTupletTree = ( parentTuplet: SmoTuplet): void => {
+      strs.push(`${parentTuplet.attrs.id}.setContext(context).draw();`)
+      for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+        const tuplet = parentTuplet.childrenTuplets[i];
+        traverseTupletTree(tuplet);
+      }
+    }
+    traverseTupletTree(tp.tuplet);
   });
 }
 // ## SmoToVex
