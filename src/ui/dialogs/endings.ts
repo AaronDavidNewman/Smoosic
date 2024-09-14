@@ -3,15 +3,16 @@
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SmoBarline, SmoRepeatSymbol } from '../../smo/data/measureModifiers';
+import { reverseStaticMap } from '../../smo/data/common';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
-import { getButtonsFcn, SuiButtonArrayMSComponent, SuiButtonArrayParameters } from './components/buttonArray';
+import { getButtonsFcn, SuiButtonArrayComponent, SuiButtonArrayParameters } from './components/buttonArray';
 import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComponent';
 
 const endingsButtonFactory: getButtonsFcn = () => {
   const params: SuiButtonArrayParameters = {
     label: 'Measure Endings',
     rows: [{
-      label: 'Bar Lines',
+      label: 'Endings',
       classes: 'pad-span',
       buttons: [
         {
@@ -21,13 +22,6 @@ const endingsButtonFactory: getButtonsFcn = () => {
           id: 'endRepeat',
           label: 'end repeat',
           smoName: 'endRepeat'
-        }, {
-          classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-smo ribbon-button-text icon-start_rpt',
-          id: 'startRepeat',
-          label: 'start repeat',
-          smoName: 'startRepeat'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
@@ -42,26 +36,69 @@ const endingsButtonFactory: getButtonsFcn = () => {
           id: 'doubleBar',
           label: 'double barline',
           smoName: 'doubleBar'
-        },  {
+        }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
           icon: 'icon-smo ribbon-button-text',
-          id: 'noBar',
+          id: 'noBarEnd',
           label: 'no barline',
           smoName: 'noBar'
         }, {
           classes: 'icon collapseParent button-array',
           control: 'SuiButtonArrayButton',
           icon: 'icon-smo ribbon-button-text icon-single_bar',
-          id: 'singleBar',
+          id: 'singleBarEnd',
           label: 'single bar',
           smoName: 'singleBar'
         }
       ]
-    },
-    { label: 'Repeat',
+    }
+    ]
+  }
+  return params;
+}
+const startBarButtonFactory: getButtonsFcn = () => {
+  const params: SuiButtonArrayParameters = {
+    label: 'Measure Endings',
+    rows: [{
+      label: 'Start Bar',
       classes: 'text-span',
-          buttons: [
+      buttons: [
+        {
+          classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-smo ribbon-button-text icon-start_rpt',
+          id: 'startRepeat',
+          label: 'start repeat',
+          smoName: 'startRepeat'
+        },
+        {
+          classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-smo ribbon-button-text',
+          id: 'noBarStart',
+          label: 'no barline',
+          smoName: 'noBar'
+        }, {
+          classes: 'icon collapseParent button-array',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-smo ribbon-button-text icon-single_bar',
+          id: 'singleBarStart',
+          label: 'single bar',
+          smoName: 'singleBar'
+        }
+      ]
+    }]
+  };
+  return params;
+}
+const repeatSymbolButtonFactory: getButtonsFcn = () => {
+  const params: SuiButtonArrayParameters = {
+    label: 'Repeat Symbols',
+    rows: [{
+      label: 'Repeat',
+      classes: 'text-span',
+      buttons: [
         {
           classes: 'icon collapseParent button-array repetext',
           control: 'SuiButtonArrayButton',
@@ -83,88 +120,93 @@ const endingsButtonFactory: getButtonsFcn = () => {
           id: 'ToCoda',
           label: 'to Coda',
           smoName: 'ToCoda'
-        }]},  {      
-          label: 'Text',
-          classes: 'pad-span',
-          buttons: [{
-          classes: 'icon collapseParent button-array repetext',
-          control: 'SuiButtonArrayButton',
-          icon: '',
-          id: 'DcAlFine',
-          label: 'DC Al Fine',
-          smoName: 'DcAlFine'
-        }, {
-          classes: 'icon collapseParent button-array repetext',
-          control: 'SuiButtonArrayButton',
-          icon: '',
-          id: 'DsAlFine',
-          label: 'DS Al Fine',
-          smoName: 'DsAlFine'
-        },{
-          classes: 'icon collapseParent button-array repetext',
-          control: 'SuiButtonArrayButton',
-          icon: '',
-          id: 'Fine',
-          label: 'Fine',
-          smoName: 'Fine'
-        }]},  {      
-          label: 'Repeat Symbols',
-          classes: 'pad-span',
-          buttons: [{ 
-          classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          icon: 'icon-bravura ribbon-button-text icon-mid icon-segno',
-          id: 'Segno',
-          label:'Segno',
-          smoName: 'Segno'
-        }, 
-        {
-          icon: 'icon-bravura icon-coda',
-          classes: 'icon collapseParent button-array',
-          control: 'SuiButtonArrayButton',
-          smoName: 'Coda',
-          label: 'Coda',
-          id: 'Coda'
-        }
+        }]
+    }, {
+      label: 'Text',
+      classes: 'pad-span',
+      buttons: [{
+        classes: 'icon collapseParent button-array repetext',
+        control: 'SuiButtonArrayButton',
+        icon: '',
+        id: 'DcAlFine',
+        label: 'DC Al Fine',
+        smoName: 'DcAlFine'
+      }, {
+        classes: 'icon collapseParent button-array repetext',
+        control: 'SuiButtonArrayButton',
+        icon: '',
+        id: 'DsAlFine',
+        label: 'DS Al Fine',
+        smoName: 'DsAlFine'
+      }, {
+        classes: 'icon collapseParent button-array repetext',
+        control: 'SuiButtonArrayButton',
+        icon: '',
+        id: 'Fine',
+        label: 'Fine',
+        smoName: 'Fine'
+      }]
+    }, {
+      label: 'Symbols',
+      classes: 'pad-span',
+      buttons: [{
+        classes: 'icon collapseParent button-array',
+        control: 'SuiButtonArrayButton',
+        icon: 'icon-bravura ribbon-button-text icon-mid icon-segno',
+        id: 'Segno',
+        label: 'Segno',
+        smoName: 'Segno'
+      },
+      {
+        icon: 'icon-bravura icon-coda',
+        classes: 'icon collapseParent button-array',
+        control: 'SuiButtonArrayButton',
+        smoName: 'Coda',
+        label: 'Coda',
+        id: 'Coda'
+      }
       ]
-    }
-    ]
-  }
+    }]
+  };
   return params;
 }
-
-export class SuiEndingsButtonComponent extends SuiButtonArrayMSComponent {
+export class SuiEndBarButtonComponent extends SuiButtonArrayComponent {
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
     super(dialog, parameter, endingsButtonFactory);
   }
 }
+export class SuiStartBarButtonComponent extends SuiButtonArrayComponent {
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
+    super(dialog, parameter, startBarButtonFactory);
+  }
+}
+export class SuiRepeatSymbolButtonComponent extends SuiButtonArrayComponent {
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
+    super(dialog, parameter, repeatSymbolButtonFactory);
+  }
+}
 export class SuiEndingsAdapter extends SuiComponentAdapter {
+  startBarCode: string;
+  endBarCode: string;
+  repeatSymbolCode: string;
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.view.groupUndo(true);
+    const measure = this.view.tracker.selections[0].measure;
+    this.startBarCode = SmoBarline.barlineString(measure.getStartBarline());
+    this.endBarCode = SmoBarline.barlineString(measure.getEndBarline());
+    const rs = measure.getRepeatSymbol();
+    if (rs) {
+      this.repeatSymbolCode = SmoRepeatSymbol.repeatSymbolString(rs);
+    } else {
+      this.repeatSymbolCode = '';
+    }
   }
-  get ending() {
-    return '';
+  get repeatSymbolComponent() {
+    return this.repeatSymbolCode;
   }
-  set ending(value: string) {
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.endRepeat) {
-      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endRepeat);
-    }
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.startRepeat) {
-      this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.startRepeat);
-    }
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.singleBar) {
-      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.singleBar);
-    }
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.doubleBar) {
-      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.doubleBar);
-    }
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.endBar) {
-      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endBar);
-    }
-    if (SmoBarline.barlines[value] === SmoBarline.barlines.noBar) {
-      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.noBar);
-    }
+  set repeatSymbolComponent(value: string) {
+    this.repeatSymbolCode = value;
     if (SmoRepeatSymbol.symbols[value] === SmoRepeatSymbol.symbols.Coda) {
       this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Coda);
     }
@@ -188,9 +230,49 @@ export class SuiEndingsAdapter extends SuiComponentAdapter {
     }
     if (SmoRepeatSymbol.symbols[value] === SmoRepeatSymbol.symbols.Fine) {
       this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Fine);
-    }    
+    }
   }
-  async commit() {    
+
+  get endBarComponent() {
+    return this.endBarCode;
+  }
+  set endBarComponent(value: string) {
+    this.endBarCode = value;
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.endRepeat) {
+      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endRepeat);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.startRepeat) {
+      this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.startRepeat);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.singleBar) {
+      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.singleBar);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.doubleBar) {
+      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.doubleBar);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.endBar) {
+      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endBar);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.noBar) {
+      this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.noBar);
+    }   
+  }
+  get startBarComponent() {
+    return this.startBarCode;
+  }
+  set startBarComponent(value: string) {
+    this.startBarCode = value;
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.startRepeat) {
+      this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.startRepeat);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.singleBar) {
+      this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.singleBar);
+    }
+    if (SmoBarline.barlines[value] === SmoBarline.barlines.noBar) {
+      this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.noBar);
+    }
+  }
+  async commit() {
   }
   async cancel() {
     await this.view.undo();
@@ -211,9 +293,17 @@ export class SuiEndingsDialog extends SuiDialogAdapterBase<SuiEndingsAdapter> {
       label: 'Measure Endings',
       elements:
         [{
-          smoName: 'ending',
-          control: 'SuiEndingsButtonComponent',
-          label: 'Measure Endings'
+          smoName: 'startBarComponent',
+          control: 'SuiStartBarButtonComponent',
+          label: 'Measure Start'
+        }, {
+          smoName: 'endBarComponent',
+          control: 'SuiEndBarButtonComponent',
+          label: 'Measure End'
+        }, {
+          smoName: 'repeatSymbolComponent',
+          control: 'SuiRepeatSymbolButtonComponent',
+          label: 'Repeat Symbol'
         }],
       staticText: []
     };

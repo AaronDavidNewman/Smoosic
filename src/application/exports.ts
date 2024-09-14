@@ -49,7 +49,8 @@ import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
 import { SuiTimeSignatureDialog } from '../ui/dialogs/timeSignature';
 import { SuiTempoDialog } from '../ui/dialogs/tempo';
 import { SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiNoteHeadButtonComponent } from '../ui/dialogs/noteHead';
-import { SuiEndingsAdapter, SuiEndingsDialog, SuiEndingsButtonComponent } from '../ui/dialogs/endings';
+import { SuiEndingsAdapter, SuiEndingsDialog, 
+  SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent } from '../ui/dialogs/endings';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
 import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
 import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
@@ -200,7 +201,8 @@ export const Smo = {
     SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent, 
     SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter,
     SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog,
-    SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiEndingsAdapter, SuiEndingsDialog, SuiEndingsButtonComponent,
+    SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiEndingsAdapter, SuiEndingsDialog, 
+    SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent,
     SuiNoteHeadButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog, SuiSaveVexDialog,
