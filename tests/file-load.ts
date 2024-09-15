@@ -39,7 +39,7 @@ export function createLoadTests(): void {
     midiScore = (new MidiToSmo(parseMidi(midiData.value), 1024)).convert();
     await view.changeScore(midiScore);
     QUnit.test('loadMidi2', assert => {
-      assert.equal(midiScore.staves[0].measures[0].tuplets.length, 1);
+      assert.equal(midiScore.staves[0].measures[0].tupletTrees.length, 1);
     });
     midiData = new SuiXhrLoader(midiKeyPath);
     await midiData.loadAsync();

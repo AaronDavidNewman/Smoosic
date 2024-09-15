@@ -1,19 +1,27 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { XmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurType, XmlTupletData } from './xmlHelpers';
-import { SmoScore } from '../data/score';
-import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
-import { SmoSystemStaff } from '../data/systemStaff';
-import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams, TieLine } from '../data/staffModifiers';
-import { SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoTempoText } from '../data/measureModifiers';
-import { SmoPartInfo } from '../data/partInfo';
-import { SmoMeasure } from '../data/measure';
-import { SmoNote } from '../data/note';
-import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
-import { SmoTuplet } from '../data/tuplet';
-import { Clef } from '../data/common';
-import { SmoMusic } from '../data/music';
-import { SmoSelector, SmoSelection } from '../xform/selections';
+import {XmlDurationAlteration, XmlHelpers, XmlLyricData, XmlSlurType, XmlTieType, XmlTupletType} from './xmlHelpers';
+import {SmoScore} from '../data/score';
+import {SmoFormattingManager, SmoSystemGroup} from '../data/scoreModifiers';
+import {SmoSystemStaff} from '../data/systemStaff';
+import {
+  SmoInstrument,
+  SmoInstrumentParams,
+  SmoSlur,
+  SmoSlurParams,
+  SmoStaffHairpin,
+  SmoTie,
+  TieLine
+} from '../data/staffModifiers';
+import {SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoTempoText} from '../data/measureModifiers';
+import {SmoPartInfo} from '../data/partInfo';
+import {SmoMeasure} from '../data/measure';
+import {SmoNote} from '../data/note';
+import {SmoDynamicText, SmoGraceNote, SmoLyric} from '../data/noteModifiers';
+import {SmoTuplet, SmoTupletTree} from '../data/tuplet';
+import {Clef} from '../data/common';
+import {SmoMusic} from '../data/music';
+import {SmoSelection, SmoSelector} from '../xform/selections';
 
 export interface XmlClefInfo {
   clef: string, staffId: number
@@ -57,13 +65,37 @@ export interface XmlCompletedTies {
   fromPitch: number,
   toPitch: number
 }
+
 export interface XmlCompletedTuplet {
-  tuplet: SmoTuplet, staffId: number, voiceId: number
+  tuplet: SmoTuplet,
+  staffId: number,
+  voiceId: number
+}
+export class XmlTupletStateTreeNode {
+  tupletState: XmlTupletState;
+  children: XmlTupletStateTreeNode[];
+  constructor(tupletState: XmlTupletState) {
+    this.tupletState = tupletState;
+    this.children = [];
+  }
+}
+
+export interface XmlCompletedTupletState {
+  tupletState: XmlTupletState,
+  staffId: number,
+  voiceId: number
 }
 export interface XmlTupletState {
-  start: SmoSelector,
-  end: SmoSelector
+  start: SmoSelector | null,
+  end: SmoSelector | null,
+  data: XmlTupletData | null,
 }
+export interface XmlTupletData {
+  numNotes: number,
+  notesOccupied: number,
+  stemTicks: number,
+}
+
 export interface XmlEnding {
   start: number,
   end: number,
@@ -107,7 +139,10 @@ export class XmlState {
   verseMap: Record<number | string, number> = {};
   measureNumber: number = 0;
   formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
-  tuplets: Record<number, XmlTupletState> = {};
+
+  completedTupletStates: XmlCompletedTupletState[] = [];
+  tupletStatesInProgress: Record<number, XmlTupletState> = {};
+
   tickCursor: number = 0;
   tempo: SmoTempoText = new SmoTempoText(SmoTempoText.defaults);
   staffArray: XmlStaffInfo[] = [];
@@ -157,7 +192,7 @@ export class XmlState {
     if (isNaN(this.measureNumber)) {
       this.measureNumber = oldMeasure + 1;
     }
-    this.tuplets = {};
+    this.tupletStatesInProgress = {};
     this.tickCursor = 0;
     this.tempo = SmoMeasureModifierBase.deserialize(this.tempo.serialize());
     this.tempo.display = false;
@@ -536,66 +571,132 @@ export class XmlState {
       }
     });
   }
-  // ### backtrackTuplets
-  // If we received a tuplet end, go back through the voice
-  // and construct the SmoTuplet.
-  backtrackTuplets(voice: XmlVoiceInfo, tupletNumber: number, staffId: number, voiceId: number) {
-    const tupletState = this.tuplets[tupletNumber];
-    let i = tupletState.start.tick;
-    const notes = [];
-    const durationMap = [];
-    while (i < voice.notes.length) {
-      const note = voice.notes[i];
-      notes.push(note);
-      if (i === tupletState.start.tick) {
-        durationMap.push(1.0);
-      } else {
-        const prev = voice.notes[i - 1];
-        durationMap.push(note.ticks.numerator / prev.ticks.numerator);
-      }
-      i += 1;
-    }
-    const tp = SmoTuplet.defaults;
-    tp.notes = notes;
-    tp.durationMap = durationMap;
-    tp.voice = voiceId;
-    const tuplet = new SmoTuplet(tp);
-    // Store the tuplet with the staff ID and voice so we
-    // can add it to the right measure when it's created.
-    this.completedTuplets.push({ tuplet, staffId, voiceId });
-  }
+
+
+
   // ### updateTupletStates
   // react to a tuplet start or stop directive
-  updateTupletStates(tupletInfos: XmlTupletData[], voice: XmlVoiceInfo, staffIndex: number, voiceIndex: number) {
+  // we need to handle start and stop directives that appear out of order
+  updateTupletStates(tupletInfos: XmlTupletType[], voice: XmlVoiceInfo, staffIndex: number, voiceIndex: number) {
+    // this.tickCursor;
     const tick = voice.notes.length - 1;
     tupletInfos.forEach((tupletInfo) => {
-      if (tupletInfo.type === 'start') {
-        this.tuplets[tupletInfo.number] = {
-          start: { staff: staffIndex, measure: this.measureNumber, voice: voiceIndex, tick, pitches: [] },
-          end: SmoSelector.default
+      let tupletState: XmlTupletState | undefined = this.tupletStatesInProgress[tupletInfo.number];
+      if (tupletState == undefined) {
+        tupletState = {
+          start: null,
+          end: null,
+          data: null,
         };
-      } else if (tupletInfo.type === 'stop') {
-        this.tuplets[tupletInfo.number].end = {
+        this.tupletStatesInProgress[tupletInfo.number] = tupletState;
+      }
+      if (tupletInfo.type === 'start') {
+        tupletState.start = {
           staff: staffIndex, measure: this.measureNumber, voice: voiceIndex, tick, pitches: []
         };
-        this.backtrackTuplets(voice, tupletInfo.number, staffIndex, voiceIndex);
+        tupletState.data = tupletInfo.data;
+      } else if (tupletInfo.type === 'stop') {
+        tupletState.end = {
+          staff: staffIndex, measure: this.measureNumber, voice: voiceIndex, tick, pitches: []
+        };
+      }
+      if (tupletState.start != null && tupletState.end != null) {
+        this.completedTupletStates.push({
+          tupletState: tupletState,
+          staffId: staffIndex,
+          voiceId: voiceIndex
+        });
+        delete this.tupletStatesInProgress[tupletInfo.number];
       }
     });
   }
   addTupletsToMeasure(smoMeasure: SmoMeasure, staffId: number, voiceId: number) {
-    const completed: XmlCompletedTuplet[] = [];
-    this.completedTuplets.forEach((tuplet) => {
-      if (tuplet.voiceId === voiceId && tuplet.staffId === staffId) {
-        smoMeasure.tuplets.push(tuplet.tuplet);
-      } else {
-        completed.push(tuplet);
+    const tupletStates = this.findCompletedTupletStatesByStaffAndVoice(staffId, voiceId);
+    const xmlTupletStateTrees = this.buildXmlTupletStateTrees(tupletStates);
+    const notes: SmoNote[] = smoMeasure.voices[voiceId].notes;
+    smoMeasure.tupletTrees = this.buildSmoTupletTreesFromXmlTupletStateTrees(xmlTupletStateTrees, notes);
+  }
+  private findCompletedTupletStatesByStaffAndVoice(staffId: number, voiceId: number): XmlTupletState[] {
+    const tupletStates: XmlTupletState[] = [];
+    this.completedTupletStates.forEach((completedTupletState) => {
+      if (completedTupletState.staffId === staffId && completedTupletState.voiceId === voiceId) {
+        tupletStates.push(completedTupletState.tupletState);
       }
     });
-    this.completedTuplets = completed;
+    return tupletStates;
   }
+  private buildXmlTupletStateTrees(tupletStates: XmlTupletState[]): XmlTupletStateTreeNode[] {
+    let sortedTupletStates = this.sortTupletStates(tupletStates);
+    let roots: XmlTupletStateTreeNode[] = [];
+    let activeNodes: XmlTupletStateTreeNode[] = [];
+    for (let tupletState of sortedTupletStates) {
+      let node = new XmlTupletStateTreeNode(tupletState);
+      let placed = false;
+      while (activeNodes.length > 0) {
+        let lastNode = activeNodes[activeNodes.length - 1];
+        if (tupletState.start!.tick <= lastNode.tupletState.end!.tick) {
+          lastNode.children.push(node);
+          placed = true;
+          break;
+        } else {
+          activeNodes.pop();
+        }
+      }
+      if (!placed) {
+        roots.push(node);
+      }
+      activeNodes.push(node);
+    }
+    return roots;
+  }
+  private sortTupletStates(tupletStates: XmlTupletState[]): XmlTupletState[] {
+    return tupletStates.sort((a, b) => {
+      if (a.start === b.start) {
+        return a.end!.tick - b.end!.tick;
+      }
+      return a.start!.tick - b.start!.tick;
+    });
+  }
+  /**
+   * Create SmoTuplets out of completedTupletStates
+   */
+  buildSmoTupletTreesFromXmlTupletStateTrees(xmlTupletStateTrees: XmlTupletStateTreeNode[], notes: SmoNote[]): SmoTupletTree[] {
+    const smoTupletTrees: SmoTupletTree[] = [];
+    const traverseXmlTupletStateTree = (xmlTupletStateTreeNode: XmlTupletStateTreeNode): SmoTuplet => {
+      const smoTupletParams = SmoTuplet.defaults;
+      const xmlTupletState = xmlTupletStateTreeNode.tupletState;
+      if (xmlTupletState.data) {
+        smoTupletParams.numNotes = xmlTupletState.data.numNotes;
+        smoTupletParams.notesOccupied = xmlTupletState.data.notesOccupied;
+        smoTupletParams.stemTicks = xmlTupletState.data.stemTicks;
+      }
+      smoTupletParams.startIndex = xmlTupletState.start!.tick;
+      smoTupletParams.endIndex = xmlTupletState.end!.tick;
+      for (let i = smoTupletParams.startIndex; i <= smoTupletParams.endIndex; i++) {
+        smoTupletParams.totalTicks += notes[i].tickCount;
+      }
+      smoTupletParams.voice = xmlTupletState.start!.voice;
+      const smoTuplet = new SmoTuplet(smoTupletParams);
+      for (let i = 0; i < xmlTupletStateTreeNode.children.length; i++) {
+        const childSmoTuplet = traverseXmlTupletStateTree(xmlTupletStateTreeNode.children[i]);
+        childSmoTuplet.parentTuplet = {id: smoTuplet.attrs.id};
+        smoTuplet.childrenTuplets.push(childSmoTuplet);
+      }
+      return smoTuplet;
+    };
+
+    for (let i = 0; i < xmlTupletStateTrees.length; i++) {
+      const xmlTupletStateTreeNode = xmlTupletStateTrees[i];
+      const tuplet: SmoTuplet = traverseXmlTupletStateTree(xmlTupletStateTreeNode);
+      smoTupletTrees.push(new SmoTupletTree({tuplet: tuplet}));
+    }
+    return smoTupletTrees;
+  }
+
+
   getSystems(): SmoSystemGroup[] {
     const rv: SmoSystemGroup[] = [];
-    this.systems.forEach((system) => {
+    this.systems.forEach((system: { startSelector: SmoSelector; endSelector: SmoSelector; leftConnector: number; }) => {
       const params = SmoSystemGroup.defaults;
       params.startSelector = system.startSelector;
       params.endSelector = system.endSelector;

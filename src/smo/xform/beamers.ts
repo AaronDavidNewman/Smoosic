@@ -149,38 +149,53 @@ export class SmoBeamer {
     }
 
     // beam tuplets
-    if (note.isTuplet) {
-      const tuplet = this.measure.getTupletForNote(note);
-      // The underlying notes must have been deleted.
-      if (!tuplet) {
-        return;
-      }
-      const tupletIndex = tuplet.getIndexOfNote(note);
-      const ult = tuplet.notes[tuplet.notes.length - 1];
-      const first = tuplet.notes[0];
+    // if (note.isTuplet) {
+    //   const tuplet = this.measure.getTupletForNote(note);
+    //   // The underlying notes must have been deleted.
+    //   if (!tuplet) {
+    //     return;
+    //   }
 
-      if (first.endBeam) {
-        this._advanceGroup();
-        return;
-      }
-      // is this beamable length-wise
-      const stemTicks = SmoMusic.closestDurationTickLtEq(note.tickCount) * tuplet.durationMap[tupletIndex];
-      if (note.noteType === 'n' && stemTicks < 4096) {
-        this.currentGroup.push(note);
-      }
-      // Ultimate note in tuplet
-      if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap, index)) {
-        this._completeGroup(tickmap.voice);
-        this._advanceGroup();
-      }
-      return;
-    }
+    //   const first = tuplet.getFirstNote();
+    //   if (!first) {
+    //     return;
+    //   }
+
+    //   const ult = tuplet.getLastNote();
+    //   if (!ult) {
+    //     return;
+    //   }
+
+    //   if (first.endBeam) {
+    //     this._advanceGroup();
+    //     return;
+    //   }
+
+    //   // is this beamable length-wise
+    //   if (note.noteType === 'n' && note.stemTicks < 4096) {
+    //     this.currentGroup.push(note);
+    //   }
+    //   // Ultimate note in tuplet
+    //   if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap, index)) {
+    //     this._completeGroup(tickmap.voice);
+    //     this._advanceGroup();
+    //   }
+    //   return;
+    // }
 
     // don't beam > 1/4 note in 4/4 time.  Don't beam rests.
-    if (tickmap.deltaMap[index] >= 4096 || (note.isRest() && this.currentGroup.length === 0)) {
+    if (note.stemTicks >= 4096 || (note.isRest() && this.currentGroup.length === 0)) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
       return;
+    }
+
+    //if areTupletElementsDifferent(noteOne, noteTwo)
+    //this._completeGroup(tickmap.voice);
+    //this._advanceGroup();
+    if (index > 0 && !SmoBeamer.areTupletElementsTheSame(tickmap.notes[index - 1], tickmap.notes[index])) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
     }
 
     this.currentGroup.push(note);
@@ -193,11 +208,11 @@ export class SmoBeamer {
           return;
         } else if (this.duration === 8192) {
           this._completeGroup(tickmap.voice);
-          this._advanceGroup();    
+          this._advanceGroup();
         }
     }
     // If we are aligned to a beat on the measure, and we are in common time
-    if (this.currentGroup.length > 1 && this.measure.timeSignature.beatDuration === 4 && 
+    if (this.currentGroup.length > 1 && this.measure.timeSignature.beatDuration === 4 &&
       this.measureDuration % 4096 === 0) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
@@ -214,4 +229,19 @@ export class SmoBeamer {
       this._advanceGroup();
     }
   }
+
+  public static areTupletElementsTheSame(noteOne: SmoNote, noteTwo: SmoNote): boolean {
+    if (typeof(noteOne.tupletId) === 'undefined' && typeof(noteTwo.tupletId) === 'undefined') {
+      return true;
+    }
+    if (noteOne.tupletId === null && noteTwo.tupletId === null) {
+      return true;
+    }
+    if (noteOne.isTuplet && noteTwo.isTuplet && noteOne.tupletId == noteTwo.tupletId) {
+      return true;
+    }
+
+    return false;
+  }
+
 }
