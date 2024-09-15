@@ -204,13 +204,6 @@ export function getVexTuplets(params: SmoVexTupletParams) {
   return vexTuplet;
 }
 export function getVexNoteParameters(params: CreateVexNoteParams): { noteParams: StaveNoteStruct, duration: string } {
-    // If this is a tuplet, we only get the duration so the appropriate stem
-    // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
-    // var duration =
-      // params.isTuplet ?
-        // params.closestTicks :
-        // params.exactTicks;
-
     var duration: any = params.stemTicks;
     if (typeof (duration) === 'undefined') {
       console.warn('bad duration in measure ' + params.measureIndex);

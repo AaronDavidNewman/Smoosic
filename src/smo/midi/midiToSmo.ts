@@ -14,7 +14,7 @@ import { SmoScore } from "../data/score";
 import { SmoLayoutManager } from "../data/scoreModifiers";
 import { SmoTie } from "../data/staffModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
-import { SmoTuplet } from "../data/tuplet";
+import {SmoTuplet, SmoTupletTree} from "../data/tuplet";
 import { SmoOperation } from "../xform/operations";
 
 export type MidiEventType = 'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
@@ -305,18 +305,20 @@ export class MidiToSmo {
         const note = new SmoNote(defs);
         SmoNote.sortPitches(note);
         measure.voices[0].notes.push(note);
-        //todo: needs to be check for nested tuplets
-        // if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
-        //   const voiceLen = measure.voices[0].notes.length;
-        //   const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
-        //   const defs = SmoTuplet.defaults;
-        //   defs.notes = tupletNotes;
-        //   defs.stemTicks = ev.tupletInfo.stemTicks;
-        //   defs.numNotes = ev.tupletInfo.numNotes;
-        //   defs.totalTicks = ev.tupletInfo.totalTicks;
-        //   defs.startIndex = voiceLen - 3;
-        //   measure.tuplets.push(new SmoTuplet(defs));
-        // }
+        if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
+          const voiceLen = measure.voices[0].notes.length;
+          const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
+          const defs = SmoTuplet.defaults;
+          defs.stemTicks = ev.tupletInfo.stemTicks;
+          defs.numNotes = ev.tupletInfo.numNotes;
+          defs.totalTicks = ev.tupletInfo.totalTicks;
+          defs.startIndex = voiceLen - 3;
+          defs.endIndex = voiceLen - 1;
+          const tuplet = new SmoTuplet(defs);
+          this.adjustTupletNotes(tupletNotes, tuplet);
+          const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
+          measure.tupletTrees.push(tupletTree);
+        }
         if (ev.isTied) {
           this.addToTieMap(measureIndex);
         }
@@ -326,6 +328,19 @@ export class MidiToSmo {
       measure.clef = MidiToSmo.guessClefForNotes(measure);
     });
     return measures;
+  }
+
+  adjustTupletNotes(notes: SmoNote[], tuplet: SmoTuplet) {
+    const numerator = tuplet.totalTicks / tuplet.numNotes;
+    for (let i = 0; i < notes.length; ++i) {
+      const note = notes[i];
+      note.ticks = { numerator: Math.floor(numerator), denominator: 1, remainder: 0 }
+      note.stemTicks = tuplet.stemTicks;
+      note.tupletId = tuplet.attrs.id;
+    }
+    if (numerator % 1) {
+      notes[0].ticks.numerator += 1;
+    }
   }
   /**
    * @param ticks 
