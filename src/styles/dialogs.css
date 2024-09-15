@@ -234,7 +234,10 @@ button.nav-link {
   font-size: 0.8em;
   font-style: italic;
   flex: 4 1 220px;
-  width: 120px;
+}
+.smoControlContainer .button-array-buttons button.repetext .icon-bravura .button-text {
+  font-size: 12px;
+  min-width: 35px;
 }
 .attributeModal.tempoTextMode #dialog-tempo-duration,
 .attributeModal.tempoTextMode #dialog-tempo-bpm ,
@@ -274,6 +277,10 @@ button.nav-link {
 .smoControlContainer .text-input label
  {
     margin-left:15px;
+}
+
+.smoControlContainer .text-input.hide-input input {
+  display: none;
 }
 
 .smoControl.toggleControl {
@@ -367,22 +374,34 @@ button.nav-link {
 .button-array-buttons {
   display: flex;
   align-items: center;
+  flex: 1 2 auto;
+}
+.button-row-container {
+  display:flex;
+  flex-flow: column;
+  flex: 1 1 auto;
 }
 .button-array-label {
   display: flex;
+  flex: 0 0 100px;
+  min-width: 100px;
 }
 .nav-item {
   border-bottom: 1px solid #eee;
 }
 .attributeModal .smoControl.buttonArray .icon-bravura {
-  left:8px;
+  left:calc(50% - 12px);
 }
 .attributeModal .smoControl.buttonArray .icon-bravura.icon-mid {
   top: 0;
   left:8px;
 }
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-transparent {
+  color: #333333aa;
+}
 .attributeModal .smoControl.buttonArray .icon-bravura.icon-lg {
   font-size: 24px;
+  top:inherit;
 }
 .attributeModal .smoControl.buttonArray .icon-bravura.icon-top {
   left:8px;

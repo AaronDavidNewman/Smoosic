@@ -145,7 +145,7 @@ export function getGlyphWidth(smoGlyph: GlyphInfo) {
  */
 export function getSlashGlyph() {
         // vexNote = new VF.GlyphNote('\uE504', { duration });
-       return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+       return new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 38), { duration: 'w' }, { line: 2 });
 }
 export function getRepeatBar() {
   return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });

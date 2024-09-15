@@ -713,16 +713,17 @@ export class SmoNote implements Transposable {
     return typeof(this.tupletId) !== 'undefined' && this.tupletId !== null &&  this.tupletId.length > 0;
   }
 
+  /**
+   * we only support a single microtone, not sure if vex supports multiple
+   * @param tone 
+   */
   addMicrotone(tone: SmoMicrotone) {
     const ar = this.tones.filter((tn: SmoMicrotone) => tn.pitchIndex !== tone.pitchIndex);
     ar.push(tone);
     this.tones = ar;
   }
-  removeMicrotone(tone: SmoMicrotone) {
-    const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex
-      && tn.pitchIndex <= this.pitches.length // also remove tones for removed pitches
-      && tone.tone !== tn.tone);
-    this.tones = ar;
+  removeMicrotone() {
+    this.tones = [];
   }
   getMicrotone(toneIndex: number) {
     return this.tones.find((tn) => tn.pitchIndex === toneIndex);

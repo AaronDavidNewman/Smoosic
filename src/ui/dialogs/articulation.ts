@@ -193,6 +193,12 @@ export class SuiArticulationAdapter extends SuiComponentAdapter {
       });
     });
   }
+  get textMessage() {
+    return '';
+  }
+  set textMessage(value: string) {
+    // ignore
+  }
   async commit() {    
   }
   async cancel() {
@@ -233,6 +239,11 @@ export class SuiArticulationDialog extends SuiDialogAdapterBase<SuiArticulationA
               label: 'Auto'
             } 
           ]
+        }, {
+          smoName: 'textMessage',
+          control: 'SuiTextInputComponent',
+          label: 'Use keys h,i,j,k,l to toggle common articulations.',
+          classes: 'hide-input'
         }],
       staticText: []
     };

@@ -10,11 +10,44 @@ import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComp
 import { SmoOperation } from '../../smo/xform/operations';
 import { SuiButtonComponentParams } from './components/button';
 
+const stemButtonFactory: getButtonsFcn = () => {
+  const params: SuiButtonArrayParameters = {
+    label: 'Stem',
+    rows: [{
+      label: 'Stems',
+      classes: 'pad-span',
+      buttons: [
+        { classes: 'icon collapseParent button-array repetext',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-restQuarter',
+          id: 'restIcon',
+          text: 'r',
+          label:'Rest',
+          smoName: 'rest'
+        },
+        { classes: 'icon collapseParent button-array repetext',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-transparent icon-restQuarter',
+          id: 'hideIcon',
+          label:'Hidden',
+          text: 'delete',
+          smoName: 'hidden'
+        },{ classes: 'icon collapseParent button-array repetext',
+          control: 'SuiButtonArrayButton',
+          icon: 'icon-bravura ribbon-button-text icon-mid icon-repeatBarSlash',
+          id: 'slashIcon',
+          label:'Slash',
+          smoName: 'slash'
+        },
+      ]}]
+    };
+    return params;
+  }
 const noteHeadButtonFactory: getButtonsFcn = () => {
   const params: SuiButtonArrayParameters = {
     label: 'Note Heads',
     rows: [{
-      label: 'Note Shapes',
+      label: 'Shapes',
       classes: 'pad-span',
       buttons: [
         {classes: 'icon collapseParent button-array',
@@ -50,7 +83,7 @@ const noteHeadButtonFactory: getButtonsFcn = () => {
         }
       ]
       }, {
-        label: 'Note Heads',
+        label: 'Heads',
         classes: 'pad-span',
         buttons: [
           { classes: 'icon collapseParent button-array',
@@ -89,7 +122,12 @@ const noteHeadButtonFactory: getButtonsFcn = () => {
             id: 'noteheadTriangleUpBlack',
             label:'Triangle up closed',
             smoName: 'T2'
-          }, { classes: 'icon collapseParent button-array',
+          }
+        ]},
+        { label: '',
+          classes: 'pad-span',
+          buttons:[
+         { classes: 'icon collapseParent button-array',
             control: 'SuiButtonArrayButton',
             icon: 'icon-bravura ribbon-button-text icon-mid icon-noteheadXWhole',
             id: 'noteheadXWhole',
@@ -143,8 +181,14 @@ export class SuiNoteHeadButtonComponent extends SuiButtonArrayComponent {
     super(dialog, parameter, noteHeadButtonFactory);
   }
 }
+export class SuiStemButtonComponent extends SuiButtonArrayComponent {
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
+    super(dialog, parameter, stemButtonFactory);
+  }
+}
 export class SuiNoteHeadAdapter extends SuiComponentAdapter {
   code: string = '';
+  stemCode: string = '';
   constructor(view: SuiScoreViewOperations) {
     super(view);
     this.view.groupUndo(true);
@@ -162,6 +206,47 @@ export class SuiNoteHeadAdapter extends SuiComponentAdapter {
     const keys = Object.keys(ss);
     if (keys.length === 1) {
       this.code = keys[0];
+    }
+  }
+  get textMessage() {
+    return '';
+  }
+  set textMessage(value: string) {
+    // ignore
+  }
+  get stemComponent() {
+    return this.stemCode;
+  }
+  set stemComponent(value: string) {
+    const note = this.view.tracker.selections[0].note;
+    if (note) {
+      if (value === '') {
+        this.stemCode = '';
+          if (note.isSlash()) {
+            this.view.toggleSlash();
+          } else if (note.isHidden()) {
+            this.view.deleteNote();
+          } if (note.isRest()) {
+            this.view.makeRest();
+          }
+      } else { 
+        this.stemCode = value;
+        if (value === 'rest') {
+          this.view.makeRest();
+        } else if (value === 'hidden') {
+          // hidden and rest are tri-state toggle.
+          if (!note.isHidden()) {
+            this.view.deleteNote();
+            if (note.isRest()) {
+              this.view.deleteNote();
+            }
+          }
+        } else if (value === 'slash') {
+          if (!note.isSlash()) {
+            this.view.toggleSlash();
+          }
+        }
+      }
     }
   }
   get noteHead() {
@@ -191,12 +276,21 @@ export class SuiNoteHeadDialog extends SuiDialogAdapterBase<SuiNoteHeadAdapter> 
     //| 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
   static dialogElements: DialogDefinition = 
       {
-        label: 'Tab Properties',
+        label: 'Note Heads',
         elements:
           [{
             smoName: 'noteHead',
             control: 'SuiNoteHeadButtonComponent',
             label: 'Note Head'
+          }, {
+            smoName: 'stemComponent',
+            control: 'SuiStemButtonComponent',
+            label: 'Rest'
+          }, {
+            smoName: 'textMessage',
+            control: 'SuiTextInputComponent',
+            label: 'Use r to toggle note to rest.  Use delete to toggle visibility.',
+            classes: 'hide-input'
           }],
           staticText: []
       };

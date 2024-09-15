@@ -18,7 +18,6 @@ import { CollapseRibbonControl, ExtendedCollapseParent } from '../ui/buttons/col
 import { DisplaySettings } from '../ui/buttons/display';
 import { DurationButtons } from '../ui/buttons/duration';
 import { MeasureButtons } from '../ui/buttons/measure';
-import { MicrotoneButtons } from '../ui/buttons/microtone';
 import { NavigationButtons } from '../ui/buttons/navigation';
 import { NoteButtons } from '../ui/buttons/note';
 import { PlayerButtons } from '../ui/buttons/player';
@@ -48,7 +47,7 @@ import { SuiInsertMeasures } from '../ui/dialogs/addMeasure';
 import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
 import { SuiTimeSignatureDialog } from '../ui/dialogs/timeSignature';
 import { SuiTempoDialog } from '../ui/dialogs/tempo';
-import { SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiNoteHeadButtonComponent } from '../ui/dialogs/noteHead';
+import { SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiNoteHeadButtonComponent, SuiStemButtonComponent } from '../ui/dialogs/noteHead';
 import { SuiEndingsAdapter, SuiEndingsDialog, 
   SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent } from '../ui/dialogs/endings';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
@@ -179,7 +178,7 @@ export const Smo = {
     Qwerty, SuiHelp, SmoTranslationEditor, SimpleEventHandler, ModalEventHandler,
     // Ribbon buttons
     simpleRibbonLayout,
-    RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
+    RibbonButtons, NoteButtons, TextButtons, ChordButtons,
     StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
     DisplaySettings,  ExtendedCollapseParent, CollapseRibbonControl,
@@ -201,9 +200,9 @@ export const Smo = {
     SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent, 
     SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter,
     SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog,
-    SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiEndingsAdapter, SuiEndingsDialog, 
-    SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent,
-    SuiNoteHeadButtonComponent,    
+    SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiStemButtonComponent, SuiNoteHeadButtonComponent,    
+    SuiEndingsAdapter, SuiEndingsDialog, 
+    SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog, SuiSaveVexDialog,
     SuiSaveMidiDialog, SuiDialogBase,

@@ -62,7 +62,7 @@ const noteHeadMenuOption: SuiConfiguredMenuOption = {
   }, display: (menu: SuiMenuBase) => true,
   menuChoice: {
     icon: '',
-    text: 'Note Head',
+    text: 'Head and Stem',
     value: 'noteHeadDialog'
   }
 }

@@ -82,21 +82,6 @@ export class SmoOperation {
       });
     });
   }
-
-  static addRemoveMicrotone(ignore: any, selections: SmoSelection[], tone: SmoMicrotone) {
-    selections.forEach((sel) => {
-      const note = sel.note;
-      if (note) {
-        const oldTone = note.getMicrotone(tone.pitchIndex);
-        if (oldTone) {
-          note.removeMicrotone(oldTone);
-        } else {
-          note.addMicrotone(tone);
-        }
-      }
-    });
-  }
-
   static moveStaffUpDown(score: SmoScore, selection: SmoSelection, index: number) {
     const index1 = selection.selector.staff;
     const index2 = selection.selector.staff + index;

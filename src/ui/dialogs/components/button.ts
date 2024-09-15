@@ -10,6 +10,7 @@ export interface SuiButtonComponentParams {
   classes: string,
   type?: string,
   increment?: number,
+  text?: string,
   label: string,
   smoName: string,
   control: string,

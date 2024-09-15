@@ -240,17 +240,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     return this.renderer.updatePromise()
   }
-
-  /**
-   * Add a specific microtone modifier to the selected notes
-   * @param tone 
-   * @returns 
-   */
-  async addRemoveMicrotone(tone: SmoMicrotone) {
-    await this.modifyCurrentSelections('add/remove microtone', (score, selections) => {
-      SmoOperation.addRemoveMicrotone(null, selections, tone);
-    })
-  }
   async addRemoveArpeggio(code: SmoArpeggioType) {
     await this.modifyCurrentSelections('add/remove addRemoveArpeggio',
       (score, selections) => {

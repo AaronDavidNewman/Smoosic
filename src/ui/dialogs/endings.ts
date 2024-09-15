@@ -105,6 +105,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
           icon: '',
           id: 'DcAlCoda',
           label: 'DC Al Coda',
+          text: 'DC Al Coda',
           smoName: 'DcAlCoda'
         }, {
           classes: 'icon collapseParent button-array repetext',
@@ -112,6 +113,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
           icon: '',
           id: 'DsAlCoda',
           label: 'DS Al Coda',
+          text: 'DS Al Coda',
           smoName: 'DsAlCoda'
         }, {
           classes: 'icon collapseParent button-array repetext',
@@ -119,6 +121,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
           icon: '',
           id: 'ToCoda',
           label: 'to Coda',
+          text: 'to Coda',
           smoName: 'ToCoda'
         }]
     }, {
@@ -130,6 +133,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
         icon: '',
         id: 'DcAlFine',
         label: 'DC Al Fine',
+        text: 'DC Al Fine',
         smoName: 'DcAlFine'
       }, {
         classes: 'icon collapseParent button-array repetext',
@@ -137,6 +141,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
         icon: '',
         id: 'DsAlFine',
         label: 'DS Al Fine',
+        text: 'DS Al Fine',
         smoName: 'DsAlFine'
       }, {
         classes: 'icon collapseParent button-array repetext',
@@ -144,6 +149,7 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
         icon: '',
         id: 'Fine',
         label: 'Fine',
+        text: 'Fine',
         smoName: 'Fine'
       }]
     }, {
@@ -152,13 +158,13 @@ const repeatSymbolButtonFactory: getButtonsFcn = () => {
       buttons: [{
         classes: 'icon collapseParent button-array',
         control: 'SuiButtonArrayButton',
-        icon: 'icon-bravura ribbon-button-text icon-mid icon-segno',
+        icon: 'icon-bravura ribbon-button-text icon-lg icon-segno',
         id: 'Segno',
         label: 'Segno',
         smoName: 'Segno'
       },
       {
-        icon: 'icon-bravura icon-coda',
+        icon: 'icon-bravura icon-lg icon-coda',
         classes: 'icon collapseParent button-array',
         control: 'SuiButtonArrayButton',
         smoName: 'Coda',

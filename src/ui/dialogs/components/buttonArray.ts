@@ -22,6 +22,7 @@ export class SuiButtonArrayButton extends SuiComponentBase {
   icon: string;
   classes: string;
   position?: string;
+  text?: string;
   iButtonState: number = SuiButtonArrayButton.buttonState.initial;
   parentControl: SuiComponentParent;
   static buttonStateString: string[] = ['initial', 'pushed', 'disabled'];
@@ -32,6 +33,7 @@ export class SuiButtonArrayButton extends SuiComponentBase {
     super(dialog, parameters);
     this.id = `${dialog.getId()}-${parameters.id}`;
     this.dialog = dialog;
+    this.text = parameters.text;
     this.icon = parameters.icon;
     this.classes = parameters.classes;
     this.parentControl = parameters.parentControl;    
@@ -62,14 +64,16 @@ export class SuiButtonArrayButton extends SuiComponentBase {
   get textHtml() {
     const b = buildDom;
     const state: string = SuiButtonArrayButton.buttonStateString[this.iButtonState];
+    const text = this.text ?? '';
     const classes = `${this.classes} ${state}`;
     const q = b('button').attr('id', this.id).classes(classes).append(
-      b('span').classes(this.icon).attr('aria-label',this.label).text(this.label)
+      b('span').classes(this.icon).attr('aria-label',this.label)).append(
+        b('span').classes('button-text').text(text)
     );
     return q;
   }
   get html() {
-    const q = this.icon.length ? this.iconHtml : this.textHtml;
+    const q = this.text?.length ? this.textHtml : this.iconHtml;
     return q;
   }
   updateControls() {
@@ -129,12 +133,12 @@ export abstract class SuiButtonArrayBase extends SuiComponentParent {
   get html() {
     const b = buildDom;
     if (!this.shellCreated) {
-      const q = b('div').classes(this.makeClasses('multiControl smoControl pitchContainer buttonArray'))
+      const q = b('div').classes(this.makeClasses('multiControl smoControl buttonArray'))
       .attr('id', this.parameterId);
       this.shellCreated = true;
       return q;
     }
-    const q = b('div');
+    const q = b('div').classes('button-row-container');
     for (let i = 0; i < this.buttonRows.length; ++i) {
       const buttonRow = this.buttonRows[i];
       const r = b('div').classes(`button-array-row`);
@@ -158,6 +162,7 @@ export abstract class SuiButtonArrayBase extends SuiComponentParent {
 export class SuiButtonArrayComponent extends SuiButtonArrayBase {
   pressed: string = '';
   shellCreated: boolean = false;
+  initialValue: boolean = true;
 
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams, buttonFactory: getButtonsFcn) {
     super(dialog, parameter, buttonFactory);
@@ -170,9 +175,21 @@ export class SuiButtonArrayComponent extends SuiButtonArrayBase {
     for (let i = 0; i < rowKeys.length; ++i) {
       const buttonRow = this.buttonRows[i];
       buttonRow.buttons.forEach((bb) => {
+        // If the button is being pressed by the user
         if (bb.changeFlag) {
-          this.pressed = bb.smoName;
-          bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+          // toggle button state.
+          if (bb.buttonState === SuiButtonArrayButton.buttonState.pushed) {
+            bb.buttonState = SuiButtonArrayButton.buttonState.initial;
+            this.pressed = '';
+          } else {
+            this.pressed = bb.smoName;
+            bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+          }
+        } else if (this.initialValue) {
+          // if the condition was met when the dialog was created
+          if (this.pressed === bb.smoName) {
+            bb.buttonState = SuiButtonArrayButton.buttonState.pushed;
+          }
         } else {
           bb.buttonState = SuiButtonArrayButton.buttonState.initial;
         }
@@ -183,6 +200,7 @@ export class SuiButtonArrayComponent extends SuiButtonArrayBase {
     this.pressed = val;
     this.updateValues();
     this.updateControls();
+    this.initialValue = false;
   }
   changed() {
     this.changeFlag = true;

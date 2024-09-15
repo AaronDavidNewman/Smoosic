@@ -3,7 +3,7 @@
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
-import { getButtonsFcn, SuiButtonArrayMSComponent, SuiButtonArrayParameters } from './components/buttonArray';
+import { getButtonsFcn, SuiButtonArrayComponent, SuiButtonArrayParameters } from './components/buttonArray';
 import { SuiDialogNotifier, SuiBaseComponentParams } from './components/baseComponent';
 import { SmoMicrotone } from '../../smo/data/noteModifiers';
 
@@ -71,7 +71,7 @@ const microtoneButtonFactory: getButtonsFcn = () => {
   return params;
 }
 
-export class SuiMicrotoneButtonComponent extends SuiButtonArrayMSComponent {
+export class SuiMicrotoneButtonComponent extends SuiButtonArrayComponent {
   constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
     super(dialog, parameter, microtoneButtonFactory);
   }
@@ -105,23 +105,27 @@ export class SuiMicrotoneAdapter extends SuiComponentAdapter {
     return this.toneString;
   }
   set tone(value: string) {
-    this.toneString = value;
+    let add = false;
     const selections = this.view.tracker.selections.filter((ss) => ss.note);
     // for each selection
+    if (this.toneString === value) {
+      this.toneString = '';
+    } else {
+      this.toneString = value;
+      if (this.toneString.length) {
+        add = true;
+      }
+    }
     selections.forEach((selection) => {
       // make sure any existing codes are set
       this.view.modifySelectionNoWait('microtone dialog', selection, (score, selection) => {
         const note = selection.note;
         if (note) {
-          if (value.length) {
+          note.removeMicrotone();
+          if (add) {
             const defs = SmoMicrotone.defaults;
-            defs.tone = this.tone;
+            defs.tone = this.toneString;
             note.addMicrotone(new SmoMicrotone(defs));
-          } else {
-            const mt = note.getMicrotone(0);
-            if (mt) {
-              note.removeMicrotone(mt);
-            }
           }
         }
       });
