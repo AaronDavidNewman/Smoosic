@@ -910,7 +910,7 @@ export class SmoNote implements Transposable {
     //legacy note
     if (jsonObj.ticks && jsonObj.stemTicks === undefined) {
       if (jsonObj.tupletId || jsonObj.tuplet) {
-        jsonObj['stemTicks'] = SmoMusic.closestSmoDuration(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
+        jsonObj['stemTicks'] = SmoMusic.closestBeamDuration(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
       } else {
         jsonObj['stemTicks'] = SmoMusic.closestSmoDurationFromTicks(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
       }
