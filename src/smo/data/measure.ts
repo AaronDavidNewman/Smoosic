@@ -648,6 +648,22 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     if ((jsonObj as any).tuplets !== undefined) {
       for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
         const tupJson = (jsonObj as any).tuplets[j];
+
+        const tupletNotes: SmoNote[] = [];
+        params.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            if (note.isTuplet && note.tupletId === tupJson.id) {
+              tupletNotes.push(note);
+            }
+          });
+        });
+
+        // Bug fix:  A tuplet with no notes may be been overwritten
+        // in a copy/paste operation
+        if (tupletNotes.length > 0) {
+          tupJson.notes = tupletNotes;
+        }
+
         const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
         const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
         params.tupletTrees.push(tupletTree);
