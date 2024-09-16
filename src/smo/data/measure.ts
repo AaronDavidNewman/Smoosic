@@ -652,7 +652,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         const tupletNotes: SmoNote[] = [];
         params.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
-            if (note.isTuplet && note.tupletId === tupJson.id) {
+            if (note.isTuplet && note.tupletId === tupJson.attrs.id) {
               tupletNotes.push(note);
             }
           });
