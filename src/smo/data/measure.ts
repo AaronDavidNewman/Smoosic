@@ -649,6 +649,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
         const tupJson = (jsonObj as any).tuplets[j];
 
+        // Legacy schema had attrs.id, now it is just id
+        if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
+          tupJson.id = (tupJson as any).attrs.id;
+        }
+
         const tupletNotes: SmoNote[] = [];
         params.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
