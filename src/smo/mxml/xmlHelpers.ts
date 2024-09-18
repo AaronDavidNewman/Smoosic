@@ -413,7 +413,13 @@ export class XmlHelpers {
       const actualNotesNode = timeModificationNode.querySelector('actual-notes');
       const normalNotesNode = timeModificationNode.querySelector('normal-notes');
       const normalTypeNode = timeModificationNode.querySelector('normal-type');
-      const normalType = normalTypeNode?.textContent ? XmlHelpers.noteTypesToSmoMap[normalTypeNode?.textContent] ?? null : null;
+      const noteTypeNode = noteNode.querySelector('type');
+      let normalType: number | null = null;
+      if (normalTypeNode) {
+        normalType = normalTypeNode.textContent ? XmlHelpers.noteTypesToSmoMap[normalTypeNode.textContent] ?? null : null;
+      } else if (noteTypeNode) {
+        normalType = noteTypeNode.textContent ? XmlHelpers.noteTypesToSmoMap[noteTypeNode.textContent] ?? null : null;
+      }
       if (actualNotesNode?.textContent && normalNotesNode?.textContent && normalType) {
         const actualNotes = parseInt(actualNotesNode.textContent, 10);
         const normalNotes = parseInt(normalNotesNode.textContent, 10);

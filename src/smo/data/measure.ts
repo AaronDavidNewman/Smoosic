@@ -655,10 +655,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         }
 
         const tupletNotes: SmoNote[] = [];
+        let startIndex: number | null = null;
         params.voices.forEach((voice) => {
-          voice.notes.forEach((note) => {
+          voice.notes.forEach((note, index) => {
             if (note.isTuplet && note.tupletId === tupJson.attrs.id) {
               tupletNotes.push(note);
+              //we cannot trust startIndex coming from legacy json
+              //we need to count index of the first note in the tuplet
+              if (startIndex === null) {
+                startIndex = index;
+              }
             }
           });
         });
@@ -667,6 +673,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         // in a copy/paste operation
         if (tupletNotes.length > 0) {
           tupJson.notes = tupletNotes;
+          tupJson.startIndex = startIndex;
+          tupJson.endIndex = tupJson.startIndex + tupletNotes.length - 1;
         }
 
         const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
