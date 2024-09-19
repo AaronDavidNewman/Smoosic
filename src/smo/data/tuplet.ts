@@ -301,16 +301,13 @@ export class SmoTuplet {
 
   static deserialize(jsonObj: SmoTupletParamsSer): SmoTuplet {
     const tupJson = SmoTuplet.defaults;
-    // We need to calculate the endIndex based on length of notes array
-    // Legacy schema had notes array, but we now demarcate tuplet with startIndex and endIndex
+    smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj, tupJson);
     // Legacy schema did not have notesOccupied, we need to calculate it.
     if ((jsonObj as any).notes !== undefined) {
-      const numberOfNotes = (jsonObj as any).notes.length;
-      tupJson.endIndex = jsonObj.startIndex + numberOfNotes - 1;
-      tupJson.notesOccupied = jsonObj.totalTicks / jsonObj.stemTicks;
+      //todo: notesOccupied can probably be removed
+      tupJson.notesOccupied = tupJson.totalTicks / tupJson.stemTicks;
     }
 
-    smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj, tupJson);
     const tuplet = new SmoTuplet(tupJson);
     tuplet.parentTuplet = jsonObj.parentTuplet ? jsonObj.parentTuplet : null;
     if (jsonObj.childrenTuplets !== undefined) {

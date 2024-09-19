@@ -611,19 +611,23 @@ export class XmlState {
     });
   }
   addTupletsToMeasure(smoMeasure: SmoMeasure, staffId: number, voiceId: number) {
-    const tupletStates = this.findCompletedTupletStatesByStaffAndVoice(staffId, voiceId);
+    const tupletStates = this.findAndRemoveCompletedTupletStatesByStaffAndVoice(staffId, voiceId);
     const xmlTupletStateTrees = this.buildXmlTupletStateTrees(tupletStates);
     const notes: SmoNote[] = smoMeasure.voices[voiceId].notes;
     smoMeasure.tupletTrees = this.buildSmoTupletTreesFromXmlTupletStateTrees(xmlTupletStateTrees, notes);
   }
-  private findCompletedTupletStatesByStaffAndVoice(staffId: number, voiceId: number): XmlTupletState[] {
-    const tupletStates: XmlTupletState[] = [];
+  private findAndRemoveCompletedTupletStatesByStaffAndVoice(staffId: number, voiceId: number): XmlTupletState[] {
+    const remainingXmlTupletStates: XmlCompletedTupletState[] = [];
+    const tupletStatesForReturn: XmlTupletState[] = [];
     this.completedTupletStates.forEach((completedTupletState) => {
       if (completedTupletState.staffId === staffId && completedTupletState.voiceId === voiceId) {
-        tupletStates.push(completedTupletState.tupletState);
+        tupletStatesForReturn.push(completedTupletState.tupletState);
+      } else {
+        remainingXmlTupletStates.push(completedTupletState)
       }
     });
-    return tupletStates;
+    this.completedTupletStates = remainingXmlTupletStates;
+    return tupletStatesForReturn;
   }
   private buildXmlTupletStateTrees(tupletStates: XmlTupletState[]): XmlTupletStateTreeNode[] {
     let sortedTupletStates = this.sortTupletStates(tupletStates);

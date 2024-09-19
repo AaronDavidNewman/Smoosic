@@ -648,6 +648,35 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     if ((jsonObj as any).tuplets !== undefined) {
       for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
         const tupJson = (jsonObj as any).tuplets[j];
+
+        // Legacy schema had attrs.id, now it is just id
+        if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
+          tupJson.id = (tupJson as any).attrs.id;
+        }
+
+        const tupletNotes: SmoNote[] = [];
+        let startIndex: number | null = null;
+        params.voices.forEach((voice) => {
+          voice.notes.forEach((note, index) => {
+            if (note.isTuplet && note.tupletId === tupJson.attrs.id) {
+              tupletNotes.push(note);
+              //we cannot trust startIndex coming from legacy json
+              //we need to count index of the first note in the tuplet
+              if (startIndex === null) {
+                startIndex = index;
+              }
+            }
+          });
+        });
+
+        // Bug fix:  A tuplet with no notes may be been overwritten
+        // in a copy/paste operation
+        if (tupletNotes.length > 0) {
+          tupJson.notes = tupletNotes;
+          tupJson.startIndex = startIndex;
+          tupJson.endIndex = tupJson.startIndex + tupletNotes.length - 1;
+        }
+
         const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
         const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
         params.tupletTrees.push(tupletTree);
