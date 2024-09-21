@@ -48,7 +48,6 @@ export interface MenuTranslation {
 */
 export interface SuiMenuParams {
   ctor: string,
-  position: SvgBox,
   tracker: SuiTracker,  
   score: SmoScore,
   completeNotifier: CompleteNotifier,

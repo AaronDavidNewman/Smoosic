@@ -385,9 +385,21 @@ button.nav-link {
   display: flex;
   flex: 0 0 100px;
   min-width: 100px;
+  justify-content: flex-end;
 }
 .nav-item {
   border-bottom: 1px solid #eee;
+}
+.attributeModal .smoControl.button-hotkey {
+  display: flex;
+  flex-flow: row;
+}
+.attributeModal .smoControl.button-hotkey button {
+  width: 70px;
+  text-align: left;
+}
+.attributeModal .smoControl.button-hotkey span.button-text {
+  float: right;
 }
 .attributeModal .smoControl.buttonArray .icon-bravura {
   left:calc(50% - 12px);

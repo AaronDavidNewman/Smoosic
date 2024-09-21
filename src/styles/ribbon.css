@@ -117,6 +117,9 @@ div.ribbonButtonContainer.expanded {
 	min-width: 50px;
 	height:50px;
 }
+.controls-top button.button-wide {
+  font-size: 1em;
+}
 
 .controls-top div {
 	display:inline-block;
@@ -132,7 +135,7 @@ div.ribbonButtonContainer.expanded {
 .controls-top .text-span {
 	position:absolute;
 	top: 30%;
-	left: 0;
+	left: 10px;
 }
 .controls-top .ribbonButtonContainer .text-span .icon-bravura {
   display: block;
@@ -153,10 +156,37 @@ button#MicrotoneButtons  {
     width:35px;
     height:40px;
 }
-
-.controls-top .ribbonButtonContainer[data-group="quickButtons"] button .icon {
-    top:25%;
-    left:25%;
+.ribbonButtonContainer[data-group="quickButtons"] .button-wide button {
+  font-size: 1.2em;
+}
+.ribbonButtonContainer[data-group="quickButtons"] .button-wide button .icon {
+  font-size: 2em;
+}
+.controls-top .ribbonButtonContainer .ribbon-button-text.icon-smo.icon {
+  position: absolute;
+  top:8px;
+  left:12px;
+}
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-smo.icon, 
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-bravura.icon {
+  right: 5px;
+  top: 5px;
+  left:inherit;
+  bottom:inherit;
+}
+.controls-top .ribbonButtonContainer .left-text {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.controls-top .ribbonButtonContainer .button-wide .text-span {
+  top: 12px;
+  left: 5px;
+}
+.ribbonButtonContainer[data-group="quickButtons"] button.button-wide {
+  width:100px;
+  height:55px;
 }
 .controls-top .ribbonButtonContainer[data-group="quickButtons"] .select-part-button {
   width: 120px;
@@ -313,16 +343,6 @@ button.addChord .left-text .icon {
 .controls-top .ribbonButtonContainer button.player span.ribbon-button-text {
     top:25%;
 }
-#playerButtons .ribbon-button-text {
-    top: 15%;
-    left: 15%;
-}
-
-#playerButtons,#VoiceButtons {
-    width:55px;
-    font-size:1.3em;
-}
-
 [data-group="voices"] .expanded .icon {
     font-size:1.7em;
 }
@@ -340,51 +360,7 @@ button.addChord .left-text .icon {
     background-color:green;
 }
 
-#addTextMenu .left-text {
-    left:18%;
-    top: 15%;
-    font-size: 1em;
-    position:absolute;
-}
-#DurationButtons .left-text {
-    position:absolute;
-    font-size:1.2em;
-    left:12%;
-    top:12%;
-}
 
-#MeasureButtons .left-text {
-    position:absolute;
-    top: 12%;
-    left: 15%;
-    font-size: 1.9em;
-}
-
-#GrowDuration .ribbon-button-hotkey ,
-#LessDuration .ribbon-button-hotkey {
-	font-size:3em;
-	top:0;
-}
-
-#TripletButton {
-    width:65px;
-}
-#SeptupletButton {
-	width:90px;
-}
-
-#QuintupletButton {
-	width:75px;
-}
-
-#toCoda .icon  {
-	left:10px;
-}
-
-.controls-top .ribbonButtonContainer .ribbon-button-text.icon-smo.icon {
-  position: absolute;
-  left: 12px;
-}
 .controls-top button.articulation {
 	width:50px;
 }

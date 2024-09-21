@@ -11,7 +11,6 @@ export class defaultRibbonLayout {
       .concat(defaultRibbonLayout.durationIds)
       .concat(defaultRibbonLayout.beamIds)
       .concat(defaultRibbonLayout.staveIds)
-      .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
       .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
     return {
@@ -27,14 +26,14 @@ export class defaultRibbonLayout {
               defaultRibbonLayout.chordButtons).concat(
                 defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons)
       .concat(defaultRibbonLayout.staveRibbonButtons)
-      .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
+      .concat(defaultRibbonLayout.playerButtons)
       .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.displayButtons).concat(defaultRibbonLayout.debugRibbonButtons);
   }
 
   static get leftRibbonIds() {
     return ['helpDialog', 'languageMenu', 'fileMenu', 
     'scoreMenu', 'partMenu', 'staffModifierMenu', 'measureModal', 'noteMenu',
-    'tempoModal', 'timeSignatureMenu', 'libraryMenu',
+    'tempoModal', 'timeSignatureMenu', 'textMenu', 'libraryMenu',
        ];
   }
   static get noteButtonIds() {
@@ -85,7 +84,7 @@ export class defaultRibbonLayout {
   }
 
   static get displayIds() {
-    return ['quickButtons', 'selectPart', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2', 'keySignature'];
+    return ['quickButtons', 'selectPart', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2', 'keySignature', 'ribbonTempo', 'ribbonTime'];
   }
 
 
@@ -215,12 +214,30 @@ export class defaultRibbonLayout {
     }, {
       leftText: 'Key',
       rightText: '',
-      classes: 'icon    keysignature',
-      icon: 'icon-smo',
+      classes: 'icon keysignature button-wide',
+      icon: 'icon-smo icon-key-sig-b',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
       group: 'quickButtons',
       id: 'keySignature'
+    },  {
+      leftText: 'Tempo',
+      rightText: '',
+      classes: 'icon keysignature button-wide',
+      icon: 'icon-smo icon-metronome4',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'quickButtons',
+      id: 'ribbonTempo'
+    },  {
+      leftText: 'Time',
+      rightText: '',
+      classes: 'icon keysignature button-wide',
+      icon: 'icon-bravura icon-timeSigCommon',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'quickButtons',
+      id: 'ribbonTime'
     }
     ];
   }
@@ -1305,26 +1322,17 @@ export class defaultRibbonLayout {
       ctor: 'SuiNoteMenu',
       group: 'scoreEdit',
       id: 'noteMenu'
-    }, {
-      leftText: 'Tempo',
-      rightText: '',
-      icon: '',
-      classes: 'icon nav-link link-body-emphasis',
-      action: 'modal',
-      ctor: 'SuiTempoDialog',
-      group: 'scoreEdit',
-      id: 'tempoModal'
-    }, {
-      leftText: 'Time Signature',
-      rightText: '',
-      icon: '',
-      classes: 'staff-modify menu-select nav-link link-body-emphasis',
-      action: 'menu',
-      ctor: 'SuiTimeSignatureMenu',
-      group: 'scoreEdit',
-      id: 'timeSignatureMenu'
     },
     {
+      leftText: 'Text',
+      rightText: '',
+      icon: '',
+      classes: 'menu-select  nav-link link-body-emphasis',
+      action: 'menu',
+      ctor: 'SuiTextMenu',
+      group: 'scoreEdit',
+      id: 'textMenu'
+    }, {
       leftText: 'Library',
       rightText: '',
       icon: '',

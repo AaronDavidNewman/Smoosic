@@ -40,6 +40,7 @@ import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNo
 // ui dialogs and menus
 // Dialogs
 import { SuiDialogBase } from '../ui/dialogs/dialog';
+import { SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent } from '../ui/dialogs/gracenote';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiTransposeScoreDialog, SuiTransposeScoreAdapter } from '../ui/dialogs/transposeScore';
 import { SuiMeasureDialog } from '../ui/dialogs/measureFormat';
@@ -107,6 +108,7 @@ import { TextCheckComponent } from '../ui/dialogs/components/textCheck';
 import { SuiMenuManager} from '../ui/menus/manager';
 import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
+import { SuiTextMenu } from '../ui/menus/text';
 import { SuiPartMenu } from '../ui/menus/parts';
 import { SuiPartSelectionMenu } from '../ui/menus/partSelection';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
@@ -186,8 +188,9 @@ export const Smo = {
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiNoteMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
-    SuiPartSelectionMenu,
+    SuiPartSelectionMenu, SuiTextMenu,
     // Dialogs
+    SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent,
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiTextBracketDialog, SuiKeySignatureDialog, SuiKeySignatureAdapter,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, SuiTransposeScoreAdapter,

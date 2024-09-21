@@ -243,7 +243,6 @@ export class SuiMenuManager {
     const ctor = eval('globalThis.Smo.' + action);
     const params: SuiMenuParams = 
     {
-      position: this.menuPosition,
       tracker: this.tracker,
       score: this.score,
       completeNotifier: this.completeNotifier,
