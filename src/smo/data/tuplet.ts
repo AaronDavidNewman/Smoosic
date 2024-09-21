@@ -9,7 +9,7 @@ import { SmoNote, SmoNoteParamsSer, TupletInfo } from './note';
 import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { getId, SmoAttrs, Clef } from './common';
-import { SmoMeasure } from './measure';
+import {SmoMeasure, SmoVoice} from './measure';
 import {tuplets} from "vexflow_smoosic/build/esm/types/tests/formatter/tests";
 
 
@@ -37,6 +37,26 @@ export class SmoTupletTree {
 
   constructor(params: SmoTupletTreeParams) {
     this.tuplet = params.tuplet;
+  }
+
+  static syncTupletIds(tupletTrees: SmoTupletTree[], voices: SmoVoice[]) {
+    const traverseTupletTree = (parentTuplet: SmoTuplet): void => {
+      const notes: SmoNote[] = voices[parentTuplet.voice].notes;
+      for (let i = parentTuplet.startIndex; i <= parentTuplet.endIndex; i++) {
+        const note: SmoNote = notes[i];
+        note.tupletId = parentTuplet.attrs.id;
+      }
+      for (let i = 0; i < parentTuplet.childrenTuplets.length; i++) {
+        const tuplet = parentTuplet.childrenTuplets[i];
+        traverseTupletTree(tuplet);
+      }
+    };
+
+    //traverse tuplet tree
+    for (let i = 0; i < tupletTrees.length; i++) {
+      const tupletTree: SmoTupletTree = tupletTrees[i];
+      traverseTupletTree(tupletTree.tuplet);
+    }
   }
 
   static adjustTupletIndexes(tupletTrees: SmoTupletTree[], voice: number, startTick: number, diff: number) {

@@ -19,6 +19,7 @@ import { Pitch, PitchKey, Clef } from '../data/common';
 import { SmoOperation } from '../xform/operations';
 import { SmoInstrument, SmoSlur, SmoTie, TieLine } from '../data/staffModifiers';
 import { SmoPartInfo } from '../data/partInfo';
+import {SmoTupletTree} from "../data/tuplet";
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -805,6 +806,7 @@ export class XmlToSmo {
         const voiceId = smoMeasure.voices.length - 1;
         xmlState.addTupletsToMeasure(smoMeasure, staffData.clefInfo.staffId, voiceId);
       });
+      SmoTupletTree.syncTupletIds(smoMeasure.tupletTrees, smoMeasure.voices);
       if (smoMeasure.voices.length === 0) {
         smoMeasure.voices.push({ notes: SmoMeasure.getDefaultNotes(smoMeasure) });
       }
