@@ -682,6 +682,10 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         params.tupletTrees.push(tupletTree);
       }
     }
+    if (params.tupletTrees.length) {
+      SmoTupletTree.syncTupletIds(params.tupletTrees, voices)
+    }
+
     params.modifiers = modifiers;
     const measure = new SmoMeasure(params);
     // Handle migration for measure-mapped parameters
