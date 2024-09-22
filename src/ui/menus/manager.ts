@@ -6,12 +6,14 @@ import { UndoBuffer } from '../../smo/xform/undo';
 
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { SuiKeySignatureDialog } from '../dialogs/keySignature';
 import { SuiTracker } from '../../render/sui/tracker';
 import { CompleteNotifier, ModalComponent } from '../common';
 import { BrowserEventSource, EventHandler } from '../eventSource';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 import { KeyBinding } from '../../application/common';
 import { Qwerty } from '../qwerty';
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, SuiConfiguredMenu, SuiConfiguredMenuOption } from './menu';
 declare var $: any;
 
 export interface SuiMenuManagerParams {
@@ -71,20 +73,6 @@ export class SuiMenuManager {
   static get menuKeyBindingDefaults(): KeyBinding[] {
     return [
       {
-        event: 'keydown',
-        key: 'n',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiLanguageMenu'
-      }, {
-        event: 'keydown',
-        key: 'k',
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: 'SuiKeySignatureMenu'
-      }, {
         event: 'keydown',
         key: 'p',
         ctrlKey: false,
@@ -167,7 +155,8 @@ export class SuiMenuManager {
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
     const b = buildDom;
-    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length.toString())
+    const r = b('ul').classes('menuElement dropdown-menu rounded-3 shadow w-220px show').attr('size', this.menu.menuItems.length.toString())
+       .attr('role', 'menu')
       .css('left', '' + this.menuPosition.x + 'px')
       .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
@@ -176,7 +165,8 @@ export class SuiMenuManager {
 
       r.append(
         b('li').classes('menuOption').append(
-          b('button').attr('data-value', item.value).append(
+          b('a').attr('data-value', item.value)
+            .attr('role', 'menuItem').classes('dropdown-item').append(
             b('span').classes('menuText').text(item.text))
             .append(b('span').classes('icon icon-' + item.icon))
             .append(b('span').classes('menu-key').text('' + vkey))));
@@ -201,7 +191,7 @@ export class SuiMenuManager {
       $('body').off('menuDismiss').on('menuDismiss', () => {
         layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
         self.unattach();
-        $('body').removeClass('slash-menu');
+        $('body').removeClass('slash-menu d-block');
         self.closeMenuPromise = null;
         resolve();
       });
@@ -237,10 +227,22 @@ export class SuiMenuManager {
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
+    if (action === 'SuiKeySignatureMenu') {
+      // TODO: find a better way of handling slash menus from ribbon buttons
+      createAndDisplayDialog(SuiKeySignatureDialog, {
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        startPromise: null,
+        eventSource: this.eventSource,
+        tracker: this.view.tracker,
+        ctor: 'SuiKeySignatureDialog',
+        id: 'key-signature-dialog',
+        modifier: null
+      });
+    }
     const ctor = eval('globalThis.Smo.' + action);
     const params: SuiMenuParams = 
     {
-      position: this.menuPosition,
       tracker: this.tracker,
       score: this.score,
       completeNotifier: this.completeNotifier,
@@ -271,7 +273,7 @@ export class SuiMenuManager {
       } else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
+        $('a[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown();
       }
@@ -281,6 +283,19 @@ export class SuiMenuManager {
       ev.key === event.key
     );
     if (!binding) {
+      // TODO: find a better place for the slash menus
+      if (event.key === 'k') {
+        createAndDisplayDialog(SuiKeySignatureDialog, {
+          view: this.view,
+          completeNotifier: this.completeNotifier,
+          startPromise: null,
+          eventSource: this.eventSource,
+          tracker: this.view.tracker,
+          ctor: 'SuiKeySignatureDialog',
+          id: 'key-signature-dialog',
+          modifier: null
+        });
+      }
       this.dismiss();
       return;
     }
@@ -289,19 +304,19 @@ export class SuiMenuManager {
 
   bindEvents() {
     this.hotkeyBindings = { };
-    $('body').addClass('slash-menu');
+    $('body').addClass('slash-menu d-block');
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {
       this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-    $(this.menuContainer).find('button').off('click').on('click', (ev: any) => {
+    $(this.menuContainer).find('a.dropdown-item').off('click').on('click', async (ev: any) => {
       if ($(ev.currentTarget).attr('data-value') === 'cancel') {
         this.menu!.complete();
         return;
       }
-      this.menu!.selection(ev);
+      await this.menu!.selection(ev);
     });
   }
 }

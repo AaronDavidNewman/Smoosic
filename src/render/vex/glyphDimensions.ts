@@ -14,6 +14,9 @@ export class vexGlyph {
   static barWidth(b: SmoBarline): number {
     const str = SmoBarline.barlineString(b);
     const cc = vexGlyph.dimensions[str];
+    if (typeof(cc) === 'undefined') {
+      return 0;
+    }
     return cc.width + cc.spacingRight;
   }
   static accidentalWidth(accidental: string): number {

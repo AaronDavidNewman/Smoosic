@@ -4,6 +4,7 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
+import { SmoMusic } from '../../smo/data/music';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
@@ -33,6 +34,9 @@ export interface ViewMapEntry {
   show: boolean;
 }
 
+export type updateSelectionFunc = (score: SmoScore, selections: SmoSelection[]) => void;
+export type updateSingleSelectionFunc = (score: SmoScore, selection: SmoSelection) => void;
+export type updateStaffModifierFunc = (score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) => void;
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -49,7 +53,6 @@ export abstract class SuiScoreView {
   tracker: SuiTracker; // UI selections
   renderer: SuiRenderState;
   scroller: SuiScroller;
-  pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
   config: SmoRenderConfiguration;
   audioAnimation: SuiAudioAnimationParams;
@@ -64,41 +67,32 @@ export abstract class SuiScoreView {
     this.audioAnimation = config.audioAnimation;
     this.renderer = new SuiRenderState(renderParams);
     this.config = config;
-    const scoreJson = score.serialize({ skipStaves: false, useDictionary: false });
+    const scoreJson = score.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true });
     this.scroller = new SuiScroller(scrollSelector, this.renderer.renderer.vexContainers);
-    this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
-    this.tracker = new SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
+    this.tracker = new SuiTracker(this.renderer, this.scroller);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
-    this.synchronizeTextGroups()
+    this.score.synchronizeTextGroups(this.storeScore.textGroups);
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView.Instance = this; // for debugging
     this.setMappedStaffIds();
     createTopDomContainer('.saveLink'); // for file upload
   }
-  synchronizeTextGroups() {
-    // Synchronize the score text IDs so cut/paste/undo works transparently
-    this.score.textGroups.forEach((tg, ix) => {
-      if (this.storeScore.textGroups.length > ix) {
-        this.storeScore.textGroups[ix].attrs.id = tg.attrs.id;
-      }
-    });
-  }
   /**
    * Await on the full update of the score
    * @returns 
    */
-  renderPromise(): Promise<any> {
+  async renderPromise(): Promise<any> {
     return this.renderer.renderPromise();
   }
   /**
    * Await on the partial update of the score in the view
    * @returns 
    */
-  updatePromise(): Promise<any> {
+  async updatePromise(): Promise<any> {
     return this.renderer.updatePromise();
   }
   async awaitRender(): Promise<any> {
@@ -140,13 +134,76 @@ export abstract class SuiScoreView {
     return { keys, partMap };
   }
   /**
+   * Any method that modifies a set of selections can call this to update 
+   * the score view and the backing score.
+   * @param actor 
+   * @param selections 
+   */
+  async modifyCurrentSelections(label: string, actor: updateSelectionFunc) {
+    const altSelections = this._getEquivalentSelections(this.tracker.selections);
+    this.undoTrackerMeasureSelections(label);
+    actor(this.score, this.tracker.selections);
+    actor(this.storeScore, altSelections);
+    this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
+    await this.updatePromise();
+  }
+  /**
+   * Any method that modifies a set of selections can call this to update 
+   * the score view and the backing score.
+   * @param actor 
+   * @param selections 
+   */
+  async modifySelection(label: string, selection: SmoSelection, actor: updateSelectionFunc) {
+    const altSelection = this._getEquivalentSelection(selection);
+    this.undoTrackerMeasureSelections(label);
+    actor(this.score, [selection]);
+    if (altSelection) {
+      actor(this.storeScore, [altSelection]);
+    }
+    this._renderChangedMeasures(SmoSelection.getMeasureList([selection]));
+    await this.updatePromise();
+  }
+    /**
+   * Any method that modifies a set of selections can call this to update 
+   * the score view and the backing score.
+   * @param actor 
+   * @param selections 
+   */
+    async modifySelectionNoWait(label: string, selection: SmoSelection, actor: updateSingleSelectionFunc) {
+      const altSelection = this._getEquivalentSelection(selection);
+      this.undoTrackerMeasureSelections(label);
+      actor(this.score, selection);
+      if (altSelection) {
+        actor(this.storeScore, altSelection);
+      }
+      this._renderChangedMeasures(SmoSelection.getMeasureList([selection]));
+    }
+    /**
+     * Modifiy a set of columns, e.g. tempo, time, key.  This has different undo behavior, don't 
+     * pend on the result because there may be a combination of operations.
+     * @param label 
+     * @param selections 
+     * @param actor 
+     */
+    modifyColumnsSelectionsNoWait(label: string, selections: SmoSelection[], actor: updateSingleSelectionFunc) {
+      this.undoColumnRange(label, selections);
+      selections.forEach((selection) => {
+        const altSelection = this._getEquivalentSelection(selection);
+        actor(this.score, selection);
+        if (altSelection) {
+          actor(this.storeScore, altSelection);
+        }  
+      });
+      this._renderChangedMeasures(selections);
+    }
+  /**
    * This is used in some Smoosic demos and pens.
    * @param action any action, but most usefully a SuiScoreView method
    * @param repetition number of times to repeat, waiting on render promise between
    * if not specified, defaults to 1
    * @returns promise, resolved action has been completed and score is updated.
    */
-  waitableAction(action: () => void, repetition?: number): Promise<any> {
+  async waitableAction(action: () => void, repetition?: number) {
     const rep = repetition ?? 1;
     const self = this;
     const promise = new Promise((resolve: any) => {
@@ -179,18 +236,47 @@ export abstract class SuiScoreView {
     });
     return rv;
   }
+  // Get a long enough list of measures to paste into
+  getPasteMeasureList() {
+    // The length of the paste buffer, in ticks
+    const ticksToPaste = this.storePaste.getCopyBufferTickCount();
+    const selections: SmoSelection[]  = SmoSelection.getMeasureList(this.tracker.selections);
+    const tm = selections[0].measure.tickmapForVoice(selections[0].selector.voice);
+    // The last measure selected
+    const lastSelection = this.tracker.selections[this.tracker.selections.length - 1];
+    // length of first selected measure, in ticks
+    const measureTicks = this.tracker.selections[0].measure.getTicksFromVoice(this.tracker.selections[0].selector.voice);
+    // remaining ticks after first selection.  This is our starting point.
+    let startTick = measureTicks - tm.durationMap[this.tracker.selections[0].selector.tick];
+    // Add ticks for all remaining measures
+    for (let i = 1; i < selections.length; ++i) {
+      const sel = selections[i];
+      startTick += sel.measure.getTicksFromVoice(0);
+    }
+    // if we are short, and there are measures left, add them to the selection list
+    if (startTick < ticksToPaste && lastSelection.selector.measure < (this.score.staves[0].measures.length + 1)) {
+      const newSel = SmoSelection.measureSelection(this.score, selections[0].selector.staff, lastSelection.selector.measure + 1);
+      if (newSel) {
+        selections.push(newSel);
+      }
+    }
+    return selections;
+  }
   /**
    * A staff modifier has changed, create undo operations for the measures affected
    * @param label 
    * @param staffModifier 
    * @param subtype 
    */
-  _undoStaffModifier(label: string, staffModifier: StaffModifierBase, subtype: number) {
+  undoStaffModifier(label: string, staffModifier: StaffModifierBase, subtype: number) {
     const copy = StaffModifierBase.deserialize(staffModifier.serialize());
     copy.startSelector = this._getEquivalentSelector(copy.startSelector);
     copy.endSelector = this._getEquivalentSelector(copy.endSelector);
+    const copySer = copy.serialize();
+    // Copy ID so we can undo properly
+    copySer.attrs = JSON.parse(JSON.stringify(staffModifier.attrs));
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, SmoSelector.default,
-      copy.serialize(), subtype);
+      copySer, subtype);
   }
   /** 
    * Return the index of the page that is in the center of the client screen.
@@ -222,14 +308,16 @@ export abstract class SuiScoreView {
   _undoScorePreferences(label: string) {
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, SmoSelector.default, this.storeScore, UndoBuffer.bufferSubtypes.NONE);
   }
-  
-  /**
-   * Add to the undo buffer the current set of measures selected.
-   * @param label 
-   * @returns 
-   */
-  _undoTrackerMeasureSelections(label: string): SmoSelection[] {
-    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+  undoColumnRange(label: string, measureSelections: SmoSelection[]) {
+    const checked: Record<number, boolean> = {};
+    measureSelections.forEach((measureSelection) => {
+      if (!checked[measureSelection.selector.measure]) {
+        checked[measureSelection.selector.measure] = true;
+        this._undoColumn(label, measureSelection.selector.measure);
+      }
+    });
+  }
+  undoMeasureRange(label: string, measureSelections: SmoSelection[]) {
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
       if (equiv !== null) {
@@ -238,6 +326,15 @@ export abstract class SuiScoreView {
       }
     });
     return measureSelections;
+  }
+  /**
+   * Add to the undo buffer the current set of measures selected.
+   * @param label 
+   * @returns 
+   */
+  undoTrackerMeasureSelections(label: string): SmoSelection[] {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    return this.undoMeasureRange(label, measureSelections);
   }
   /**
    * operation that only affects the first selection.  Setup undo for the measure
@@ -494,7 +591,7 @@ export abstract class SuiScoreView {
         const tga: SmoTextGroup[] = [];
         replacedText = true;
         staff.partInfo.textGroups.forEach((tg) => {
-          tga.push(tg)
+          tga.push(tg);
         });
         this.score.textGroups = tga;
       }
@@ -509,13 +606,14 @@ export abstract class SuiScoreView {
     if (!any) {
       return;
     }
-    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize({ skipStaves: true, useDictionary: false })));
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize(
+      { skipStaves: true, useDictionary: false, preserveStaffIds: false })));
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
         const srcStave = this.storeScore.staves[i];
-        const jsonObj = srcStave.serialize({ skipMaps: false });
+        const jsonObj = srcStave.serialize({ skipMaps: false, preserveIds: true });
         jsonObj.staffId = staffMap.length;
         const nStave = SmoSystemStaff.deserialize(jsonObj);
         nStave.mapStaffFromTo(i, nscore.staves.length);
@@ -561,13 +659,12 @@ export abstract class SuiScoreView {
    */
   viewAll() {
     this.score = SmoScore.deserialize(JSON.stringify(
-      this.storeScore.serialize({ skipStaves: false, useDictionary: false })));
+      this.storeScore.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true })));
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this._setTransposing();
-    this.synchronizeTextGroups();
+    this.score.synchronizeTextGroups(this.storeScore.textGroups);
     this.renderer.score = this.score;
-    this.pasteBuffer.setScore(this.score);
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     this.renderer.setViewport();
   }
@@ -594,13 +691,13 @@ export abstract class SuiScoreView {
     this.renderer.score = score;
     this.renderer.setViewport();
     this.storeScore = SmoScore.deserialize(JSON.stringify(
-      score.serialize({ skipStaves: false, useDictionary: false })));
+      score.serialize({ skipStaves: false, useDictionary: false, preserveStaffIds: true })));
     this.score = score;
     // If the score is non-transposing, hide the instrument xpose settings
     this._setTransposing();
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
-    this.synchronizeTextGroups();
+    this.score.synchronizeTextGroups(this.storeScore.textGroups);
     if (this.storeScore.isPartExposed()) {
       this.exposePart(this.score.staves[0]);
     }
@@ -608,26 +705,74 @@ export abstract class SuiScoreView {
     window.dispatchEvent(new CustomEvent(scoreChangeEvent, { detail: { view: this } }));
     return rv;
   }
-
+  replaceMeasureView(measureRange: number[]) {
+    for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
+      this.score.staves.forEach((staff) => {
+        const staffId = staff.staffId;
+        const altStaff = this.storeScore.staves[this._getEquivalentStaff(staffId)];
+        if (altStaff) {
+          staff.syncStaffModifiers(i, altStaff);
+        }
+        // Get a copy of the backing score, and map it to the score stave.  this.score may have fewer staves
+        // than this.storeScore
+        const svg = JSON.parse(JSON.stringify(staff.measures[i].svg));
+        const serialized = UndoBuffer.serializeMeasure(this.storeScore.staves[this.staffMap[staffId]].measures[i]);
+        serialized.measureNumber.staffId = staffId;
+        const xpose = serialized.transposeIndex ?? 0;
+        const concertKey = SmoMusic.vexKeySigWithOffset(serialized.keySignature ?? 'c', -1 * xpose);
+        serialized.keySignature = concertKey;
+        const rmeasure = SmoMeasure.deserialize(serialized);
+        rmeasure.svg = svg;
+        const selector: SmoSelector = { staff: staffId, measure: i, voice: 0, tick: 0, pitches: [] };
+        this.score.replaceMeasure(selector, rmeasure);
+      });
+      this.renderer.addColumnToReplaceQueue(i);
+    }
+  }
   /**
    * for the view score, the renderer decides what to render
    * depending on what is undone.
    * @returns 
    */
-  undo() {
+  async undo() {
     if (!this.renderer.score) {
       return;
     }
     
-    // A score-level undo might have changed the score.
-    if (this.storeUndo.buffer.length < 1) {
+    if (!this.storeUndo.buffersAvailable()) {
       return;
     }
     const staffMap: Record<number, number> = {};
     const identityMap: Record<number, number> = {};
     this.defaultStaffMap.forEach((nn) => identityMap[nn] = nn);
     this.staffMap.forEach((mm, ix) => staffMap[mm] = ix);
-    this.score = this.renderer.undo(this.storeUndo, staffMap);
+    // A score-level undo might have changed the score.
+    const fullScore = this.storeUndo.undoScorePeek();
+    // text undo is handled differently since there is usually not
+    // an associated measure.
+    const scoreText = this.storeUndo.undoScoreTextGroupPeek();
+    const partText = this.storeUndo.undoPartTextGroupPeek();
+    if (scoreText || partText) {
+      await this.renderer.unrenderTextGroups();
+    }
+    const measureRange = this.storeUndo.getMeasureRange();
+    if (!(fullScore || scoreText || partText)) {
+      for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
+        this.renderer.unrenderColumn(this.score.staves[0].measures[i]);
+      }
+    }
     this.storeScore = this.storeUndo.undo(this.storeScore, identityMap, true);
+    if (fullScore) {
+      this.viewAll();
+      this.renderer.setRefresh();
+    } else if (partText) {
+      this.setView(this.getView());
+    } else if (scoreText) {
+      this.score.synchronizeTextGroups(this.storeScore.textGroups);
+      this.renderer.rerenderTextGroups();
+    } else {
+      this.replaceMeasureView(measureRange);
+    }
+    await this.renderer.updatePromise();
   }
 }

@@ -12,6 +12,7 @@ import { SmoNote } from './note';
 import { SmoAttrs, getId, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase, Pitch } from './common';
 import { SmoTabNote, SmoFretPosition } from './noteModifiers';
 import { SmoMusic } from './music';
+import { SuiTimeSignatureMenu } from '../../../typedoc';
 /**
  * Base class that mostly standardizes the interface and deals with serialization.
  * @param ctor constructor for derived class
@@ -44,6 +45,11 @@ export abstract class StaffModifierBase implements SmoModifierBase {
     }
     const rv = new ctor(params);
     return rv;
+  }
+  serializeWithId() {
+    const ser = this.serialize();
+    ser.attrs = JSON.parse(JSON.stringify(this.attrs));
+    return ser;
   }
   abstract serialize(): any;
 }
@@ -550,6 +556,11 @@ export class SmoStaffTextBracket extends StaffModifierBase {
     }
     return params;
   }
+  serializeWithId():SmoStaffTextBracketParamsSer {
+    const ser = this.serialize();
+    ser.attrs = JSON.parse(JSON.stringify(this.attrs));
+    return ser;
+  }
   constructor(params: SmoStaffTextBracketParams) {
     super('SmoStaffTextBracket');
     smoSerialize.serializedMerge(SmoStaffTextBracket.attributes, SmoStaffTextBracket.defaults, this);
@@ -631,10 +642,6 @@ export interface SmoSlurParams {
    */
   orientation: number,
   /**
-   * reverse the slur from the usual rules in VF
-   */
-  invert: boolean,
-  /**
    * control point for bz curve
    */
   cp1x: number,
@@ -691,10 +698,9 @@ export class SmoSlur extends StaffModifierBase {
       thickness: 2,
       xOffset: 5,
       yOffset: 0,
-      position: SmoSlur.positions.TOP,
-      position_end: SmoSlur.positions.TOP,
+      position: SmoSlur.positions.AUTO,
+      position_end: SmoSlur.positions.AUTO,
       orientation: SmoSlur.orientations.AUTO,
-      invert: false,
       cp1x: 0,
       cp1y: 15,
       cp2x: 0,
@@ -732,7 +738,6 @@ export class SmoSlur extends StaffModifierBase {
   position: number = SmoSlur.positions.TOP;
   position_end: number = SmoSlur.positions.TOP;
   orientation: number = SmoSlur.orientations.AUTO;
-  invert: boolean = false;
   cp1x: number = 0;
   cp1y: number = 15;
   cp2x: number = 0;
@@ -1061,14 +1066,8 @@ export class SmoTabStave extends StaffModifierBase {
     }
     return true;
   }
-  static overlaps(st1: SmoTabStave, st2: SmoTabStave): boolean {
-     if (SmoSelector.contains(st1.startSelector, st2.startSelector, st2.endSelector)) {
-      return true;
-     }
-     if (SmoSelector.contains(st1.endSelector, st2.startSelector, st2.endSelector)) {
-      return true;
-     }
-     return false;
+  static overlaps(st1: StaffModifierBase, st2: StaffModifierBase): boolean {
+    return SmoSelector.overlaps(st1.startSelector, st1.endSelector, st2.startSelector, st2.endSelector);
   }
   getTabNoteFromNote(note: SmoNote, transposeIndex: number) {
     if (note.tabNote) {
@@ -1142,13 +1141,73 @@ export class SmoTabTie extends StaffModifierBase {
   };
   constructor(params: SmoTabTieParams) {
     super('SmoTabTie');
-    smoSerialize.serializedMerge(SmoTabTie.parameterArray, SmoTabStave.defaults, this);
+    smoSerialize.serializedMerge(SmoTabTie.parameterArray, SmoTabTie.defaults, this);
     smoSerialize.serializedMerge(SmoTabTie.parameterArray, params, this);
   }
   serialize() {
-    const params: Partial<SmoTabStaveParamsSer> = { ctor: 'SmoTabTie' };
-    smoSerialize.serializedMergeNonDefault(SmoTabStave.defaults,
+    const params: Partial<SmoTabTieParamsSer> = { ctor: 'SmoTabTie' };
+    smoSerialize.serializedMergeNonDefault(SmoTabTie.defaults,
       SmoTabTie.parameterArray, this, params);
+    return params;
+  }
+}
+
+export interface SmoPedalMarkingParams {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
+  startMark: boolean,
+  releaseMark: boolean,
+  bracket: boolean,
+  depressText: string,
+  releaseText: string,
+  releases: SmoSelector[]
+}
+export interface SmoPedalMarkingParamsSer extends SmoPedalMarkingParams {
+  ctor: string
+}
+export function isSmoPedalMarkingParamsSer(params: Partial<SmoPedalMarkingParamsSer>):params is SmoPedalMarkingParamsSer {
+  if (params.ctor !== 'SmoPedalMarking') {
+    return false;
+  }
+  return true;
+}
+export class SmoPedalMarking extends StaffModifierBase {
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  startMark: boolean = true;
+  releaseMark: boolean = true;
+  bracket: boolean = true;
+  depressText: string='';
+  releaseText: string = '';
+  releases: SmoSelector[] = [];
+  static get defaults(): SmoPedalMarkingParams {
+    const rv = {
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default,
+      startMark: true,
+      releaseMark: true,
+      bracket: true,
+      depressText: '',
+      releaseText: '',
+      releases: []
+    };
+    return JSON.parse(JSON.stringify(rv));
+  }
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'startMark', 'endMark', 'bracket', 'depressText', 'releaseText', 'releases'];
+  };
+  constructor(params: SmoPedalMarkingParams) {
+    super('SmoPedalMarking');
+    smoSerialize.serializedMerge(SmoPedalMarking.parameterArray, SmoPedalMarking.defaults, this);
+    smoSerialize.serializedMerge(SmoPedalMarking.parameterArray, params, this);
+  }
+  serialize(): SmoPedalMarkingParamsSer {
+    const params: Partial<SmoPedalMarkingParamsSer> = { ctor: 'SmoPedalMarking' };
+    smoSerialize.serializedMergeNonDefault(SmoPedalMarking.defaults,
+      SmoPedalMarking.parameterArray, this, params);
+    if (!isSmoPedalMarkingParamsSer(params)) {
+      throw('bad serialization for SmoPedalMarking');
+    }
     return params;
   }
 }

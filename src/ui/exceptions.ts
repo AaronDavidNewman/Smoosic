@@ -51,11 +51,6 @@ export class SuiExceptionHandler {
       stack = 'Error with stack: ' + e2.message;
     }
     doing = 'Last operation not available.';
-
-    const lastOp = this.view.storeUndo.peek();
-    if (lastOp) {
-      doing = lastOp.title;
-    }
     const url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
     const bodyObject = JSON.stringify({
       message,
@@ -78,13 +73,9 @@ export class SuiExceptionHandler {
     $('.bugDialog').html('');
     $('.bugDialog').append(r.dom());
 
+    // used to try to restore the last good score here...
     $('.bug-dismiss-button').off('click').on('click', () => {
       $('body').removeClass('bugReport');
-      if (lastOp) {
-        this.view.storeUndo.undo(this.view.score, {}, true);
-        this.view.renderer.render();
-        SuiEventHandler.reentry = false;
-      }
     });
     $('.bug-submit-button').off('click').on('click', () => {
       $('#bug-text-area').select();

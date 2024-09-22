@@ -10,6 +10,11 @@
   font-size: 16px;
   left: 4px;
 }
+/* not in file */
+.icon-note:before {content: "\2669";}
+.icon-grace-note:before {content: "\e562"}
+.icon-grace-note-strike:before {content: "\e560"}
+
 .icon-bracketTop:before {content: "\e003";}
 .icon-bracketBottom:before {content: "\e004";}
 .icon-barlineTick:before {content: "\e039";}

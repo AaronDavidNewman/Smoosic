@@ -48,7 +48,8 @@ export class SuiDom {
             .append(b('div').classes('key-right-ctrl')))
           .append(b('div').classes('controls-top').attr('id','controls-top')))
         .append(b('div').classes('media')
-          .append(b('div').classes('controls-left').attr('id','controls-left'))
+          .append(b('div').classes('d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary')
+            .append(b('ul').classes('nav nav-pills flex-column mb-auto').attr('id','controls-left')))
           ));
     
     uiDomContainer.append(r.dom()[0]);

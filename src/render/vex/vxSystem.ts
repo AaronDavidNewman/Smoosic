@@ -1,14 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { VxMeasure } from './vxMeasure';
-import { SmoSelection } from '../../smo/xform/selections';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket } from '../../smo/data/staffModifiers';
+import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie, SmoStaffTextBracket, SmoPedalMarking } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
+import { SmoMusic } from '../../smo/data/music';
 import { leftConnectorVx, rightConnectorVx } from './smoAdapter';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
-import { SvgBox } from '../../smo/data/common';
+import { SvgBox, Pitch, Clef } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoVolta } from '../../smo/data/measureModifiers';
@@ -16,7 +17,9 @@ import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SmoScoreText } from '../../smo/data/scoreText'
 import { SvgPage } from '../sui/svgPageMap';
 import { SuiScroller } from '../sui/scroller';
-import { VexFlow, Voice, Note, createHairpin, createSlur, createTie } from '../../common/vex';
+import { VexFlow, Voice, Note, createHairpin, createSlur, createTie, PedalMarking, StaveNote,
+  Beam, Stem
+ } from '../../common/vex';
 import { toVexVolta, vexOptions } from './smoAdapter';
 const VF = VexFlow;
 
@@ -274,7 +277,6 @@ export class VxSystem {
   // render a line-type modifier that is associated with a staff (e.g. slur)
   renderModifier(scroller: SuiScroller, modifier: StaffModifierBase,
     vxStart: Note | null, vxEnd: Note | null, smoStart: SmoSelection, smoEnd: SmoSelection) {
-    let xoffset = 0;
     const setSameIfNull = (a: any, b: any) => {
       if (typeof (a) === 'undefined' || a === null) {
         return b;
@@ -286,6 +288,11 @@ export class VxSystem {
     } if (smoEnd && smoEnd.note && smoEnd.note.noteType === '/') {
       return;
     }
+    // if (modifier.ctor === 'SmoPedalMarking' && (vxStart === null || vxEnd === null)) {
+    //   return;
+    // }
+    let slurOffset = 0;
+
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {
@@ -322,33 +329,147 @@ export class VxSystem {
     } else if (modifier.ctor === 'SmoSlur') {
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const slur = modifier as SmoSlur;
+      let startPosition = slur.position;
+      let endPosition = slur.position_end;
+      let openingDirection = 'up';
+      let yOffset = slur.yOffset;
       let slurX = slur.xOffset;
       const svgPoint: SVGPoint[] = JSON.parse(JSON.stringify(slur.controlPoints));
       const lyric = startNote.longestLyric() as SmoLyric;
+      // Find direction for slur based on beam/stem direction
+      // Note: vex slur orientation follows beam direction, not slur direction.  Smo
+      // orientation follows slur direction.
+      if (vxStart !== null && vxEnd !== null) {
+        if (slur.position === SmoSlur.positions.AUTO
+           || slur.position_end === SmoSlur.positions.AUTO 
+           || slur.orientation === SmoSlur.orientations.AUTO) {
+          startPosition = SmoSlur.positions.HEAD;
+          endPosition = SmoSlur.positions.HEAD;
+          if (vxStart.hasStem()) {
+            if (vxStart.getStemDirection() === VF.Stem.UP) {
+              openingDirection = 'up';
+            } else {
+              openingDirection = 'down';
+            }
+            if (vxEnd.hasStem() && vxEnd.getStemDirection() !== vxStart.getStemDirection()) {
+              endPosition = SmoSlur.positions.TOP;
+            }
+          } else {
+            openingDirection = slur.orientation === SmoSlur.orientations.UP ? 'down' : 'up';
+            startPosition = slur.position;
+            endPosition = slur.position_end;
+          }
+        } else {
+          openingDirection = slur.orientation === SmoSlur.orientations.UP ? 'down' : 'up';
+          startPosition = slur.position;
+          endPosition = slur.position_end;
+        }        
+      } else if (vxStart !== null && vxEnd === null) {
+        slurX = 10;
+        slurOffset = -5;
+        if (slur.orientation === SmoSlur.orientations.AUTO && vxStart.hasStem()) {
+          openingDirection = vxStart.getStemDirection() === VF.Stem.UP ? 'up' : 'down';
+        } else {
+          openingDirection = slur.orientation === SmoSlur.orientations.UP ? 'down' : 'up';
+        }
+        startPosition = SmoSlur.positions.HEAD;
+        endPosition = SmoSlur.positions.HEAD;
+      } else if (vxEnd !== null && vxStart === null) {
+        slurX = 10;
+        slurOffset = 5;
+        if (slur.orientation === SmoSlur.orientations.AUTO && vxEnd.hasStem()) {
+          openingDirection = vxEnd.getStemDirection() === VF.Stem.UP ? 'up' : 'down';
+        } else {
+          openingDirection = slur.orientation === SmoSlur.orientations.UP ? 'down' : 'up';
+        }
+        startPosition = SmoSlur.positions.HEAD;
+        endPosition = SmoSlur.positions.HEAD;
+      }
+      // yoffset is always in the direction of the curve, not SVG.  Make sure the curve clears the yoffset
+      // TODO: I think we should adjust this line vs. space
+      if (openingDirection === 'up') {
+        yOffset += 15;
+      } else {
+        yOffset += 10;
+      }
       if (lyric && lyric.getText()) {
         // If there is a lyric, the bounding box of the start note is stretched to the right.
         // slide the slur left, and also make it a bit wider.
         const xtranslate = (-1 * lyric.getText().length * 6);
-        xoffset += (xtranslate / 2) - SmoSlur.defaults.xOffset;
+        slurX += (xtranslate / 2) - SmoSlur.defaults.xOffset;
       }
-      if (vxStart === null || vxEnd === null) {
-        slurX = -5;
-        svgPoint[0].y = 10;
-        svgPoint[1].y = 10;
+      if (SmoSelector.lt(smoEnd.selector, slur.endSelector)) {
+        slurX += 15;
       }
       const smoVexSlurParams = {
         vxStart, vxEnd,
         thickness: slur.thickness,
-        xShift: slur.xOffset,
-        yShift: slur.yOffset,
+        xShift: slurX,
+        yShift: yOffset,
+        openingDirection,
         cps: svgPoint,
-        invert: slur.invert,
-        position: slur.position,
-        positionEnd: slur.position_end
+        position: startPosition,
+        positionEnd: endPosition
       };
       const curve = createSlur(smoVexSlurParams);
       curve.setContext(this.context.getContext()).draw();
-    } else if (modifier.ctor === 'SmoTie') {
+    } else if (modifier.ctor === 'SmoPedalMarking') {
+      const pedalMarking = modifier as SmoPedalMarking;
+      const pedalAr: StaveNote[] = [];
+      if (vxStart !== null) {
+        pedalAr.push(vxStart as StaveNote);
+      }
+      if (SmoSelector.gt(smoEnd.selector, smoStart.selector) && vxEnd !== null) {
+        // Add releases for the pedal marking
+        pedalMarking.releases.forEach((selector: SmoSelector) => {
+          if (SmoSelector.gt(selector, smoStart.selector) && SmoSelector.lt(selector, smoEnd.selector)
+            && vxStart !== null) {
+            const note = SmoSelection.noteSelection(this.score, selector.staff, selector.measure, selector.voice, selector.tick);
+            if (note !== null && note.note !== null) {
+              const vexNote = this.getVxNote(note.note);
+              if (vexNote) {
+                // incidate release and depress
+                pedalAr.push(vexNote as StaveNote);
+                pedalAr.push(vexNote as StaveNote);
+              }
+            }
+          }
+        });
+        pedalAr.push(vxEnd as StaveNote);
+        if (vxStart === null) {
+          pedalAr.push(vxEnd as StaveNote);
+        }
+      }
+      const vexPedal = new VF.PedalMarking(pedalAr);
+      if (pedalMarking.releaseText.length > 0 || pedalMarking.depressText.length > 0) {
+        vexPedal.setCustomText(pedalMarking.depressText, pedalMarking.releaseText);
+      }
+      if (!pedalMarking.startMark && pedalMarking.depressText.length < 1) {
+        vexPedal.setCustomText(' ', pedalMarking.releaseText);
+      }
+      if (pedalMarking.bracket) {
+        if (pedalMarking.startMark || pedalMarking.releaseMark) {
+          vexPedal.setType(VF.PedalMarking.type.MIXED);
+        } else {
+          vexPedal.setType(VF.PedalMarking.type.BRACKET);
+        }
+      } else {
+        vexPedal.setType(VF.PedalMarking.type.TEXT);
+      }
+      if (SmoSelector.gt(smoStart.selector, modifier.startSelector) && (pedalMarking.startMark)) {
+        // If this is the completion of a pedal marking from a previous staff, don't print the depress
+        // pedal again
+        vexPedal.setType(VF.PedalMarking.type.MIXED);
+        vexPedal.setCustomText(' ', pedalMarking.depressText);
+      }
+      if (SmoSelector.lt(smoEnd.selector, modifier.endSelector) && pedalMarking.releaseMark) {
+        vexPedal.setType(VF.PedalMarking.type.MIXED);
+        vexPedal.setCustomText(pedalMarking.depressText, ' ');
+      }
+      vexPedal.setContext(this.context.getContext());
+      vexPedal.draw();
+    }
+    else if (modifier.ctor === 'SmoTie') {
       const ctie = modifier as SmoTie;
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const endNote: SmoNote = smoEnd!.note as SmoNote;
@@ -382,10 +503,10 @@ export class VxSystem {
     }
 
     this.context.getContext().closeGroup();
-    if (xoffset) {
+    if (slurOffset) {
       const slurBox = this.context.svg.getElementById('vf-' + artifactId) as SVGSVGElement;
       if (slurBox) {
-        SvgHelpers.translateElement(slurBox, xoffset, 0);
+        SvgHelpers.translateElement(slurBox, slurOffset, 0);
       }
     }
     modifier.element = group;

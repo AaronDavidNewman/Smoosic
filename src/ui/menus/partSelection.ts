@@ -55,7 +55,7 @@ export class SuiPartSelectionMenu extends SuiMenuBase {
     this.menuItems = defs;
   }
 
-  selection(ev: any) {
+  async selection(ev: any) {
     const op: string = $(ev.currentTarget).attr('data-value');
     const choice = parseInt(op);
     if (isNaN(choice)) {

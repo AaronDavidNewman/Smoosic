@@ -367,6 +367,11 @@ function isTextBlockSer(params: Partial<SmoTextBlockSer>): params is SmoTextBloc
  */
 export type SmoTextGroupPurpose = 'NONE' |'TITLE' | 'SUBTITLE' | 'COMPOSER' | 'COPYRIGHT';
 
+export interface SmoTextGroupContainer {
+  updateTextGroup: (textGroup: SmoTextGroup, toAdd: boolean) => void,
+  addTextGroup: (textGroup: SmoTextGroup) => void,
+  removeTextGroup: (textGroup: SmoTextGroup) => void
+}
 /**
  * A grouping of text that can be used as a block for
  * justification, alignment etc.

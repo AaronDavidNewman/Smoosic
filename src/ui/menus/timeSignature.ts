@@ -55,7 +55,7 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
   getDefinition() {
     return SuiTimeSignatureMenu.defaults;
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     var text = $(ev.currentTarget).attr('data-value');
     if (text === 'TimeSigOther') {
       createAndDisplayDialog(SuiTimeSignatureDialog, {
@@ -71,7 +71,7 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
       this.complete();
       return;
     }
-    this.view.setTimeSignature(SmoMeasure.convertLegacyTimeSignature(text));
+    await this.view.setTimeSignature(SmoMeasure.convertLegacyTimeSignature(text));
     this.complete();
   }
 

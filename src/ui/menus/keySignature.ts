@@ -74,13 +74,13 @@ export class SuiKeySignatureMenu extends SuiMenuBase {
   getDefinition() {
     return SuiKeySignatureMenu.defaults;
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     let keySig = $(ev.currentTarget).attr('data-value');
     keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
     if (keySig === 'cancel') {
       return;
     }
-    this.view.addKeySignature(keySig);
+    await this.view.addKeySignature(keySig);
     this.complete();
   }
   keydown() { }

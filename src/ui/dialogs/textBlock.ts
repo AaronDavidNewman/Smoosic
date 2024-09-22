@@ -20,6 +20,7 @@ import { SuiTextBlockComponent } from './components/textInPlace';
 
 import { EventHandler } from '../eventSource';
 import { SuiInlineText } from '../../render/sui/textRender';
+import { UndoBuffer } from '../../smo/xform/undo';
 
 declare var $: any;
 
@@ -132,6 +133,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   edited: boolean;
   isNew: boolean;
   modifier: SmoTextGroup;
+  originalTextGroup: SmoTextGroup | null = null;
   activeScoreText: SmoScoreText;
   textElement: any;
   mouseMoveHandler: EventHandler | null;
@@ -143,14 +145,13 @@ export class SuiTextBlockDialog extends SuiDialogBase {
   constructor(parameters: SuiDialogParams) {
     let edited = false;
     let isNew = false;
+    const originalTextGroup: SmoTextGroup | null = parameters.modifier ?? null;
     const tracker = parameters.view.tracker;
     ['staffModifier', 'suggestion'].forEach((outlineType) => {
       if (tracker.outlines[outlineType]) {
         SvgHelpers.eraseOutline(tracker.outlines[outlineType]);
       }
     });
-    const layout = parameters.view.score.layoutManager!.getGlobalLayout();
-
     // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
       isNew = true;
@@ -174,13 +175,16 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       const newGroup = new SmoTextGroup(grpParams);
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
+      parameters.view.groupUndo(true);
       parameters.view.addTextGroup(parameters.modifier);
       edited = true;
     } else {
       // Make sure there is a score text to start the editing.
+      parameters.modifier = SmoTextGroup.deserializePreserveId(parameters.modifier);
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
     super(SuiTextBlockDialog.dialogElements, parameters);
+    this.originalTextGroup = originalTextGroup;
     this.isNew = isNew;
     this.modifier = parameters.modifier;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS']
@@ -212,6 +216,18 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.paginationCtrl.setValue(this.modifier.pagination);
     this.highlightActiveRegion();
   }
+  static unrenderTextGroup(tg: SmoTextGroup) {
+    tg.elements.forEach((el) => {
+      el.remove();
+    });
+    tg.elements = [];
+
+  }
+  unrenderOriginal() {
+    if (this.originalTextGroup) {
+      SuiTextBlockDialog.unrenderTextGroup(this.originalTextGroup);
+    }
+  }
   display() {
     const pageContext = this.view.renderer.pageMap.getRendererFromModifier(this.activeScoreText);
     const svg = pageContext.svg;
@@ -230,6 +246,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (!this.modifier.edited) {
       this.modifier.edited = true;
       layoutDebug.addDialogDebug('text transform db: startEditSession');
+      this.unrenderOriginal();
       this.textEditorCtrl.startEditSession();
     }
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
@@ -313,6 +330,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
     // Use layout context because render may have reset svg.
+    const subtype = this.isNew ? UndoBuffer.bufferSubtypes.ADD : UndoBuffer.bufferSubtypes.UPDATE;
     this.view.updateTextGroup(this.modifier);
   }
   highlightActiveRegion() {
@@ -400,6 +418,9 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.complete();
   }
   _removeText() {
+    // The modifier rendered is for edit, not the one attached to the score. so
+    // unrender it now
+    SuiTextBlockDialog.unrenderTextGroup(this.modifier);
     this.view.removeTextGroup(this.modifier);
   }
 
@@ -407,12 +428,12 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      const subtype = this.isNew ? UndoBuffer.bufferSubtypes.ADD : UndoBuffer.bufferSubtypes.UPDATE;
       this.view.updateTextGroup(this.modifier);
       this._complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
       if (this.edited) {
         this.modifier.elements.forEach((element) => {
           element.remove();
@@ -422,7 +443,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       }
       this._complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {      
       this._removeText();
       this._complete();
     });

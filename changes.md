@@ -2,6 +2,28 @@
 
 
 ## Changes to Smoosic
+### September, 2023
+Thanks to [Nenad Strangar](https://github.com/strangarnenad) we now have nested tuplets!
+
+This is the first major UI reboot.  Originally, I didn't even want to have a UI, I only wanted to focus on rendering and optimization,
+and let other people adapt the UI to their taste.
+
+But at the same time, I didn't make it so obvious how to do this.  And it's hard to get people to try Smoosic out if they have to first
+memorize a bunch of keyboard commands.  Also, my own vanity doesn't like having an ugly interface on my pet project.
+
+Here are some highlights:
+
+* It should be possible to find a menu option/dialog box for any operation in Smoosic.  But using the keyboard for basic note editing and navigation is still encouraged.
+* The button ribbon on the top was getting a little out of control, and the icons were cryptic.  I moved most of these functions into menu/dialog options from the left menu.  The ribbon is now reserved for a few commonly-used operations.
+* The menus on the left are broken down in terms of musical heirarchy: Score, Parts (Staves), Measures etc.
+
+On the development side:
+
+* I elected to use Bootstrap for the styling (not the UI).  It seemed like a good balance between non-opinionated and not reinventing menus and buttons.
+* I strongly considered using Vue.js or ReactJs as a UI framework, but at this point it doesn't seem like a good fit.  I may move towards some light Vue usage at some point, with the goal of using reactive variables where appropriate.
+* I am moving away from the huge JSON files to outline UI elements.  Instead, menus and dialogs can be created with just a few lines of code and pushed into the UI with code.  This should allow for more adaptive UI elements.
+
+
 ### November, 2022
 Where to start...Smoosic has been disassembled and reassembled multiple times.  A project like this is never 'complete', but pretty much everything that I intended to do with Smoosic is now working, to some extent:
 

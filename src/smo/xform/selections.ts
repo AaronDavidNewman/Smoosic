@@ -128,6 +128,21 @@ export class SmoSelector {
 
     return geStart && leEnd;
   }
+  static overlaps(start1: SmoSelector, end1: SmoSelector, start2: SmoSelector, end2: SmoSelector) {
+    if (SmoSelector.contains(start1, start2, end2)) {
+      return true;
+    }
+    if (SmoSelector.contains(end1, start2, end2)) {
+      return true;
+    }
+    if (SmoSelector.contains(start2, start1, end1)) {
+      return true;
+    }
+    if (SmoSelector.contains(end2, start1, end1)) {
+      return true;
+    }
+    return false;
+  }
 
   // create a hashmap key for a single note, used to organize modifiers
   static selectorNoteKey(selector: SmoSelector) {

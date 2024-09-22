@@ -75,7 +75,7 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
     super(SuiLoadFileDialog.dialogElements, { adapter, ...parameters });
     this.modifier = adapter;
   }
-  changed() {
+  async changed() {
     super.changed();
     const enable = this.modifier.loadFile.length < 1;
     $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
@@ -140,7 +140,7 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
     const adapter = new SuiXmlLoadAdapter(parameters.view);
     super(SuiLoadMxmlDialog.dialogElements, { adapter, ...parameters });
   }
-  changed() {
+  async changed() {
     super.changed();
     const enable = this.adapter.loadFile.length < 1;
     $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
@@ -218,7 +218,7 @@ export class SuiLoadMidiDialog extends SuiDialogAdapterBase<SuiMidiLoadAdapter> 
     const adapter = new SuiMidiLoadAdapter(parameters.view);
     super(SuiLoadMidiDialog.dialogElements, { adapter, ...parameters });
   }
-  changed() {
+  async changed() {
     super.changed();
     const enable = this.adapter?.loadFile?.length < 1;
     $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
@@ -403,7 +403,7 @@ export class SuiSaveJsonValidationAdapter extends SuiComponentAdapter {
     this.fileName = value;
   }
   _saveScore() {
-    const json = this.view.storeScore.serialize({ useDictionary: false, skipStaves: false });
+    const json = this.view.storeScore.serialize({ useDictionary: false, skipStaves: false, preserveStaffIds: false });
     const jsonText = JSON.stringify(json);
     if (!this.fileName.endsWith('.json')) {
       this.fileName = this.fileName + '.json';

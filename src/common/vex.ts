@@ -8,8 +8,8 @@ Font as VexFont, FontInfo as VexFontInfo, FontStyle as VexFontStyle, FontWeight 
 TupletOptions as VexTupletOptions, Curve as VexCurve, StaveTie as VexStaveTie,
 ClefNote as VexClefNote,
  Music as VexMusic, ChordSymbol as VexChordSymbol, ChordSymbolBlock as VexChordSymbolBlock,
-TabStave as VexTabStave, TabNote as VexTabNote, TabSlide as VexTabSlide, TabNotePosition as VexTabNotePosition,
-TabNoteStruct as VexTabNoteStruct
+TabStave as VexTabStave, TabNote as VexTabNote, TabSlide as VexTabSlide, TabNotePosition as VexTabNotePosition, 
+TabNoteStruct as VexTabNoteStruct, PedalMarking as VexPedalMarking, Stem as VexStem
   } from "vexflow_smoosic";
 
  /**
@@ -26,10 +26,12 @@ const VF = VexFlow;
 export type Music = VexMusic;
 export type Note = VexNote;
 export type StaveNote = VexStaveNote;
+export type Stem = VexStem;
 export type StemmableNote = VexStemmableNote;
 export type Beam = VexBeam;
 export type Tuplet = VexTuplet;
 export type TupletOptions = VexTupletOptions;
+export type PedalMarking = VexPedalMarking;
 export type Voice = VexVoice;
 export type Accidental = VexAccidental;
 export type Font = VexFont;
@@ -147,7 +149,7 @@ export function getGlyphWidth(smoGlyph: GlyphInfo) {
  */
 export function getSlashGlyph() {
         // vexNote = new VF.GlyphNote('\uE504', { duration });
-       return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
+       return new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 38), { duration: 'w' }, { line: 2 });
 }
 export function getRepeatBar() {
   return new VF.GlyphNote(new VF.Glyph('repeat1Bar', 38), { duration: 'w' }, { line: 2 });
@@ -277,7 +279,7 @@ export interface SmoVexSlurParameters {
   xShift: number,
   yShift: number,
   cps: DOMPoint[],
-  invert: boolean,
+  openingDirection: string,
   position: number,
   positionEnd: number
 }
@@ -294,10 +296,10 @@ export function createSlur(params: SmoVexSlurParameters): Curve {
       x_shift: params.xShift,
       y_shift: params.yShift,
       cps: params.cps,
-      invert: params.invert,
+      openingDirection: params.openingDirection,
       position: params.position,
       position_end: params.positionEnd
-    });
+    } as any);  // any until opening direction is imported
   return curve;
 }
 export interface SmoVexTieParams {
@@ -436,13 +438,13 @@ export const ChordSymbolGlyphs: Record<string, { code: string }> = {
     code: 'csymMajorSeventh',
   },
   csymMinor: {
-    code: 'minor',
+    code: 'csymMinor',
   },
   minor: {
-    code: 'minor',
+    code: 'csymMinor',
   },
   '-': {
-    code: 'minor',
+    code: 'csymMinor',
   },
   '(': {
     code: 'csymParensLeftTall',

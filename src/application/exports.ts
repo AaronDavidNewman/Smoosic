@@ -18,7 +18,6 @@ import { CollapseRibbonControl, ExtendedCollapseParent } from '../ui/buttons/col
 import { DisplaySettings } from '../ui/buttons/display';
 import { DurationButtons } from '../ui/buttons/duration';
 import { MeasureButtons } from '../ui/buttons/measure';
-import { MicrotoneButtons } from '../ui/buttons/microtone';
 import { NavigationButtons } from '../ui/buttons/navigation';
 import { NoteButtons } from '../ui/buttons/note';
 import { PlayerButtons } from '../ui/buttons/player';
@@ -41,6 +40,7 @@ import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNo
 // ui dialogs and menus
 // Dialogs
 import { SuiDialogBase } from '../ui/dialogs/dialog';
+import { SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent } from '../ui/dialogs/gracenote';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiTransposeScoreDialog, SuiTransposeScoreAdapter } from '../ui/dialogs/transposeScore';
 import { SuiMeasureDialog } from '../ui/dialogs/measureFormat';
@@ -48,8 +48,9 @@ import { SuiInsertMeasures } from '../ui/dialogs/addMeasure';
 import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
 import { SuiTimeSignatureDialog } from '../ui/dialogs/timeSignature';
 import { SuiTempoDialog } from '../ui/dialogs/tempo';
-import { SuiNoteHeadAdapter, SuiNoteHeadDialog } from '../ui/dialogs/noteHead';
-import { SuiNoteHeadButtonComponent } from '../ui/dialogs/components/buttonArray';
+import { SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiNoteHeadButtonComponent, SuiStemButtonComponent } from '../ui/dialogs/noteHead';
+import { SuiEndingsAdapter, SuiEndingsDialog, 
+  SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent } from '../ui/dialogs/endings';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
 import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
 import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
@@ -62,10 +63,14 @@ import { SuiLyricDialog } from '../ui/dialogs/lyric';
 import { SuiTextBlockDialog, helpModal } from '../ui/dialogs/textBlock';
 import { SuiDynamicModifierDialog } from '../ui/dialogs/dynamics';
 import { SuiSlurAttributesDialog } from '../ui/dialogs/slur';
+import { SuiPedalMarkingDialog } from '../ui/dialogs/pedalMarking';
 import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
+import { SuiOrnamentDialog, SuiOrnamentButtonComponent } from '../ui/dialogs/ornament';
+import { SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter } from '../ui/dialogs/articulation';
+import { SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog } from '../ui/dialogs/microtones';
 import { SuiArpeggioDialog } from '../ui/dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../ui/dialogs/clefChange';
 import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
@@ -78,6 +83,7 @@ import { SuiLoadMxmlDialog, SuiLoadFileDialog,
 import { SuiTextInputComponent, SuiTextInputComposite } from '../ui/dialogs/components/textInput';
 import { SuiDropdownComponent, SuiDropdownComposite } from '../ui/dialogs/components/dropdown';
 import { SuiButtonComposite, SuiButtonComponent } from '../ui/dialogs/components/button';
+import { SuiButtonArrayComponent, SuiButtonArrayMSComponent } from '../ui/dialogs/components/buttonArray';
 import { SuiToggleComponent, SuiToggleComposite } from '../ui/dialogs/components/toggle';
 import { SuiFileDownloadComponent } from '../ui/dialogs/components/fileDownload';
 import { SuiRockerComponent, SuiRockerComposite } from '../ui/dialogs/components/rocker';
@@ -96,12 +102,16 @@ import { CheckboxDropdownComponent } from '../ui/dialogs/components/checkdrop';
 import { TieMappingComponent } from '../ui/dialogs/components/tie';
 import { StaffAddRemoveComponent,
     StaffCheckComponent} from '../ui/dialogs/components/staffComponents';
+import { SuiKeySignatureDialog, SuiKeySignatureAdapter } from '../ui/dialogs/keySignature';
 import { TextCheckComponent } from '../ui/dialogs/components/textCheck';
 // menus
 import { SuiMenuManager} from '../ui/menus/manager';
 import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
+import { SuiTextMenu } from '../ui/menus/text';
 import { SuiPartMenu } from '../ui/menus/parts';
+import { SuiVoiceMenu } from '../ui/menus/voices';
+import { SuiBeamMenu } from '../ui/menus/beams';
 import { SuiPartSelectionMenu } from '../ui/menus/partSelection';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
 import { SuiTimeSignatureMenu } from '../ui/menus/timeSignature';
@@ -136,7 +146,7 @@ import { SmoNote } from '../smo/data/note';
 // import { SmoDuration } from '../smo/xform/tickDuration';
 import { createLoadTests } from '../../tests/file-load';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie, SmoStaffTextBracket,
-  SmoTabStave
+  SmoTabStave, SmoPedalMarking
  } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
@@ -172,7 +182,7 @@ export const Smo = {
     Qwerty, SuiHelp, SmoTranslationEditor, SimpleEventHandler, ModalEventHandler,
     // Ribbon buttons
     simpleRibbonLayout,
-    RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
+    RibbonButtons, NoteButtons, TextButtons, ChordButtons,
     StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
     DisplaySettings,  ExtendedCollapseParent, CollapseRibbonControl,
@@ -180,27 +190,31 @@ export const Smo = {
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiNoteMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
-    SuiPartSelectionMenu,
+    SuiPartSelectionMenu, SuiTextMenu, SuiVoiceMenu, SuiBeamMenu,
     // Dialogs
+    SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent,
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
-    SuiTextBracketDialog,
+    SuiTextBracketDialog, SuiKeySignatureDialog, SuiKeySignatureAdapter,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, SuiTransposeScoreAdapter,
     SuiTransposeScoreDialog,
     SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextBlockDialog, SuiLyricDialog, SuiChordChangeDialog,
-    SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
+    SuiSlurAttributesDialog, SuiPedalMarkingDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
-    SuiPartInfoDialog, 
-    SuiNoteHeadAdapter, SuiNoteHeadDialog,
-    SuiNoteHeadButtonComponent,    
+    SuiPartInfoDialog, SuiOrnamentDialog, SuiOrnamentButtonComponent, 
+    SuiArticulationDialog, SuiArticulationButtonComponent, SuiArticulationAdapter,
+    SuiMicrotoneAdapter, SuiMicrotoneButtonComponent, SuiMicrotoneDialog,
+    SuiNoteHeadAdapter, SuiNoteHeadDialog, SuiStemButtonComponent, SuiNoteHeadButtonComponent,    
+    SuiEndingsAdapter, SuiEndingsDialog, 
+    SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog, SuiSaveVexDialog,
     SuiSaveMidiDialog, SuiDialogBase,
     // Dialog components
     SuiTreeComponent,
     SuiDropdownComponent,
-    SuiRockerComponent, SuiFileDownloadComponent,
+    SuiRockerComponent, SuiFileDownloadComponent, SuiButtonArrayComponent, SuiButtonArrayMSComponent,
     SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
     SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite,
     SuiFontComponent, SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
@@ -208,6 +222,7 @@ export const Smo = {
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent, SuiArpeggioDialog, SuiClefChangeDialog,
     SuiPitchArrayComponent, SuiPitchArrayComponentTab, SuiPitchComponent,
+
   SuiPitchComposite, 
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
@@ -233,7 +248,7 @@ export const Smo = {
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
     SmoStaffTextBracket,
-    SmoInstrument, SmoSlur, SmoTie, SmoTabStave,
+    SmoInstrument, SmoSlur, SmoPedalMarking, SmoTie, SmoTabStave,
     // score modifiers
     SmoSystemGroup, SmoAudioPlayerSettings, SmoTextGroup,
     // measure modifiers

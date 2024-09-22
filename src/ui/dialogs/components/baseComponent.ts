@@ -177,4 +177,14 @@ export abstract class SuiComponentParent extends SuiComponentBase {
   abstract changed(): void;
 }
 
+export abstract class SuiCompositeBase extends SuiComponentBase {
+  parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, params: SuiBaseComponentParams) {
+    super(dialog, params);
+    if (!params.parentComponent) {
+      throw ('invalid parent component');
+    }
+    this.parentControl = params.parentComponent;
+  }
+}
 

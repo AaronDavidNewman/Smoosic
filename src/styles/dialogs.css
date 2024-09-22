@@ -195,10 +195,12 @@ body.showAttributeDialog .attributeDialog {
   top: 0;
 	display:none;
 }
-
+button.nav-link {
+  width: 100%;
+}
 .attributeModal {
 	position:absolute;
-  width:380px;
+  min-width:380px;
 	background: #fff;
 	border-style: groove;
 	border-width: 2px;
@@ -223,72 +225,20 @@ body.showAttributeDialog .attributeDialog {
 .attributeModal .buttonContainer .button-right {
 	margin-left:5px;
 }
-
-
-.attributeModal .buttonContainer button {
-	border-radius:3px;
-	padding: 2px 4px;
-	width:100px;
-	height:25px;
-}
-
-.attributeModal .buttonContainer .ok-button {
-	border:#9cee9d 1px ridge;
-}
-
-.attributeModal .buttonContainer .ok-button:hover {
-	background:#334488;
-	color: #fff;
-	transition-duration: 0.5s;
-	transition-timing-function:ease;
-}
-
-.attributeModal .buttonContainer .cancel-button:hover {
-	background:#884433;
-	color: #fff;
-	transition-duration: 0.5s;
-	transition-timing-function:ease;
-}
-
-.attributeModal .buttonContainer .remove-button:hover {
-	background:#664433;
-	color: #ded;
-	transition-duration: 0.5s;
-	transition-timing-function:ease;
-}
-
-.attributeModal .buttonContainer .remove-button:hover .icon-cancel-circle  {
-	background:#664433;
-	color: #ded;
-}
-
-.attributeModal .buttonContainer .remove-button .icon-cancel-circle {
-	float:left;
-	color:#933;
-}
-
-.attributeModal .buttonContainer .ok-button:hover {
-	background:#334488;
-	color: #fff;
-	transition-duration: 0.5s;
-	transition-timing-function:ease;
-}
-
-
-.attributeModal .buttonContainer .cancel-button {
-	border:#dc8899 1px ridge;
-}
-
-.attributeModal .buttonContainer .remove-button {
-	border:#dc8899 1px ridge;
-}
-
-
 .attributeModal h2 {
 	text-align:center;
 	font-size:1.2em;
 }
 
+.smoControlContainer .button-array-buttons button.repetext {
+  font-size: 0.8em;
+  font-style: italic;
+  flex: 4 1 220px;
+}
+.smoControlContainer .button-array-buttons button.repetext .icon-bravura .button-text {
+  font-size: 12px;
+  min-width: 35px;
+}
 .attributeModal.tempoTextMode #dialog-tempo-duration,
 .attributeModal.tempoTextMode #dialog-tempo-bpm ,
 .attributeModal.tempoDurationMode #dialog-tempo-tempoText {
@@ -327,6 +277,10 @@ body.showAttributeDialog .attributeDialog {
 .smoControlContainer .text-input label
  {
     margin-left:15px;
+}
+
+.smoControlContainer .text-input.hide-input input {
+  display: none;
 }
 
 .smoControl.toggleControl {
@@ -406,17 +360,69 @@ body.showAttributeDialog .attributeDialog {
   border: 2px #ddd outset;
 }
 .attributeModal .smoControl.buttonArray {
-  flex: 1 1 100%;
-  flex-flow: row wrap;
-  justify-content: center;
-  bottom:8px;
-  left:8px;
+  flex-flow: column nowrap;
   border: 2px #ddd outset;
 }
-
+.pad-span {
+  padding: 5px;
+}
+.attributeModal .smoControl.buttonArray .button-array-row{
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content:flex-start;
+}
+.button-array-buttons {
+  display: flex;
+  align-items: center;
+  flex: 1 2 auto;
+}
+.button-row-container {
+  display:flex;
+  flex-flow: column;
+  flex: 1 1 auto;
+}
+.button-array-label {
+  display: flex;
+  flex: 0 0 100px;
+  min-width: 100px;
+  justify-content: flex-end;
+}
+.nav-item {
+  border-bottom: 1px solid #eee;
+}
+.attributeModal .smoControl.button-hotkey {
+  display: flex;
+  flex-flow: row;
+}
+.attributeModal .smoControl.button-hotkey button {
+  width: 70px;
+  text-align: left;
+}
+.attributeModal .smoControl.button-hotkey span.button-text {
+  float: right;
+}
 .attributeModal .smoControl.buttonArray .icon-bravura {
-  top:-5px;
+  left:calc(50% - 12px);
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-mid {
+  top: 0;
   left:8px;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-transparent {
+  color: #333333aa;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-lg {
+  font-size: 24px;
+  top:inherit;
+}
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-top {
+  left:8px;
+}
+
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-brassFallRoughMedium,
+.attributeModal .smoControl.buttonArray .icon-bravura.icon-brassLiftMedium {
+  font-size:20px;
+  top:50%;
 }
 .smoControl.buttonArray button:hover {
   background:#334488;
@@ -456,21 +462,18 @@ button.button-array.initial {
 }
 
 .smoControl button, .smoControl input,.smoControl select {
-	margin-right:2px;
-	height: 30px;
-	border-radius: 5%;
 	border: 1px solid #52ba73;
 }
 .smoControl button.button-array {
-  width: 30px;
-	height: 30px;
+  width: 35px;
+	height: 35px;
   position:relative;
 }
 .smoControl button.button-array.pushed {
   font-weight: bold;
 }
 .smoControl button.button-array .icon-bravura {
-  font-size: 38px;
+  font-size: 30px;
 }
 .smoControl.cbTextInPlace,.smoControl.cbDragTextDialog ,.smoControl.cbResizeTextBox  {
     position:relative;

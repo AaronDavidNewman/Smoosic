@@ -32,7 +32,7 @@ export class SuiLanguageMenu extends SuiMenuBase {
   getDefinition() {
     return SuiLanguageMenu.defaults;
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     var op = $(ev.currentTarget).attr('data-value');
 
     SmoTranslator.setLanguage(op);

@@ -114,9 +114,17 @@
 }
 body {
 	margin:0;
-	overflow:hidden;  
+	overflow:hidden;
 }
-
+/* override bootstrap */
+body.modal {
+  display: block; 
+}
+li.nav-item button.nav-link {
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+}
 /* @font-face {
   font-family:'Bubblegum Sans',cursive;
   font-family:'Yatra One',cursive;
@@ -222,7 +230,9 @@ body.printing .piano-container {
   display:none;
 }
 body.printing .hide-print, 
-body.printing .vf-hide-print{
+body.printing .vf-hide-print,
+body.printing .media div.d-flex
+{
   display: none;
 }
 

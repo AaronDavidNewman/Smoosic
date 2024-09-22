@@ -63,6 +63,13 @@ export class PasteBuffer {
   setScore(score: SmoScore) {
     this.score = score;
   }
+  getCopyBufferTickCount() {
+    let rv = 0;
+    this.notes.forEach((note) => {
+      rv += note.note.tickCount;
+    });
+    return rv;
+  }
   setSelections(score: SmoScore, selections: SmoSelection[]) {
     this.notes = [];
     this.noteIndex = 0;

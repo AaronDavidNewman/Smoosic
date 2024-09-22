@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiScoreView } from './scoreView';
+import { SuiScoreView, updateStaffModifierFunc } from './scoreView';
 import { SmoScore, engravingFontType } from '../../smo/data/score';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoPartInfo } from '../../smo/data/partInfo';
@@ -14,9 +14,11 @@ import { SmoTextGroup } from '../../smo/data/scoreText';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, 
   SmoOrnament, SmoLyric, SmoMicrotone, SmoArpeggio, SmoArpeggioType, SmoClefChange, 
   SmoTabNote} from '../../smo/data/noteModifiers';
-import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
-import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
-import { SmoOperation } from '../../smo/xform/operations';
+import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, 
+  SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
+import { UndoBuffer } from '../../smo/xform/undo';
+import { SmoOperation, createStaffModifierType
+ } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { FontInfo } from '../../common/vex';
@@ -26,13 +28,15 @@ import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { StaffModifierBase, SmoSlur,
+import { StaffModifierBase, 
    SmoInstrument, SmoInstrumentParams, SmoStaffTextBracket, SmoTabStave } from '../../smo/data/staffModifiers';
 import { SuiPiano } from './piano';
 import { SvgHelpers } from './svgHelpers';
 import { PromiseHelpers } from '../../common/promiseHelpers';
+import { parseJsonText } from 'typescript';
 declare var $: any;
 declare var SmoConfig: SmoRenderConfiguration;
+
 
 /**
  * MVVM-like operations on the displayed score.
@@ -54,18 +58,25 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async addTextGroup(textGroup: SmoTextGroup): Promise<void> {
     const altNew = SmoTextGroup.deserializePreserveId(textGroup.serialize());
-    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
-      UndoBuffer.bufferSubtypes.ADD);
-    if (this.isPartExposed()) {
-      this.score.updateTextGroup(textGroup, true);
+    const isPartExposed = this.isPartExposed();
+    let selector = textGroup.selector ?? SmoSelector.default;
+    const partInfo = this.score.staves[0].partInfo;
+    const bufType = isPartExposed && partInfo.preserveTextGroups
+      ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+    if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+      selector.staff = this.staffMap[0];
+    }  
+    this.storeUndo.addBuffer('remove text group', bufType,
+      selector, textGroup, UndoBuffer.bufferSubtypes.ADD);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      this.score.staves[0].partInfo.updateTextGroup(textGroup, true);
       const partInfo = this.storeScore.staves[this._getEquivalentStaff(0)].partInfo;
-      partInfo.updateTextGroup(altNew, true);
+      partInfo.updateTextGroup(altNew, true);      
     } else {
-      this.score.addTextGroup(textGroup);
-      this.storeScore.addTextGroup(altNew);
+      this.score.updateTextGroup(textGroup, true);
+      this.storeScore.updateTextGroup(altNew, true);
     }
-    await this.renderer.renderScoreModifiers();
-    return this.renderer.updatePromise()
+    await this.renderer.rerenderTextGroups();
   }
 
   /**
@@ -74,23 +85,36 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async removeTextGroup(textGroup: SmoTextGroup): Promise<void> {
-    this.score.updateTextGroup(textGroup, false);
+    let selector = textGroup.selector ?? SmoSelector.default;
+    const partInfo = this.score.staves[0].partInfo;
+    const isPartExposed = this.isPartExposed();
+    const bufType = isPartExposed && partInfo.preserveTextGroups 
+      ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+    let ogText = this.storeScore.textGroups.find((tg) => tg.attrs.id === textGroup.attrs.id);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      ogText = partInfo.textGroups.find((tg) => tg.attrs.id === textGroup.attrs.id);
+    }
+    if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+      selector.staff = this.staffMap[0];
+    } else {
+      selector.staff = this.staffMap[selector.staff];
+    }
+    if (!ogText) {
+      return;
+    }
+    this.storeUndo.addBuffer('remove text group', bufType,
+      selector, ogText, UndoBuffer.bufferSubtypes.REMOVE);
     const altGroup = SmoTextGroup.deserializePreserveId(textGroup.serialize());
     textGroup.elements.forEach((el) => el.remove());
     textGroup.elements = [];
-    const isPartExposed = this.isPartExposed();
-    if (!isPartExposed) {
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-        UndoBuffer.bufferSubtypes.REMOVE);
-      this.storeScore.updateTextGroup(altGroup, false);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      partInfo.updateTextGroup(textGroup, false);
+      this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altGroup, false);
     } else {
-      const stave = this.storeScore.staves[this._getEquivalentStaff(0)];
-      stave.partInfo.textGroups = this.score.textGroups;
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
-        UndoBuffer.bufferSubtypes.REMOVE);      
+      this.score.updateTextGroup(textGroup, false);
+      this.storeScore.updateTextGroup(altGroup, false);
     }
-    await this.renderer.renderScoreModifiers();
-    return this.renderer.updatePromise()
+    await this.renderer.rerenderTextGroups();
   }
 
   /**
@@ -101,18 +125,41 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async updateTextGroup(newVersion: SmoTextGroup): Promise<void> {
+    const selector = newVersion.selector ?? SmoSelector.default;
     const isPartExposed = this.isPartExposed();
+    const partInfo = this.score.staves[0].partInfo;
+    // Back up the original score text
+    let ogtg = this.storeScore.textGroups.find((tg) => tg.attrs.id === newVersion.attrs.id);
+    if (isPartExposed && partInfo.preserveTextGroups) {
+      ogtg = partInfo.textGroups.find((tg) => tg.attrs.id === newVersion.attrs.id);
+    }
+    if (!ogtg) {
+      // there is nothing to update, return.
+      return;
+    }
+    if (ogtg) {
+      const bufType = isPartExposed && partInfo.preserveTextGroups 
+        ? UndoBuffer.bufferTypes.PART_MODIFIER : UndoBuffer.bufferTypes.SCORE_MODIFIER;
+      // if this is part text, make sure the undo buffer is associated with the part stave
+      // in the full score, so undo works properly
+      if (bufType === UndoBuffer.bufferTypes.PART_MODIFIER) {
+        selector.staff = this.staffMap[0];
+      } else {
+        selector.staff = this.staffMap[selector.staff];
+      }
+      this.storeUndo.addBuffer('modify text',
+        bufType, selector, ogtg, UndoBuffer.bufferSubtypes.UPDATE);
+    }
     const altNew = SmoTextGroup.deserializePreserveId(newVersion.serialize());
     this.score.updateTextGroup(newVersion, true);
     // If this is part text, don't store it in the score text, except for the displayed score
     if (!isPartExposed) {
-      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, UndoBuffer.bufferSubtypes.UPDATE);
       this.storeScore.updateTextGroup(altNew, true);
     } else {
       this.storeScore.staves[this._getEquivalentStaff(0)].partInfo.updateTextGroup(altNew, true);
     }
     // TODO: only render the one TG.
-    await this.renderer.renderScoreModifiers();
+    await this.renderer.rerenderTextGroups();
     // return this.renderer.updatePromise();
   }
   /**
@@ -193,64 +240,38 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     return this.renderer.updatePromise()
   }
-
-  /**
-   * Add a specific microtone modifier to the selected notes
-   * @param tone 
-   * @returns 
-   */
-  async addRemoveMicrotone(tone: SmoMicrotone): Promise<void> {
-    const selections = this.tracker.selections;
-    const altSelections = this._getEquivalentSelections(selections);
-    const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
-
-    SmoOperation.addRemoveMicrotone(null, selections, tone);
-    SmoOperation.addRemoveMicrotone(null, altSelections, tone);
-    this._renderChangedMeasures(measureSelections);
-    return this.renderer.updatePromise()
-  }
   async addRemoveArpeggio(code: SmoArpeggioType) {
-      const selections = this.tracker.selections;
-      const altSelections = this._getEquivalentSelections(selections);
-      const measureSelections = this._undoTrackerMeasureSelections('add/remove arpeggio');
-      [selections, altSelections].forEach((selType) => {
-        selType.forEach((sel) => {
-        if (sel.note) {
-          if (code === 'none') {
-            sel.note.arpeggio = undefined;
-          } else {
-            sel.note.arpeggio = new SmoArpeggio({ type: code });
+    await this.modifyCurrentSelections('add/remove addRemoveArpeggio',
+      (score, selections) => {
+        selections.forEach((sel) => {
+          if (sel.note) {
+            if (code === 'none') {
+              sel.note.arpeggio = undefined;
+            } else {
+              sel.note.arpeggio = new SmoArpeggio({ type: code });
+            }
           }
-        }
       });
     });
-    this._renderChangedMeasures(measureSelections);
-    await this.renderer.updatePromise()
   }
   /**
    * A clef change mid-measure (clefNote)
    * @param clef 
    */
   async addRemoveClefChange(clef: SmoClefChange) {
-    const selections = [this.tracker.selections[0]];
-    const altSelections = this._getEquivalentSelections(selections);
-    const measureSelections = this._undoTrackerMeasureSelections('add/remove clef change');
-    [selections, altSelections].forEach((selType) => {
-      selType.forEach((sel) => {
-        if (sel.note) {
+    await this.modifyCurrentSelections('add/remove addRemoveClefChange',
+      (score, selections) => {
+        selections.forEach((sel) => {
           const measureClef = sel.measure.clef;
-          // If the clef is the same as measure clef, remove any clef change from Note
-          if (measureClef === clef.clef) {
-            sel.note.clefNote = null;
-          } else {
-            sel.note.clefNote = clef;
+          if (sel.note) {
+            if (measureClef === clef.clef) {
+              sel.note.clefNote = null;
+            } else {
+              sel.note.clefNote = clef;
+            }
           }
-          sel.measure.updateClefChangeNotes();
-        }
       });
-    });
-    this._renderChangedMeasures(measureSelections);
-    await this.renderer.updatePromise()
+    });   
   }
   /**
    * Modify the dynamics assoicated with the specific selection
@@ -259,13 +280,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async addDynamic(selection: SmoSelection, dynamic: SmoDynamicText): Promise<void> {
-    this._undoFirstMeasureSelection('add dynamic');
-    this._removeDynamic(selection, dynamic);
-    const equiv = this._getEquivalentSelection(selection);
-    SmoOperation.addDynamic(selection, dynamic);
-    SmoOperation.addDynamic(equiv!, SmoNoteModifierBase.deserialize(dynamic.serialize() as any));
-    this.renderer.addToReplaceQueue(selection);
-    await this.renderer.updatePromise()
+    await this.modifySelection('add dynamic', selection, (score, selections) => {
+      SmoOperation.addDynamic(selections[0], dynamic);
+    });
   }
   /**
    * Remove dynamics from the selection 
@@ -282,7 +299,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         SmoOperation.removeDynamic(equiv, altModifiers[0] as SmoDynamicText);
       }
     }
-    await this.renderer.updatePromise()
+    await this.renderer.updatePromise();
   }
   /**
    * Remove dynamics from the current selection
@@ -306,7 +323,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Operates on current selections
    * */
   async deleteNote(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('delete note');
+    const measureSelections = this.undoTrackerMeasureSelections('delete note');
     this.tracker.selections.forEach((sel) => {
       if (sel.note) {
 
@@ -385,7 +402,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async depopulateVoice(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
+    const measureSelections = this.undoTrackerMeasureSelections('depopulate voice');
     measureSelections.forEach((selection) => {
       const ix = selection.measure.getActiveVoice();
       if (ix !== 0) {
@@ -642,7 +659,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async addGraceNote(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('add grace note');
+    const measureSelections = this.undoTrackerMeasureSelections('add grace note');
     selections.forEach((selection) => {
       const index = selection.note!.getGraceNotes().length;
       const pitches = JSON.parse(JSON.stringify(selection.note!.pitches));
@@ -671,7 +688,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async removeGraceNote(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
+    const measureSelections = this.undoTrackerMeasureSelections('remove grace note');
     selections.forEach((selection) => {
       // TODO: get the correct offset
       SmoOperation.removeGraceNote(selection, 0);
@@ -686,7 +703,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async slashGraceNotes(): Promise<void> {
     const grace = this.tracker.getSelectedGraceNotes();
-    const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
+    const measureSelections = this.undoTrackerMeasureSelections('slash grace note toggle');
     grace.forEach((gn) => {
       SmoOperation.slashGraceNotes(gn);
       if (gn.selection !== null) {
@@ -715,7 +732,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async transposeSelections(offset: number): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('transpose');
+    const measureSelections = this.undoTrackerMeasureSelections('transpose');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -750,7 +767,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleEnharmonic(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle enharmonic');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -779,7 +796,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleCourtesyAccidentals(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle courtesy accidental');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -810,7 +827,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async batchDurationOperation(operation: BatchSelectionOperation): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('change duration');
+    const measureSelections = this.undoTrackerMeasureSelections('change duration');
     const grace = this.tracker.getSelectedGraceNotes();
     const graceMap: Record<string, BatchSelectionOperation> = {
       doubleDuration: 'doubleGraceNoteDuration',
@@ -839,35 +856,72 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async toggleArticulation(modifier: string, ctor: string): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle articulation');
     this.tracker.selections.forEach((sel) => {
       if (ctor === 'SmoArticulation') {
         const aa = new SmoArticulation({ articulation: modifier });
         const altAa = new SmoArticulation({ articulation: modifier });
         altAa.attrs.id = aa.attrs.id;
-        SmoOperation.toggleArticulation(sel, aa);
+        if (sel.note) {
+          sel.note.toggleArticulation(aa);
+        }
         const altSelection = this._getEquivalentSelection(sel);
-        SmoOperation.toggleArticulation(altSelection!, altAa);
+        if (altSelection && altSelection.note) {
+          altSelection.note.toggleArticulation(altAa);
+        }
       } else {
         const aa = new SmoOrnament({ ornament: modifier });
         const altAa = new SmoOrnament({ ornament: modifier });
         altAa.attrs.id = aa.attrs.id;
         const altSelection = this._getEquivalentSelection(sel!);
-        SmoOperation.toggleOrnament(sel, aa);
-        SmoOperation.toggleOrnament(altSelection!, altAa);
+        if (sel.note) {
+          sel.note.toggleOrnament(aa);
+        }
+        if (altSelection && altSelection.note) {
+          altSelection.note.toggleOrnament(altAa);
+        }
       }
     });
     this._renderChangedMeasures(measureSelections);
     await this.renderer.updatePromise();
   }
-
+  async setArticulation(modifier: SmoArticulation, set: boolean): Promise<void> {
+    const measureSelections = this.undoTrackerMeasureSelections('set articulation');
+    this.tracker.selections.forEach((sel) => {
+      const altAa = new SmoArticulation(modifier);
+      if (sel.note) {
+        sel.note.setArticulation(modifier, set);
+      }
+      const altSelection = this._getEquivalentSelection(sel);
+      if (altSelection && altSelection.note) {
+        altSelection.note.toggleArticulation(altAa);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();    
+  }
+  async setOrnament(modifier: SmoOrnament, set: boolean): Promise<void> {
+    const measureSelections = this.undoTrackerMeasureSelections('set articulation');
+    this.tracker.selections.forEach((sel) => {
+      const altAa = new SmoOrnament(modifier);
+      if (sel.note) {
+        sel.note.setOrnament(modifier, set);
+      }
+      const altSelection = this._getEquivalentSelection(sel);
+      if (altSelection && altSelection.note) {
+        altSelection.note.setOrnament(altAa, set);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+    await this.renderer.updatePromise();    
+  }
   /**
    * convert non-tuplet not to a tuplet
    * @param numNotes 3 means triplet, etc.
    */
   async makeTuplet(numNotes: number): Promise<void> {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
+    const measureSelections = this.undoTrackerMeasureSelections('make tuplet');
     SmoOperation.makeTuplet(selection, numNotes);
     const altSelection = this._getEquivalentSelection(selection!);
     SmoOperation.makeTuplet(altSelection!, numNotes);
@@ -879,7 +933,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async unmakeTuplet(): Promise<void> {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
+    const measureSelections = this.undoTrackerMeasureSelections('unmake tuplet');
     SmoOperation.unmakeTuplet(selection);
     const altSelection = this._getEquivalentSelection(selection);
     SmoOperation.unmakeTuplet(altSelection!);
@@ -894,7 +948,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async setInterval(interval: number): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set interval');
+    const measureSelections = this.undoTrackerMeasureSelections('set interval');
     selections.forEach((selected) => {
       SmoOperation.interval(selected, interval);
       const altSelection = this._getEquivalentSelection(selected);
@@ -910,7 +964,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async collapseChord(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
+    const measureSelections = this.undoTrackerMeasureSelections('collapse chord');
     selections.forEach((selected) => {
       const note: SmoNote | null = selected.note;
       if (note) {
@@ -930,7 +984,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleSlash(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('make slash');
+    const measureSelections = this.undoTrackerMeasureSelections('make slash');
     selections.forEach((selection) => {
       SmoOperation.toggleSlash(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -945,7 +999,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async makeRest(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('make rest');
+    const measureSelections = this.undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
       SmoOperation.toggleRest(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -975,7 +1029,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async toggleBeamGroup(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle beam group');
     selections.forEach((selection) => {
       SmoOperation.toggleBeamGroup(selection);
       const altSel = this._getEquivalentSelection(selection);
@@ -985,7 +1039,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     await this.renderer.updatePromise();
   }
   async toggleCue() {
-    const measureSelections = this._undoTrackerMeasureSelections('toggle note cue');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle note cue');
     this.tracker.selections.forEach((selection) => {
       const altSelection = this._getEquivalentSelection(selection);
       if (selection.note && selection.note.isRest() === false) {
@@ -1007,7 +1061,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     if (selections.length < 1) {
       return PromiseHelpers.emptyPromise();
     }
-    const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
+    const measureSelections = this.undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
@@ -1018,7 +1072,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async beamSelections(): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('beam selections');
+    const measureSelections = this.undoTrackerMeasureSelections('beam selections');
     SmoOperation.beamSelections(this.score, selections);
     SmoOperation.beamSelections(this.storeScore, this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
@@ -1029,7 +1083,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param keySignature vex key signature
    */
   async addKeySignature(keySignature: string): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
+    const measureSelections = this.undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
       SmoOperation.addKeySignature(this.score, sel, keySignature);
       const altSel = this._getEquivalentSelection(sel);
@@ -1044,7 +1098,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param chordPedal {boolean} - indicates we are adding to a chord
    */
   async setPitchPiano(pitch: Pitch, chordPedal: boolean): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections(
+    const measureSelections = this.undoTrackerMeasureSelections(
       'setAbsolutePitch ' + pitch.letter + '/' + pitch.accidental);
     this.tracker.selections.forEach((selected) => {
       const npitch: Pitch = {
@@ -1108,7 +1162,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   async setPitch(letter: PitchLetter): Promise<void> {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
+    const measureSelections = this.undoTrackerMeasureSelections('set pitch ' + letter);
     selections.forEach((selected) => {
       const selector = selected.selector;
       let hintSel = SmoSelection.lastNoteSelectionNonRest(this.score,
@@ -1140,7 +1194,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Generic clipboard copy action
    */
   async copy(): Promise<void> {
-    this.pasteBuffer.setSelections(this.score, this.tracker.selections);
     const altAr: SmoSelection[] = [];
     this.tracker.selections.forEach((sel) => {
       const noteSelection = this._getEquivalentSelection(sel);
@@ -1158,15 +1211,25 @@ export class SuiScoreViewOperations extends SuiScoreView {
   async paste(): Promise<void> {
     // We undo the whole score on a paste, since we don't yet know the
     // extent of the overlap
-    this._undoScore('paste');
     this.renderer.preserveScroll();
-    const firstSelection = this.tracker.selections[0];
-    const pasteTarget = firstSelection.selector;
+    const selections: SmoSelection[]  = this.getPasteMeasureList();
+    const firstSelection = selections[0];
+    const measureEnd = selections[selections.length - 1].selector.measure;
+    const measureRange = [firstSelection.selector.measure, measureEnd];
+    this.storeUndo.grouping = true;
+    // Undo the paste by selecting all the affected measures
+    for (let i = measureRange[0]; i <= measureRange[1]; ++i) {
+      this._undoColumn('paste', i);
+      this.renderer.unrenderColumn(this.score.staves[0].measures[i]);
+    }
+    this.storeUndo.grouping = false;
     const altSelection = this._getEquivalentSelection(firstSelection);
     const altTarget = altSelection!.selector;
-    this.pasteBuffer.pasteSelections(pasteTarget);
+    altTarget.tick = this.tracker.selections[0].selector.tick;
+    // paste the clipboard into the destination
     this.storePaste.pasteSelections(altTarget);
-    this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
+    // Refresh those measures.
+    this.replaceMeasureView(measureRange);
     await this.renderer.updatePromise();
   }
   /**
@@ -1174,12 +1237,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @param head 
    */
   async setNoteHead(head: string): Promise<void> {
-    const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set note head');
-    SmoOperation.setNoteHead(selections, head);
-    SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
-    this._renderChangedMeasures(measureSelections);
-    return this.renderer.updatePromise();
+    await this.modifyCurrentSelections('set note head', (score, selections) => {
+      SmoOperation.setNoteHead(selections, head);
+    });
   }
 
   /**
@@ -1288,6 +1348,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
   _removeStaffModifier(modifier: StaffModifierBase) {
     this.score.staves[modifier.associatedStaff].removeStaffModifier(modifier);
     const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.attrs.id = modifier.attrs.id;
     altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
     altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
     this.storeScore.staves[this._getEquivalentStaff(modifier.associatedStaff)].removeStaffModifier(altModifier);
@@ -1298,7 +1359,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async removeStaffModifier(modifier: StaffModifierBase): Promise<void> {
-    this._undoStaffModifier('Set measure proportion', modifier,
+    this.undoStaffModifier('Set measure proportion', modifier,
       UndoBuffer.bufferSubtypes.REMOVE);
     this._removeStaffModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
@@ -1324,7 +1385,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       .getModifier(modifier);
     const subtype = existing === null ? UndoBuffer.bufferSubtypes.ADD :
       UndoBuffer.bufferSubtypes.UPDATE;
-    this._undoStaffModifier('Set measure proportion', original,
+    this.undoStaffModifier('Set measure proportion', original,
       subtype);
     this._removeStaffModifier(modifier);
     const copy = StaffModifierBase.deserialize(modifier.serialize());
@@ -1344,65 +1405,86 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
     return this.renderer.updatePromise();
   }
-  _lineOperation(op: string) {
+  lineOperation(op: createStaffModifierType<StaffModifierBase>) {
     // if (this.tracker.selections.length < 2) {
     //   return;
     // }
-    const measureSelections = this._undoTrackerMeasureSelections(op);
+    const measureSelections = this.undoTrackerMeasureSelections('create staff modifier');
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    const modifier = (SmoOperation as any)[op](ft, tt);
-    (SmoOperation as any)[op](ftAlt, ttAlt);
-    this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
+    const modifier = op(ft, tt);
+    const altModifier = op(ftAlt!, ttAlt!);
+    altModifier.attrs.id = modifier.attrs.id;
+    ft.staff.addStaffModifier(modifier);
+    ftAlt?.staff.addStaffModifier(altModifier);
+    this.undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
   /**
    * Add crescendo to selection
    */
   async crescendo(): Promise<void> {
-    this._lineOperation('crescendo');
+    this.lineOperation(SmoOperation.createCrescendo);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async crescendoBracket(): Promise<void> {
-    this._lineOperation('crescendoBracket');
+    this.lineOperation(SmoOperation.createCrescendoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async dimenuendo(): Promise<void> {
-    this._lineOperation('dimenuendo');
+    this.lineOperation(SmoOperation.createDimenuendoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async accelerando(): Promise<void> {
-    this._lineOperation('accelerando');
+    this.lineOperation(SmoOperation.createAccelerandoBracket);
     return this.renderer.updatePromise();
   }
   /**
    * Add crescendo to selection
    */
   async ritard(): Promise<void> {
-    this._lineOperation('ritard');
+    this.lineOperation(SmoOperation.createRitardBracket);
     return this.renderer.updatePromise();
   }
   /**
-   * diminuendo selections
+   * diminuendo hairpin
    * @returns 
    */
   async decrescendo(): Promise<void> {
-    this._lineOperation('decrescendo');
+    this.lineOperation(SmoOperation.createDecrescendo);
     return this.renderer.updatePromise();
   }
   async removeTextBracket(bracket: SmoStaffTextBracket): Promise<void> {
     return this.removeStaffModifier(bracket);
+  }
+  async addOrReplaceStaffModifier(callback: updateStaffModifierFunc, modifier: StaffModifierBase): Promise<void> {
+    const from1 = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const to1 = SmoSelection.noteFromSelector(this.score, modifier.endSelector);
+    if (from1 === null || to1 === null) {
+      return;
+    }
+    const altFrom = this._getEquivalentSelection(from1);
+    const altTo = this._getEquivalentSelection(to1);
+    if (altFrom === null || altTo === null) {
+      return;
+    }
+    callback(this.score, from1, to1);
+    callback(this.storeScore, altFrom, altTo);
+    const redraw = SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
+    this.undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this._renderChangedMeasures(redraw);
+    return this.renderer.updatePromise();
   }
   async addOrReplaceTextBracket(modifier: SmoStaffTextBracket) {
     const from1 = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
@@ -1418,7 +1500,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addOrReplaceBracket(modifier, from1, to1);
     SmoOperation.addOrReplaceBracket(modifier, altFrom, altTo);
     const redraw = SmoSelection.getMeasuresBetween(this.score, from1.selector, to1.selector);
-    this._undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this.undoStaffModifier('add repl text bracket', modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(redraw);
     return this.renderer.updatePromise();
   }
@@ -1426,15 +1508,19 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * Slur selected notes
    * @returns
    */
-  async slur(): Promise<void> {
-    const measureSelections = this._undoTrackerMeasureSelections('slur');
+  async addSlur(): Promise<void> {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    const modifier = SmoOperation.slur(this.score, ft, tt);
-    const altModifier = SmoOperation.slur(this.storeScore, ftAlt!, ttAlt!);
-    this._undoStaffModifier('add ' + 'op', new SmoSlur(modifier), UndoBuffer.bufferSubtypes.ADD);
+    const modifier = SmoOperation.createSlur(this.score, ft, tt);
+    ft.staff.addStaffModifier(modifier);
+    // make sure score and backup have same ID for undo.
+    const altModifier = SmoOperation.createSlur(this.storeScore, ftAlt!, ttAlt!);
+    altModifier.attrs.id = modifier.attrs.id;
+    ftAlt?.staff.addStaffModifier(altModifier);
+    this.undoStaffModifier('add slur', modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }
@@ -1443,7 +1529,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   async tie(): Promise<void> {
-    this._lineOperation('tie');
+    this.lineOperation(SmoOperation.createTie);
     return this.renderer.updatePromise();
   }
   async updateZoom(zoomFactor: number): Promise<void> {
@@ -1742,7 +1828,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
   updateRepeatCount(count: number) {
-    const measureSelections = this._undoTrackerMeasureSelections('repeat bar');
+    const measureSelections = this.undoTrackerMeasureSelections('repeat bar');
     const symbol = count > 0 ? true : false;    
     measureSelections.forEach((ms) => {
       const store = this._getEquivalentSelection(ms);

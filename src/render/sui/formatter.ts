@@ -465,7 +465,7 @@ export class SuiLayoutFormatter {
           const declared = acLen > 0 ?
             accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
           if (declared !== pitch.accidental || pitch.cautionary) {
-            noteWidth += vexGlyph.accidentalWidth(pitch.accidental);
+            noteWidth += vexGlyph.accidentalWidth(pitch.accidental) * 2;
           }
         });
 

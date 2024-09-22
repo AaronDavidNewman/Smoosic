@@ -46,12 +46,12 @@ export class SuiDynamicsMenu extends SuiMenuBase {
     return SuiDynamicsMenu.defaults;
   }
 
-  selection(ev: any) {
+  async selection(ev: any) {
     const text: string = $(ev.currentTarget).attr('data-value');
     const props = SmoDynamicText.defaults;
     props.text = text;
     const dynamic = new SmoDynamicText(props);
-    this.view.addDynamic(this.tracker.selections[0], dynamic);
+    await this.view.addDynamic(this.tracker.selections[0], dynamic);
     this.complete();
   }
   keydown() { }

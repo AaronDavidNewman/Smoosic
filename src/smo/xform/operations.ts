@@ -28,6 +28,7 @@ import { SmoTupletTree } from '../data/tuplet';
 export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |
   'doubleGraceNoteDuration' | 'halveGraceNoteDuration';
 
+export type createStaffModifierType<T> = (fromSelection: SmoSelection, toSelection: SmoSelection) => T;
 /**
  * SmoOperation is a collection of static methods that operate on/change/transform the music.  Most methods
  * take the score, a selection or selection array, and the parameters of the operation.
@@ -79,21 +80,6 @@ export class SmoOperation {
       });
     });
   }
-
-  static addRemoveMicrotone(ignore: any, selections: SmoSelection[], tone: SmoMicrotone) {
-    selections.forEach((sel) => {
-      const note = sel.note;
-      if (note) {
-        const oldTone = note.getMicrotone(tone.pitchIndex);
-        if (oldTone) {
-          note.removeMicrotone(oldTone);
-        } else {
-          note.addMicrotone(tone);
-        }
-      }
-    });
-  }
-
   static moveStaffUpDown(score: SmoScore, selection: SmoSelection, index: number) {
     const index1 = selection.selector.staff;
     const index2 = selection.selector.staff + index;
@@ -649,14 +635,6 @@ export class SmoOperation {
     });
   }
 
-  static toggleOrnament(selection: SmoSelection, ornament: SmoOrnament) {
-    (selection.note as SmoNote).toggleOrnament(ornament);
-  }
-
-  static toggleArticulation(selection: SmoSelection, articulation: SmoArticulation) {
-    (selection.note as SmoNote).toggleArticulation(articulation);
-  }
-
   static addEnding(score: SmoScore, parameters: SmoVolta) {
     let m = 0;
     let s = 0;
@@ -783,62 +761,56 @@ export class SmoOperation {
   static addOrReplaceBracket(modifier: SmoStaffTextBracket, fromSelection: SmoSelection, toSelection: SmoSelection) {
     fromSelection.staff.addTextBracket(modifier);
   }
-  static ritard(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createRitardBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.RITARD;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static accelerando(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createAccelerandoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.ACCEL;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static crescendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createCrescendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.CRESCENDO;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static dimenuendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createDimenuendoBracket(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffTextBracketParams = SmoStaffTextBracket.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.text = SmoStaffTextBracket.CRESCENDO;
     const modifier = new SmoStaffTextBracket(params);
-    fromSelection.staff.addTextBracket(modifier);
     return modifier;
   }
-  static crescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createCrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffHairpinParams = SmoStaffHairpin.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.hairpinType = SmoStaffHairpin.types.CRESCENDO;
     const modifier = new SmoStaffHairpin(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
 
-  static decrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createDecrescendo(fromSelection: SmoSelection, toSelection: SmoSelection) {
     const params: SmoStaffHairpinParams = SmoStaffHairpin.defaults;
     params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
     params.hairpinType = SmoStaffHairpin.types.DECRESCENDO;
     const modifier = new SmoStaffHairpin(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-  static tie(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static createTie(fromSelection: SmoSelection, toSelection: SmoSelection) {
     // By default, just tie all the pitches to all the other pitches in order
     const lines = SmoTie.createLines(fromSelection.note as SmoNote, toSelection.note as SmoNote);
     const params: SmoTieParams = SmoTie.defaults;
@@ -846,7 +818,6 @@ export class SmoOperation {
     params.endSelector = toSelection.selector;
     params.lines = lines;
     const modifier = new SmoTie(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
 
@@ -878,8 +849,7 @@ export class SmoOperation {
    * @param toSelection 
    * @returns 
    */
-  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector, 
-    forcePosition: number, forceOrientation: number):SmoSlurParams {
+  static getDefaultSlurDirection(score: SmoScore, fromSelector: SmoSelector, toSelector: SmoSelector):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
     const sels = SmoSelector.order(fromSelector, toSelector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));
@@ -931,63 +901,39 @@ export class SmoOperation {
         endDir = fstate;
       }
     });
-    params.invert = false;
+    params.orientation = SmoSlur.orientations.AUTO;
+    params.position = SmoSlur.positions.AUTO;
+    params.position_end = SmoSlur.positions.AUTO;
     mixed = Object.keys(dirs).length > 1;
     // If the notes are beamed together, we assume the beams point in the same direction
-    if (Object.keys(beamGroups).length < 2) {
-      mixed = false;
-    }
-    if (forcePosition === SmoSlur.positions.ABOVE) {
-      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-      if (startDir === SmoNote.flagStates.up && forceOrientation !== SmoSlur.orientations.DOWN) {
-        params.invert = true;
-      }
-    } else if (forcePosition === SmoSlur.positions.BELOW) {
-      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
-      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.HEAD : SmoSlur.positions.TOP;
-      if (startDir === SmoNote.flagStates.down && forceOrientation !== SmoSlur.orientations.UP) {
-        params.invert = true;
-      }
-    } else {
-      if (mixed) {
-        // special case: slur 2 notes, note heads close, connect the note heads
-        // to keep a flat arc
-        if (selections.length === 2 && firstGap < 3) {
-          params.position = SmoSlur.positions.HEAD;
-          params.position_end = SmoSlur.positions.HEAD;
-          params.xOffset = 5;
-        } else {
-          params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-          params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-          if (firstGap >= 3 || lastGap >= 3) {
-            params.cp1y = 45;
-            params.cp2y = 45;
-          }
-        }
-        params.invert = endDir === SmoNote.flagStates.up;
-      }     
-      if (!mixed) {
-        params.position = SmoSlur.positions.HEAD;
-        params.position_end = SmoSlur.positions.HEAD;
-        if (firstGap >= 2 || lastGap >= 2) {
+    if (mixed) {
+      // special case: slur 2 notes, note heads close, connect the note heads
+      // to keep a flat arc
+      if (selections.length === 2 && firstGap < 3) {
+        params.xOffset = 5;
+      } else {
+        if (firstGap >= 3 || lastGap >= 3) {
           params.cp1y = 45;
           params.cp2y = 45;
-          params.yOffset += 10;
-        } else {
-          params.yOffset += 10;
         }
       }
+    } else {
+      if (firstGap >= 2 || lastGap >= 2) {
+        params.cp1y = 45;
+        params.cp2y = 45;
+        params.yOffset += 10;
+      } else {
+        params.yOffset += 10;
+      }      
     }
     if (selections.length === 2) {
       params.xOffset = 0;
     }
     return params;
   }
-  static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlurParams {
-    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector, SmoSlur.positions.AUTO, SmoSlur.orientations.AUTO);
+  static createSlur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection): SmoSlur {
+    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection.selector, toSelection.selector);
     const modifier: SmoSlur = new SmoSlur(params);
-    fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
   static addStaff(score: SmoScore, parameters: SmoSystemStaffParams): SmoSystemStaff {
@@ -1119,3 +1065,4 @@ export class SmoOperation {
     });
   }
 }
+

@@ -27,7 +27,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
   createTextNote, TabStave, createTabStave, TabNotePosition, TabNoteStruct,
-  CreateVexNoteParams, TabNote
+  CreateVexNoteParams, TabNote, PedalMarking
    } from '../../common/vex';
 
 import { VxMeasureIf, VexNoteModifierIf, VxNote } from './vxNote';
@@ -633,7 +633,6 @@ export class VxMeasure implements VxMeasureIf {
       for (j = 0; j < this.voiceAr.length; ++j) {
         this.voiceAr[j].draw(this.context.getContext(), this.stave!);
       }
-
       this.vexBeamGroups.forEach((b) => {
         b.setContext(this.context.getContext()).draw();
       });

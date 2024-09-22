@@ -18,7 +18,7 @@ import { VexFlow, Stave,StemmableNote, Note, Beam, Tuplet, Voice,
   createStaveText, renderDynamics, applyStemDirection,
   getVexNoteParameters, defaultNoteScale, defaultCueScale, getVexTuplets,
   createStave, createVoice, getOrnamentGlyph, getSlashGlyph, getRepeatBar, getMultimeasureRest,
-  addChordGlyph, StaveNote,
+  addChordGlyph, StaveNote, PedalMarking,
   TabNote} from '../../common/vex';
 
 const VF = VexFlow;
@@ -37,7 +37,7 @@ export interface VexNoteModifierIf {
   staveNote: Note,
   voiceIndex: number,
   tickIndex: number,
-  tabNote?: StemmableNote | TabNote
+  tabNote?: StemmableNote | TabNote,
 }
 
 export class VxNote {
@@ -117,7 +117,6 @@ export class VxNote {
       vexNote.addModifier(mod, 0);
     });
   }
-
   createOrnaments() {
     const o = this.noteData.smoNote.getOrnaments();
     o.forEach((ll) => {
@@ -232,7 +231,11 @@ export class VxNote {
     smoNote.articulations.forEach((art) => {
       if (smoNote.noteType === 'n') {
         const vx = this.noteData.staveNote;
-        const position: number = SmoArticulation.positionToVex[art.position];
+        let smoPosition = art.position;
+        if (art.position === SmoArticulation.positions.auto) {
+          smoPosition = SmoMusic.positionFromStaffLine(smoNote);
+        }
+        const position = SmoArticulation.positionToVex[smoPosition];
         const vexArt = SmoArticulation.articulationToVex[art.articulation];
         const vxArt = new VF.Articulation(vexArt).setPosition(position);
         vx.addModifier(vxArt, this.noteData.voiceIndex);

@@ -8,7 +8,7 @@ import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer, UndoEntry } from '../../smo/xform/undo';
 import { SmoRenderConfiguration } from './configuration';
 import { PromiseHelpers } from '../../common/promiseHelpers';
-import { SmoSelection } from '../../smo/xform/selections';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { VxSystem } from '../vex/vxSystem';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreText';
@@ -108,17 +108,37 @@ export class SuiRenderState {
     setFontStack(this.score!.engravingFont);
   }
   addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
+    let selections = [];
+    if (!Array.isArray(selection)) {
+      selections = [selection];
+    } else {
+      selections = selection;
+    }
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {        
-      if (Array.isArray(selection)) {
-        this.replaceQ = this.replaceQ.concat(selection);
-      } else {
-        this.replaceQ.push(selection);
-      }
+        selections.forEach((selection) => {
+          const existing = this.replaceQ.find((sel) => 
+            sel.selector.staff === selection.selector.staff && sel.selector.measure === selection.selector.measure);
+          if (existing) {
+            existing._measure = selection._measure;
+          } else {
+            this.replaceQ.push(selection);
+          }
+        })
       this.setDirty();
     }
   }
-
+  addColumnToReplaceQueue(mm: number) {
+    if (!this.score) {
+      return;
+    }
+    for (let i = 0; i < this.score.staves.length; ++i) {
+      const selection = SmoSelection.measureSelection(this.score, i, mm);
+      if (selection) {
+        this.addToReplaceQueue(selection);
+      }
+    }
+  }
   setDirty() {
     if (!this.dirty) {
       this.dirty = true;
@@ -153,7 +173,7 @@ export class SuiRenderState {
    */
   replaceMeasures() {
     const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
-    if (this.score === null || this.measureMapper === null) {
+    if (this.score === null || this.measureMapper === null || this.replaceQ.length === 0) {
       return;
     }
     this.replaceQ.forEach((change) => {
@@ -370,50 +390,6 @@ export class SuiRenderState {
     }
   }
 
-  // ### undo
-  // Undo is handled by the render state machine, because the layout has to first
-  // delete areas of the viewport that may have changed,
-  // then create the modified score, then render the 'new' score.
-  undo(undoBuffer: UndoBuffer, staffMap: Record<number, number>): SmoScore {
-    let op = 'setDirty';
-    const buffer = undoBuffer.peek();
-    // Unrender the modified music because the IDs may change and normal unrender won't work
-    if (buffer) {
-      const sel = buffer.selector;
-      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {       
-        if (typeof(staffMap[sel.staff]) === 'number')  {
-          const mSelection = SmoSelection.measureSelection(this.score!, staffMap[sel.staff], sel.measure);
-          if (mSelection !== null) {
-            this.renderer.unrenderMeasure(mSelection.measure);
-          }
-        }
-      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
-        if (typeof(staffMap[sel.staff]) === 'number')  {
-          const sSelection = SmoSelection.measureSelection(this.score!, staffMap[sel.staff], 0);
-          if (sSelection !== null) {
-            this.renderer.unrenderStaff(sSelection.staff);
-          }
-        }
-        op = 'setRefresh';
-      } else {
-        this.renderer.unrenderAll();
-        op = 'setRefresh';
-      }
-      this._score = undoBuffer.undo(this._score!, staffMap, false);
-      // Broken encapsulation - we need to know if we are 'undoing' an entire score
-      // so we can change the score pointed to by the renderer.
-      if (buffer.type === UndoBuffer.bufferTypes.SCORE) {
-        this.renderer.score = this._score;
-      }
-      (this as any)[op]();
-    }
-    if (!this._score) {
-      throw ('no score when undo');
-    }    
-    return this._score;
-  }
-
-
   unrenderColumn(measure: SmoMeasure) {
     this.score!.staves.forEach((staff) => {
       this.renderer.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
@@ -429,9 +405,11 @@ export class SuiRenderState {
   unrenderMeasure(measure: SmoMeasure) {
     this.renderer.unrenderMeasure(measure);
   }
-
-  async renderScoreModifiers() {
-    await this.renderer.renderScoreModifiers();
+  async rerenderTextGroups() {
+    await this.renderer.rerenderTextGroups();
+  }
+  async unrenderTextGroups() {
+    this.renderer.unrenderTextGroups();
   }
   async render(): Promise<any> {
     if (this._resetViewport) {

@@ -110,12 +110,13 @@ export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDial
    * something in the UI needs to change as a result of the component state (e.g. 
    * show or hide another component)
    */
-  changed() {
+  async changed() {
     this.components.forEach((comp) => {
       if (comp.changeFlag) {
         (this.adapter as any)[comp.smoName] = (comp as any).getValue();
       }
     });
+    await this.view.updatePromise();
   }
   /**
    * If there is any 'saving' to be done when the dialog clicks OK, 

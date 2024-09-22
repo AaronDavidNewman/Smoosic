@@ -197,7 +197,7 @@ export class SuiScoreRender {
     }
   }
 
-  async renderScoreModifiers(): Promise<void> {
+  async unrenderTextGroups(): Promise<void> {
     return new Promise((resolve) => {
       // remove existing modifiers, and also remove parent group for 'extra'
       // groups associated with pagination (once per page etc)
@@ -208,13 +208,26 @@ export class SuiScoreRender {
         });
         tg.elements = [];
       }
+      resolve();
+    });
+  }
+  async renderTextGroups(): Promise<void> {
+    return new Promise((resolve) => {
+      let tgs = this.score!.textGroups;
+      if (this.score?.isPartExposed() && this.score.staves[0].partInfo.preserveTextGroups) {
+        tgs = this.score.staves[0].partInfo.textGroups;
+      }
       // group.classList.add('all-score-text');
-      for (var i = 0; i < this.score!.textGroups.length; ++i) {
-        const tg = this.score!.textGroups[i];
+      for (var i = 0; i < tgs.length; ++i) {
+        const tg = tgs[i];
         this.renderTextGroup(tg);
       }
       resolve();
     });
+  }
+  async rerenderTextGroups(): Promise<void> {
+    await this.unrenderTextGroups();
+    await this.renderTextGroups();
   }
 
   /**
@@ -342,7 +355,7 @@ export class SuiScoreRender {
       lineIx++;
       await this._renderNextSystem(lineIx, keys, printing);
     } else {
-      await this.renderScoreModifiers();
+      await this.rerenderTextGroups();
       this.numberMeasures();
       this.measuresToMap.forEach((mm) => {
         this.measureRenderedElements(mm.vxSystem, mm.measuresToBox, mm.modifiersToBox, mm.printing);
@@ -431,9 +444,9 @@ export class SuiScoreRender {
     }
     const renderedId: Record<string, boolean> = {};
     staff.renderableModifiers.forEach((modifier) => {
-      const startNote = SmoSelection.noteSelection(this.score!,
+      let startNote = SmoSelection.noteSelection(this.score!,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-      const endNote = SmoSelection.noteSelection(this.score!,
+      let endNote = SmoSelection.noteSelection(this.score!,
         modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
       if (!startNote || !endNote) {
         // If the modifier doesn't have score endpoints, delete it from the score
@@ -459,6 +472,7 @@ export class SuiScoreRender {
           }
           while (testNote) {
             vxEnd = testNote;
+            endNote = nextNote;
             nextNote = SmoSelection.nextNoteSelection(this.score!,
               nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
             if (!nextNote) {
@@ -479,6 +493,7 @@ export class SuiScoreRender {
           testNote = system.getVxNote(lastNote.note);
           while (testNote !== null) {
             vxStart = testNote;
+            startNote = lastNote;
             lastNote = SmoSelection.lastNoteSelection(this.score!,
               lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
             if (!lastNote) {
@@ -531,15 +546,16 @@ export class SuiScoreRender {
       this.renderedPages[change.measure.svg.pageIndex] = null;
     }
     SmoBeamer.applyBeams(change.measure);
+    const lineIndex = change.measure.svg.lineIndex;
     // Defer modifier update until all selected measures are drawn.
-    if (!staffMap[change.staff.staffId]) {
+    if (!staffMap[lineIndex]) {
       const context = this.vexContainers.getRenderer(change.measure.svg.logicalBox);
       if (context) {
-        system = new VxSystem(context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
-        staffMap[change.staff.staffId] = { system, staff: change.staff };  
+        system = new VxSystem(context, change.measure.staffY, lineIndex, this.score!);
+        staffMap[lineIndex] = { system, staff: change.staff };  
       }
     } else {
-      system = staffMap[change.staff.staffId].system;
+      system = staffMap[lineIndex].system;
     }
     const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
     const measuresToMeasure: SmoMeasure[] = [];

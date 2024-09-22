@@ -24,6 +24,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-metronome4:before {
+  content: "\e99f";
+}
+.icon-enter2:before {
+  content: "\e99a";
+}
 .icon-radio-checked2:before {
   content: "\ea55";
 }

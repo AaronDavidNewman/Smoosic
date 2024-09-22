@@ -284,6 +284,19 @@ export class SmoMusic {
     return line;
   }
   /**
+   * return above if the first pitch is above line 3, else below
+   * @param note 
+   * @returns 
+   */
+  static positionFromStaffLine(note: SmoNote) {
+    const line = SmoMusic.pitchToLedgerLine(note.clef as Clef, note.pitches[0]);
+    if (line >= 3) {
+      return 'above';
+    } else {
+      return 'below';
+    }
+  }
+  /**
    * gives the index into circle-of-fifths array for a pitch, considering enharmonics.
    * */
   static circleOfFifthsIndex(smoPitch: Pitch) {
@@ -529,7 +542,7 @@ export class SmoMusic {
         { letter: 'b', accidental: 'b', role: '6'},
         { letter: 'b', accidental: 'n', role: '7/7'},
         { letter: 'c', accidental: 'b', role: 'b7'},
-        { letter: 'b', accidental: '#', role: '7'}
+        { letter: 'c', accidental: 'n', role: '7'}
       ], 'd': [
         { letter: 'd', accidental: 'n', role: 'tonic' },
         { letter: 'd', accidental: '#', role: '7/2' },

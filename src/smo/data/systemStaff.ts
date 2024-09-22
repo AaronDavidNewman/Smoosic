@@ -24,7 +24,8 @@ import { FontInfo } from '../../common/vex';
  * maps beause we are going to be deserializing again in a different score
  */
 export interface SmoStaffSerializationOptions {
-  skipMaps: boolean
+  skipMaps: boolean,
+  preserveIds: boolean
 }
 /**
  * Constructor parameters for {@link SmoSystemStaff}.
@@ -290,10 +291,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
     params.modifiers = [];
     this.modifiers.forEach((modifier) => {
-      params.modifiers!.push(modifier.serialize());
+      const ser = options.preserveIds ? modifier.serializeWithId() : modifier.serialize();
+      params.modifiers!.push(ser);
     });
     this.textBrackets.forEach((bracket) => {
-      params.modifiers!.push(bracket.serialize());
+      const ser = options.preserveIds ? bracket.serializeWithId() : bracket.serialize();
+      params.modifiers!.push(ser);
     });
     params.partInfo = this.partInfo.serialize();
     if (!isSmoSystemStaffParamsSer(params)) {
@@ -381,6 +384,9 @@ export class SmoSystemStaff implements SmoObjectParams {
     if (jsonObj.modifiers) {
       jsonObj.modifiers.forEach((modParams: any) => {
         const mod = StaffModifierBase.deserialize(modParams);
+        if (modParams.attrs?.id) {
+          mod.attrs.id = modParams.attrs.id;
+        }
         mod.associatedStaff = jsonObj.staffId;
         if (mod.ctor === 'SmoStaffTextBracket') {
           params.textBrackets!.push(mod as SmoStaffTextBracket);
@@ -476,6 +482,12 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
   isRehearsal(index: number) {
     return !(typeof(this.measures[index].getRehearsalMark()) === 'undefined');
+  }
+  findSimlarOverlap(modifier: StaffModifierBase) {
+    const overlap = this.modifiers.filter((ff) => 
+      SmoSelector.overlaps(ff.startSelector, ff.endSelector, modifier.startSelector, modifier.endSelector) &&
+        ff.ctor === modifier.ctor);
+    return overlap;
   }
   removeTabStaves(delList: SmoTabStave[]) {
     if (delList.length < 1) {
@@ -650,7 +662,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   // like it says.
   getSlursEndingAt(selector: SmoSelector) {
     return this.modifiers.filter((mod) =>
-      SmoSelector.sameNote(mod.endSelector, selector)
+      SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
 
@@ -663,6 +675,11 @@ export class SmoSystemStaff implements SmoObjectParams {
   getTiesEndingAt(selector: SmoSelector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
+    );
+  }
+  getPedalMarkingsContaining(selector: SmoSelector) {
+    return this.modifiers.filter((mod) => 
+      mod.ctor === 'SmoPedalMarking' && SmoSelector.contains(selector, mod.startSelector, mod.endSelector)
     );
   }
 
@@ -751,6 +768,26 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
   }
 
+  /**
+   * Sync the staff modifier indices between the full score and the score view, which may
+   * have fewer staves
+   * @param measureIndex 
+   * @param ostaff 
+   */
+  syncStaffModifiers(measureIndex: number, ostaff: SmoSystemStaff) {
+    const mods: StaffModifierBase[] = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.startSelector.measure !== measureIndex) {
+        mods.push(modifier);
+      } else {
+        const omod = ostaff.modifiers.find((mm) => mm.attrs.id === modifier.attrs.id);
+        if (omod) {
+          mods.push(modifier);
+        }
+      }
+    });
+    this.modifiers = mods;
+  }
   // ### deleteMeasure
   // delete the measure, and any staff modifiers that start/end there.
   deleteMeasure(index: number) {

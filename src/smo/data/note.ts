@@ -396,17 +396,26 @@ export class SmoNote implements Transposable {
     this.textModifiers = tms;
   }
 
-  private _addArticulation(articulation: SmoArticulation, toAdd: boolean) {
+  setArticulation(articulation: SmoArticulation, set: boolean) {
     var tms = [];
     this.articulations.forEach((tm) => {
       if (tm.articulation !== articulation.articulation) {
         tms.push(tm);
       }
     });
-    if (toAdd) {
+    if (set) {
       tms.push(articulation);
     }
     this.articulations = tms;
+  }
+  getArticulations() {
+    return this.articulations;
+  }
+  getArticulation(stringCode: string) {
+    return this.articulations.find((aa) => aa.articulation === stringCode);
+  }
+  getOrnament(stringCode: string) {
+    return this.ornaments.find((aa) => aa.ornament === stringCode);
   }
 
   /**
@@ -547,7 +556,6 @@ export class SmoNote implements Transposable {
   getJazzOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz());
   }
-
   getTextOrnaments() {
     return this.ornaments.filter((oo) => typeof(SmoOrnament.textNoteOrnaments[oo.ornament]) === 'string');
   }
@@ -564,6 +572,15 @@ export class SmoNote implements Transposable {
       this.ornaments.push(ornament);
     } else {
       this.ornaments = [];
+    }
+  }
+  setOrnament(ornament: SmoOrnament, set: boolean) {
+    const aix = this.ornaments.filter((a) =>
+      a.ornament !== ornament.ornament
+    );
+    this.ornaments = aix;
+    if (set) {
+      this.ornaments.push(ornament);
     }
   }
   setTabNote(params: SmoTabNoteParams) {
@@ -587,13 +604,13 @@ export class SmoNote implements Transposable {
         cur.position = SmoArticulation.positions.below;
         return;
       } else {
-        this._addArticulation(articulation, false);
+        this.setArticulation(articulation, false);
         return;
       }
     }
-    this._addArticulation(articulation, true);
+    this.setArticulation(articulation, true);
   }
-
+ 
   /**
    * Sort pitches in pitch order, Vex likes to receive pitches in order
    * @param note 
@@ -705,16 +722,17 @@ export class SmoNote implements Transposable {
     return typeof(this.tupletId) !== 'undefined' && this.tupletId !== null &&  this.tupletId.length > 0;
   }
 
+  /**
+   * we only support a single microtone, not sure if vex supports multiple
+   * @param tone 
+   */
   addMicrotone(tone: SmoMicrotone) {
     const ar = this.tones.filter((tn: SmoMicrotone) => tn.pitchIndex !== tone.pitchIndex);
     ar.push(tone);
     this.tones = ar;
   }
-  removeMicrotone(tone: SmoMicrotone) {
-    const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex
-      && tn.pitchIndex <= this.pitches.length // also remove tones for removed pitches
-      && tone.tone !== tn.tone);
-    this.tones = ar;
+  removeMicrotone() {
+    this.tones = [];
   }
   getMicrotone(toneIndex: number) {
     return this.tones.find((tn) => tn.pitchIndex === toneIndex);

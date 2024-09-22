@@ -13,19 +13,24 @@ export class ArticulationButtons extends SuiButton {
       pizzicatoButton: SmoArticulation.articulations.pizzicato,
       fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
-      mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
+      mordentInvertedButton: SmoOrnament.ornaments.mordent_inverted,
       trillButton: SmoOrnament.ornaments.trill,
-      breathButton: 'breath',
+      turnButton: SmoOrnament.ornaments.turn,
+      turnInvertedButton: SmoOrnament.ornaments.turn_inverted,
+      breathButton:  'breath',
       caesuraButton: 'caesura',
       pedalOpenButton: 'pedalOpen',
       pedalClosedButton: 'pedalClosed',
       scoopButton: SmoOrnament.ornaments.scoop,
-      dropButton: SmoOrnament.ornaments.fall_short,
-      dropLongButton: SmoOrnament.ornaments.dropLong,
+      dropButton: SmoOrnament.ornaments.fall,
+      dropLongButton: SmoOrnament.ornaments.fallLong,
       doitButton: SmoOrnament.ornaments.doit,
       doitLongButton: SmoOrnament.ornaments.doitLong,
       flipButton: SmoOrnament.ornaments.flip,
-      smearButton: SmoOrnament.ornaments.smear
+      smearButton: SmoOrnament.ornaments.smear,
+      muteOpen: SmoOrnament.ornaments.plungerOpen,
+      muteClosed: SmoOrnament.ornaments.plungerClosed,
+      bend: SmoOrnament.ornaments.bend
     };
   }
   static get constructors(): Record<string, string> {
@@ -50,6 +55,9 @@ export class ArticulationButtons extends SuiButton {
       doitLongButton: 'SmoOrnament',
       flipButton: 'SmoOrnament',
       smearButton: 'SmoOrnament',
+      muteOpen: 'SmoOrnament',
+      muteClosed: 'SmoOrnament',
+      bend: 'SmoOrnament'
     };
   }
   articulation: string;

@@ -58,8 +58,8 @@ export class SuiTracker extends SuiMapper {
 
     };
   }
-  constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
-    super(renderer, scroller, pasteBuffer);
+  constructor(renderer: SuiRendererBase, scroller: SuiScroller) {
+    super(renderer, scroller);
   }
   // ### renderElement
   // the element the score is rendered on

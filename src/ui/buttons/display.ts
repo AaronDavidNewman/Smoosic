@@ -1,5 +1,8 @@
 import { SuiButton, SuiButtonParams } from './button';
-import { BrowserEventSource } from '../eventSource';
+import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SuiKeySignatureDialog } from '../dialogs/keySignature';
+import { SuiTimeSignatureDialog } from '../dialogs/timeSignature';
+import { SuiTempoDialog } from '../dialogs/tempo';
 declare var $: any;
 
 /**
@@ -47,6 +50,54 @@ export class DisplaySettings extends SuiButton {
   }
   stopButton2() {
     this.view.stopPlayer();
+  }
+  keySignature() {
+    if (!this.completeNotifier) {
+      return;
+    }
+    createAndDisplayDialog(SuiKeySignatureDialog, {
+      view: this.view,
+      completeNotifier: this.completeNotifier,
+      startPromise: null,
+      eventSource: this.eventSource,
+      tracker: this.view.tracker,
+      ctor: 'SuiKeySignatureDialog',
+      id: 'key-signature-dialog',
+      modifier: null
+    });
+  }
+  ribbonTime() {
+    if (!this.completeNotifier) {
+      return;
+    }
+    createAndDisplayDialog(SuiTimeSignatureDialog, {
+      completeNotifier: this.completeNotifier,
+      view: this.view,
+      eventSource: this.eventSource,
+      id: 'staffGroups',
+      ctor: 'SuiStaffGroupDialog',
+      tracker: this.view.tracker,
+      modifier: null,
+      startPromise: null
+    });
+  }
+  ribbonTempo() {
+    if (!this.completeNotifier) {
+      return;
+    }
+    const tempo = this.view.tracker.selections[0].measure.getTempo();
+    createAndDisplayDialog(SuiTempoDialog,
+      {
+        id: 'tempoDialog',
+        ctor: 'SuiTempoDialog',
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        eventSource: this.eventSource,
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: tempo
+      }
+    );
   }
   async selectPart() {
     if (!this.completeNotifier) {

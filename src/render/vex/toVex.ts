@@ -192,7 +192,7 @@ function renderModifier(modifier: StaffModifierBase, startNote: SmoNote | null, 
         xShift: slurX,
         yShift: slur.yOffset,
         cps: svgPoint,
-        invert: slur.invert,
+        orientation: slur.orientation,
         position: slur.position,
         positionEnd: slur.position_end
       };
@@ -291,7 +291,11 @@ function createStaveNote(renderInfo: VexNoteRenderInfo, key: string, row: number
     }
   }
   smoNote.articulations.forEach((aa) => {
-    const position: number = SmoArticulation.positionToVex[aa.position];
+    let smoPosition = aa.position;
+    if (smoPosition === 'auto') {
+      smoPosition = SmoMusic.positionFromStaffLine(smoNote);
+    }
+    const position: number = SmoArticulation.positionToVex[smoPosition];
     const vexArt = SmoArticulation.articulationToVex[aa.articulation];
     const sn = getId();
     strs.push(`const  ${sn} = new VF.Articulation('${vexArt}').setPosition(${position});`);

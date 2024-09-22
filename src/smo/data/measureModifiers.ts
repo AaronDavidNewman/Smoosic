@@ -322,7 +322,7 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
     Coda: 1,
     Segno: 2,
     Dc: 3,
-    ToCoda: 1,
+    ToCoda: 10,
     DcAlCoda: 4,
     DcAlFine: 5,
     Ds: 6,
@@ -330,9 +330,14 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
     DsAlFine: 8,
     Fine: 9
   }
-
+  static readonly _repeatSymbolStrings = ['None', 'Coda', 'Segno', 'Dc', 'ToCoda', 'DcAlCode', 'DcAlFine',
+    'Ds', 'DsAlCoda', 'DsAlFine', 'Fine'
+  ];
+  static repeatSymbolString(symbol: SmoRepeatSymbol): string {
+    return SmoRepeatSymbol._repeatSymbolStrings[symbol.symbol];
+  }
   static readonly defaultXOffset: number[] = [0, 0, 0, -20, -60, -60, -50, -60, -50, -40]
-
+  
   static readonly positions: Record<string, number> = {
     start: 0,
     end: 1

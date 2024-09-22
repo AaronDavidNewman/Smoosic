@@ -187,7 +187,7 @@ export class SuiScoreMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
   }
-  selection(ev: any) {
+  async selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'pageLayout') {
       this.execPageLayout();
