@@ -10,6 +10,7 @@ import { SmoNote } from '../data/note';
 import { Pitch } from '../data/common';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoAudioPitch } from '../data/music';
+import { SmoTupletTree } from '../data/tuplet';
 
 export interface SmoAudioRepeat {
   startRepeat: number,
@@ -523,14 +524,14 @@ export class SmoAudioScore {
             // update staff features of slur/tie/cresc.
             this.getSlurInfo(track, selection);
             this.getHairpinInfo(track, selection);
-            const tuplet = measure.getTupletForNote(note);
-            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
+            const tuplet = SmoTupletTree.getTupletForNoteIndex(measure.tupletTrees, voiceIx, noteIx);
+            if (tuplet && tuplet.startIndex === noteIx) {
               tupletTicks = tuplet.tickCount / this.timeDiv;
             }
             if (tupletTicks) {
               // tuplet likely won't fit evenly in ticks, so
               // use remainder in last tuplet note.
-              if (tuplet && tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
+              if (tuplet && tuplet.endIndex === noteIx) {
                 duration = tupletTicks;
                 tupletTicks = 0;
               } else {

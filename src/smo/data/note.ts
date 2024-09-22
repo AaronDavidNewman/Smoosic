@@ -9,14 +9,18 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText, 
   SmoArpeggio, SmoArticulationParametersSer, GraceNoteParamsSer, SmoOrnamentParamsSer, SmoMicrotoneParamsSer,
   SmoClefChangeParamsSer, SmoClefChange, SmoLyricParamsSer, SmoDynamicTextSer, SmoTabNote,
-  SmoTabNoteParamsSer, 
+  SmoTabNoteParamsSer,
   SmoTabNoteParams,
   SmoFretPosition} from './noteModifiers';
 import { SmoMusic } from './music';
-import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,  
+import { Ticks, Pitch, SmoAttrs, Transposable, PitchLetter, SvgBox, getId,
   createXmlAttribute,  serializeXmlModifierArray} from './common';
 import { FontInfo, vexCanonicalNotes } from '../../common/vex';
+import { SmoTupletParamsSer } from './tuplet';
 
+export interface TupletInfo {
+  id: string;
+}
 // @internal
 export type NoteType = 'n' | 'r' | '/';
 // @internal
@@ -49,6 +53,7 @@ export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCu
  * @param beamBeats how many ticks to use before beaming a group
  * @param flagState up down auto
  * @param ticks duration
+ * @param stemTicks visible duration (todo update this comment)
  * @param pitches SmoPitch array
  * @param isCue tiny notes
  * @category SmoParameters
@@ -120,6 +125,10 @@ export interface SmoNoteParams {
    * note duration
    */
   ticks: Ticks,
+  /**
+   * visible duration
+   */
+  stemTicks: number,
   /**
    * pitch for leger lines and sounds
    */
@@ -213,6 +222,10 @@ export interface SmoNoteParamsSer  {
     */
   ticks: Ticks,
   /**
+   * visible duration (todo: update this comment)
+   */
+  stemTicks: number,
+  /**
     * pitch for leger lines and sounds
     */
   pitches: Pitch[],
@@ -224,12 +237,6 @@ export interface SmoNoteParamsSer  {
     * indicates this note goes with a clef change
     */
   clefNote? : SmoClefChangeParamsSer
-}
-
-export interface SmoTupletNote {
-  ticks: Ticks,
-  noteId: string,
-  tupletId: string
 }
 function isSmoNoteParamsSer(params: Partial<SmoNoteParamsSer>): params is SmoNoteParamsSer {
   if (params.ctor && params.ctor === 'SmoNote') {
@@ -270,9 +277,10 @@ export class SmoNote implements Transposable {
     if (params.tabNote) {
       this.tabNote = new SmoTabNote(params.tabNote);
     }
-    const ticks = params.ticks ? params.ticks : defs.ticks;
     const pitches = params.pitches ? params.pitches : defs.pitches;
+    const ticks = params.ticks ? params.ticks : defs.ticks;
     this.ticks = JSON.parse(JSON.stringify(ticks));
+    this.stemTicks = params.stemTicks ? params.stemTicks : defs.stemTicks;
     this.pitches = JSON.parse(JSON.stringify(pitches));
     this.clef = params.clef ? params.clef : defs.clef;
     this.fillStyle = params.fillStyle ? params.fillStyle : '';
@@ -280,6 +288,7 @@ export class SmoNote implements Transposable {
     if ((params as any).tuplet) {
       this.tupletId = (params as any).tuplet.id;
     }
+
     this.attrs = {
       id: getId().toString(),
       type: 'SmoNote'
@@ -308,6 +317,7 @@ export class SmoNote implements Transposable {
   tones: SmoMicrotone[] = [];
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
+  stemTicks: number = 4096;
   beamBeats: number = 4096;
   beam_group: SmoAttrs | null = null;
   renderId: string | null = null;
@@ -321,9 +331,9 @@ export class SmoNote implements Transposable {
    * @internal
    */
   static get parameterArray() {
-    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote'
-    , 'tupletId'];
+    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'isCue', 'stemTicks',
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden', 'arpeggio', 'clefNote',
+    'tupletId'];
   }
   /**
    * Default constructor parameters.  We always return a copy so the caller can modify it
@@ -349,6 +359,7 @@ export class SmoNote implements Transposable {
         denominator: 1,
         remainder: 0
       },
+      stemTicks: 4096,
       pitches: [{
         letter: 'b',
         octave: 4,
@@ -363,11 +374,9 @@ export class SmoNote implements Transposable {
     this.flagState = (this.flagState + 1) % 3;
   }
 
+  //todo: double check this
   get dots() {
-    if (this.isTuplet) {
-      return 0;
-    }
-    const vexDuration = SmoMusic.closestSmoDurationFromTicks(this.tickCount);
+    const vexDuration = SmoMusic.closestSmoDurationFromTicks(this.stemTicks);
     if (!vexDuration) {
       return 0;
     }
@@ -856,12 +865,19 @@ export class SmoNote implements Transposable {
    * @param ticks
    * @returns A note identical to `note` but with different duration
    */
-  static cloneWithDuration(note: SmoNote, ticks: Ticks | number) {
+  static cloneWithDuration(note: SmoNote, ticks: Ticks | number, stemTicks: number | null = null) {
     if (typeof(ticks) === 'number') {
       ticks = { numerator: ticks, denominator: 1, remainder: 0 };
     }
     const rv = SmoNote.clone(note);
     rv.ticks = ticks;
+
+    if (stemTicks === null) {
+      rv.stemTicks = ticks.numerator + ticks.remainder;
+    } else {
+      rv.stemTicks = stemTicks;
+    }
+
     return rv;
   }
   static serializeModifier(modifiers: SmoNoteModifierBase[]) : object[] {
@@ -897,9 +913,6 @@ export class SmoNote implements Transposable {
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
     }
-    if (this.tupletId) {
-      params.tupletId = this.tupletId;
-    }
     this._serializeModifiers(params);
     if (!isSmoNoteParamsSer(params)) {
       throw 'bad note ' + JSON.stringify(params);
@@ -912,6 +925,14 @@ export class SmoNote implements Transposable {
    * @returns 
    */
   static deserialize(jsonObj: any) {
+    //legacy note
+    if (jsonObj.ticks && jsonObj.stemTicks === undefined) {
+      if (jsonObj.tupletId || jsonObj.tuplet) {
+        jsonObj['stemTicks'] = SmoMusic.closestBeamDuration(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
+      } else {
+        jsonObj['stemTicks'] = SmoMusic.closestSmoDurationFromTicks(jsonObj.ticks.numerator / jsonObj.ticks.denominator + jsonObj.ticks.remainder)!.ticks;
+      }
+    }
     var note = new SmoNote(jsonObj);
     if (jsonObj.textModifiers) {
       jsonObj.textModifiers.forEach((mod: any) => {

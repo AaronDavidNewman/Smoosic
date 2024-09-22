@@ -10,7 +10,7 @@ import { SmoBarline, TimeSignature, SmoRehearsalMark, SmoMeasureModifierBase } f
 import { SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 import { SmoArticulation, SmoLyric, SmoOrnament } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
-import { SmoTuplet } from '../data/tuplet';
+import { SmoTuplet, SmoTupletTree } from '../data/tuplet';
 
 import { XmlHelpers } from './xmlHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
@@ -49,7 +49,8 @@ export interface SmoState {
   beamState: number,
   beamTicks: number,
   timeSignature?: TimeSignature,
-  tempo?: SmoTempoText
+  tempo?: SmoTempoText,
+  currentTupletLevel: number, // not sure about the name
 }
 
 /**
@@ -80,7 +81,8 @@ export class SmoToXml {
       lyricState: {},
       measureTicks: 0,
       beamState: 0,
-      beamTicks: 4096
+      beamTicks: 4096,
+      currentTupletLevel: 0,
     }));
   }
   /**
@@ -493,32 +495,53 @@ export class SmoToXml {
   /**
    * /score-partwise/measure/note/time-modification
    * /score-partwise/measure/note/tuplet
-   * @param noteElement 
-   * @param notationsElement 
-   * @param smoState 
-   * @returns 
    */
-  static tupletTime(noteElement: Element, tuplet: SmoTuplet, smoState: SmoState) {
+  static tupletTime(noteElement: Element, note: SmoNote, measure: SmoMeasure, smoState: SmoState) {
+    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
+    let actualNotes: number = 1;
+    let normalNotes: number = 1;
+    for (let i = 0; i < tuplets.length; i++) {
+      const tuplet = tuplets[i];
+      actualNotes *= tuplet.numNotes;
+      normalNotes *= tuplet.notesOccupied;
+    }
     const nn = XmlHelpers.createTextElementChild;
     const obj = {
-      actualNotes: tuplet.numNotes, normalNotes: tuplet.notes_occupied
+      actualNotes: actualNotes, normalNotes: normalNotes
     };
     const timeModification = nn(noteElement, 'time-modification', null, '');
     nn(timeModification, 'actual-notes', obj, 'actualNotes');
     nn(timeModification, 'normal-notes', obj, 'normalNotes');
   }
-  static tupletNotation(notationsElement: Element, tuplet: SmoTuplet, note: SmoNote) {
-    const nn = XmlHelpers.createTextElementChild;
-    if (tuplet.getIndexOfNote(note) === 0) {
-      const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      XmlHelpers.createAttributes(tupletElement, {
-        number: 1, type: 'start'
-      });
-    } else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
-      const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      XmlHelpers.createAttributes(tupletElement, {
-        number: 1, type: 'stop'
-      });
+  static tupletNotation(notationsElement: Element, note: SmoNote, measure: SmoMeasure, smoState: SmoState) {
+    const tuplets: SmoTuplet[] = SmoTupletTree.getTupletHierarchyForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
+    for (let i = 0; i < tuplets.length; i++) {
+      const tuplet: SmoTuplet = tuplets[i];
+      const nn = XmlHelpers.createTextElementChild;
+
+      if (tuplet.startIndex === smoState.voiceTickIndex) {//START
+        const tupletElement = nn(notationsElement, 'tuplet', null, '');
+        smoState.currentTupletLevel++;
+        XmlHelpers.createAttributes(tupletElement, {
+          number: smoState.currentTupletLevel, type: 'start'
+        });
+
+        const tupletType = XmlHelpers.ticksToNoteTypeMap[tuplet.stemTicks];
+
+        const tupletActual = nn(tupletElement, 'tuplet-actual', null, '');
+        nn(tupletActual, 'tuplet-number', tuplet, 'numNotes');
+        nn(tupletActual, 'tuplet-type', tupletType, '');
+
+        const tupletNormal = nn(tupletElement, 'tuplet-normal', null, '');
+        nn(tupletNormal, 'tuplet-number', tuplet, 'notesOccupied');
+        nn(tupletNormal, 'tuplet-type', tupletType, '');
+      } else if (tuplet.endIndex === smoState.voiceTickIndex) {//STOP
+        const tupletElement = nn(notationsElement, 'tuplet', null, '');
+        XmlHelpers.createAttributes(tupletElement, {
+          number: smoState.currentTupletLevel, type: 'stop'
+        });
+        smoState.currentTupletLevel--;
+      }
     }
   }
 
@@ -759,14 +782,14 @@ export class SmoToXml {
       }
       const duration = note.tickCount;
       smoState.measureTicks += duration;
-      const tuplet = measure.getTupletForNote(note);
+      const tuplet = SmoTupletTree.getTupletForNoteIndex(measure.tupletTrees, smoState.voiceIndex - 1, smoState.voiceTickIndex);
       nn(noteElement, 'duration', { duration }, 'duration');
       SmoToXml.tie(noteElement, smoState);
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
-      let typeTickCount = note.tickCount;
-      if (tuplet) {
-        typeTickCount = tuplet.stemTicks;
-      }
+      let typeTickCount = note.stemTicks;
+      // if (tuplet) {
+      // typeTickCount = tuplet.stemTicks;
+      // }
       nn(noteElement, 'type', { type: XmlHelpers.closestStemType(typeTickCount) },
         'type');
       const dots = SmoMusic.smoTicksToVexDots(note.tickCount);
@@ -776,7 +799,7 @@ export class SmoToXml {
       // time modification (tuplet) comes before notations which have tuplet beaming rules
       // also before stem
       if (tuplet) {
-        SmoToXml.tupletTime(noteElement, tuplet, smoState);
+        SmoToXml.tupletTime(noteElement, note, measure, smoState);
       }
       if (note.flagState === SmoNote.flagStates.up) {
         nn(noteElement, 'stem', { direction: 'up' }, 'direction');
@@ -798,7 +821,7 @@ export class SmoToXml {
       }
       SmoToXml.tied(notationsElement, smoState);
       if (tuplet) {
-        SmoToXml.tupletNotation(notationsElement, tuplet, note);
+        SmoToXml.tupletNotation(notationsElement, note, measure, smoState);
       }
       const ornaments = note.getOrnaments();
       if (ornaments.length) {

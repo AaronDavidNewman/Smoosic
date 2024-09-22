@@ -7,6 +7,7 @@ import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter, createXmlAttributes, createXmlAttribute } from '../data/common';
 import { SmoSelector } from '../xform/selections';
 import { SmoBarline } from '../data/measureModifiers';
+import { XmlTupletData } from './xmlState';
 
 export interface XmlOrnamentData {
   ctor: string,
@@ -36,9 +37,19 @@ export interface XmlTieType {
 /**
  * Store tuplet information when parsing xml
  */
-export interface XmlTupletData {
-  number: number, type: string
+export interface XmlTupletType {
+  number: number,
+  type: string,
+  data: XmlTupletData | null,
 }
+
+export interface XmlTimeModificationType {
+  actualNotes: number,
+  normalNotes: number,
+  normalType: number,
+  //normalDot, todo: check if just bool or list of dots (probably list of dots)
+}
+
 export interface XmlEndingData {
   numbers: number[], type: string
 }
@@ -341,12 +352,13 @@ export class XmlHelpers {
       rv.tickCount = XmlHelpers.durationFromType(noteNode, def);
       rv.duration = (divisions / 4096) * rv.tickCount;
     }
+    //todo nenad: seems like this is not needed since we keep stemTicks directly on the note object now
     // If this is a tuplet, we adjust the note duration back to the graphical type
     // and SMO will create the tuplet after.  We keep track of tuplet data though for beaming
-    if (timeAlteration) {
-      rv.tickCount = (rv.tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
-      rv.alteration = timeAlteration;
-    }
+    // if (timeAlteration) {
+    //   rv.tickCount = (rv.tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+    //   rv.alteration = timeAlteration;
+    // }
     return rv;
   }
  
@@ -393,19 +405,96 @@ export class XmlHelpers {
     });
     return rv;
   }
-  static getTupletData(noteNode: Element): XmlTupletData[] {
-    const rv: XmlTupletData[] = [];
-    const nNodes = [...noteNode.getElementsByTagName('notations')];
-    nNodes.forEach((nNode) => {
-      const slurNodes = [...nNode.getElementsByTagName('tuplet')];
-      slurNodes.forEach((slurNode) => {
-        const number = parseInt(slurNode.getAttribute('number') as string, 10);
-        const type = slurNode.getAttribute('type') as string;
-        rv.push({ number, type });
+
+  static getTimeModificationType(noteNode: Element): XmlTimeModificationType | null {
+    const timeModificationNode = noteNode.querySelector('time-modification');
+    let xmlTimeModification: XmlTimeModificationType | null = null;
+    if (timeModificationNode) {
+      const actualNotesNode = timeModificationNode.querySelector('actual-notes');
+      const normalNotesNode = timeModificationNode.querySelector('normal-notes');
+      const normalTypeNode = timeModificationNode.querySelector('normal-type');
+      const noteTypeNode = noteNode.querySelector('type');
+      let normalType: number | null = null;
+      if (normalTypeNode) {
+        normalType = normalTypeNode.textContent ? XmlHelpers.noteTypesToSmoMap[normalTypeNode.textContent] ?? null : null;
+      } else if (noteTypeNode) {
+        normalType = noteTypeNode.textContent ? XmlHelpers.noteTypesToSmoMap[noteTypeNode.textContent] ?? null : null;
+      }
+      if (actualNotesNode?.textContent && normalNotesNode?.textContent && normalType) {
+        const actualNotes = parseInt(actualNotesNode.textContent, 10);
+        const normalNotes = parseInt(normalNotesNode.textContent, 10);
+        xmlTimeModification = {
+          actualNotes: actualNotes,
+          normalNotes: normalNotes,
+          normalType: normalType
+        };
+      }
+    }
+    return xmlTimeModification;
+  }
+
+  static getTupletData(noteNode: Element): XmlTupletType[] {
+    const rv: XmlTupletType[] = [];
+    const timeModification = XmlHelpers.getTimeModificationType(noteNode);
+    const notationNode = noteNode.querySelector('notations');
+    if (notationNode) {
+      const tupletNodes = [...notationNode.getElementsByTagName('tuplet')];
+      tupletNodes.forEach((tupletNode) => {
+        const number = parseInt(tupletNode.getAttribute('number') as string, 10) as number;
+        const type = tupletNode.getAttribute('type') as string;
+        const xmlTupletType: XmlTupletType = {
+          number: number,
+          type: type,
+          data: null
+        };
+        if (type === 'start') {
+          let tupletActual = null;
+          let tupletNormal = null;
+          const tupletActualNode = tupletNode.querySelector('tuplet-actual');
+          if (tupletActualNode) {
+            const tupletNumberNode = tupletActualNode.querySelector('tuplet-number');
+            const tupletTypeNode = tupletActualNode.querySelector('tuplet-type');
+            const tupletTypeContent = tupletTypeNode?.textContent;
+            const tupletType = tupletTypeContent ? XmlHelpers.noteTypesToSmoMap[tupletTypeContent] ?? null : null;
+            if (tupletNumberNode?.textContent && tupletType) {
+              const tupletNumber = parseInt(tupletNumberNode.textContent, 10);
+              tupletActual = {tupletNumber: tupletNumber, tupletType: tupletType};
+            }
+          }
+          const tupletNormalNode = tupletNode.querySelector('tuplet-normal');
+          if (tupletNormalNode) {
+            const tupletNumberNode = tupletNormalNode.querySelector('tuplet-number');
+            const tupletTypeNode = tupletNormalNode.querySelector('tuplet-type');
+            const tupletTypeContent = tupletTypeNode?.textContent;
+            const tupletType = tupletTypeContent ? XmlHelpers.noteTypesToSmoMap[tupletTypeContent] ?? null : null;
+            if (tupletNumberNode?.textContent && tupletType) {
+              const tupletNumber = parseInt(tupletNumberNode.textContent, 10);
+              tupletNormal = {tupletNumber: tupletNumber, tupletType: tupletType};
+            }
+          }
+          if (tupletActual && tupletNormal) {
+            const xmlTupletData: XmlTupletData = {
+              stemTicks: tupletActual.tupletType,
+              numNotes: tupletActual.tupletNumber,
+              notesOccupied: (tupletActual.tupletType / tupletNormal.tupletType) * tupletNormal.tupletNumber
+            };
+            xmlTupletType.data = xmlTupletData;
+          } else if (timeModification) {
+            const xmlTupletData: XmlTupletData = {
+              stemTicks: timeModification.normalType,
+              numNotes: timeModification.actualNotes,
+              notesOccupied: timeModification.normalNotes
+            };
+            xmlTupletType.data = xmlTupletData;
+          }
+        }
+        rv.push(xmlTupletType);
       });
-    });
+    }
+
     return rv;
   }
+
   static articulationsAndOrnaments(noteNode: Element): SmoNoteModifierBase[] {
     const rv: SmoNoteModifierBase[] = [];
     const nNodes = [...noteNode.getElementsByTagName('notations')];

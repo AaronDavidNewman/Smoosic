@@ -17,7 +17,7 @@ import {
   TimeSignatureParametersSer, SmoMeasureFormatParamsSer, SmoTempoTextParamsSer
 } from './measureModifiers';
 import { SmoNote, NoteType, SmoNoteParamsSer } from './note';
-import { SmoTuplet, SmoTupletParamsSer, SmoTupletParams } from './tuplet';
+import { SmoTuplet, SmoTupletParamsSer, SmoTupletParams, SmoTupletTreeParamsSer, SmoTupletTree } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap } from '../xform/tickMap';
@@ -139,7 +139,7 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['keySignature'];
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
   keySignature: string,
-  tuplets: SmoTuplet[],
+  tupletTrees: SmoTupletTree[],
   transposeIndex: number,
   lines: number,
   // bars: [1, 1], // follows enumeration in VF.Barline
@@ -164,11 +164,11 @@ export interface SmoMeasureParamsSer {
   /**
    * constructor
    */
-  ctor: string;
+  ctor: string,
   /**
    * a list of tuplets (serialized)
    */
-  tuplets: SmoTupletParamsSer[],
+  tupletTrees: SmoTupletTreeParamsSer[],
   /**
    * transpose the notes up/down.  TODO: this should not be serialized
    * as its part of the instrument parameters
@@ -208,7 +208,7 @@ export interface SmoMeasureParamsSer {
    * tempo at this point
    */
   tempo: SmoTempoTextParamsSer
-  
+
 }
 
 /**
@@ -218,7 +218,7 @@ export interface SmoMeasureParamsSer {
  */
 function isSmoMeasureParamsSer(params: Partial<SmoMeasureParamsSer>):params is SmoMeasureParamsSer {
   if (!Array.isArray(params.voices) || 
-      !Array.isArray(params.tuplets) || !Array.isArray(params.modifiers) ||
+      !Array.isArray(params.tupletTrees) || !Array.isArray(params.modifiers) ||
       typeof(params?.measureNumber?.measureIndex) !== 'number') {
         return false;
   }
@@ -242,7 +242,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static readonly _defaults: SmoMeasureParams = {
     timeSignature: SmoMeasure.timeSignatureDefault,
     keySignature: 'C',
-    tuplets: [],
+    tupletTrees: [],
     transposeIndex: 0,
     modifiers: [],
     // bars: [1, 1], // follows enumeration in VF.Barline
@@ -294,7 +294,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
    */
   keySignature: string = '';
   canceledKeySignature: string = '';
-  tuplets: SmoTuplet[] = [];
+  tupletTrees: SmoTupletTree[] = [];
   repeatSymbol: boolean = false;
   repeatCount: number = 0;
   ctor: string='SmoMeasure';
@@ -393,7 +393,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       }
     }
     this.voices = params.voices ? params.voices : [];
-    this.tuplets = params.tuplets ? params.tuplets : [];
+    this.tupletTrees = params.tupletTrees ? params.tupletTrees : [];
     this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
     this.setDefaultBarlines();
     this.keySignature = SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
@@ -531,12 +531,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const fmt = this.format.serialize();
     // measure number can't be defaulted b/c tempos etc. can map to default measure
     params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
-    params.tuplets = [];
+    params.tupletTrees = [];
     params.voices = [];
     params.modifiers = [];
 
-    this.tuplets.forEach((tuplet) => {
-      params.tuplets!.push(tuplet.serialize());
+    this.tupletTrees.forEach((tupletTree) => {
+      params.tupletTrees!.push(tupletTree.serialize());
     });
 
     this.voices.forEach((voice) => {
@@ -587,7 +587,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     let j = 0;
     let i = 0;
     const voices: SmoVoice[] = [];
-    const noteSum = [];
     for (j = 0; j < jsonObj.voices.length; ++j) {
       const voice = jsonObj.voices[j];
       const notes: SmoNote[] = [];
@@ -598,28 +597,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         const noteParams = voice.notes[i];
         const smoNote = SmoNote.deserialize(noteParams);
         notes.push(smoNote);
-        noteSum.push(smoNote);
-      }
-    }
-
-    const tuplets = [];
-    for (j = 0; j < jsonObj.tuplets.length; ++j) {
-      const tupJson = jsonObj.tuplets[j];
-      const tupParams = SmoTuplet.defaults;
-      // Legacy schema had attrs.id, now it is just id
-      if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
-        tupParams.id = (tupJson as any).attrs.id;
-      }
-      smoSerialize.serializedMerge(SmoTuplet.parameterArray, jsonObj.tuplets[j], tupParams);
-      const noteAr = noteSum.filter((nn: SmoNote) =>
-        nn.isTuplet && nn.tupletId === tupParams.id);
-
-      // Bug fix:  A tuplet with no notes may be been overwritten
-      // in a copy/paste operation
-      if (noteAr.length > 0) {
-        tupParams.notes = noteAr;
-        const tuplet = new SmoTuplet(tupParams);
-        tuplets.push(tuplet);
       }
     }
 
@@ -658,19 +635,76 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     params.keySignature = jsonObj.keySignature ?? 'C';
     params.voices = voices;
-    params.tuplets = tuplets;
+
+    if ((jsonObj as any).tupletTrees !== undefined) {
+      for (j = 0; j < jsonObj.tupletTrees.length; ++j) {
+        const tupletTreeJson = jsonObj.tupletTrees[j];
+        const tupletTree = SmoTupletTree.deserialize(tupletTreeJson);
+        params.tupletTrees.push(tupletTree);
+      }
+    }
+    //deserialization of a legacy tuplets
+    //legacy schema had measure.tuplets, it is measure.tupletTrees now
+    if ((jsonObj as any).tuplets !== undefined) {
+      for (j = 0; j < (jsonObj as any).tuplets.length; ++j) {
+        const tupJson = (jsonObj as any).tuplets[j];
+
+        // Legacy schema had attrs.id, now it is just id
+        if ((tupJson as any).attrs && (tupJson as any).attrs.id) {
+          tupJson.id = (tupJson as any).attrs.id;
+        }
+
+        const tupletNotes: SmoNote[] = [];
+        let startIndex: number | null = null;
+        params.voices.forEach((voice) => {
+          voice.notes.forEach((note, index) => {
+            if (note.isTuplet && note.tupletId === tupJson.attrs.id) {
+              tupletNotes.push(note);
+              //we cannot trust startIndex coming from legacy json
+              //we need to count index of the first note in the tuplet
+              if (startIndex === null) {
+                startIndex = index;
+              }
+            }
+          });
+        });
+
+        // Bug fix:  A tuplet with no notes may be been overwritten
+        // in a copy/paste operation
+        if (tupletNotes.length > 0) {
+          tupJson.notes = tupletNotes;
+          tupJson.startIndex = startIndex;
+          tupJson.endIndex = tupJson.startIndex + tupletNotes.length - 1;
+        }
+
+        const tuplet: SmoTuplet = SmoTuplet.deserialize(tupJson);
+        const tupletTree: SmoTupletTree = new SmoTupletTree({tuplet: tuplet});
+        params.tupletTrees.push(tupletTree);
+      }
+    }
+    if (params.tupletTrees.length) {
+      SmoTupletTree.syncTupletIds(params.tupletTrees, voices)
+    }
+
     params.modifiers = modifiers;
-    const rv = new SmoMeasure(params);
+    const measure = new SmoMeasure(params);
     // Handle migration for measure-mapped parameters
-    rv.modifiers.forEach((mod) => {
+    measure.modifiers.forEach((mod) => {
       if (mod.ctor === 'SmoTempoText') {
-        rv.tempo = (mod as SmoTempoText);
+        measure.tempo = (mod as SmoTempoText);
       }
     });
-    if (!rv.tempo) {
-      rv.tempo = new SmoTempoText(SmoTempoText.defaults);
+    if (!measure.tempo) {
+      measure.tempo = new SmoTempoText(SmoTempoText.defaults);
     }
-    return rv;
+
+
+
+    return measure;
+  }
+
+  static clone(measure: SmoMeasure): SmoMeasure {
+    return SmoMeasure.deserialize(measure.serialize());
   }
 
   /**
@@ -756,6 +790,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       nextNote.noteType = 'r';
       nextNote.clef = clef;
       nextNote.ticks.numerator = noteTick;
+      nextNote.stemTicks = noteTick;
       pnotes.push(new SmoNote(nextNote));
       ticks += noteTick;
     }
@@ -915,6 +950,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const duration = SmoMusic.closestDurationTickLtEq(target);
       if (duration > 128) {
         fitNote.ticks = { numerator: duration, denominator: 1, remainder: 0 };
+        fitNote.stemTicks = duration;
         fitNote.pitches = note.pitches;
         fitNote.noteType = note.noteType;
         fitNote.clef = note.clef;
@@ -931,22 +967,24 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         const note = voice.notes[j];
         // if a tuplet, make sure the whole tuplet fits.
         if (note.isTuplet) {
-          const tuplet = this.getTupletForNote(note);
-          if (tuplet) {
+          const tupletTree = SmoTupletTree.getTupletTreeForNoteIndex(this.tupletTrees, i, j);
+          if (tupletTree) {
             // remaining notes of an approved tuplet, just add them
-            if (tuplet.startIndex !== j) {
+            if (tupletTree.startIndex !== j) {
               newNotes.push(note);
               continue;
             }
-            else if (tuplet.tickCount + voiceTicks <= tsTicks) {
+            else if (tupletTree.totalTicks + voiceTicks <= tsTicks) {
               // first note of the tuplet, it fits, add it
-              voiceTicks += tuplet.tickCount;
+              voiceTicks += tupletTree.totalTicks;
               newNotes.push(note);
-              tuplets.push(tuplet);
             } else {
-              // tuplet will not fit.  Make a note as close to remainder as possible and add it
+              // tuplet will not fit.  Replace tuplet with a note as close to remainder as possible and add it
+              // remove tuplet
+              note.tupletId = null
               replaceNoteWithDuration(tsTicks - voiceTicks, newNotes, note);
               voiceTicks = tsTicks;
+              SmoTupletTree.removeTupletForNoteIndex(this, i, j);
               break;
             }
           } else { // missing tuplet, now what?
@@ -974,7 +1012,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       voices.push({ notes: newNotes });
     }
     this.voices = voices;
-    this.tuplets = tuplets;
   }
   get measureNumberDbg(): string {
     return `${this.measureNumber.measureIndex}/${this.measureNumber.systemIndex}/${this.measureNumber.staffId}`;
@@ -1037,6 +1074,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         const pitches: number[] = [...Array(note.pitches.length).keys()];
         // when the note is a rest, preserve the rest but match the new clef.
         if (newClef !== this.clef && note.noteType === 'r') {
+          // @ts-ignore
           const defp = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[newClef]));
           note.pitches = [defp];
         } else {
@@ -1197,17 +1235,45 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return ticks;
   }
 
-  getClosestTickCountIndex(voiceIndex: number, tickCount: number): number {
+  /**
+   * Count all the ticks up to the provided tickIndex
+   * @param voiceIndex
+   * @param tickIndex
+   */
+  getNotePositionInTicks(voiceIndex: number, tickIndex: number): number {
+    let rv = 0;
+    for (let i = 0; i < tickIndex; i++) {
+      const note = this.voices[voiceIndex].notes[i];
+      rv += note.tickCount;
+    }
+    return rv;
+  }
+
+  /**
+   * Count all the ticks up to the provided tickIndex
+   * @param voiceIndex
+   * @param tickIndex
+   */
+  getTickCountForNote(voiceIndex: number, note: SmoNote): number {
+    let rv = 0;
+    for (let i = 0; i < this.voices[voiceIndex].notes.length; i++) {
+      const currentNote = this.voices[voiceIndex].notes[i];
+      rv += note.tickCount;
+    }
+    return rv;
+  }
+
+  getClosestIndexFromTickCount(voiceIndex: number, tickCount: number): number {
     let i = 0;
     let rv = 0;
     for (i = 0; i < this.voices[voiceIndex].notes.length; ++i) {
       const note = this.voices[voiceIndex].notes[i];
-      if (note.tickCount + rv > tickCount) {
-        return rv;
+      if (note.tickCount + rv >= tickCount) {
+        return i;
       }
       rv += note.tickCount;
     }
-    return rv;
+    return i;
   }
 
   isPickup(): boolean {
@@ -1255,59 +1321,32 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
   }
 
-  // ### tuplet methods.
-  //
-  // #### tupletNotes
-  tupletNotes(tuplet: SmoTuplet) {
-    let j = 0;
-    let i = 0;
-    const tnotes = [];
-    for (j = 0; j < this.voices.length; ++j) {
-      const vnotes = this.voices[j].notes;
-      for (i = 0; i < vnotes.length; ++i) {
-        const note = vnotes[i] as SmoNote;
-        if (note.tupletId && note.tupletId === tuplet.id) {
-          tnotes.push(vnotes[i]);
-        }
-      }
+  tupletNotes(smoTuplet: SmoTuplet): SmoNote[] {
+    let tupletNotes: SmoNote[] = [];
+    for (let i = smoTuplet.startIndex; i <= smoTuplet.endIndex; i++) {
+      const note = this.voices[smoTuplet.voice].notes[i];
+      tupletNotes.push(note);
     }
-    return tnotes;
+    return tupletNotes;
   }
 
-  // #### tupletIndex
-  // return the index of the given tuplet
-  tupletIndex(tuplet: SmoTuplet) {
-    let j = 0;
-    let i = 0;
-    for (j = 0; j < this.voices.length; ++j) {
-      const notes = this.voices[j].notes;
-      for (i = 0; i < notes.length; ++i) {
-        const note = notes[i] as SmoNote;
-        if (note.tupletId && note.tupletId === tuplet.id) {
-          return i;
-        }
+  getStemDirectionForTuplet(smoTuplet: SmoTuplet) {
+    let note: SmoNote | null = null;
+    for (let currentNote of this.tupletNotes(smoTuplet)) {
+      if (currentNote.noteType === 'n') {
+        note = currentNote;
+        break;
       }
     }
-    return -1;
-  }
 
-  // #### getTupletForNote
-  // Finds the tuplet for a given note, or null if there isn't one.
-  getTupletForNote(note: SmoNote | null): SmoTuplet | null {
-    let i = 0;
     if (!note) {
-      return null;
+      return SmoNote.flagStates.down;
     }
-    if (!note.isTuplet) {
-      return null;
+    if (note.flagState !== SmoNote.flagStates.auto) {
+      return note.flagState;
     }
-    for (i = 0; i < this.tuplets.length; ++i) {
-      const tuplet = this.tuplets[i];
-      if (typeof(note.tupletId) === 'string' && note.tupletId === tuplet.id) {
-        return tuplet;
-      }
-    }
-    return null;
+    return SmoMusic.pitchToLedgerLine(this.clef, note.pitches[0])
+      >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
   }
   getNoteById(id: string): SmoNote | null {
     for (var i = 0; i < this.voices.length; ++i) {
@@ -1322,17 +1361,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return null;
   }
 
-  removeTupletForNote(note: SmoNote) {
-    let i = 0;
-    const tuplets = [];
-    for (i = 0; i < this.tuplets.length; ++i) {
-      const tuplet = this.tuplets[i];
-      if (typeof(note.tupletId) === 'string' && note.tupletId !== tuplet.id) {
-        tuplets.push(tuplet);
-      }
-    }
-    this.tuplets = tuplets;
-  }
+
+
+
+
+
   setClef(clef: Clef) {
     const oldClef = this.clef;
     this.clef = clef;

@@ -19,6 +19,7 @@ import { Pitch, PitchKey, Clef } from '../data/common';
 import { SmoOperation } from '../xform/operations';
 import { SmoInstrument, SmoSlur, SmoTie, TieLine } from '../data/staffModifiers';
 import { SmoPartInfo } from '../data/partInfo';
+import {SmoTupletTree} from "../data/tuplet";
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -621,6 +622,8 @@ export class XmlToSmo {
     const noteType = restNode.length ? 'r' : 'n';
     const durationData = XmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
     const tickCount = durationData.tickCount;
+    //todo nenad: we probably need to handle dotted durations
+    const stemTicks = XmlHelpers.durationFromType(noteElement, 4096);
     if (chordNode.length === 0) {
       xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
@@ -648,6 +651,7 @@ export class XmlToSmo {
         // If this is a non-grace note, add any grace notes to the note since SMO
         // treats them as note modifiers
         noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
+        noteData.stemTicks = stemTicks;
         noteData.flagState = flagState;
         noteData.clef = clefString;
         xmlState.previousNote = new SmoNote(noteData);
@@ -698,6 +702,7 @@ export class XmlToSmo {
         xmlState.updateSlurStates(slurInfos);
         xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);
+        //todo nenad: check if we need to change something with 'alteration'
         xmlState.updateBeamState(beamState, durationData.alteration, voice, voiceIndex);
         xmlState.updateTupletStates(tupletInfos, voice,
           staffIndex, voiceIndex);
@@ -792,15 +797,16 @@ export class XmlToSmo {
       // voices not in array, put them in an array
       Object.keys(staffData.voices).forEach((voiceKey) => {
         const voice = staffData.voices[voiceKey];
-        xmlState.addTupletsToMeasure(smoMeasure, staffData.clefInfo.staffId,
-          parseInt(voiceKey, 10));
         voice.notes.forEach((note) => {
           if (!note.clef) {
             note.clef = smoMeasure.clef;
           }
         });
         smoMeasure.voices.push(voice);
+        const voiceId = smoMeasure.voices.length - 1;
+        xmlState.addTupletsToMeasure(smoMeasure, staffData.clefInfo.staffId, voiceId);
       });
+      SmoTupletTree.syncTupletIds(smoMeasure.tupletTrees, smoMeasure.voices);
       if (smoMeasure.voices.length === 0) {
         smoMeasure.voices.push({ notes: SmoMeasure.getDefaultNotes(smoMeasure) });
       }
