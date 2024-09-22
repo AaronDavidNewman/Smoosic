@@ -439,13 +439,13 @@ export const ChordSymbolGlyphs: Record<string, { code: string }> = {
     code: 'csymMajorSeventh',
   },
   csymMinor: {
-    code: 'minor',
+    code: 'csymMinor',
   },
   minor: {
-    code: 'minor',
+    code: 'csymMinor',
   },
   '-': {
-    code: 'minor',
+    code: 'csymMinor',
   },
   '(': {
     code: 'csymParensLeftTall',

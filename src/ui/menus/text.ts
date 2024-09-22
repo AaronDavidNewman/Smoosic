@@ -33,7 +33,7 @@ const textBlockDialogMenuOption: SuiConfiguredMenuOption = {
       id: 'textDialog',
       ctor: 'SuiTextBlockDialog',
       tracker: menu.view.tracker,
-      startPromise: null,
+      startPromise: menu.closePromise,
       modifier: null
     });
   }, display: (menu: SuiMenuBase) => true,
@@ -60,7 +60,7 @@ const chordChangeDialogMenuOption: SuiConfiguredMenuOption = {
         id: 'chordDialog',
         ctor: 'SuiChordChangeDialog',
         tracker: menu.view.tracker,
-        startPromise: null,
+        startPromise: menu.closePromise,
         modifier: lyric
       }
     );
@@ -73,6 +73,9 @@ const chordChangeDialogMenuOption: SuiConfiguredMenuOption = {
 }
 const lyricsDialogMenuOption: SuiConfiguredMenuOption = {  
   handler: async (menu: SuiMenuBase) => {
+    if (menu.closePromise) {
+      await menu.closePromise;
+    }
     const sel = menu.view.tracker.selections[0];
     const note = sel.note;
     if (!note) {
@@ -89,7 +92,7 @@ const lyricsDialogMenuOption: SuiConfiguredMenuOption = {
         id: 'lyricDialog',
         ctor: 'SuiLyricDialog',
         tracker: menu.view.tracker,
-        startPromise: null,
+        startPromise: menu.closePromise,
         modifier: lyric
       });
   }, display: (menu: SuiMenuBase) => true,
@@ -120,7 +123,7 @@ const dynamicsDialogMenuOption: SuiConfiguredMenuOption = {
       id: 'dynamicsDialog',
       ctor: 'SuiDynamicModifierDialog',
       tracker: menu.view.tracker,
-      startPromise: null,
+      startPromise: menu.closePromise,
       modifier
     });
   }, display: (menu: SuiMenuBase) => true,
