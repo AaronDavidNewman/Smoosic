@@ -155,9 +155,33 @@ export const tabStaveMenuOption: SuiConfiguredMenuOption = {
     });
   }
 }
+export const moveUpMenuOption: SuiConfiguredMenuOption = {
+  menuChoice:  {
+    icon: 'icon-smo icon-arrow-up',
+    text: 'Move Part Up',
+    value: 'partUp'
+  }, display: (menu: SuiMenuBase) =>  {
+    return menu.view.score.staves.length > 1;
+  },
+  handler: async (menu: SuiMenuBase) => {
+    await menu.view.moveStaffUpDown(-1);
+  }
+}
+export const moveDownMenuOption: SuiConfiguredMenuOption = {
+  menuChoice:  {
+    icon: 'icon-smo icon-arrow-up',
+    text: 'Move Part Down',
+    value: 'partDown'
+  }, display: (menu: SuiMenuBase) =>  {
+    return menu.view.score.staves.length > 1;
+  },
+  handler: async (menu: SuiMenuBase) => {
+    await menu.view.moveStaffUpDown(1);
+  }
+}
 export const SuiPartMenuOptions: SuiConfiguredMenuOption[] = [
   createNotePartMenuOption, removePartMenuOption, partPropertiesMenuOption, pageLayoutMenuOption, viewPartialScoreMenuOption, 
-  editInstrumentMenuOption, viewFullScoreMenuOption, tabStaveMenuOption
+  editInstrumentMenuOption, viewFullScoreMenuOption, tabStaveMenuOption, moveUpMenuOption, moveDownMenuOption
 ];
 
 export class SuiPartMenu extends SuiConfiguredMenu {

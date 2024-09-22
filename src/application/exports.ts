@@ -110,6 +110,8 @@ import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
 import { SuiTextMenu } from '../ui/menus/text';
 import { SuiPartMenu } from '../ui/menus/parts';
+import { SuiVoiceMenu } from '../ui/menus/voices';
+import { SuiBeamMenu } from '../ui/menus/beams';
 import { SuiPartSelectionMenu } from '../ui/menus/partSelection';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
 import { SuiTimeSignatureMenu } from '../ui/menus/timeSignature';
@@ -188,7 +190,7 @@ export const Smo = {
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiNoteMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
-    SuiPartSelectionMenu, SuiTextMenu,
+    SuiPartSelectionMenu, SuiTextMenu, SuiVoiceMenu, SuiBeamMenu,
     // Dialogs
     SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent,
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,

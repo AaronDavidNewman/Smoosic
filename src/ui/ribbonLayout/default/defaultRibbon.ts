@@ -8,10 +8,7 @@ export class defaultRibbonLayout {
   static get ribbons(): RibbonLayout {
     var left = defaultRibbonLayout.leftRibbonIds;
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
-      .concat(defaultRibbonLayout.durationIds)
-      .concat(defaultRibbonLayout.beamIds)
-      .concat(defaultRibbonLayout.staveIds)
-      .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
+      .concat(defaultRibbonLayout.debugIds);
 
     return {
       left: left,
@@ -32,9 +29,9 @@ export class defaultRibbonLayout {
 
   static get leftRibbonIds() {
     return ['helpDialog', 'languageMenu', 'fileMenu', 
-    'scoreMenu', 'partMenu', 'staffModifierMenu', 'measureModal', 'noteMenu',
-    'tempoModal', 'timeSignatureMenu', 'textMenu', 'libraryMenu',
-       ];
+    'scoreMenu', 'partMenu', 'staffModifierMenu', 'measureModal', 'voiceMenu', 'beamMenu',
+    'noteMenu', 'textMenu', 'libraryMenu',
+    ];
   }
   static get noteButtonIds() {
     return ['NoteButtons',
@@ -66,11 +63,6 @@ export class defaultRibbonLayout {
   }
   static get durationIds() {
     return ['DurationButtons', 'GrowDuration', 'LessDuration', 'GrowDurationDot', 'LessDurationDot', 'TripletButton', 'QuintupletButton', 'SeptupletButton', 'NoTupletButton'];
-  }
-  static get staveIds() {
-    return ['StaveButtons', 'clefTreble', 'clefBass', 'clefAddRemove', 'clefMoveUp', 'clefMoveDown', 'moreStaffButtons',
-      'clefTenor', 'clefAlto', 'clefPercussion',
-      'staffBracketLower', 'staffBraceLower', 'staffDoubleConnectorLower', 'staffSingleConnectorLower'];
   }
   static get textIds() {
     return ['TextButtons', 'addTextMenu', 'rehearsalMark', 'lyrics', 'chordChanges', 'addDynamicsMenu'];
@@ -1313,6 +1305,24 @@ export class defaultRibbonLayout {
       ctor: 'SuiMeasureMenu',
       group: 'scoreEdit',
       id: 'measureModal'
+    }, {
+      leftText: 'Voices',
+      rightText: '',
+      icon: '',
+      classes: 'icon nav-link link-body-emphasis',
+      action: 'menu',
+      ctor: 'SuiVoiceMenu',
+      group: 'scoreEdit',
+      id: 'voiceMenu'
+    }, {
+      leftText: 'Beams',
+      rightText: '',
+      icon: '',
+      classes: 'icon nav-link link-body-emphasis',
+      action: 'menu',
+      ctor: 'SuiBeamMenu',
+      group: 'scoreEdit',
+      id: 'beamMenu'
     }, {
       leftText: 'Notes',
       rightText: '',
