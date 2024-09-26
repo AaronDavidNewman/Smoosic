@@ -208,12 +208,6 @@ export class SuiNoteHeadAdapter extends SuiComponentAdapter {
       this.code = keys[0];
     }
   }
-  get textMessage() {
-    return '';
-  }
-  set textMessage(value: string) {
-    // ignore
-  }
   get stemComponent() {
     return this.stemCode;
   }
@@ -288,7 +282,7 @@ export class SuiNoteHeadDialog extends SuiDialogAdapterBase<SuiNoteHeadAdapter> 
             label: 'Rest'
           }, {
             smoName: 'textMessage',
-            control: 'SuiTextInputComponent',
+            control: 'SuiReadOnlyTextComponent',
             label: 'Use r to toggle note to rest.  Use delete to toggle visibility.',
             classes: 'hide-input'
           }],

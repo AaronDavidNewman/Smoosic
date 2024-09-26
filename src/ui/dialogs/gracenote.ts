@@ -98,18 +98,6 @@ export class SuiGraceNoteAdapter extends SuiComponentAdapter {
       this.view.slashGraceNotes();
     }
   }
-  set textLabel(value: string) {
-    // ignore
-  }
-  get textLabel() {
-    return '';
-  }
-  set textLabelSelect(value: string) {
-    // ignore
-  }
-  get textLabelSelect() {
-    return '';
-  }
   async commit() {
     await this.view.renderPromise();
   }
@@ -128,12 +116,12 @@ export class SuiGraceNoteDialog extends SuiDialogAdapterBase<SuiGraceNoteAdapter
           label: 'Add/Remove Grace notes'
         }, {
           smoName: 'textLabel',
-          control: 'SuiTextInputComponent',
+          control: 'SuiReadOnlyTextComponent',
           label: 'Use hot keys shift-G to add grace notes, alt-g to remove.',
           classes: 'hide-input'
         }, {
           smoName: 'textLabelSelect',
-          control: 'SuiTextInputComponent',
+          control: 'SuiReadOnlyTextComponent',
           label: 'Use hot key alt-l to select grace notes for pitches, durations',
           classes: 'hide-input'
         }],

@@ -57,6 +57,7 @@ export interface SuiBaseComponentParams {
   label: string,
   smoName: string,
   control: string,
+  noProperty?: boolean,
   parentComponent?: SuiComponentParent
 }
 /**
@@ -109,6 +110,7 @@ export abstract class SuiComponentBase {
   css: string;
   dialog: SuiDialogNotifier;
   id: string;
+  noProperty: boolean;
   label: string;
   control: string;
   smoName: string;
@@ -120,6 +122,7 @@ export abstract class SuiComponentBase {
     this.label = parameters.label;
     this.control = parameters.control;
     this.smoName = parameters.smoName;
+    this.noProperty = parameters.noProperty ?? false;
   }
   /**
    * Called by the dialog after rendering, so the derived class can 

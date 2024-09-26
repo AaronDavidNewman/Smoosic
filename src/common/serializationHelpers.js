@@ -281,7 +281,9 @@ export class smoSerialize {
       "th": "tabStaves",
       "uh": "noteId",
       "vh": "tupletId",
-      "wh": "metadata"      }`;
+      "wh": "metadata",
+      "xh": "tupletTrees",
+      "yh": "displayString"   }`;
     return JSON.parse(_tm);
   }
 

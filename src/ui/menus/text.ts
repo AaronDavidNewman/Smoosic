@@ -73,9 +73,6 @@ const chordChangeDialogMenuOption: SuiConfiguredMenuOption = {
 }
 const lyricsDialogMenuOption: SuiConfiguredMenuOption = {  
   handler: async (menu: SuiMenuBase) => {
-    if (menu.closePromise) {
-      await menu.closePromise;
-    }
     const sel = menu.view.tracker.selections[0];
     const note = sel.note;
     if (!note) {
@@ -99,7 +96,7 @@ const lyricsDialogMenuOption: SuiConfiguredMenuOption = {
   menuChoice: {
     icon: '',
     text: 'Lyrics',
-    value: 'lyricDialog'
+    value: 'lyricMenu'
   }
 }
 const dynamicsDialogMenuOption: SuiConfiguredMenuOption = {

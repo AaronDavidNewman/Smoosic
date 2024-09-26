@@ -3,6 +3,7 @@ import {SuiArpeggioDialog } from '../dialogs/arpeggio';
 import { SuiClefChangeDialog } from '../dialogs/clefChange';
 import { SuiNoteHeadDialog } from '../dialogs/noteHead';
 import { SuiOrnamentDialog } from '../dialogs/ornament';
+import { SuiDurationDialog } from '../dialogs/durations';
 import { SuiArticulationDialog } from '../dialogs/articulation';
 import { SuiGraceNoteDialog } from '../dialogs/gracenote';
 import { SuiMicrotoneDialog } from '../dialogs/microtones';
@@ -164,6 +165,25 @@ const ornamentNoteDialogMenuOption: SuiConfiguredMenuOption = {
     value: 'ornamentDialog'
   }
 }
+const durationDialogMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiDurationDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiDurationDialog',
+      id: 'duration-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Durations',
+    value: 'durationDialog'
+  }
+}
 const articulationNoteDialogMenuOption: SuiConfiguredMenuOption = {
   handler: async (menu: SuiMenuBase) => {
     createAndDisplayDialog(SuiArticulationDialog, {
@@ -206,5 +226,6 @@ const SuiNoteMenuOptions: SuiConfiguredMenuOption[] = [
   toggleCueMenuOption, arpeggioMenuOption, clefNoteDialogMenuOption, 
   graceNotesMenuOption,
   noteHeadMenuOption, ornamentNoteDialogMenuOption,
-  articulationNoteDialogMenuOption, microtoneNoteDialogMenuOption, togglePedalRelease
+  articulationNoteDialogMenuOption, 
+  microtoneNoteDialogMenuOption, togglePedalRelease, durationDialogMenuOption
 ];

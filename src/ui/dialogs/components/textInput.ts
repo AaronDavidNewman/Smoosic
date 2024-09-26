@@ -81,3 +81,9 @@ export class SuiTextInputComposite extends SuiTextInputComponent {
     this.changeFlag = false;
   }
 }
+export class SuiReadOnlyTextComponent extends SuiTextInputComponent {
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTextInputComponentParams) {
+    super(dialog, parameter);
+    this.noProperty = true;
+  }
+}

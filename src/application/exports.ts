@@ -80,7 +80,7 @@ import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     SuiSaveMidiDialog, SuiSaveVexDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
 
-import { SuiTextInputComponent, SuiTextInputComposite } from '../ui/dialogs/components/textInput';
+import { SuiTextInputComponent, SuiTextInputComposite, SuiReadOnlyTextComponent } from '../ui/dialogs/components/textInput';
 import { SuiDropdownComponent, SuiDropdownComposite } from '../ui/dialogs/components/dropdown';
 import { SuiButtonComposite, SuiButtonComponent } from '../ui/dialogs/components/button';
 import { SuiButtonArrayComponent, SuiButtonArrayMSComponent } from '../ui/dialogs/components/buttonArray';
@@ -171,6 +171,7 @@ import { SmoToVex } from '../render/vex/toVex';
 import { buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer } from '../common/htmlHelpers';
 
 import { renderVexTests } from './generateVexTests';
+import { SuiDurationAdapter, SuiDurationButtonComponent, SuiDurationDialog } from '../ui/dialogs/durations';
 const getClass = (jsonString: string) => {
     return eval('Smo.' + jsonString);
 };
@@ -193,6 +194,7 @@ export const Smo = {
     SuiPartSelectionMenu, SuiTextMenu, SuiVoiceMenu, SuiBeamMenu,
     // Dialogs
     SuiGraceNoteAdapter, SuiGraceNoteDialog, SuiGraceNoteButtonsComponent,
+    SuiDurationAdapter, SuiDurationDialog, SuiDurationButtonComponent,
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiTextBracketDialog, SuiKeySignatureDialog, SuiKeySignatureAdapter,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, SuiTransposeScoreAdapter,
@@ -218,7 +220,7 @@ export const Smo = {
     SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
     SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite,
     SuiFontComponent, SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
-    SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
+    SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent, SuiReadOnlyTextComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent, SuiArpeggioDialog, SuiClefChangeDialog,
     SuiPitchArrayComponent, SuiPitchArrayComponentTab, SuiPitchComponent,

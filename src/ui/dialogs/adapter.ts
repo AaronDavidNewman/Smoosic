@@ -88,8 +88,10 @@ export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDial
     bindComponents() {
       this.components.forEach((component) => {
         // do some runtime validation of the adapter
-        if (typeof((this.adapter as any)[component.smoName]) === 'undefined') {
-          throw ('Dialog ' + this.label + ' has component ' + component.smoName + ' but no setter in the adapter ');
+        if (!component.noProperty) {
+          if (typeof((this.adapter as any)[component.smoName]) === 'undefined') {
+            throw ('Dialog ' + this.label + ' has component ' + component.smoName + ' but no setter in the adapter ');
+          }
         }
         component.bind();
       });

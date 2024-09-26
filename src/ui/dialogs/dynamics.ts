@@ -13,7 +13,11 @@ export class SuiDynamicDialogAdapter extends SuiComponentAdapter {
     super(view);
     this.modifier = modifier;
     this.backup = new SmoDynamicText(this.modifier);
-    this.selection = this.view.tracker.modifierSelections[0].selection!;
+    if (this.view.tracker.modifierSelections.length) {
+      this.selection = this.view.tracker.modifierSelections[0].selection!;
+    } else {
+      this.selection = this.view.tracker.selections[0];
+    }
   }
   async cancel() {
     await this.view.addDynamic(this.selection, this.backup);
