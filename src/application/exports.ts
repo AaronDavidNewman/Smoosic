@@ -172,6 +172,7 @@ import { buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, get
 
 import { renderVexTests } from './generateVexTests';
 import { SuiDurationAdapter, SuiDurationButtonComponent, SuiDurationDialog } from '../ui/dialogs/durations';
+import { SuiPitchAdapter, SuiPitchDialog, SuiLetterButtonComponent, SuiIntervalButtonComponent, SuiTransposeButtonComponent } from '../ui/dialogs/pitch';
 const getClass = (jsonString: string) => {
     return eval('Smo.' + jsonString);
 };
@@ -212,7 +213,9 @@ export const Smo = {
     SuiEndBarButtonComponent, SuiStartBarButtonComponent, SuiRepeatSymbolButtonComponent,    
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog, SuiSaveVexDialog,
-    SuiSaveMidiDialog, SuiDialogBase,
+    SuiSaveMidiDialog, SuiDialogBase, 
+    SuiPitchDialog, SuiPitchAdapter,SuiIntervalButtonComponent, SuiLetterButtonComponent,
+    SuiTransposeButtonComponent,
     // Dialog components
     SuiTreeComponent,
     SuiDropdownComponent,

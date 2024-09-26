@@ -235,6 +235,12 @@ button.nav-link {
   font-style: italic;
   flex: 4 1 220px;
 }
+.smoControl button.icon-bravura {
+  position: inherit;
+  top: inherit;
+  left: inherit;
+  pointer-events: inherit;
+}
 .smoControlContainer .button-array-buttons button.repetext .icon-bravura .button-text {
   font-size: 12px;
   min-width: 35px;

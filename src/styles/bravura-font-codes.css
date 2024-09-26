@@ -12,8 +12,8 @@
 }
 /* not in file */
 .icon-note:before {content: "\2669";}
-.icon-grace-note:before {content: "\e562"}
-.icon-grace-note-strike:before {content: "\e560"}
+.icon-grace-note:before {content: "\e562";}
+.icon-grace-note-strike:before {content: "\e560";}
 
 .icon-bracketTop:before {content: "\e003";}
 .icon-bracketBottom:before {content: "\e004";}
@@ -154,6 +154,8 @@
 .icon-rest32nd:before {content: "\e4e8";}
 .icon-rest64th:before {content: "\e4e9";}
 .icon-rest128th:before {content: "\e4ea";}
+.icon-ottavaAlta:before { content: "\e511";}
+.icon-ottavaBassa:before { content: "\e512";}
 .icon-dynamicPiano:before {content: "\e520";}
 .icon-dynamicMezzo:before {content: "\e521";}
 .icon-dynamicForte:before {content: "\e522";}

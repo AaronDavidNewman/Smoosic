@@ -7,6 +7,7 @@ import { SuiDurationDialog } from '../dialogs/durations';
 import { SuiArticulationDialog } from '../dialogs/articulation';
 import { SuiGraceNoteDialog } from '../dialogs/gracenote';
 import { SuiMicrotoneDialog } from '../dialogs/microtones';
+import { SuiPitchDialog } from '../dialogs/pitch';
 import { SmoPedalMarking } from '../../smo/data/staffModifiers';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SuiMenuBase, SuiMenuParams, MenuDefinition, SuiMenuHandler, SuiMenuShowOption, 
@@ -58,7 +59,7 @@ const noteHeadMenuOption: SuiConfiguredMenuOption = {
       eventSource: menu.eventSource,
       tracker: menu.tracker,
       ctor: 'SuiNoteHeadDialog',
-      id: 'insert-dialog',
+      id: 'notehead-dialog',
       modifier: null
     });
   }, display: (menu: SuiMenuBase) => true,
@@ -66,6 +67,25 @@ const noteHeadMenuOption: SuiConfiguredMenuOption = {
     icon: '',
     text: 'Head and Stem',
     value: 'noteHeadDialog'
+  }
+}
+const pitchMenuOption: SuiConfiguredMenuOption = {
+  handler: async (menu: SuiMenuBase) => {
+    createAndDisplayDialog(SuiPitchDialog, {
+      view: menu.view,
+      completeNotifier: menu.completeNotifier,
+      startPromise: menu.closePromise,
+      eventSource: menu.eventSource,
+      tracker: menu.tracker,
+      ctor: 'SuiPitchDialog',
+      id: 'pitch-dialog',
+      modifier: null
+    });
+  }, display: (menu: SuiMenuBase) => true,
+  menuChoice: {
+    icon: '',
+    text: 'Pitches',
+    value: 'pitchDialog'
   }
 }
 const graceNotesMenuOption: SuiConfiguredMenuOption = {
@@ -227,5 +247,6 @@ const SuiNoteMenuOptions: SuiConfiguredMenuOption[] = [
   graceNotesMenuOption,
   noteHeadMenuOption, ornamentNoteDialogMenuOption,
   articulationNoteDialogMenuOption, 
-  microtoneNoteDialogMenuOption, togglePedalRelease, durationDialogMenuOption
+  microtoneNoteDialogMenuOption, togglePedalRelease, 
+  durationDialogMenuOption, pitchMenuOption
 ];

@@ -16,7 +16,7 @@ export class SuiDurationButtonComponent extends SuiComponentParent {
     super(dialog, params);
     this.growDurationComponent = new SuiButtonComposite(this.dialog,
       {
-        id: this.id + 'addGraceNote',
+        id: this.id + 'growDuration',
         smoName: 'growDuration',
         parentControl: this,
         icon: 'icon-smo ribbon-button-text icon-duration_grow',
@@ -27,7 +27,7 @@ export class SuiDurationButtonComponent extends SuiComponentParent {
       });
     this.lessDurationComponent = new SuiButtonComposite(this.dialog,
       {
-        id: this.id + 'addGraceNote',
+        id: this.id + 'lessDuration',
         smoName: 'lessDuration',
         parentControl: this,
         icon: 'icon-smo ribbon-button-text icon-duration_less',
@@ -38,7 +38,7 @@ export class SuiDurationButtonComponent extends SuiComponentParent {
       });
     this.growDotComponent = new SuiButtonComposite(this.dialog,
       {
-        id: this.id + 'addGraceNote',
+        id: this.id + 'growDot',
         smoName: 'growDot',
         parentControl: this,
         icon: 'icon-smo ribbon-button-text icon-duration_grow_dot',
@@ -49,7 +49,7 @@ export class SuiDurationButtonComponent extends SuiComponentParent {
       });
     this.lessDotComponent = new SuiButtonComposite(this.dialog,
       {
-        id: this.id + 'addGraceNote',
+        id: this.id + 'lessDot',
         smoName: 'lessDot',
         parentControl: this,
         icon: 'icon-smo ribbon-button-text icon-duration_less_dot',
@@ -57,7 +57,7 @@ export class SuiDurationButtonComponent extends SuiComponentParent {
         control: 'SuiButtonComponent',
         label: 'Remove Dot',
         text: '<'
-      });                        
+      });
   }
   getValue(): string {
     if (this.growDurationComponent.changeFlag) {
@@ -141,7 +141,7 @@ export class SuiDurationDialog extends SuiDialogAdapterBase<SuiDurationAdapter> 
           [{
             smoName: 'durationButtons',
             control: 'SuiDurationButtonComponent',
-            label: 'Note Head'
+            label: 'Note Duration'
           }, {
             smoName: 'textMessage',
             control: 'SuiReadOnlyTextComponent',
