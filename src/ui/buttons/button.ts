@@ -33,7 +33,8 @@ export interface ButtonDefinition {
     action: ButtonAction,
     ctor: string,
     group: string,
-    id: string
+    id: string,
+    hotKey?: string,
     dataElements?: {
       interval: string,
       direction: string

@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { KeyEvent } from '../smo/data/common';
+import { KeyEvent, keyEventMatch } from '../smo/data/common';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
@@ -52,6 +52,9 @@ export class SuiEventHandler implements ModalEventHandler {
   }
   static instance: SuiEventHandler;
   static debugMask: number = 0;
+  static altKeyPressed: boolean = false;
+  static ctrlKeyPressed: boolean = false;
+  static shiftKeyPressed: boolean = false;
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
@@ -220,12 +223,41 @@ export class SuiEventHandler implements ModalEventHandler {
   menuHelp() {
     SuiHelp.displayHelp();
   }
+  keyUp(evdata: any) {
+    if (!evdata.ctrlKey && SuiEventHandler.ctrlKeyPressed) {
+      $('body').removeClass('ctrl-key');
+      SuiEventHandler.ctrlKeyPressed = false;
+    }
+    if (!evdata.shiftKey && SuiEventHandler.shiftKeyPressed) {
+      $('body').removeClass('shift-key');
+      SuiEventHandler.shiftKeyPressed = false;
+    }
+    if (!evdata.altKey && SuiEventHandler.altKeyPressed) {
+      $('body').removeClass('alt-key');
+      SuiEventHandler.altKeyPressed = false;
+    }
+  }
+
+  handleMetaKeyDown(evdata: any) {
+    if (evdata.ctrlKey && !SuiEventHandler.ctrlKeyPressed) {
+      $('body').addClass('ctrl-key');
+      SuiEventHandler.ctrlKeyPressed = true;
+    }
+    if (evdata.shiftKey && !SuiEventHandler.shiftKeyPressed) {
+      $('body').addClass('shift-key');
+      SuiEventHandler.shiftKeyPressed = true;
+    }
+    if (evdata.altKey && !SuiEventHandler.altKeyPressed) {
+      $('body').addClass('alt-key');
+      SuiEventHandler.altKeyPressed = true;
+    }
+  }
 
   evKey(evdata: any) {
     if ($('body').hasClass('translation-mode')) {
       return;
     }
-
+    this.handleMetaKeyDown(evdata);
     if (SuiEventHandler.debugMask) {
       console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
       evdata.code + "'"

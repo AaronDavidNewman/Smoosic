@@ -151,7 +151,7 @@ export class SuiChordChangeDialog extends SuiDialogBase {
         key: val,
         code: val,
         event: null,
-        keyCode: '0'
+        keyCode: 0
       });
       // Move focus outside the element so it doesn't intercept keys
       this.chordSymbolCtrl.unselect();

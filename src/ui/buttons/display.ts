@@ -3,6 +3,7 @@ import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiKeySignatureDialog } from '../dialogs/keySignature';
 import { SuiTimeSignatureDialog } from '../dialogs/timeSignature';
 import { SuiTempoDialog } from '../dialogs/tempo';
+import { KeyEvent } from '../../smo/data/common';
 declare var $: any;
 
 /**
@@ -10,13 +11,23 @@ declare var $: any;
  * @category SuiButton
  */
 export class DisplaySettings extends SuiButton {
+  hotKey: string | undefined;
   constructor(parameters: SuiButtonParams) {
     super(parameters);
+    this.hotKey = parameters.buttonData.hotKey;
     if (this.buttonData.id === 'selectPart') {
       this.eventSource.bindScoreChangeHandler(this, 'handleScoreChange');
       this.enablePartSelection();
     }
+    if (this.hotKey) {
+      this.eventSource.bindKeydownHandler(this, 'handleKeyDown');
+    }
   }
+  handleKeyDown(ev: KeyEvent) {
+    if (ev.altKey && this.buttonData.hotKey && this.buttonData.hotKey === ev.key) {
+      $('#' + this.buttonData.id).trigger('click');
+    }
+  }  
   enablePartSelection() {
     const partMap = this.view.getPartMap();
     const disable = partMap.keys.length < 1;
@@ -104,8 +115,7 @@ export class DisplaySettings extends SuiButton {
       return;
     }
     await this.view.renderPromise();
-    this.menus.slashMenuMode(this.completeNotifier);
-    this.menus.createMenu('SuiPartSelectionMenu');
+    this.menus.createMenu('SuiPartSelectionMenu', this.completeNotifier);
   }
   bind() {
     this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);

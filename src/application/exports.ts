@@ -28,7 +28,7 @@ import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoConfiguration } from './configuration';
 import { RibbonButtons } from '../ui/buttons/ribbon';
 import { simpleRibbonLayout } from '../ui/ribbonLayout/default/tabletRibbon';
-import { SimpleEventHandler, ModalEventHandler } from './common';
+import { ModalEventHandler } from './common';
 // Language strings
 import { cardKeysHtmlEn, cardNotesLetterHtmlEn, cardNotesChromaticHtmlEn, cardNotesChordsHtmlEn,
   cardNotesRestsHtmlEn, cardDurationNotesHtmlEn, cardDurationTupletsHtmlEn,
@@ -181,7 +181,7 @@ export const Smo = {
     SmoConfiguration,
     SuiApplication,
     SuiDom,  SuiEventHandler, SuiExceptionHandler,
-    Qwerty, SuiHelp, SmoTranslationEditor, SimpleEventHandler, ModalEventHandler,
+    Qwerty, SuiHelp, SmoTranslationEditor, ModalEventHandler,
     // Ribbon buttons
     simpleRibbonLayout,
     RibbonButtons, NoteButtons, TextButtons, ChordButtons,

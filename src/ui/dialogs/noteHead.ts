@@ -285,6 +285,11 @@ export class SuiNoteHeadDialog extends SuiDialogAdapterBase<SuiNoteHeadAdapter> 
             control: 'SuiReadOnlyTextComponent',
             label: 'Use r to toggle note to rest.  Use delete to toggle visibility.',
             classes: 'hide-input'
+          },  {
+            smoName: 'textMessage2',
+            control: 'SuiReadOnlyTextComponent',
+            label: 'Use shortcuts when available - they are much faster!',
+            classes: 'hide-input'
           }],
           staticText: []
       };

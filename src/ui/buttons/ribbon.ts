@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { buildDom, getDomContainer } from '../../common/htmlHelpers';
+import { KeyEvent } from '../../smo/data/common';
 import { ButtonDefinition, ButtonAction } from './button';
 import { BrowserEventSource } from '../eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
@@ -26,7 +27,10 @@ export function isModalButtonType(but: string | SuiModalButtonTypes): but is Sui
 
 /**
  * Parameters for creating the global button ribbon object.  The button ribbon supports a 
- * button panel in 'top' and 'left' areas, with support for R-to-L languages.  Button groups 
+ * button panel in 'top' and 'left' areas, with support for R-to-L languages.  
+ * Button groups in left and display menus are not collapsible.  They are just a ButtonDefinition
+ * capsule but are not actually buttons - event handling is done by this 'ribbon' object.
+ * Button groups (mostly obsolete) are collapsible and are first-class button objects and
  * are collapsible.  The content of ribbonButtons determines which buttons show up.  
  * ribbon layout determines which show up top vs. left
  * @param {BrowserEventSource} eventSource - buttons will use this to bind click events
@@ -68,7 +72,8 @@ export class RibbonButtons {
   }
   static _buttonSidebarHtml(buttonId: string, buttonClass: string, buttonText: string, buttonIcon: string, buttonKey: string) {
     const b = buildDom;
-    const r = b('li').classes('nav-item').append(b('button').attr('id', buttonId).classes('nav-link').append(
+    const r = b('li').classes('nav-item')
+    .append(b('button').classes(buttonClass).attr('id', buttonId).classes('nav-link').append(
       b('span').classes('left-text').append(
         b('span').classes('text-span').text(buttonText))).append(
       b('span').classes('ribbon-button-text icon ' + buttonIcon)).append(
@@ -118,8 +123,7 @@ export class RibbonButtons {
     }
   }
   _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
-    this.menus.slashMenuMode(this.controller);
-    this.menus.createMenu(buttonData.ctor);
+    this.menus.createMenu(buttonData.ctor, this.controller);
   }
 
   async _executeButton(buttonElement: string, buttonData: ButtonDefinition) {
@@ -309,6 +313,15 @@ export class RibbonButtons {
     this._createSidebarHtml(buttonDataArray, parentElement);
     this._createCollapsibleButtonGroups(parentElement);
   }
+  handleKeyDown(ev: KeyEvent) {
+    if (ev.altKey) {
+      const keyButton = this.ribbonButtons.find((bb) => bb.hotKey && bb.hotKey === ev.key);
+      if (keyButton) {
+        const element = '#' + keyButton.id;
+        this._executeButton(element, keyButton);
+      }
+    }
+  }
   display() {
     if (this.config.leftControls) {
       const leftControl = getDomContainer(this.config.leftControls);
@@ -325,6 +338,7 @@ export class RibbonButtons {
         this.createRibbon(tbuttons, topControl);    
       }
     }
+    this.eventSource.bindKeydownHandler(this, 'handleKeyDown');
   }
 }
 

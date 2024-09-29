@@ -60,8 +60,7 @@ export class TextButtons extends SuiButton {
     if (!this.completeNotifier) {
       return;
     }
-    this.menus.slashMenuMode(this.completeNotifier);
-    this.menus.createMenu(cmd);
+    this.menus.createMenu(cmd, this.completeNotifier);
   }
 
   addTextMenu() {

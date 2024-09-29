@@ -99,7 +99,7 @@ export class SuiKeyCommands {
 
   async  interval(keyEvent: KeyEvent) {
     // code='Digit3'
-    var interval = parseInt(keyEvent.keyCode, 10) - 49;  // 48 === '0', 0 indexed
+    var interval = parseInt(keyEvent.keyCode.toString(), 10) - 49;  // 48 === '0', 0 indexed
     if (isNaN(interval) || interval < 1 || interval > 7) {
       return;
     }

@@ -405,8 +405,18 @@ export class SuiPitchDialog extends SuiDialogAdapterBase<SuiPitchAdapter> {
             smoName: 'pitchButtons',
             control: 'SuiLetterButtonComponent',
             label: 'Letter Names'
+          },{
+            smoName: 'textMessage4',
+            control: 'SuiReadOnlyTextComponent',
+            label: 'Use a-g on the keyboard for notes with those letter names',
+            classes: 'hide-input'
           }, {
             smoName: 'textMessage1',
+            control: 'SuiReadOnlyTextComponent',
+            label: `Learn the keyboard shortcuts, they're much faster!`,
+            classes: 'hide-input'
+          }, {
+            smoName: 'textMessage5',
             control: 'SuiReadOnlyTextComponent',
             label: 'Use - = keys to move pitch up/down 1/2 step',
             classes: 'hide-input'
@@ -421,14 +431,9 @@ export class SuiPitchDialog extends SuiDialogAdapterBase<SuiPitchAdapter> {
             label: 'Use 2-8 on the keyboard for intervals (Shift for interval below)',
             classes: 'hide-input'
           }, {
-            smoName: 'textMessage4',
+            smoName: 'textMessage2',
             control: 'SuiReadOnlyTextComponent',
-            label: 'Use a-g on the keyboard for notes with those letter names',
-            classes: 'hide-input'
-          }, {
-            smoName: 'textMessage5',
-            control: 'SuiReadOnlyTextComponent',
-            label: `Learn the keyboard shortcuts, they're much faster!`,
+            label: 'Use shift + arrow keys to navigate and select notes',
             classes: 'hide-input'
           }],
           staticText: []

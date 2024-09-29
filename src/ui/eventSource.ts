@@ -26,6 +26,7 @@ export interface EventHandler {
  */
 export class BrowserEventSource {
   keydownHandlers: EventHandler[];
+  keyupHandlers: EventHandler[];
   mouseMoveHandlers: EventHandler[];
   mouseClickHandlers: EventHandler[];
   mouseUpHandlers: EventHandler[];
@@ -38,6 +39,7 @@ export class BrowserEventSource {
   handleMouseDown: ((ev: any) => void) | null = null;
 
   handleKeydown: (ev: KeyEvent) => void;
+  handleKeyup: (ev: KeyEvent) => void;
   handleScoreChangeEvent: (ev: KeyEvent) => void;
   renderElement: any;
   constructor() {
@@ -47,9 +49,12 @@ export class BrowserEventSource {
     this.mouseUpHandlers = [];
     this.mouseDownHandlers = [];
     this.domTriggers = [];
+    this.keyupHandlers = [];
     this.handleKeydown = this.evKey.bind(this);
+    this.handleKeyup = this.keyUp.bind(this);
     this.handleScoreChangeEvent = this.evScoreChange.bind(this);
     window.addEventListener("keydown", this.handleKeydown as any, true);
+    window.addEventListener("keyup", this.handleKeyup as any, true);
     window.addEventListener(scoreChangeEvent, this.handleScoreChangeEvent as any, true);
   }
 
@@ -57,6 +62,13 @@ export class BrowserEventSource {
     let i = 0;
     for (i = 0; i < this.keydownHandlers.length; ++i) {
       const handler = this.keydownHandlers[i]
+      await handler.sink[handler.method](event);
+    }
+  }
+  async keyUp(event: KeyEvent) {
+    let i = 0;
+    for (i = 0; i < this.keyupHandlers.length; ++i) {
+      const handler = this.keyupHandlers[i]
       await handler.sink[handler.method](event);
     }
   }
@@ -138,12 +150,22 @@ export class BrowserEventSource {
     this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
     this.keydownHandlers = handlers;
   }
+  unbindKeyupHandler(handler: EventHandler) {
+    const handlers: EventHandler[] = [];
+    this._unbindHandlerArray(this.keyupHandlers, handlers, handler);
+    this.keyupHandlers = handlers;
+  }
 
   // ### bindKeydownHandler
   // add a handler for the evKey event, for keyboard data.
   bindKeydownHandler(sink: any, method: string) {
     var handler: EventHandler = { symbol: Symbol(), sink, method };
     this.keydownHandlers.push(handler as EventHandler);
+    return handler;
+  }
+  bindKeyupHandler(sink: any, method: string) {
+    var handler: EventHandler = { symbol: Symbol(), sink, method };
+    this.keyupHandlers.push(handler as EventHandler);
     return handler;
   }
 

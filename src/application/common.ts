@@ -43,28 +43,9 @@ export abstract class ModalEventHandler {
   abstract mouseMove(ev: any): void;
   abstract mouseClick(ev: any): void;
   abstract evKey(evdata: any): void;
+  abstract keyUp(evdata: any): void;
 }
 export type handler = (ev: any) => void;
-export class SimpleEventHandler extends ModalEventHandler {
-  mouseMoveHandler: handler;;
-  mouseClickHandler: handler;
-  evKeyHandler: handler;
-  constructor(mouseMove: handler, mouseClick: handler, keyHandler: handler) {
-    super();
-    this.mouseMoveHandler = mouseMove;
-    this.mouseClickHandler = mouseClick;
-    this.evKeyHandler = keyHandler;
-  }
-  mouseMove(ev: any) {
-    this.mouseMove(ev);
-  }
-  mouseClick(ev: any) {
-    this.mouseClick(ev);
-  }
-  evKey(ev: any) {
-    this.evKeyHandler(ev);
-  }
-}
 
 /**
  * Dependency injection, sends events to a proxy object, gets around some 
@@ -76,6 +57,7 @@ export class ModalEventHandlerProxy {
   eventSource: BrowserEventSource;
   unbound: boolean = true;
   keydownHandler: EventHandler | null = null;
+  keyupHandler: EventHandler | null = null;
   mouseMoveHandler: EventHandler | null = null;
   mouseClickHandler: EventHandler | null = null;
   constructor(evSource: BrowserEventSource) {
@@ -91,6 +73,12 @@ export class ModalEventHandlerProxy {
       this._handler.evKey(ev);
     }
   }
+  keyUp(ev: any) {
+    if (this._handler) {
+      this._handler.keyUp(ev);
+    }
+  }
+
   mouseMove(ev: any) {
     if (this._handler) {
       this._handler.mouseMove(ev);
@@ -105,6 +93,7 @@ export class ModalEventHandlerProxy {
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+    this.keyupHandler = this.eventSource.bindKeyupHandler(this, 'keyUp');
   }
 
   unbindKeyboardForModal(dialog: ModalComponent) {

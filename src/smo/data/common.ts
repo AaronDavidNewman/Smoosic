@@ -222,9 +222,21 @@ export interface KeyEvent {
   ctrlKey: boolean,
   altKey: boolean,
   key: string,
-  keyCode: string,
+  keyCode: number | string,
   code: string,
   event: string | null
+}
+export function defaultKeyEvent(): KeyEvent {
+  const rv = {
+    type: 'keydown', shiftKey: false, ctrlKey: false, altKey: false, key: '',
+    keyCode: '', code: '', event: null
+  };
+  return JSON.parse(JSON.stringify(rv));
+}
+export function keyEventMatch(ev1: KeyEvent, ev2: KeyEvent): boolean {
+  return ev1.event === ev2.event && ev1.key === ev2.key &&
+  ev1.ctrlKey === ev2.ctrlKey &&
+  ev1.altKey === ev2.altKey && ev1.shiftKey === ev2.shiftKey
 }
 
 export interface TickAccidental {

@@ -143,6 +143,11 @@ export class SuiDurationDialog extends SuiDialogAdapterBase<SuiDurationAdapter> 
             control: 'SuiDurationButtonComponent',
             label: 'Note Duration'
           }, {
+            smoName: 'textMessage4',
+            control: 'SuiReadOnlyTextComponent',
+            label: `Learn the keyboard shortcuts, they're much faster!`,
+            classes: 'hide-input'
+          }, {
             smoName: 'textMessage',
             control: 'SuiReadOnlyTextComponent',
             label: 'Use , . to decrease/increase note length.',
@@ -156,11 +161,6 @@ export class SuiDurationDialog extends SuiDialogAdapterBase<SuiDurationAdapter> 
             smoName: 'textMessage3',
             control: 'SuiReadOnlyTextComponent',
             label: 'Use shift+arrow navigation keys to select notes',
-            classes: 'hide-input'
-          }, {
-            smoName: 'textMessage4',
-            control: 'SuiReadOnlyTextComponent',
-            label: `Learn the keyboard shortcuts, they're much faster!`,
             classes: 'hide-input'
           }],
           staticText: []

@@ -124,14 +124,17 @@ export class SuiMenuManager {
       }
     ];
   }
+  get optionElements() {
+    return $('.menuContainer ul.menuElement li.menuOption');
+  }
   _advanceSelection(inc: number) {
     if (!this.menu) {
       return;
     }
-    const options = $('.menuContainer ul.menuElement li.menuOption');
+    const options = this.optionElements;
     inc = inc < 0 ? options.length - 1 : 1;
     this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
-    $(options[this.menu.focusIndex]).find('button').focus();
+    $(options[this.menu.focusIndex]).find('a').trigger('focus');
   }
 
   unattach() {
@@ -165,7 +168,7 @@ export class SuiMenuManager {
 
       r.append(
         b('li').classes('menuOption').append(
-          b('a').attr('data-value', item.value)
+          b('a').attr('data-value', item.value).attr('href','#')
             .attr('role', 'menuItem').classes('dropdown-item').append(
             b('span').classes('menuText').text(item.text))
             .append(b('span').classes('icon icon-' + item.icon))
@@ -178,7 +181,7 @@ export class SuiMenuManager {
     this.bindEvents();
   }
 
-  slashMenuMode(completeNotifier: CompleteNotifier) {
+  captureMenuEvents(completeNotifier: CompleteNotifier) {
     var self = this;
     if (this.closeMenuPromise) {
       console.log('menu already open, skipping');
@@ -217,9 +220,16 @@ export class SuiMenuManager {
         this.hotkeyBindings[item.hotkey] = item.value;
       }
     });
+    setTimeout(() => {
+      const options = this.optionElements;
+      if (options.length > 0) {
+        $(options[options.length - 1]).find('a').trigger('focus');
+      }  
+    }, 1);
   }
 
-  createMenu(action: string) {
+  createMenu(action: string, notifier: CompleteNotifier) {
+    this.captureMenuEvents(notifier);
     if (!this.completeNotifier) {
       return;
     }
@@ -299,7 +309,7 @@ export class SuiMenuManager {
       this.dismiss();
       return;
     }
-    this.createMenu(binding.action);
+    // this.createMenu(binding.action);
   }
 
   bindEvents() {
