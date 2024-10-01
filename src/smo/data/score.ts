@@ -270,7 +270,7 @@ export class SmoScore {
       this.numberStaves();
     }
     if (typeof (this.preferences.showPiano) === 'undefined') {
-      this.preferences.showPiano = true;
+      this.preferences.showPiano = false;
     }
     this.audioSettings = new SmoAudioPlayerSettings(params.audioSettings);
     this.updateMeasureFormats();

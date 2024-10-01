@@ -483,6 +483,7 @@ button.button-array.initial {
   width: 35px;
 	height: 35px;
   position:relative;
+  user-select: none;
 }
 .smoControl button.button-array.pushed {
   font-weight: bold;

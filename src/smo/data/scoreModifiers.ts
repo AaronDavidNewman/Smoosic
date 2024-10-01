@@ -155,7 +155,7 @@ export class SmoScorePreferences {
   autoAdvance: boolean = true;
   defaultDupleDuration: number = 4096;
   defaultTripleDuration: number = 6144;
-  showPiano: boolean = true;
+  showPiano: boolean = false;
   hideEmptyLines: boolean = false;
   transposingScore: boolean = false;
   static get defaults(): SmoScorePreferencesParams {
@@ -164,7 +164,7 @@ export class SmoScorePreferences {
       autoAdvance: true,
       defaultDupleDuration: 4096,
       defaultTripleDuration: 6144,
-      showPiano: true,
+      showPiano: false,
       hideEmptyLines: false,
       transposingScore: false
     };

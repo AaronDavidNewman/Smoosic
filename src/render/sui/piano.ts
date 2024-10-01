@@ -42,7 +42,7 @@ export class SuiPiano {
   }
   static createAndDisplay() {
     // Called by ribbon button.
-    $('body').trigger('show-piano-event');
+    // $('body').trigger('show-piano-event');
     $('body').trigger('forceScrollEvent');
   }
 
@@ -259,7 +259,6 @@ export class SuiPiano {
   playNote() {
   }
   render() {
-    $('body').addClass('show-piano');
     var b = SvgBuilder.b;
     var d = SuiPiano.dimensions;
     // https://www.mathpages.com/home/kmath043.htm

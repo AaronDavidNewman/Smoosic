@@ -110,17 +110,32 @@ div.ribbonButtonContainer.expanded {
 .controls-top button
  {
 	padding: 5px 0;
-	font-size: 0.7em;
 	border: 1px #44e solid;
 	position:relative;
+  font-size: 0.7em;
   border-radius:5px;
-}
-
-
-.controls-top button {
-	width:30px;
+	min-width: 50px;
 	height:50px;
-	font-size:0.7em;
+}
+.controls-top button.button-wide {
+  font-size: 1em;
+}
+button.hover-text .ribbon-button-hotkey {
+  display: none;
+}
+button.hover-text .ribbon-button-hotkey {
+  display: none;
+}
+#controls-left .nav-item {
+  min-width: 150px;
+}
+button.hover-text:hover .ribbon-button-text.icon, 
+body.alt-key button.hover-text .ribbon-button-text.icon {
+  display: none;
+}
+button.hover-text:hover .ribbon-button-hotkey,
+body.alt-key button.hover-text .ribbon-button-hotkey {
+  display: inline-block;
 }
 
 .controls-top div {
@@ -134,11 +149,64 @@ div.ribbonButtonContainer.expanded {
 	opacity:0.7;
 }
 
-.controls-top button span.ribbon-button-text {
+.controls-top .text-span {
 	position:absolute;
-  left:2px;
+	top: 30%;
+	left: 10px;
+}
+.controls-top .ribbonButtonContainer .text-span .icon-bravura {
+  display: block;
+  left: 12px;
+}
+.controls-top button span.ribbon-button-hotkey {
+  position: absolute;
+  right: 2px;
+  top: 33%;
+  font-family: sans-serif;
+}
+.controls-top button.beams .ribbon-button-hotkey {
+    font-size:0.6em;
 }
 
+.controls-top button.textButton {
+    font-size:1.2em;
+}
+
+.controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
+	font-size:1em;
+  padding-left: 7px;
+}
+.controls-top button.duration.expanded span.ribbon-button-text.icon {
+	font-size:2.2em;
+	top:25%;
+}
+
+.controls-top button.duration span.ribbon-button-text,
+.controls-top button.repetext span.ribbon-button-text {
+	font-size:1.6em;
+}
+
+.controls-top button.repetext {
+	font-style:italic;
+}
+.controls-top button.duration span.ribbon-button-hotkey {
+	font-size:1.6em;
+}
+
+button.addChord .left-text .icon {
+	left:2em;
+}
+
+.ribbonButtonContainer button.player{
+    width:55px;
+}
+
+.controls-top .ribbonButtonContainer button.player span.ribbon-button-text {
+    top:25%;
+}
+#controls-left .text-span {
+  margin-right: 10px;
+}
 button#MicrotoneButtons  {
     width:35px;
 }
@@ -154,10 +222,70 @@ button#MicrotoneButtons  {
     width:35px;
     height:40px;
 }
+.ribbonButtonContainer[data-group="quickButtons"] .button-wide button {
+  font-size: 1.2em;
+}
+.ribbonButtonContainer[data-group="quickButtons"] .button-wide button .icon {
+  font-size: 2em;
+}
+.controls-top .ribbonButtonContainer .ribbon-button-text.icon-smo.icon {
+  position: absolute;
+  top:8px;
+  left:12px;
+}
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-smo.icon, 
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-bravura.icon {
+  right: 5px;
+  left:inherit;
+  bottom:inherit;
+}
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-bravura.icon {
+  top: 0;
+}
+.controls-top .ribbonButtonContainer .button-wide .ribbon-button-text.icon-smo.icon {
+  top: 5px;
+}
+.controls-top .ribbonButtonContainer .left-text {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.controls-top .ribbonButtonContainer .button-wide .text-span {
+  top: 8px;
+  left: 5px;
+}
 
-.controls-top .ribbonButtonContainer[data-group="quickButtons"] button .icon {
-    top:25%;
-    left:25%;
+.controls-top button.articulation {
+	width:50px;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon {
+	top:30%;
+}
+
+.controls-top button.selection-icon span.ribbon-button-text.icon {
+	top:30%;
+	left: 20%;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon:before {
+	font-size:1.8em;
+}
+.controls-top button.selection-icon {
+	width:50px;
+}
+.controls-top button.selection-icon span.ribbon-button-text.icon:before {
+	font-size: 2.2em;
+}
+.ribbon-button-hotkey {
+  display: none;
+}
+button.select-part-button .ribbon-button-hotkey {
+  display: inline-block;
+}
+.ribbonButtonContainer[data-group="quickButtons"] button.button-wide {
+  width:100px;
 }
 .controls-top .ribbonButtonContainer[data-group="quickButtons"] .select-part-button {
   width: 120px;
@@ -172,15 +300,9 @@ button#MicrotoneButtons  {
 .ribbonButtonContainer[data-group="microtone"] {
     font-size:1.5em;
 }
-
-.ribbonButtonContainer[data-group="microtone"] button.expanded span.ribbon-button-text {
-    top:10px;
-    left:4px;
-}
 #addDynamicsMenu {
 	font-size:.9em;
 }
-
 #addDynamicsMenu .left-text {
 	left:0;
 	top:20%;
@@ -201,16 +323,6 @@ button#MicrotoneButtons  {
 #fermataButton .icon {
     left:20%;
     font-size:1.4em;
-}
-#articulationButtons .left-text {
-    font-size: 1.4em;
-    position: absolute;
-    top: 10%;
-    left: 12%;
-}
-#StaveButtons {
-    width:55px;
-    font-size:1.2em;
 }
 
 #clefAddRemove .icon {
@@ -250,10 +362,6 @@ button#MicrotoneButtons  {
     left:20%;
 }
 
-#NoteButtons span.icon {
-	font-size:2em;
-}
-
 #articulationButtons  .icon-articulation{
 	left:30%;
 }
@@ -289,63 +397,6 @@ button#MicrotoneButtons  {
     left: 0;
 }
 
-.controls-top button.beams .ribbon-button-hotkey {
-    font-size:0.6em;
-}
-
-.controls-top button.textButton {
-    font-size:1.2em;
-}
-
-.controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
-	font-size:1em;
-  padding-left: 7px;
-}
-.controls-top button.duration.expanded span.ribbon-button-text.icon {
-	font-size:2.2em;
-	top:25%;
-}
-
-.controls-top button.duration span.ribbon-button-text,
-.controls-top button.repetext span.ribbon-button-text {
-	font-size:1.6em;
-}
-
-.controls-top button.repetext {
-	font-style:italic;
-}
-.controls-top button.duration span.ribbon-button-hotkey {
-	font-size:1.6em;
-}
-
-
-.controls-top .text-span {
-	position:absolute;
-	top: 30%;
-	left: 0;
-}
-
-button.addChord .left-text .icon {
-	left:2em;
-}
-
-.ribbonButtonContainer button.player{
-    width:55px;
-}
-
-.controls-top .ribbonButtonContainer button.player span.ribbon-button-text {
-    top:25%;
-}
-#playerButtons .ribbon-button-text {
-    top: 15%;
-    left: 15%;
-}
-
-#playerButtons,#VoiceButtons {
-    width:55px;
-    font-size:1.3em;
-}
-
 [data-group="voices"] .expanded .icon {
     font-size:1.7em;
 }
@@ -363,69 +414,7 @@ button.addChord .left-text .icon {
     background-color:green;
 }
 
-#addTextMenu .left-text {
-    left:18%;
-    top: 15%;
-    font-size: 1em;
-    position:absolute;
-}
-#DurationButtons .left-text {
-    position:absolute;
-    font-size:1.2em;
-    left:12%;
-    top:12%;
-}
 
-#MeasureButtons .left-text {
-    position:absolute;
-    top: 12%;
-    left: 15%;
-    font-size: 1.9em;
-}
-
-#GrowDuration .ribbon-button-hotkey ,
-#LessDuration .ribbon-button-hotkey {
-	font-size:3em;
-	top:0;
-}
-
-#TripletButton {
-    width:65px;
-}
-#SeptupletButton {
-	width:90px;
-}
-
-#QuintupletButton {
-	width:75px;
-}
-
-#toCoda .icon  {
-	left:10px;
-}
-
-.controls-top button.articulation {
-	width:50px;
-}
-
-.controls-top button.articulation span.ribbon-button-text.icon {
-	top:30%;
-}
-
-.controls-top button.selection-icon span.ribbon-button-text.icon {
-	top:30%;
-	left: 20%;
-}
-
-.controls-top button.articulation span.ribbon-button-text.icon:before {
-	font-size:1.8em;
-}
-.controls-top button.selection-icon {
-	width:50px;
-}
-.controls-top button.selection-icon span.ribbon-button-text.icon:before {
-	font-size: 2.2em;
-}
 
 .controls-top button.addChord {
 	width:55px;
@@ -449,17 +438,15 @@ button.addChord .left-text .icon {
 	left:30%;
 	top:30%;
 }
-#NavigationButtons {
-	width:55px;
-	font-size:1.7em;
-}
 
 #NavigationButtons.expandedChildren {
 	font-size: 1.4em;
 	width: 50px;
 	left: 0;
 }
-
+li.nav-item:hover {
+  background: var(--bs-gray-200);
+}
 .expanded .ribbonButtonContainer button.graceIcon   {
     width:60px;
 	font-size:1.6em;
@@ -468,34 +455,15 @@ button.addChord .left-text .icon {
     font-size:0.5em;
 }
 
-#UpOctaveButton,#DownOctaveButton {
-	width:50px;
-	font-size:0.6em;
-}
-#ToggleAccidental ,#ToggleCourtesy {
-	font-size:1em;
-	width:60px;
-}
+
 #ToggleAccidental .ribbon-button-hotkey,#ToggleCourtesy .ribbon-button-hotkey  {
 	font-size:0.7em;
-}
-
-.controls-left button.icon span.icon,
-.controls-top button.icon span.icon {
-	top:10%;
 }
 
 .controls-left button.icon span.icon:before,
 .controls-top button.icon span.icon:before{
 	font-size:1.6em;
 }
-
-.controls-top button span.ribbon-button-hotkey {
-	position:absolute;
-	right:2px;
-	top:33%;
-}
-
 .controls-left .articulations button span.ribbon-button-text {
 	font-size:2em;
 }

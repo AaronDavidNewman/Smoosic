@@ -14,11 +14,6 @@ body.slash-menu .control-menu-message {
 	border:solid #8d8 2px;
 	border-radius:3px;
 }
-
-body.slash-menu button.menu-select {
-  background: #33ee66;
-}
-
 .menuElement {
 	position:absolute;
 	list-style:none;
@@ -28,15 +23,16 @@ body.slash-menu button.menu-select {
   max-height: calc(100% - 80px);
   overflow-y: auto;
 }
-
-.menuOption {
-	width: 200px;
-	height: auto;
-	padding:0;
-	position:relative;
-	background:#fff;
+.menuContainer .menuElement .menuOption {
+  display: flex;
+  flex-flow: row;
 }
-
+.menuContainer .menuElement .menuOption a.dropdown-item {
+  display: flex;
+}
+.menuContainer .menuElement .menuOption a.dropdown-item span {
+  margin-right: 10px;
+}
 .menuOption .menuText {
     display:block;
     flex:3;
